@@ -3,6 +3,10 @@ package dev.rpgmesa.demo;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.database.Cursor;
+import android.provider.OpenableColumns;
+import android.webkit.JavascriptInterface;
+import org.json.JSONObject;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
@@ -24,6 +28,8 @@ import android.webkit.ValueCallback;
  */
 public final class MainActivity extends Activity {
     private static final int PICK_LOCAL_FILE = 1104;
+    private static final int PICK_BOOK_DOCUMENT = 1105;
+    private final BookBridge books = new BookBridge();
     private static final String OFFLINE_URL = "file:///android_asset/demo-offline.html";
     private WebView browser;
     private TextView mode;
@@ -88,6 +94,7 @@ public final class MainActivity extends Activity {
                }
            }
         });
+        browser.addJavascriptInterface(books,"RpgBookBridge");
         root.addView(browser,new LinearLayout.LayoutParams(-1,0,1));
         setContentView(root);
         home.setOnClickListener(v->openOffline());
@@ -96,7 +103,7 @@ public final class MainActivity extends Activity {
     }
     private int dp(int x){return Math.round(getResources().getDisplayMetrics().density*x);}
     private Button button(String name){Button b=new Button(this);b.setText(name);b.setTextSize(10);b.setAllCaps(false);return b;}
-    private void openOffline(){allowedHost=null;allowedPort=0;mode.setText("● MODO OFFLINE");browser.loadUrl(OFFLINE_URL);}
+    private void openOffline(){allowedHost=null;allowedPort=0;mode.setText("● MODO OFFLINE");browser.addJavascriptInterface(books,"RpgBookBridge");browser.loadUrl(OFFLINE_URL);}
     private static boolean isPrivateLan(String h) {
         if(h==null||!h.matches("\\d{1,3}(\\.\\d{1,3}){3}"))return false;
         String[] p=h.split("\\.");int[] n=new int[4];
@@ -116,6 +123,7 @@ public final class MainActivity extends Activity {
               Uri u=Uri.parse(input.getText().toString().trim());
               if(!"http".equals(u.getScheme())||!isPrivateLan(u.getHost())||u.getPort()<1||u.getPort()>65535)
                  throw new IllegalArgumentException("Endereço inválido");
+              browser.removeJavascriptInterface("RpgBookBridge"); // Native API is never exposed to remote/LAN pages.
               allowedHost=u.getHost();allowedPort=u.getPort();
               getPreferences(Context.MODE_PRIVATE).edit().putString("lan",u.toString()).apply();
               mode.setText("● CONECTADO À LAN");browser.loadUrl(u.toString());
@@ -127,12 +135,59 @@ public final class MainActivity extends Activity {
     }
     @Override protected void onActivityResult(int request,int result,Intent data){
         super.onActivityResult(request,result,data);
+        if(request==PICK_BOOK_DOCUMENT){
+          if(result==RESULT_OK && data!=null && data.getData()!=null){
+            try{
+              Uri uri=data.getData();
+              getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+              String name="Livro de Regras (PDF)";
+              try(Cursor cur=getContentResolver().query(uri,new String[]{OpenableColumns.DISPLAY_NAME},null,null,null)){
+                if(cur!=null && cur.moveToFirst())name=cur.getString(0);
+              }
+              getPreferences(Context.MODE_PRIVATE).edit().putString("op_pdf_uri",uri.toString()).putString("op_pdf_name",name).apply();
+              String payload="{name:"+JSONObject.quote(name)+",available:true}";
+              browser.evaluateJavascript("window.dispatchEvent(new CustomEvent('rpg-book-selected',{detail:"+payload+"}));",null);
+            }catch(Exception error){showBookError("Não foi possível guardar o acesso ao PDF: "+error.getMessage());}
+          }
+          return;
+        }
         if(request==PICK_LOCAL_FILE && pendingUpload!=null){
           Uri[] chosen=WebChromeClient.FileChooserParams.parseResult(result,data);
           pendingUpload.onReceiveValue(chosen);
           pendingUpload=null;
         }
     }
+
+    /** SAF: only user-selected PDFs, no broad storage permissions and no network upload. */
+    public final class BookBridge {
+      @JavascriptInterface public String getSavedPdf(){
+        String path=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_uri",null);
+        String name=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_name","Livro");
+        return "{\"available\":"+(path!=null)+",\"name\":"+JSONObject.quote(name)+"}";
+      }
+      @JavascriptInterface public void pickPdf(){runOnUiThread(()->{
+        try{
+          Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT);
+          intent.addCategory(Intent.CATEGORY_OPENABLE);
+          intent.setType("application/pdf");
+          intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+          startActivityForResult(intent,PICK_BOOK_DOCUMENT);
+        }catch(Exception e){showBookError("Não foi possível abrir o seletor de PDF.");}
+      });}
+      @JavascriptInterface public void openSavedPdf(){runOnUiThread(()->{
+        String link=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_uri",null);
+        if(link==null){showBookError("Importe seu PDF pessoal pela Biblioteca.");return;}
+        try{
+          Uri uri=Uri.parse(link);
+          Intent intent=new Intent(Intent.ACTION_VIEW);
+          intent.setDataAndType(uri,"application/pdf");
+          intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+          startActivity(intent);
+        }catch(Exception e){showBookError("Instale um leitor de PDF compatível ou importe o documento novamente.");}
+      });}
+    }
+    private void showBookError(String error){runOnUiThread(()->new AlertDialog.Builder(this).setTitle("Biblioteca")
+       .setMessage(error).setPositiveButton("OK",null).show());}
     @Override public void onBackPressed(){if(browser!=null&&browser.canGoBack())browser.goBack();else super.onBackPressed();}
     @Override protected void onDestroy(){if(pendingUpload!=null){pendingUpload.onReceiveValue(null);pendingUpload=null;}if(browser!=null)browser.destroy();super.onDestroy();}
 }
