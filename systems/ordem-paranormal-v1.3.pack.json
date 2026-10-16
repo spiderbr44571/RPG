@@ -2211,6 +2211,50 @@
         "critico": "19",
         "espacos": 2,
         "paginaLivro": 57
+      },
+      {
+        "nome": "Pistola",
+        "categoriaItem": "arma",
+        "grupo": "arma_fogo",
+        "categoriaBase": 1,
+        "dano": "1d12",
+        "critico": "18",
+        "alcance": "curto",
+        "espacos": 1,
+        "paginaLivro": 56
+      },
+      {
+        "nome": "Revólver",
+        "categoriaItem": "arma",
+        "grupo": "arma_fogo",
+        "categoriaBase": 1,
+        "dano": "2d6",
+        "critico": "19/x3",
+        "alcance": "curto",
+        "espacos": 1,
+        "paginaLivro": 56
+      },
+      {
+        "nome": "Espingarda",
+        "categoriaItem": "arma",
+        "grupo": "arma_fogo",
+        "categoriaBase": 1,
+        "dano": "4d6",
+        "critico": "x3",
+        "alcance": "curto",
+        "espacos": 2,
+        "paginaLivro": 57
+      },
+      {
+        "nome": "Fuzil de assalto",
+        "categoriaItem": "arma",
+        "grupo": "arma_fogo",
+        "categoriaBase": 2,
+        "dano": "2d10",
+        "critico": "19/x3",
+        "alcance": "médio",
+        "espacos": 2,
+        "paginaLivro": 57
       }
     ],
     "gerais": [
