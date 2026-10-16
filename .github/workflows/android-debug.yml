@@ -51,6 +51,24 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
+      - name: Validar dados e scripts offline
+        shell: bash
+        run: |
+          node --check app/src/main/assets/rpg06.js
+          python - <<'PY'
+          import re,json,pathlib
+          html=pathlib.Path('app/src/main/assets/demo-offline.html').read_text()
+          data=json.loads(re.search(r'<script id="op-pack-json" type="application/json">(.*?)</script>',html,re.S).group(1))
+          items=data['equipamentos']
+          assert len(items['armas'])==34
+          assert len(items['gerais'])==52
+          assert len(set((x['nome'],x['categoriaItem']) for x in items['gerais']))==52
+          assert all('categoriaBase' in x and 'valorCategoriaPendente' not in x for x in items['gerais'])
+          assert len(items['modificacoes'])>=23
+          assert 'rpg06.js' in html
+          print('VALIDAÇÃO OK: armas, itens, modificações e script')
+          PY
+
       - name: Compilar APK
         shell: bash
         run: |
