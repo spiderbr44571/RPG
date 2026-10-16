@@ -82,6 +82,36 @@ const select=$('#canvas-creature-select');select.innerHTML=beasts.map((b,i)=>`<o
 function addBeast(b){const vp=$('#canvas-viewport').getBoundingClientRect();const x=(vp.width/2-app.S.panX)/app.S.zoom,y=(vp.height/2-app.S.panY)/app.S.zoom;
 canvas.localCommand('encounter_add',{creature_id:'custom',name:b.name,hp:b.pv,defense:b.defesa,attack_bonus:0,damage:'1d6',x,y});app.notify(`${b.name} adicionada. Confira ataques e habilidades especiais no livro; valores de ataque não configurados não são automáticos.`)}
 $('#canvas-add-creature').addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();addBeast(beasts[Number(select.value)])},true);
+
+// Somente a primeira rolagem verificada da ficha do livro é automática.
+// Nenhum alvo recebe dano sem decisão do mestre.
+$('#encounter-layer').addEventListener('click',event=>{
+ const btn=event.target.closest('button[data-action="encounter_roll"]');if(!btn)return;
+ const token=event.target.closest('.encounter-token');
+ const mob=canvas.monsters.find(x=>x.id===token?.dataset.id);
+ const rule=beasts.find(x=>x.name===mob?.name);
+ if(!rule)return;
+ const kind=btn.dataset.ability;
+ if(kind==='attack'&&rule.name==='Aberração de Carne')return;
+ const formula=kind==='attack'?rule.teste:rule.dano;
+ if(!formula){event.stopImmediatePropagation();app.notify('Rolagem ainda não conferida para esta criatura. Consulte o livro na página '+rule.paginaLivro+'.');return;}
+ let faces=[],total=0,bonus=0;
+ if(kind==='attack'){
+  const m=/^(\d*)O([+-]\d+)?$/.exec(formula);
+  if(!m)return;
+  const count=Number(m[1]||1);bonus=Number(m[2]||0);
+  const bytes=new Uint32Array(count);crypto.getRandomValues(bytes);faces=[...bytes].map(x=>1+x%20);total=Math.max(...faces)+bonus;
+ }else{
+  const m=/^(\d+)d(\d+)([+-]\d+)?$/i.exec(formula);
+  if(!m)return;
+  const count=Number(m[1]),sides=Number(m[2]);bonus=Number(m[3]||0);
+  if(count>50||sides>100)return;
+  const bytes=new Uint32Array(count);crypto.getRandomValues(bytes);faces=[...bytes].map(x=>1+x%sides);total=faces.reduce((a,b)=>a+b,bonus);
+ }
+ event.preventDefault();event.stopImmediatePropagation();
+ const out=$('#canvas-roll-feedback');if(out)out.textContent=rule.name+' • '+(kind==='attack'?'Ataque':'Dano')+' '+formula+' → ['+faces.join(', ')+'] '+(bonus>=0?'+':'')+bonus+' = '+total+' (Livro p.'+rule.paginaLivro+')';
+},true);
+
 const tokensKey='rpg-v06-monster-images';let images=storage.get(tokensKey,{}),current=0,isOpen=false,turnHandle=null;
 const best=$('#screen-bestiary');best.innerHTML=`<div class="page-row"><div><div class="eyebrow">BESTIÁRIO · ORDEM PARANORMAL 1.3</div><h1 class="page-h">Grimório <i>do mestre.</i></h1><p class="page-sub">Abra a capa para a esquerda, folheie e feche de volta à direita. Personalize as ilustrações com tokens próprios.</p></div></div><div class="rpg06-controls"><button class="btn-primary" id="rpg06-open">✧ Abrir grimório</button><select id="rpg06-beast-pick" aria-label="Criatura"></select><button class="btn-dark" id="rpg06-prev">← Anterior</button><button class="btn-dark" id="rpg06-next">Próxima →</button></div><div class="rpg06-stage" id="rpg06-stage"><div class="rpg06-book"><section class="rpg06-page rpg06-left"><small>REGISTRO • FOLIO <span id="rpg06-page"></span></small><div class="rpg06-picture" id="rpg06-picture"><div class="rpg06-sigil">✧</div></div><label class="rpg06-upload">Adicionar imagem/token<input type="file" id="rpg06-upload" accept="image/png,image/jpeg,image/webp" hidden></label><p class="rpg06-hint">Tokens importados permanecem no dispositivo. A distribuição do aplicativo não inclui artes comerciais.</p></section><section class="rpg06-page rpg06-right"><small>AMEAÇA DOCUMENTADA</small><h2 id="rpg06-name"></h2><p id="rpg06-element"></p><div class="rpg06-stats" id="rpg06-stats"></div><p class="rpg06-hint">Poderes únicos, resistências, enigmas e ataques adicionais precisam de conferência no livro.</p><div class="rpg06-controls"><button class="btn-book" id="rpg06-put">✦ Adicionar ao canvas</button><button class="btn-book" id="rpg06-reference">Livro: página</button></div></section><div class="rpg06-cover" id="rpg06-cover"><div class="rpg06-symbol">✧</div><strong>GRIMÓRIO<br>DAS CRIATURAS</strong><small>ORDEM PARANORMAL · VOLUME 1</small></div></div></div><p class="rpg05-note">${beasts.length} criaturas com atributos essenciais indexados e referências de páginas. Esta não é uma reprodução das fichas completas do livro.</p>`;
 const bsel=$('#rpg06-beast-pick');bsel.innerHTML=beasts.map((b,i)=>`<option value="${i}">${esc(b.name)} · ${esc(b.elemento)}</option>`).join('');
