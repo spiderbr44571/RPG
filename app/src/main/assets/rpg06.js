@@ -59,8 +59,8 @@ Degolificada|Medo|282|850|45|5O+35|8d8+20`;
 const beasts=entries.split('\n').map(row=>{const [name,elemento,p,pv,defesa,teste,dano]=row.split('|');return{name,elemento,paginaLivro:+p,pv:+pv,defesa:+defesa,teste,dano}});pack.criaturas=beasts;
 // Os rituais pertencem ao personagem selecionado, com histórico e permissões do mestre.
 const knownKey='rpg-v06-spells',character=()=>$('#rpg05-char-select')?.value||'default';
-const getKnown=()=>{const o=storage.get(knownKey,{});return Array.isArray(o[character()])?o[character()]:[]};
-const saveKnown=ids=>{const o=storage.get(knownKey,{});o[character()]=ids;storage.set(knownKey,o);renderKnown()};
+const getKnown=()=>{const saved=sys.state.rituaisConhecidos;if(Array.isArray(saved))return saved;const o=storage.get(knownKey,{});return Array.isArray(o[character()])?o[character()]:[]};
+const saveKnown=ids=>{const o=storage.get(knownKey,{});o[character()]=ids;storage.set(knownKey,o);const next={...sys.state,rituaisConhecidos:ids};sys.changeCharacter(next);$('#op-view-ficha').dispatchEvent(new Event('change',{bubbles:true}));renderKnown()};
 const milestones=[5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,99],unlock={1:5,2:25,3:55,4:85};
 function warnings(list){const state=sys.state,nex=Number(state.nex)||5,oc=state.class==='Ocultista',max=oc?3+Math.max(0,milestones.filter(n=>n<=nex).length-1):Number(state.attrs?.Intelecto)||0;
 const result=[];
