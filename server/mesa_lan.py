@@ -17,7 +17,7 @@ from pathlib import Path
 from urllib.parse import urlsplit, unquote
 from datetime import datetime, timezone
 
-MAX_BODY=1_500_000
+MAX_BODY=8_000_000
 SAVE_LOCK=threading.RLock()
 
 def private_ipv4():
@@ -27,11 +27,29 @@ def private_ipv4():
     except OSError:
         return '127.0.0.1'
 
+def default_limits(c):
+    # The offline Ordem 1.3 sheet stores current resources as numbers.
+    # These basic maxima exclude class-trail, origin and house-rule modifiers.
+    progression=[5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,99]
+    nex=float(c.get('nex',5)) if isinstance(c.get('nex',5),(int,float)) else 5
+    levels=max(1,sum(n<=nex for n in progression))
+    attrs=c.get('attrs') if isinstance(c.get('attrs'),dict) else {}
+    vigor=int(attrs.get('Vigor',1));presenca=int(attrs.get('Presença',1))
+    cls=c.get('class','Combatente')
+    base={'Combatente':(20,4,2,2,12,3),'Especialista':(16,3,3,3,16,4),'Ocultista':(12,2,4,4,20,5)}
+    hp0,hpl,ep0,epl,san0,sanl=base.get(cls,base['Combatente'])
+    return {'PV':hp0+vigor+(levels-1)*(hpl+vigor),
+            'PE':ep0+presenca+(levels-1)*(epl+presenca),
+            'SAN':san0+(levels-1)*sanl}
+
 def validate_sheet(c):
     if not isinstance(c,dict):raise ValueError('A ficha precisa ser um objeto JSON')
     if len(json.dumps(c,ensure_ascii=False))>350_000:raise ValueError('Ficha muito grande')
     if not isinstance(c.get('resources'),dict):c['resources']={}
+    defaults=default_limits(c)
     for k,v in list(c['resources'].items()):
+        if isinstance(v,(int,float)) and not isinstance(v,bool):
+            mx=max(0,defaults.get(k,v));c['resources'][k]={'current':min(max(0,v),mx),'max':mx};v=c['resources'][k]
         if not isinstance(v,dict):raise ValueError('Recursos devem ter current e max')
         mx=v.get('max',0);cur=v.get('current',0)
         if isinstance(mx,bool) or not isinstance(mx,(int,float)) or mx<0 or mx>999999:raise ValueError('Máximo inválido')
@@ -79,7 +97,7 @@ CSS="""*{box-sizing:border-box}body{font:14px/1.5 system-ui,sans-serif;margin:0;
 
 ADMIN_HTML="""<main><h1>✧ Mestre · Mesa em Rede</h1><p>Somente LAN. Cada jogador recebe um link com porta e token próprios. O painel do mestre pode editar qualquer campo.</p>
 <section id="login"><h2>Autenticação</h2><label>Chave administrativa impressa no terminal do PC</label><input type="password" id="key" autocomplete="off"><button class="primary" onclick="signin()">Entrar</button></section>
-<div id="console" hidden><section><h2>Importar fichas offline</h2><p>No aplicativo, abra d20 → Mesa em rede → Copiar fichas locais. Cole o JSON abaixo e importe. Os arquivos não são enviados a nenhum provedor externo.</p>
+<div id="console" hidden><section><h2>Importar fichas offline</h2><p>No aplicativo, abra d20 → Mesa em rede → Copiar fichas locais. Cole o JSON abaixo e importe. Os arquivos não são enviados a nenhum provedor externo. Confira os máximos calculados de PV/PE/SAN após a importação: origens, trilhas e poderes podem exigir ajuste do mestre.</p>
 <textarea id="import" placeholder='[{"name":"Agente","character":{"resources":{"PV":{"current":20,"max":20}}}}]'></textarea><button class="primary" onclick="imp()">Importar fichas</button> <button onclick="refresh()">Atualizar painel</button></section>
 <section><h2>Criar jogador manualmente</h2><div class="row"><input id="newname" placeholder="Nome do personagem"><button onclick="create()">Criar ficha vazia</button></div></section>
 <div class="list" id="members"></div></div><p id="status"></p></main>
