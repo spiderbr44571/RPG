@@ -3055,6 +3055,83 @@
         "categoriaExtra": 1,
         "efeito": "Furtividade após ataque",
         "paginaLivro": 61
+      },
+      {
+        "nome": "Visão de Calor",
+        "aplicavel": "arma_fogo",
+        "paginaLivro": 61,
+        "efeito": "ignora camuflagem",
+        "categoriaExtra": 1
+      },
+      {
+        "nome": "Dum dum",
+        "aplicavel": "municao",
+        "paginaLivro": 61,
+        "efeito": "multiplicador de crítico +1",
+        "categoriaExtra": 1
+      },
+      {
+        "nome": "Explosiva",
+        "aplicavel": "municao",
+        "paginaLivro": 61,
+        "efeito": "dano +2d6",
+        "categoriaExtra": 1
+      },
+      {
+        "nome": "Aprimorado",
+        "aplicavel": "acessorio",
+        "paginaLivro": 64,
+        "efeito": "bônus de perícia +5",
+        "categoriaExtra": 1
+      },
+      {
+        "nome": "Discreto",
+        "aplicavel": "acessorio",
+        "paginaLivro": 64,
+        "efeito": "ocultação +5; -1 espaço",
+        "categoriaExtra": 1
+      },
+      {
+        "nome": "Função adicional",
+        "aplicavel": "acessorio",
+        "paginaLivro": 64,
+        "efeito": "+2 em outra perícia",
+        "categoriaExtra": 1
+      },
+      {
+        "nome": "Instrumental",
+        "aplicavel": "acessorio",
+        "paginaLivro": 64,
+        "efeito": "funciona como kit de perícia",
+        "categoriaExtra": 1
+      },
+      {
+        "nome": "Antibombas",
+        "aplicavel": "protecao",
+        "paginaLivro": 62,
+        "efeito": "+5 resistência contra efeitos de área",
+        "categoriaExtra": 1
+      },
+      {
+        "nome": "Blindada",
+        "aplicavel": "protecao",
+        "paginaLivro": 62,
+        "efeito": "RD 5; +1 espaço",
+        "categoriaExtra": 1
+      },
+      {
+        "nome": "Discreta",
+        "aplicavel": "protecao",
+        "paginaLivro": 62,
+        "efeito": "+5 ocultação; -1 espaço",
+        "categoriaExtra": 1
+      },
+      {
+        "nome": "Reforçada",
+        "aplicavel": "protecao",
+        "paginaLivro": 62,
+        "efeito": "Defesa +2; +1 espaço",
+        "categoriaExtra": 1
       }
     ],
     "maldicoes": [
