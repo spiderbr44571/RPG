@@ -9,11 +9,11 @@ permissions:
 
 jobs:
   apk:
-    name: Compilacao Android (diagnostico)
+    name: Compilar aplicativo Android
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
-      - name: Baixar projeto
+      - name: Baixar codigo
         uses: actions/checkout@v4
 
       - name: Instalar Java 17
@@ -22,34 +22,46 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Configurar Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Instalar ferramentas Android
+      # Ubuntu-hosted runners already include Android SDK command-line tools.
+      # Do not use android-actions/setup-android@v3, which currently calls
+      # the removed legacy "tools" package and fails before Gradle runs.
+      - name: Preparar Android SDK do runner
         shell: bash
         run: |
           set -euo pipefail
-          sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
-          echo "ANDROID_HOME=${ANDROID_HOME}"
-          java -version
+          echo "ANDROID_HOME=${ANDROID_HOME:-not-set}"
+          command -v sdkmanager || true
+          if [ -z "${ANDROID_HOME:-}" ] || [ ! -d "$ANDROID_HOME" ]; then
+            echo "Android SDK nao disponivel no runner" >&2
+            exit 1
+          fi
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMANAGER" ]; then
+            SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -path '*/bin/sdkmanager' -type f | sort -V | tail -1)"
+          fi
+          if [ -z "$SDKMANAGER" ]; then
+            echo "sdkmanager ausente" >&2
+            exit 1
+          fi
+          echo "Utilizando $SDKMANAGER"
+          "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --install "platforms;android-35" "build-tools;35.0.0"
 
       - name: Configurar Gradle 8.10.2
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'
 
-      - name: Compilar APK com registro de erros
+      - name: Compilar APK
         shell: bash
         run: |
           set -o pipefail
-          gradle --version
-          gradle :app:assembleDebug --stacktrace --warning-mode all --no-daemon 2>&1 | tee build-log.txt
+          gradle :app:assembleDebug --stacktrace --no-daemon 2>&1 | tee build-log.txt
 
-      - name: Upload de log para diagnostico
+      - name: Publicar log de diagnostico
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: log-compilacao-android
+          name: log-compilacao
           path: build-log.txt
           if-no-files-found: ignore
 
