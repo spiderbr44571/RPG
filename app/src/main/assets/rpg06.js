@@ -125,7 +125,7 @@ const css=`.rpg06-alert{padding:10px 14px;border:1px solid #9e734c88;background:
 const style=document.createElement('style');style.id='rpg06-style';style.textContent=css;document.head.append(style);
 
 // 0.7: revisão das fichas e editor de ameaças. O livro original continua no dispositivo do leitor.
-const vdOriginal={'Aberração de Carne':40,'Aniquilação':380,'O Diabo':400,'Ceifador Espiral':380,'Esqueleto de Lodo':20,'Múmia Xipófaga':240,'Rastejador Sombrio':180,'Máscara do Desespero':400,'Anárquico Descontrolado':120,'Anfitrião':413,'Degolificada':320};
+const vdOriginal={"Aberração de Carne":40,"Aniquilação":380,"Carente":300,"Dama de Sangue":60,"Enpap-X":180,"Kerberos":340,"Minotauro":280,"Mulher Afogada":140,"Titã de Sangue":220,"Zumbi de Sangue":20,"Zumbi de Sangue Bestial":100,"O Diabo":400,"Aracnasita":80,"Carniçal Preto da Morte":200,"Ceifador Espiral":380,"Enraizado":120,"Escutado":160,"Esqueleto de Lodo":20,"Marionete":280,"Múmia Xipófaga":240,"Nidere":320,"Sempiternal":360,"Succ":40,"Deus da Morte":400,"Anjo":380,"Bicho-Papão":300,"Espreitador":220,"Estrangeiro":340,"Existido":20,"Lembrado":100,"Ocioso":260,"Parasita de Culpa":60,"Rastejador Sombrio":180,"Silhueta":360,"Vulto":40,"Máscara do Desespero":400,"Anárquico":20,"Anárquico Descontrolado":120,"Anomiático":240,"Ciborgue":80,"Infecticídio":280,"Perturbado":40,"Sukkalgir":160,"Telopsia":340,"Tempestuoso":360,"Viajante":200,"Anfitrião":413,"Degolificada":320};
 const descriptions={
 'Aberração de Carne':'Criatura de Sangue originada de um experimento de união corporal. Seus membros numerosos permitem ataques seguidos e agarrões.',
 'Aniquilação':'Ameaça colossal de Sangue associada a rastros de destruição em civilizações antigas. Apresenta múltiplos tentáculos.',
