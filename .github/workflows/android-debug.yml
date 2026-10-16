@@ -55,6 +55,9 @@ jobs:
         shell: bash
         run: |
           node --check app/src/main/assets/rpg06.js
+          node --check app/src/main/assets/rpg08.js
+          node --check app/src/main/assets/rpg09.js
+          python -m py_compile server/mesa_lan.py
           python - <<'PY'
           import re,json,pathlib
           html=pathlib.Path('app/src/main/assets/demo-offline.html').read_text()
