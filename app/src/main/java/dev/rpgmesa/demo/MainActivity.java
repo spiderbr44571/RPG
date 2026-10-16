@@ -9,6 +9,11 @@ import android.webkit.JavascriptInterface;
 import org.json.JSONObject;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Bitmap;
+import android.graphics.pdf.PdfRenderer;
+import android.os.ParcelFileDescriptor;
+import android.util.Base64;
+import java.io.ByteArrayOutputStream;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -174,6 +179,39 @@ public final class MainActivity extends Activity {
           startActivityForResult(intent,PICK_BOOK_DOCUMENT);
         }catch(Exception e){showBookError("Não foi possível abrir o seletor de PDF.");}
       });}
+      /** Render only a page of the document chosen by the user; never bundled or uploaded. */
+      @JavascriptInterface public void renderPage(int printedPage) {
+        final String link=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_uri",null);
+        if(link==null || printedPage<1 || printedPage>500) {
+           sendPdfError("Importe o PDF primeiro pela Biblioteca.");return;
+        }
+        try(ParcelFileDescriptor fd=getContentResolver().openFileDescriptor(Uri.parse(link),"r")) {
+          if(fd==null){sendPdfError("Documento indisponível.");return;}
+          try(PdfRenderer renderer=new PdfRenderer(fd)) {
+             int index=printedPage+9;
+             if(index<0 || index>=renderer.getPageCount()){sendPdfError("Página não encontrada neste PDF.");return;}
+             try(PdfRenderer.Page page=renderer.openPage(index)) {
+                final float scale=Math.min(1150f/page.getWidth(),1450f/page.getHeight());
+                final int width=Math.max(1,Math.round(page.getWidth()*scale));
+                final int height=Math.max(1,Math.round(page.getHeight()*scale));
+                Bitmap img=Bitmap.createBitmap(width,height,Bitmap.Config.ARGB_8888);
+                try {
+                    img.eraseColor(Color.WHITE);
+                    page.render(img,null,null,PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
+                    ByteArrayOutputStream out=new ByteArrayOutputStream();
+                    if(!img.compress(Bitmap.CompressFormat.JPEG,80,out)){sendPdfError("Erro ao renderizar página.");return;}
+                    String data="data:image/jpeg;base64,"+Base64.encodeToString(out.toByteArray(),Base64.NO_WRAP);
+                    final String script="window.dispatchEvent(new CustomEvent('rpg-page-rendered',{detail:{page:"+printedPage+",src:"+JSONObject.quote(data)+"}}));";
+                    runOnUiThread(()->browser.evaluateJavascript(script,null));
+                } finally {img.recycle();}
+             }
+          }
+        }catch(Exception e){sendPdfError("Não foi possível ler esta página. Verifique o arquivo e tente novamente.");}
+      }
+      private void sendPdfError(String message){
+        final String js="window.dispatchEvent(new CustomEvent('rpg-page-error',{detail:"+JSONObject.quote(message)+"}));";
+        runOnUiThread(()->browser.evaluateJavascript(js,null));
+      }
       @JavascriptInterface public void openSavedPdf(){runOnUiThread(()->{
         String link=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_uri",null);
         if(link==null){showBookError("Importe seu PDF pessoal pela Biblioteca.");return;}
