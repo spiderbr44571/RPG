@@ -35,6 +35,7 @@ public final class MainActivity extends Activity {
     private static final int PICK_LOCAL_FILE = 1104;
     private static final int PICK_BOOK_DOCUMENT = 1105;
     private final BookBridge books = new BookBridge();
+    private final LanBridge lan = new LanBridge();
     private static final String OFFLINE_URL = "file:///android_asset/demo-offline.html";
     private WebView browser;
     private TextView mode;
@@ -60,7 +61,8 @@ public final class MainActivity extends Activity {
         Button connect=button("LAN opcional");
         top.addView(mode,new LinearLayout.LayoutParams(0,dp(42),1));
         top.addView(home);top.addView(connect);
-        root.addView(top,new LinearLayout.LayoutParams(-1,dp(52)));
+        // O único acesso permanente às ferramentas agora é o d20 dentro da interface.
+        // A barra de conexão é substituída pela ferramenta "Mesa em rede".
         browser=new WebView(this);
         WebSettings cfg=browser.getSettings();
         cfg.setJavaScriptEnabled(true);
@@ -100,6 +102,7 @@ public final class MainActivity extends Activity {
            }
         });
         browser.addJavascriptInterface(books,"RpgBookBridge");
+        browser.addJavascriptInterface(lan,"RpgLanBridge");
         root.addView(browser,new LinearLayout.LayoutParams(-1,0,1));
         setContentView(root);
         home.setOnClickListener(v->openOffline());
@@ -108,7 +111,7 @@ public final class MainActivity extends Activity {
     }
     private int dp(int x){return Math.round(getResources().getDisplayMetrics().density*x);}
     private Button button(String name){Button b=new Button(this);b.setText(name);b.setTextSize(10);b.setAllCaps(false);return b;}
-    private void openOffline(){allowedHost=null;allowedPort=0;mode.setText("● MODO OFFLINE");browser.addJavascriptInterface(books,"RpgBookBridge");browser.loadUrl(OFFLINE_URL);}
+    private void openOffline(){allowedHost=null;allowedPort=0;mode.setText("● MODO OFFLINE");browser.addJavascriptInterface(books,"RpgBookBridge");browser.addJavascriptInterface(lan,"RpgLanBridge");browser.loadUrl(OFFLINE_URL);}
     private static boolean isPrivateLan(String h) {
         if(h==null||!h.matches("\\d{1,3}(\\.\\d{1,3}){3}"))return false;
         String[] p=h.split("\\.");int[] n=new int[4];
@@ -128,7 +131,8 @@ public final class MainActivity extends Activity {
               Uri u=Uri.parse(input.getText().toString().trim());
               if(!"http".equals(u.getScheme())||!isPrivateLan(u.getHost())||u.getPort()<1||u.getPort()>65535)
                  throw new IllegalArgumentException("Endereço inválido");
-              browser.removeJavascriptInterface("RpgBookBridge"); // Native API is never exposed to remote/LAN pages.
+              browser.removeJavascriptInterface("RpgBookBridge");
+              browser.removeJavascriptInterface("RpgLanBridge"); // Remote pages cannot access native functionality.
               allowedHost=u.getHost();allowedPort=u.getPort();
               getPreferences(Context.MODE_PRIVATE).edit().putString("lan",u.toString()).apply();
               mode.setText("● CONECTADO À LAN");browser.loadUrl(u.toString());
@@ -150,8 +154,14 @@ public final class MainActivity extends Activity {
                 if(cur!=null && cur.moveToFirst())name=cur.getString(0);
               }
               getPreferences(Context.MODE_PRIVATE).edit().putString("op_pdf_uri",uri.toString()).putString("op_pdf_name",name).apply();
-              String payload="{name:"+JSONObject.quote(name)+",available:true}";
-              browser.evaluateJavascript("window.dispatchEvent(new CustomEvent('rpg-book-selected',{detail:"+payload+"}));",null);
+              // A miniatura é criada localmente em segundo plano, usando a PRIMEIRA página do PDF.
+              final String filename=name;
+              new Thread(()->{
+                String cover=renderPdfCover(uri);
+                if(cover!=null)getPreferences(Context.MODE_PRIVATE).edit().putString("op_pdf_cover",cover).apply();
+                String payload="{name:"+JSONObject.quote(filename)+",available:true,cover:"+JSONObject.quote(cover==null?"":cover)+"}";
+                runOnUiThread(()->browser.evaluateJavascript("window.dispatchEvent(new CustomEvent('rpg-book-selected',{detail:"+payload+"}));",null));
+              },"rpg-pdf-cover").start();
             }catch(Exception error){showBookError("Não foi possível guardar o acesso ao PDF: "+error.getMessage());}
           }
           return;
@@ -168,7 +178,8 @@ public final class MainActivity extends Activity {
       @JavascriptInterface public String getSavedPdf(){
         String path=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_uri",null);
         String name=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_name","Livro");
-        return "{\"available\":"+(path!=null)+",\"name\":"+JSONObject.quote(name)+"}";
+        String cover=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_cover","");
+        return "{\"available\":"+(path!=null)+",\"name\":"+JSONObject.quote(name)+",\"cover\":"+JSONObject.quote(cover)+"}";
       }
       @JavascriptInterface public void pickPdf(){runOnUiThread(()->{
         try{
@@ -224,8 +235,33 @@ public final class MainActivity extends Activity {
         }catch(Exception e){showBookError("Instale um leitor de PDF compatível ou importe o documento novamente.");}
       });}
     }
+
+    public final class LanBridge {
+      @JavascriptInterface public void launchLanMaster(){runOnUiThread(()->promptLan());}
+    }
+    private String renderPdfCover(Uri uri){
+      try(ParcelFileDescriptor fd=getContentResolver().openFileDescriptor(uri,"r")) {
+        if(fd==null)return null;
+        try(PdfRenderer pdf=new PdfRenderer(fd)) {
+          if(pdf.getPageCount()<1)return null;
+          try(PdfRenderer.Page page=pdf.openPage(0)) {
+            float scale=Math.min(310f/page.getWidth(),460f/page.getHeight());
+            int w=Math.max(1,Math.round(page.getWidth()*scale));
+            int h=Math.max(1,Math.round(page.getHeight()*scale));
+            Bitmap bmp=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888);
+            try {
+              bmp.eraseColor(Color.WHITE);
+              page.render(bmp,null,null,PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
+              ByteArrayOutputStream out=new ByteArrayOutputStream();
+              if(!bmp.compress(Bitmap.CompressFormat.JPEG,72,out))return null;
+              return "data:image/jpeg;base64,"+Base64.encodeToString(out.toByteArray(),Base64.NO_WRAP);
+            } finally {bmp.recycle();}
+          }
+        }
+      } catch(Exception error){return null;}
+    }
     private void showBookError(String error){runOnUiThread(()->new AlertDialog.Builder(this).setTitle("Biblioteca")
        .setMessage(error).setPositiveButton("OK",null).show());}
-    @Override public void onBackPressed(){if(browser!=null&&browser.canGoBack())browser.goBack();else super.onBackPressed();}
+    @Override public void onBackPressed(){if(allowedHost!=null){openOffline();return;}if(browser!=null&&browser.canGoBack())browser.goBack();else super.onBackPressed();}
     @Override protected void onDestroy(){if(pendingUpload!=null){pendingUpload.onReceiveValue(null);pendingUpload=null;}if(browser!=null)browser.destroy();super.onDestroy();}
 }
