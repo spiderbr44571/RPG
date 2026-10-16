@@ -2166,9 +2166,12 @@
         "nome": "Faca",
         "categoriaItem": "arma",
         "grupo": "simples",
+        "proficiencia": "simples",
         "categoriaBase": 0,
         "dano": "1d4",
         "critico": "19",
+        "alcance": "curto",
+        "tipo": "C",
         "espacos": 1,
         "paginaLivro": 56
       },
@@ -2176,9 +2179,12 @@
         "nome": "Martelo",
         "categoriaItem": "arma",
         "grupo": "simples",
+        "proficiencia": "simples",
         "categoriaBase": 0,
         "dano": "1d6",
         "critico": "x2",
+        "alcance": "—",
+        "tipo": "I",
         "espacos": 1,
         "paginaLivro": 56
       },
@@ -2186,40 +2192,103 @@
         "nome": "Punhal",
         "categoriaItem": "arma",
         "grupo": "simples",
+        "proficiencia": "simples",
         "categoriaBase": 0,
         "dano": "1d4",
         "critico": "x3",
+        "alcance": "—",
+        "tipo": "P",
         "espacos": 1,
         "paginaLivro": 56
       },
       {
-        "nome": "Katana",
+        "nome": "Bastão",
         "categoriaItem": "arma",
-        "grupo": "tática",
-        "categoriaBase": 1,
-        "dano": "1d10",
-        "critico": "19",
-        "espacos": 2,
-        "paginaLivro": 57
+        "grupo": "simples",
+        "proficiencia": "simples",
+        "categoriaBase": 0,
+        "dano": "1d6/1d8",
+        "critico": "x2",
+        "alcance": "—",
+        "tipo": "I",
+        "espacos": 1,
+        "paginaLivro": 56
       },
       {
-        "nome": "Montante",
+        "nome": "Machete",
         "categoriaItem": "arma",
-        "grupo": "tática",
-        "categoriaBase": 1,
-        "dano": "2d6",
+        "grupo": "simples",
+        "proficiencia": "simples",
+        "categoriaBase": 0,
+        "dano": "1d6",
         "critico": "19",
+        "alcance": "—",
+        "tipo": "C",
+        "espacos": 1,
+        "paginaLivro": 56
+      },
+      {
+        "nome": "Lança",
+        "categoriaItem": "arma",
+        "grupo": "simples",
+        "proficiencia": "simples",
+        "categoriaBase": 0,
+        "dano": "1d6",
+        "critico": "x2",
+        "alcance": "curto",
+        "tipo": "P",
+        "espacos": 1,
+        "paginaLivro": 56
+      },
+      {
+        "nome": "Cajado",
+        "categoriaItem": "arma",
+        "grupo": "simples",
+        "proficiencia": "simples",
+        "categoriaBase": 0,
+        "dano": "1d6/1d6",
+        "critico": "x2",
+        "alcance": "—",
+        "tipo": "I",
         "espacos": 2,
-        "paginaLivro": 57
+        "paginaLivro": 56
+      },
+      {
+        "nome": "Arco",
+        "categoriaItem": "arma",
+        "grupo": "simples",
+        "proficiencia": "simples",
+        "categoriaBase": 0,
+        "dano": "1d6",
+        "critico": "x3",
+        "alcance": "médio",
+        "tipo": "P",
+        "espacos": 2,
+        "paginaLivro": 56
+      },
+      {
+        "nome": "Besta",
+        "categoriaItem": "arma",
+        "grupo": "simples",
+        "proficiencia": "simples",
+        "categoriaBase": 0,
+        "dano": "1d8",
+        "critico": "19",
+        "alcance": "médio",
+        "tipo": "P",
+        "espacos": 2,
+        "paginaLivro": 56
       },
       {
         "nome": "Pistola",
         "categoriaItem": "arma",
         "grupo": "arma_fogo",
+        "proficiencia": "simples",
         "categoriaBase": 1,
         "dano": "1d12",
         "critico": "18",
         "alcance": "curto",
+        "tipo": "B",
         "espacos": 1,
         "paginaLivro": 56
       },
@@ -2227,21 +2296,246 @@
         "nome": "Revólver",
         "categoriaItem": "arma",
         "grupo": "arma_fogo",
+        "proficiencia": "simples",
         "categoriaBase": 1,
         "dano": "2d6",
         "critico": "19/x3",
         "alcance": "curto",
+        "tipo": "B",
         "espacos": 1,
         "paginaLivro": 56
+      },
+      {
+        "nome": "Fuzil de caça",
+        "categoriaItem": "arma",
+        "grupo": "arma_fogo",
+        "proficiencia": "simples",
+        "categoriaBase": 1,
+        "dano": "2d8",
+        "critico": "19/x3",
+        "alcance": "médio",
+        "tipo": "B",
+        "espacos": 2,
+        "paginaLivro": 56
+      },
+      {
+        "nome": "Machadinha",
+        "categoriaItem": "arma",
+        "grupo": "tática",
+        "proficiencia": "tática",
+        "categoriaBase": 0,
+        "dano": "1d6",
+        "critico": "x3",
+        "alcance": "curto",
+        "tipo": "C",
+        "espacos": 1,
+        "paginaLivro": 56
+      },
+      {
+        "nome": "Nunchaku",
+        "categoriaItem": "arma",
+        "grupo": "tática",
+        "proficiencia": "tática",
+        "categoriaBase": 0,
+        "dano": "1d8",
+        "critico": "x2",
+        "alcance": "—",
+        "tipo": "I",
+        "espacos": 1,
+        "paginaLivro": 56
+      },
+      {
+        "nome": "Corrente",
+        "categoriaItem": "arma",
+        "grupo": "tática",
+        "proficiencia": "tática",
+        "categoriaBase": 0,
+        "dano": "1d8",
+        "critico": "x2",
+        "alcance": "—",
+        "tipo": "I",
+        "espacos": 1,
+        "paginaLivro": 56
+      },
+      {
+        "nome": "Espada",
+        "categoriaItem": "arma",
+        "grupo": "tática",
+        "proficiencia": "tática",
+        "categoriaBase": 1,
+        "dano": "1d8/1d10",
+        "critico": "19",
+        "alcance": "—",
+        "tipo": "C",
+        "espacos": 1,
+        "paginaLivro": 56
+      },
+      {
+        "nome": "Florete",
+        "categoriaItem": "arma",
+        "grupo": "tática",
+        "proficiencia": "tática",
+        "categoriaBase": 1,
+        "dano": "1d6",
+        "critico": "18",
+        "alcance": "—",
+        "tipo": "C",
+        "espacos": 1,
+        "paginaLivro": 56
+      },
+      {
+        "nome": "Machado",
+        "categoriaItem": "arma",
+        "grupo": "tática",
+        "proficiencia": "tática",
+        "categoriaBase": 1,
+        "dano": "1d8",
+        "critico": "x3",
+        "alcance": "—",
+        "tipo": "C",
+        "espacos": 1,
+        "paginaLivro": 56
+      },
+      {
+        "nome": "Maça",
+        "categoriaItem": "arma",
+        "grupo": "tática",
+        "proficiencia": "tática",
+        "categoriaBase": 1,
+        "dano": "2d4",
+        "critico": "x2",
+        "alcance": "—",
+        "tipo": "I",
+        "espacos": 1,
+        "paginaLivro": 56
+      },
+      {
+        "nome": "Acha",
+        "categoriaItem": "arma",
+        "grupo": "tática",
+        "proficiencia": "tática",
+        "categoriaBase": 1,
+        "dano": "1d12",
+        "critico": "x3",
+        "alcance": "—",
+        "tipo": "C",
+        "espacos": 2,
+        "paginaLivro": 57
+      },
+      {
+        "nome": "Gadanho",
+        "categoriaItem": "arma",
+        "grupo": "tática",
+        "proficiencia": "tática",
+        "categoriaBase": 1,
+        "dano": "2d4",
+        "critico": "x4",
+        "alcance": "—",
+        "tipo": "C",
+        "espacos": 2,
+        "paginaLivro": 57
+      },
+      {
+        "nome": "Katana",
+        "categoriaItem": "arma",
+        "grupo": "tática",
+        "proficiencia": "tática",
+        "categoriaBase": 1,
+        "dano": "1d10",
+        "critico": "19",
+        "alcance": "—",
+        "tipo": "C",
+        "espacos": 2,
+        "paginaLivro": 57
+      },
+      {
+        "nome": "Marreta",
+        "categoriaItem": "arma",
+        "grupo": "tática",
+        "proficiencia": "tática",
+        "categoriaBase": 1,
+        "dano": "3d4",
+        "critico": "x2",
+        "alcance": "—",
+        "tipo": "I",
+        "espacos": 2,
+        "paginaLivro": 57
+      },
+      {
+        "nome": "Montante",
+        "categoriaItem": "arma",
+        "grupo": "tática",
+        "proficiencia": "tática",
+        "categoriaBase": 1,
+        "dano": "2d6",
+        "critico": "19",
+        "alcance": "—",
+        "tipo": "C",
+        "espacos": 2,
+        "paginaLivro": 57
+      },
+      {
+        "nome": "Motosserra",
+        "categoriaItem": "arma",
+        "grupo": "tática",
+        "proficiencia": "tática",
+        "categoriaBase": 1,
+        "dano": "3d6",
+        "critico": "x2",
+        "alcance": "—",
+        "tipo": "C",
+        "espacos": 2,
+        "paginaLivro": 57
+      },
+      {
+        "nome": "Arco composto",
+        "categoriaItem": "arma",
+        "grupo": "tática",
+        "proficiencia": "tática",
+        "categoriaBase": 1,
+        "dano": "1d10",
+        "critico": "x3",
+        "alcance": "médio",
+        "tipo": "P",
+        "espacos": 2,
+        "paginaLivro": 57
+      },
+      {
+        "nome": "Balestra",
+        "categoriaItem": "arma",
+        "grupo": "tática",
+        "proficiencia": "tática",
+        "categoriaBase": 1,
+        "dano": "1d12",
+        "critico": "19",
+        "alcance": "médio",
+        "tipo": "P",
+        "espacos": 2,
+        "paginaLivro": 57
+      },
+      {
+        "nome": "Submetralhadora",
+        "categoriaItem": "arma",
+        "grupo": "arma_fogo",
+        "proficiencia": "tática",
+        "categoriaBase": 1,
+        "dano": "2d6",
+        "critico": "19/x3",
+        "alcance": "curto",
+        "tipo": "B",
+        "espacos": 1,
+        "paginaLivro": 57
       },
       {
         "nome": "Espingarda",
         "categoriaItem": "arma",
         "grupo": "arma_fogo",
+        "proficiencia": "tática",
         "categoriaBase": 1,
         "dano": "4d6",
         "critico": "x3",
         "alcance": "curto",
+        "tipo": "B",
         "espacos": 2,
         "paginaLivro": 57
       },
@@ -2249,10 +2543,64 @@
         "nome": "Fuzil de assalto",
         "categoriaItem": "arma",
         "grupo": "arma_fogo",
+        "proficiencia": "tática",
         "categoriaBase": 2,
         "dano": "2d10",
         "critico": "19/x3",
         "alcance": "médio",
+        "tipo": "B",
+        "espacos": 2,
+        "paginaLivro": 57
+      },
+      {
+        "nome": "Fuzil de precisão",
+        "categoriaItem": "arma",
+        "grupo": "arma_fogo",
+        "proficiencia": "tática",
+        "categoriaBase": 3,
+        "dano": "2d10",
+        "critico": "19/x3",
+        "alcance": "longo",
+        "tipo": "B",
+        "espacos": 2,
+        "paginaLivro": 57
+      },
+      {
+        "nome": "Bazuca",
+        "categoriaItem": "arma",
+        "grupo": "arma_fogo",
+        "proficiencia": "pesada",
+        "categoriaBase": 3,
+        "dano": "10d8",
+        "critico": "x2",
+        "alcance": "médio",
+        "tipo": "I",
+        "espacos": 2,
+        "paginaLivro": 57
+      },
+      {
+        "nome": "Lança-chamas",
+        "categoriaItem": "arma",
+        "grupo": "arma_fogo",
+        "proficiencia": "pesada",
+        "categoriaBase": 3,
+        "dano": "6d6",
+        "critico": "x2",
+        "alcance": "curto",
+        "tipo": "Fogo",
+        "espacos": 2,
+        "paginaLivro": 57
+      },
+      {
+        "nome": "Metralhadora",
+        "categoriaItem": "arma",
+        "grupo": "arma_fogo",
+        "proficiencia": "pesada",
+        "categoriaBase": 2,
+        "dano": "2d12",
+        "critico": "19/x3",
+        "alcance": "médio",
+        "tipo": "B",
         "espacos": 2,
         "paginaLivro": 57
       }
@@ -2280,14 +2628,245 @@
         "paginaLivro": 63
       },
       {
-        "nome": "Corda",
-        "categoriaItem": "equipamento",
+        "nome": "Granada de atordoamento",
+        "categoriaItem": "explosivo",
         "categoriaBase": 0,
         "espacos": 1,
-        "paginaLivro": 65
+        "paginaLivro": 63
       },
       {
-        "nome": "Componentes ritualísticos",
+        "nome": "Granada de fragmentação",
+        "categoriaItem": "explosivo",
+        "categoriaBase": 1,
+        "espacos": 1,
+        "paginaLivro": 63
+      },
+      {
+        "nome": "Granada de fumaça",
+        "categoriaItem": "explosivo",
+        "categoriaBase": 0,
+        "espacos": 1,
+        "paginaLivro": 63
+      },
+      {
+        "nome": "Granada incendiária",
+        "categoriaItem": "explosivo",
+        "categoriaBase": 1,
+        "espacos": 1,
+        "paginaLivro": 63
+      },
+      {
+        "nome": "Mina antipessoal",
+        "categoriaItem": "explosivo",
+        "categoriaBase": 1,
+        "espacos": 1,
+        "paginaLivro": 63
+      },
+      {
+        "nome": "Algemas",
+        "categoriaItem": "operacional",
+        "categoriaBase": 0,
+        "espacos": 1,
+        "paginaLivro": 63
+      },
+      {
+        "nome": "Arpéu",
+        "categoriaItem": "operacional",
+        "categoriaBase": 0,
+        "espacos": 1,
+        "paginaLivro": 63
+      },
+      {
+        "nome": "Bandoleira",
+        "categoriaItem": "operacional",
+        "categoriaBase": 1,
+        "espacos": 1,
+        "paginaLivro": 63
+      },
+      {
+        "nome": "Binóculos",
+        "categoriaItem": "operacional",
+        "categoriaBase": 0,
+        "espacos": 1,
+        "paginaLivro": 63
+      },
+      {
+        "nome": "Bloqueador de sinal",
+        "categoriaItem": "operacional",
+        "categoriaBase": 1,
+        "espacos": 1,
+        "paginaLivro": 63
+      },
+      {
+        "nome": "Cicatrizante",
+        "categoriaItem": "operacional",
+        "categoriaBase": 1,
+        "espacos": 1,
+        "paginaLivro": 63
+      },
+      {
+        "nome": "Corda",
+        "categoriaItem": "operacional",
+        "categoriaBase": 0,
+        "espacos": 1,
+        "paginaLivro": 63
+      },
+      {
+        "nome": "Equipamento de sobrevivência",
+        "categoriaItem": "operacional",
+        "categoriaBase": 0,
+        "espacos": 2,
+        "paginaLivro": 63
+      },
+      {
+        "nome": "Lanterna tática",
+        "categoriaItem": "operacional",
+        "categoriaBase": 1,
+        "espacos": 1,
+        "paginaLivro": 63
+      },
+      {
+        "nome": "Máscara de gás",
+        "categoriaItem": "operacional",
+        "categoriaBase": 0,
+        "espacos": 1,
+        "paginaLivro": 63
+      },
+      {
+        "nome": "Mochila militar",
+        "categoriaItem": "operacional",
+        "categoriaBase": 1,
+        "espacos": 0,
+        "paginaLivro": 63
+      },
+      {
+        "nome": "Óculos de visão térmica",
+        "categoriaItem": "operacional",
+        "categoriaBase": 1,
+        "espacos": 1,
+        "paginaLivro": 63
+      },
+      {
+        "nome": "Pé de cabra",
+        "categoriaItem": "operacional",
+        "categoriaBase": 0,
+        "espacos": 1,
+        "paginaLivro": 63
+      },
+      {
+        "nome": "Pistola de dardos",
+        "categoriaItem": "operacional",
+        "categoriaBase": 1,
+        "espacos": 1,
+        "paginaLivro": 63
+      },
+      {
+        "nome": "Pistola sinalizadora",
+        "categoriaItem": "operacional",
+        "categoriaBase": 0,
+        "espacos": 1,
+        "paginaLivro": 63
+      },
+      {
+        "nome": "Soqueira",
+        "categoriaItem": "operacional",
+        "categoriaBase": 0,
+        "espacos": 1,
+        "paginaLivro": 63
+      },
+      {
+        "nome": "Spray de pimenta",
+        "categoriaItem": "operacional",
+        "categoriaBase": 1,
+        "espacos": 1,
+        "paginaLivro": 63
+      },
+      {
+        "nome": "Taser",
+        "categoriaItem": "operacional",
+        "categoriaBase": 1,
+        "espacos": 1,
+        "paginaLivro": 63
+      },
+      {
+        "nome": "Traje hazmat",
+        "categoriaItem": "operacional",
+        "categoriaBase": 1,
+        "espacos": 2,
+        "paginaLivro": 63
+      },
+      {
+        "nome": "Proteção leve",
+        "categoriaItem": "protecao",
+        "categoriaBase": 1,
+        "espacos": 2,
+        "paginaLivro": 62
+      },
+      {
+        "nome": "Proteção pesada",
+        "categoriaItem": "protecao",
+        "categoriaBase": 2,
+        "espacos": 5,
+        "paginaLivro": 62
+      },
+      {
+        "nome": "Escudo",
+        "categoriaItem": "protecao",
+        "categoriaBase": 1,
+        "espacos": 2,
+        "paginaLivro": 62
+      },
+      {
+        "nome": "Amarras de Sangue",
+        "categoriaItem": "item_paranormal",
+        "categoriaBase": 2,
+        "espacos": 1,
+        "paginaLivro": 67
+      },
+      {
+        "nome": "Amarras de Morte",
+        "categoriaItem": "item_paranormal",
+        "categoriaBase": 2,
+        "espacos": 1,
+        "paginaLivro": 67
+      },
+      {
+        "nome": "Amarras de Energia",
+        "categoriaItem": "item_paranormal",
+        "categoriaBase": 2,
+        "espacos": 1,
+        "paginaLivro": 67
+      },
+      {
+        "nome": "Amarras de Conhecimento",
+        "categoriaItem": "item_paranormal",
+        "categoriaBase": 2,
+        "espacos": 1,
+        "paginaLivro": 67
+      },
+      {
+        "nome": "Componentes ritualísticos de Sangue",
+        "categoriaItem": "item_paranormal",
+        "categoriaBase": 0,
+        "espacos": 1,
+        "paginaLivro": 67
+      },
+      {
+        "nome": "Componentes ritualísticos de Morte",
+        "categoriaItem": "item_paranormal",
+        "categoriaBase": 0,
+        "espacos": 1,
+        "paginaLivro": 67
+      },
+      {
+        "nome": "Componentes ritualísticos de Energia",
+        "categoriaItem": "item_paranormal",
+        "categoriaBase": 0,
+        "espacos": 1,
+        "paginaLivro": 67
+      },
+      {
+        "nome": "Componentes ritualísticos de Conhecimento",
         "categoriaItem": "item_paranormal",
         "categoriaBase": 0,
         "espacos": 1,
@@ -2308,25 +2887,88 @@
         "paginaLivro": 67
       },
       {
-        "nome": "Amarras de elemento",
+        "nome": "Escuta de ruídos paranormais",
         "categoriaItem": "item_paranormal",
         "categoriaBase": 2,
         "espacos": 1,
         "paginaLivro": 67
       },
       {
-        "nome": "Pérola de Sangue",
-        "categoriaItem": "item_amaldicoado_especial",
-        "categoriaBase": null,
-        "espacos": null,
-        "paginaLivro": 148
+        "nome": "Medidor de estabilidade da membrana",
+        "categoriaItem": "item_paranormal",
+        "categoriaBase": 2,
+        "espacos": 1,
+        "paginaLivro": 67
       },
       {
-        "nome": "Dedo Decepado",
-        "categoriaItem": "item_amaldicoado_especial",
-        "categoriaBase": null,
-        "espacos": null,
-        "paginaLivro": 151
+        "nome": "Scanner de manifestação paranormal de Sangue",
+        "categoriaItem": "item_paranormal",
+        "categoriaBase": 2,
+        "espacos": 1,
+        "paginaLivro": 67
+      },
+      {
+        "nome": "Scanner de manifestação paranormal de Morte",
+        "categoriaItem": "item_paranormal",
+        "categoriaBase": 2,
+        "espacos": 1,
+        "paginaLivro": 67
+      },
+      {
+        "nome": "Scanner de manifestação paranormal de Energia",
+        "categoriaItem": "item_paranormal",
+        "categoriaBase": 2,
+        "espacos": 1,
+        "paginaLivro": 67
+      },
+      {
+        "nome": "Scanner de manifestação paranormal de Conhecimento",
+        "categoriaItem": "item_paranormal",
+        "categoriaBase": 2,
+        "espacos": 1,
+        "paginaLivro": 67
+      },
+      {
+        "nome": "Balas curtas",
+        "categoriaItem": "municao",
+        "categoriaBase": 0,
+        "espacos": 1,
+        "paginaLivro": 59
+      },
+      {
+        "nome": "Balas longas",
+        "categoriaItem": "municao",
+        "categoriaBase": 1,
+        "espacos": 1,
+        "paginaLivro": 59
+      },
+      {
+        "nome": "Cartuchos",
+        "categoriaItem": "municao",
+        "categoriaBase": 1,
+        "espacos": 1,
+        "paginaLivro": 59
+      },
+      {
+        "nome": "Combustível",
+        "categoriaItem": "municao",
+        "categoriaBase": 1,
+        "espacos": 1,
+        "paginaLivro": 59
+      },
+      {
+        "nome": "Flechas",
+        "categoriaItem": "municao",
+        "categoriaBase": 0,
+        "espacos": 1,
+        "paginaLivro": 59
+      },
+      {
+        "nome": "Foguete",
+        "categoriaItem": "municao",
+        "categoriaBase": 1,
+        "espacos": 1,
+        "paginaLivro": 59
       }
     ],
     "modificacoes": [
