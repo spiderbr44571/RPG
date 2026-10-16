@@ -62,6 +62,12 @@ const visual=document.createElement('style');visual.id='rpg09-style';visual.text
 .r09-profile.theme-sigilo{background:radial-gradient(circle at 88% 0,#a1333030,transparent 56%),#211419;border-color:#914a45;color:#ecd7ce}
 .r09-profile.theme-cris{background:linear-gradient(140deg,#101d26,#14212b 64%,#29161c);border-color:#4e7793;color:#d9edf7}
 .r09-profile.theme-dossie{background:linear-gradient(110deg,#29261f,#1c1b1a);border-color:#796b51;color:#eadfc8}
+#screen-sheet[data-r09-theme="theme-cris"] .rpg05-sheet-op .op-panel,#screen-sheet[data-r09-theme="theme-cris"] .rpg05-sheet-op .surface-flat{background:linear-gradient(138deg,#12202a,#0e1824)!important;border-color:#396175!important}
+#screen-sheet[data-r09-theme="theme-cris"] .rpg05-sheet-op h3{color:#94ced7!important}
+#screen-sheet[data-r09-theme="theme-cris"] .rpg05-sheet-op .op-input{border-color:#3b768a!important}
+#screen-sheet[data-r09-theme="theme-sigilo"] .rpg05-sheet-op .op-panel,#screen-sheet[data-r09-theme="theme-sigilo"] .rpg05-sheet-op .surface-flat{background:linear-gradient(160deg,#24151b,#1b141d)!important;border-color:#744343!important}
+#screen-sheet[data-r09-theme="theme-dossie"] .rpg05-sheet-op .op-panel,#screen-sheet[data-r09-theme="theme-dossie"] .rpg05-sheet-op .surface-flat{background:linear-gradient(155deg,#2c281f,#201f1e)!important;border-color:#897658!important}
+
 .r09-portrait{height:120px;width:120px;display:grid;place-items:center;overflow:hidden;border-radius:13px;background:#100f17;border:2px solid var(--accent);color:var(--accent);font-size:43px}.r09-portrait img{width:100%;height:100%;object-fit:cover}
 .r09-profile h3{font:500 28px 'Cormorant Garamond',Georgia,serif;margin:2px 0}.r09-profile label{display:block;font-size:11px;color:var(--muted);margin:5px 0}.r09-profile select{width:100%;max-width:260px;color:var(--fg);background:var(--panel);border:1px solid var(--line);padding:8px;border-radius:7px}
 .r09-photo-button{display:inline-block;cursor:pointer;margin:8px 0;border:1px solid var(--line);padding:8px 10px;border-radius:8px;font-size:11px}.r09-profile-hint{font-size:10px;color:var(--muted)}
@@ -97,7 +103,7 @@ if(sheet&&charSelect){const profile=document.createElement('div');profile.id='r0
  const heading=$('#rpg05-sheet-op');heading?.parentNode?.insertBefore(profile,heading);
  function renderProfile(){const c=sys.state,photo=typeof c.photo==='string'&&c.photo.startsWith('data:image/')?c.photo:null;
   const theme=['theme-sigilo','theme-cris','theme-dossie'].includes(c.sheetTheme)?c.sheetTheme:'theme-sigilo';
-  profile.className='r09-profile '+theme;
+  profile.className='r09-profile '+theme;sheet.setAttribute('data-r09-theme',theme);
   profile.innerHTML=`<div><div class="r09-portrait">${photo?`<img src="${photo}" alt="Retrato personalizado do agente">`:'✧'}</div><label class="r09-photo-button" for="r09-upload-photo">+ Escolher retrato</label><input id="r09-upload-photo" type="file" accept="image/png,image/jpeg,image/webp" hidden></div><div><small style="letter-spacing:.12em">ARQUIVO DO AGENTE</small><h3>${esc(c.name||'Novo agente')}</h3><label>Tema da ficha</label><select id="r09-sheet-theme"><option value="theme-sigilo" ${theme==='theme-sigilo'?'selected':''}>Sigilo Rubro</option><option value="theme-cris" ${theme==='theme-cris'?'selected':''}>Painel Tecnológico (inspirado em CRIS)</option><option value="theme-dossie" ${theme==='theme-dossie'?'selected':''}>Dossiê Clássico</option></select><p class="r09-profile-hint">Retrato e tema ficam salvos nesta ficha e podem ser exportados em JSON.</p></div>`;
  }
  function updateChar(patch){const changed=sys.changeCharacter({...sys.state,...patch});if(changed){$('#op-view-ficha')?.dispatchEvent(new Event('change',{bubbles:true}));renderProfile()}else app.notify('Falha ao salvar ficha')}
