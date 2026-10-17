@@ -103,8 +103,8 @@ function renderSkills(s,filter=''){
 function renderInventory(s){
  const inv=itemsOf(s);
  $('#inventory').innerHTML='<h3>Inventário</h3><p class="muted">Gerencie quantidade e seus próprios itens. As categorias do RPG permanecem separadas.</p>'+
- '<div id="item-list">'+(inv.map((it,i)=>'<div class="item"><div><strong>'+esc(it.nome||it.name||'Item')+'</strong><small>'+esc(String(it.categoriaItem||'geral').replaceAll('_',' '))+' · Qtd '+(it.quantidade??1)+(it.dano?' · '+esc(it.dano):'')+'</small></div><div class="actions">'+(it.dano?'<button data-item-roll="'+i+'">🎲 Rolagem</button>':'')+'<button data-item-quantity="'+i+'" data-increment="-1">−</button><button data-item-quantity="'+i+'" data-increment="1">+</button></div></div>').join('')||'<p class="muted">Nenhum item registrado.</p>')+'</div>'+
- '<h3 style="margin-top:20px">Adicionar item personalizado</h3><div class="grid"><label class="field"><span>Nome</span><input id="new-item" maxlength="90"></label><label class="field"><span>Categoria</span><select id="new-item-cat"><option value="geral">Geral</option><option value="ferramenta">Ferramenta</option><option value="acessorio">Acessório</option><option value="item_paranormal">Paranormal</option><option value="arma">Item de combate (RPG)</option></select></label><label class="field"><span>Rolagem, se houver</span><input id="new-item-dice" placeholder="2d6+2" maxlength="32"></label></div><button class="primary" id="add-item">Adicionar ao inventário</button>';
+ '<div id="item-list">'+(inv.map((it,i)=>'<div class="item"><div><strong>'+esc(it.nome||it.name||'Item')+'</strong><small>'+esc(String(it.categoriaItem||'geral').replaceAll('_',' '))+' · Qtd '+(it.quantidade??1)+'</small></div><div class="actions">'+'<button data-item-quantity="'+i+'" data-increment="-1">−</button><button data-item-quantity="'+i+'" data-increment="1">+</button></div></div>').join('')||'<p class="muted">Nenhum item registrado.</p>')+'</div>'+
+ '<h3 style="margin-top:20px">Adicionar item personalizado</h3><div class="grid"><label class="field"><span>Nome</span><input id="new-item" maxlength="90"></label><label class="field"><span>Categoria</span><select id="new-item-cat"><option value="geral">Geral</option><option value="ferramenta">Ferramenta</option><option value="acessorio">Acessório</option><option value="item_paranormal">Paranormal</option></select></label><label class="field"><span>Rolagem, se houver</span><input id="new-item-dice" placeholder="2d6+2" maxlength="32"></label></div><button class="primary" id="add-item">Adicionar ao inventário</button>';
 }
 function renderAbilities(s){
  const rituals=(s.rituaisConhecidos||[]).map(id=>RITUALS.find(x=>x.id===id)||RITUALS.find(x=>x.name===id)||{name:id,element:'',circle:'?'});
@@ -152,8 +152,6 @@ $('#skills').onclick=async e=>{
 $('#inventory').onclick=async e=>{
  if(!state?.character)return;
  let list=itemsOf(state.character).map(x=>({...x}));
- const rollBtn=e.target.closest('[data-item-roll]');
- if(rollBtn){const v=list[Number(rollBtn.dataset.itemRoll)];if(v?.dano)await roll('Item: '+(v.nome||'Rolagem'),v.dano);return}
  const qty=e.target.closest('[data-item-quantity]');
  if(qty){let item=list[Number(qty.dataset.itemQuantity)];if(!item)return;item.quantidade=Math.max(0,Math.min(9999,Number(item.quantidade??1)+Number(qty.dataset.increment)));await saveProfile({inventory:list});return}
  if(e.target.closest('#add-item')){
