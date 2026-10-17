@@ -122,8 +122,7 @@
   const record=raw.find(x=>x.id===id);if(!record)throw Error('Nova ficha nao encontrada.');
   record.character=op.state;record.name=op.state.name||'Novo agente';
   localStorage.setItem('rpg-v05-characters',JSON.stringify(raw));
-  if(Array.isArray(data.items)){let items={};try{items=JSON.parse(localStorage.getItem('rpg-v05-items')||'{}')}catch{}
-   items[id]=data.items.slice(0,120);localStorage.setItem('rpg-v05-items',JSON.stringify(items));}
+  if(Array.isArray(data.items))window.RPG05_inventory?.setItems?.(data.items.slice(0,120));
   document.querySelector('#op-view-ficha')?.dispatchEvent(new Event('change',{bubbles:true}));
   window.RPG05_inventory?.render?.();
   sel.dispatchEvent(new Event('change',{bubbles:true}));
