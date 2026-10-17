@@ -30,7 +30,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
   private final AtomicInteger revision = new AtomicInteger(0);
 
   public LocalCampaignServer(Context context, int port) throws Exception {
-    super(port);
+    super(localIp(),port); // Vincula somente ao IP local, nao a todas as interfaces.
     this.context = context.getApplicationContext();
     this.database = new File(this.context.getFilesDir(), "campanhas-android.json");
     this.hostIp = localIp();
