@@ -52,3 +52,55 @@
 .r15-detail .rpg05-band{margin:16px 0}
 #r15-old[hidden]{display:none!important}
 @media(max-width:700px){.r15-head h1{font-size:42px}.r15-count{display:none}.r15-hero{min-height:280px}.r15-hero-inner{max-width:86%;padding:23px}.r15-hero h2{font-size:44px}.r15-hero:after{font-size:140px;right:-4%;opacity:.55}.r15-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.r15-art{min-height:190px}.r15-card-info{padding:9px}.r15-rail .r15-card{flex-basis:160px}.r15-doc{align-items:flex-start}.r15-doc a{padding:7px 9px}}
+
+/* v0.17 — acervo legível em duas colunas, inclusive no Android */
+.r15-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.r15-card{display:grid;grid-template-columns:minmax(94px,32%) minmax(0,1fr);min-height:178px}
+.r15-card .r15-art{min-height:100%;height:100%}
+.r15-card .r15-art .glyph{font-size:64px}
+.r15-card .r15-art .name{font-size:18px;left:10px;right:10px;bottom:15px}
+.r15-card-info{display:flex;flex-direction:column;align-items:flex-start;min-width:0;padding:13px;gap:7px}
+.r15-card-info strong{font-size:13px;overflow-wrap:anywhere}
+.r15-card-info small{margin:0}
+.r15-card-actions{margin-top:auto;width:100%}
+.r15-doc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.r15-book-group{margin-top:18px}
+.r15-doc{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:7px;margin:0;padding:15px;min-height:174px;min-width:0}
+.r15-doc-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.r15-book-icon{color:var(--accent);font-size:21px}
+.r15-doc-category{color:var(--accent);font:600 10px system-ui;border:1px solid var(--edge);padding:3px 7px;border-radius:10px}
+.r15-doc strong{font:600 13px/1.45 'DM Sans',system-ui,sans-serif;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;line-clamp:3}
+.r15-doc small{font:400 10px/1.5 'DM Sans',system-ui,sans-serif;overflow-wrap:anywhere}
+.r15-doc-review{color:var(--muted);opacity:.7;font-size:9px}
+.r15-doc-actions{margin-top:auto;padding-top:5px}
+.r15-doc-actions .r15-drive-link{display:block;text-align:center;margin:0;padding:10px 8px;min-height:35px}
+.r15-drive-unavailable{color:var(--muted);font-size:10px}
+.r15-order-slot{display:flex;align-items:center;gap:17px;margin-top:18px;padding:17px;border:1px dashed color-mix(in srgb,var(--accent) 48%,var(--line));background:var(--panel);border-radius:16px}
+.r15-order-mark{height:64px;width:52px;flex:none;display:grid;place-items:center;color:var(--accent);background:var(--accent-soft);border-radius:9px;font-size:32px}
+.r15-order-info{flex:1;min-width:0}
+.r15-order-info h2{font:600 22px 'Cormorant Garamond',Georgia,serif;margin:0 0 5px}
+.r15-order-info p{font-size:11px;line-height:1.5;color:var(--muted);margin:0 0 6px}
+.r15-order-info small{font-size:10px;color:var(--accent);overflow-wrap:anywhere}
+.r15-order-actions{display:flex;flex-wrap:wrap;gap:7px;justify-content:flex-end}
+.r15-order-actions button{border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);padding:11px 13px;cursor:pointer;font-weight:600;font-size:11px}
+#r15-order-import{background:var(--accent);color:#14111c;border-color:var(--accent)}
+@media(max-width:850px){
+ .r15-card{display:flex;flex-direction:column;min-height:0}
+ .r15-card .r15-art{height:auto;min-height:160px}
+ .r15-card-info{flex:1;gap:5px}
+ .r15-order-slot{flex-wrap:wrap}
+ .r15-order-actions{width:100%;justify-content:stretch}
+ .r15-order-actions button{flex:1}
+}
+@media(max-width:430px){
+ .r15-grid,.r15-doc-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .r15-card .r15-art{min-height:140px}
+ .r15-card-info{padding:9px}
+ .r15-doc{padding:11px;min-height:190px}
+ .r15-doc strong{font-size:11px}
+ .r15-doc small{font-size:9px}
+ .r15-doc-review{font-size:8px}
+ .r15-doc-actions .r15-drive-link{font-size:10px;padding:9px 5px}
+ .r15-order-mark{width:37px;height:52px;font-size:23px}
+ .r15-order-info h2{font-size:19px}
+}
