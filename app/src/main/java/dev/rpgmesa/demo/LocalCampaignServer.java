@@ -150,6 +150,25 @@ public final class LocalCampaignServer extends NanoHTTPD {
     if(input.toString().length()>240000)throw new IllegalArgumentException("Ficha muito grande");
     JSONObject s=new JSONObject(input.toString());
     s.put("name",field(s,"name",90));
+    if("gurps".equals(s.optString("systemId"))){
+      if(!"4e".equals(s.optString("edition")))throw new IllegalArgumentException("Edição GURPS incompatível");
+      JSONObject attr=s.optJSONObject("attrs");
+      if(attr==null)throw new IllegalArgumentException("Atributos GURPS ausentes");
+      for(String k:new String[]{"ST","DX","IQ","HT"}){
+        int n=attr.optInt(k,0);if(n<1||n>100)throw new IllegalArgumentException("Atributo "+k+" inválido");
+      }
+      JSONObject mods=s.optJSONObject("mod");if(mods==null)mods=new JSONObject();
+      int maxHP=Math.max(1,attr.getInt("ST")+mods.optInt("hp",0));
+      int maxFP=Math.max(1,attr.getInt("HT")+mods.optInt("fp",0));
+      for(String key:new String[]{"currentHP","currentFP"}){
+        int max=key.equals("currentHP")?maxHP:maxFP;
+        double value=s.optDouble(key,max);
+        if(!Double.isFinite(value)||value< -max*5||value>max)
+          throw new IllegalArgumentException("Recurso GURPS "+key+" inválido");
+        s.put(key,value);
+      }
+      return s;
+    }
     JSONObject resources=s.optJSONObject("resources");
     if(resources==null){resources=new JSONObject();s.put("resources",resources);}
     for(String name:new String[]{"PV","PE","SAN"}){
@@ -321,9 +340,10 @@ public final class LocalCampaignServer extends NanoHTTPD {
       if(ch==null)v.put("character",JSONObject.NULL);
       else {
         JSONObject original=ch.getJSONObject("sheet"),pub=new JSONObject();
-        for(String k:new String[]{"name","class","nex","attrs","skills","resources","photo","sheetTheme","rituaisConhecidos","origem","trilha","systemId","effects","origin","trail","inventory","items","history","description","customRolls","powers","defense","notes"})
+        for(String k:new String[]{"name","class","nex","attrs","skills","resources","photo","sheetTheme","rituaisConhecidos","origem","trilha","systemId","effects","origin","trail","inventory","items","history","description","customRolls","powers","defense","notes","edition","mod","currentHP","currentFP","pointBudget","advantages","disadvantages","quirks","techniques","weapons","spells","languages","cultures","background","concept","techLevel","portrait","settings","parrySkill","blockSkill"})
           if(original.has(k))pub.put(k,original.get(k));
-        if(pub.optJSONObject("attrs")!=null)pub.put("attrs",sanitizeAttributes(pub.getJSONObject("attrs")));
+        if(pub.optJSONObject("attrs")!=null && !"gurps".equals(original.optString("systemId")))
+          pub.put("attrs",sanitizeAttributes(pub.getJSONObject("attrs")));
         v.put("character",pub);
       }
       return v;
@@ -512,7 +532,8 @@ public final class LocalCampaignServer extends NanoHTTPD {
         }
         if(p.length==3&&p[1].equals("play")){
           if(checkPlayer(p[2],cookie(s,"rpg_guest"))==null)return json(403,"error","Sessão não autorizada");
-          return html("lan_player.html");
+          JSONObject assigned=playerSheet(p[2],checkPlayer(p[2],cookie(s,"rpg_guest")));
+          return "gurps".equals(assigned.optString("systemId"))?html("lan_gurps.html"):html("lan_player.html");
         }
         if(p.length==5&&p[1].equals("api")&&p[2].equals("play")&&p[4].equals("canvas")){
           JSONObject pl=checkPlayer(p[3],cookie(s,"rpg_guest"));
@@ -570,13 +591,25 @@ public final class LocalCampaignServer extends NanoHTTPD {
           JSONObject player=checkPlayer(cid,cookie(s,"rpg_guest"));
           if(player==null)return json(403,"error","Não autorizado");
           if(b.length()!=2||!b.has("resource")||!b.has("current"))return json(403,"error","Somente recursos atuais");
-          String key=b.optString("resource");if(!key.equals("PV")&&!key.equals("PE")&&!key.equals("SAN"))
+          String key=b.optString("resource");
+          JSONObject ch=entry(campaign(cid).getJSONArray("characters"),player.optString("characterId"),"Ficha");
+          JSONObject sheet=ch.getJSONObject("sheet");
+          if("gurps".equals(sheet.optString("systemId"))){
+            if(!key.equals("HP")&&!key.equals("FP"))return json(403,"error","Recurso não permitido");
+            JSONObject attr=sheet.getJSONObject("attrs");
+            JSONObject mods=sheet.optJSONObject("mod");if(mods==null)mods=new JSONObject();
+            int max=Math.max(1,attr.getInt(key.equals("HP")?"ST":"HT")+mods.optInt(key.equals("HP")?"hp":"fp"));
+            double next=b.optDouble("current",Double.NaN);
+            if(!Double.isFinite(next)||next< -max*5||next>max)return json(400,"error","Fora do limite GURPS");
+            sheet.put(key.equals("HP")?"currentHP":"currentFP",next);persist();
+            return response(200,new JSONObject().put("current",next));
+          }
+          if(!key.equals("PV")&&!key.equals("PE")&&!key.equals("SAN"))
             return json(403,"error","Recurso não permitido");
           Object v=b.opt("current");
           if(!(v instanceof Number))return json(400,"error","Valor inválido");
           double next=((Number)v).doubleValue();if(!Double.isFinite(next))return json(400,"error","Valor inválido");
-          JSONObject ch=entry(campaign(cid).getJSONArray("characters"),player.optString("characterId"),"Ficha");
-          JSONObject res=ch.getJSONObject("sheet").getJSONObject("resources").getJSONObject(key);
+          JSONObject res=sheet.getJSONObject("resources").getJSONObject(key);
           if(next<0||next>res.getDouble("max"))return json(400,"error","Fora do limite");
           res.put("current",next);persist();
           return response(200,new JSONObject().put("current",next));
