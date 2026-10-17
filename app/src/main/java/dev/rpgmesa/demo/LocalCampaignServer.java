@@ -183,7 +183,9 @@ public final class LocalCampaignServer extends NanoHTTPD {
       JSONArray players=data.getJSONArray("players");
       for(int i=0;i<players.length();i++){
         JSONObject p=players.getJSONObject(i);
-        p.remove("secret");p.put("hasProposal",p.optJSONObject("proposedSheet")!=null);
+        p.put("hasProposal",p.optJSONObject("proposedSheet")!=null);
+        p.put("permalink",permalink(campaign(cid),p));
+        p.remove("secret");
       }
       data.put("invite",invite(campaign(cid)));
       return data;
@@ -265,6 +267,36 @@ public final class LocalCampaignServer extends NanoHTTPD {
       campaign(cid).put("canvas",new JSONArray(cards.toString()));persist();
     }
   }
+
+  private String publicId(JSONObject player){
+    String tag=player.optString("shortId");
+    if(tag.matches("[A-Z0-9]{5}"))return tag;
+    String id=player.optString("id","").replaceAll("[^0-9a-fA-F]","");
+    if(id.length()>=5)return id.substring(0,5).toUpperCase(Locale.ROOT);
+    return "AGENT";
+  }
+  private String slug(String v){
+    String s=java.text.Normalizer.normalize(v,java.text.Normalizer.Form.NFD)
+      .replaceAll("\\p{M}","").toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+","-").replaceAll("(^-|-$)","");
+    return s.length()>24?s.substring(0,24):s;
+  }
+  private String playerTag(JSONObject p){
+    String base=p.optString("linkSlug");
+    if(base.isEmpty())base=slug(p.optString("nickname","agente"));
+    return base+"-"+publicId(p);
+  }
+  private String permalink(JSONObject campaign,JSONObject p){
+    return "http://"+hostIp+":"+currentPort()+"/resume/"+campaign.getString("id")+"/"+
+      playerTag(p)+"/"+p.getString("secret");
+  }
+  private Response redirectPlayer(JSONObject c,JSONObject p){
+    Response r=newFixedLengthResponse(Response.Status.REDIRECT,"text/plain","");
+    r.addHeader("Location","/play/"+c.getString("id"));
+    r.addHeader("Set-Cookie","rpg_guest="+p.getString("secret")+"; HttpOnly; SameSite=Strict; Path=/; Max-Age=31536000");
+    r.addHeader("Referrer-Policy","no-referrer");
+    r.addHeader("Cache-Control","no-store");
+    return r;
+  }
   private JSONObject checkPlayer(String cid,String token) throws JSONException{
     if(token==null)return null;
     synchronized(lock){
@@ -281,7 +313,9 @@ public final class LocalCampaignServer extends NanoHTTPD {
       JSONObject c=campaign(cid),v=new JSONObject().put("campaign",c.getString("name"))
         .put("scene",c.getInt("scene")).put("sceneName",c.getString("sceneName"))
         .put("turn",c.getInt("turn")).put("nickname",p.getString("nickname"))
-        .put("status",p.getString("status"));
+        .put("status",p.getString("status"))
+        .put("shortId",publicId(p)).put("permalink",permalink(c,p))
+        .put("revision",revision.get());
       JSONObject ch=null;String id=p.optString("characterId","");
       if(!id.isEmpty())try{ch=entry(c.getJSONArray("characters"),id,"Ficha");}catch(Exception ignored){}
       if(ch==null)v.put("character",JSONObject.NULL);
@@ -347,9 +381,17 @@ public final class LocalCampaignServer extends NanoHTTPD {
       }
       if(method.equals("GET")){
         if(path.equals("/")||path.equals("/master"))return html("lan_master.html");
+        if(p.length==5&&p[1].equals("resume")){
+          JSONObject c=campaign(p[2]),pl=checkPlayer(p[2],p[4]);
+          if(pl==null || !equalsSecret(playerTag(pl),p[3]))
+            return json(403,"error","Link pessoal inválido");
+          return redirectPlayer(c,pl);
+        }
         if(p.length==4&&p[1].equals("join")){
           JSONObject c=campaign(p[2]);
           if(!equalsSecret(c.getString("invite"),p[3]))return json(403,"error","Convite inválido");
+          JSONObject existing=checkPlayer(p[2],cookie(s,"rpg_guest"));
+          if(existing!=null)return redirectPlayer(c,existing);
           return html("lan_join.html");
         }
         if(p.length==3&&p[1].equals("play")){
@@ -392,9 +434,12 @@ public final class LocalCampaignServer extends NanoHTTPD {
           JSONObject pl=new JSONObject().put("id",UUID.randomUUID().toString().replace("-","")).put("secret",newToken())
             .put("nickname",field(b,"nickname",40)).put("status","aguardando")
             .put("characterId",JSONObject.NULL).put("proposedSheet",prop==null?JSONObject.NULL:prop);
+          pl.put("linkSlug",slug(prop!=null?prop.optString("name",pl.getString("nickname")):pl.getString("nickname")));
+          pl.put("shortId",publicId(pl));
           players.put(pl);persist();
-          Response r=response(201,new JSONObject().put("ok",true).put("campaignId",p[3]).put("status","aguardando"));
-          r.addHeader("Set-Cookie","rpg_guest="+pl.getString("secret")+"; HttpOnly; SameSite=Strict; Path=/; Max-Age=2592000");
+          Response r=response(201,new JSONObject().put("ok",true).put("campaignId",p[3])
+            .put("status","aguardando").put("shortId",publicId(pl)).put("permalink",permalink(c,pl)));
+          r.addHeader("Set-Cookie","rpg_guest="+pl.getString("secret")+"; HttpOnly; SameSite=Strict; Path=/; Max-Age=31536000");
           return r;
         }
       }
