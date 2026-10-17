@@ -22,7 +22,7 @@ const safe=[
  ['no paid auto routing',!html.includes('"openrouter/auto"')&&!main.includes('"openrouter/auto"')],
  ['no blank API key hardcoded',!main.includes('sk-or-v1-123')],
  ['native key not exposed',!main.includes('@JavascriptInterface public String getKey')],
- ['Android version 0.21',grade.includes('versionCode 21')],
+ ['Android version supports cloud bridge',/versionCode\s+(2[1-9]|[3-9]\d)/.test(grade)],
  ['indexed source requirement',html.includes("usable=hits.filter(x=>x.kind!=='metadata'&&x.text)")],
  ['Internet permission',manifest.includes('android.permission.INTERNET')],
  ['turn off cloud',html.includes('r11-cloud-clear')]
