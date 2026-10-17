@@ -1293,7 +1293,11 @@ $('#r09-open-lan').onclick=()=>{try{if(window.RpgLanBridge?.launchLanMaster){win
 window.RPG09={rand20,roll,openHub,closeHub,applyCover,localCharacterJson};
 })();
 
-</script><script id="rpg-v10-laboratorio">
+</script><style id="rpg11-theme-base">
+html[data-paranormal="base"]{--v10-accent:var(--accent,#aa85d8);--v10-strong:color-mix(in srgb,var(--accent,#aa85d8) 42%,#171723);--v10-light:color-mix(in srgb,var(--accent,#aa85d8) 60%,white);--v10-second:var(--accent,#aa85d8);--v10-shadow:color-mix(in srgb,var(--accent,#aa85d8) 22%,transparent);--v10-border:color-mix(in srgb,var(--accent,#aa85d8) 35%,transparent);--v10-radius:14px}
+html[data-paranormal="base"] .v10-effect-particles,html[data-paranormal="base"] .v10-ambient{opacity:.1}
+html[data-paranormal="base"] .v10-theme-button[data-v10-theme="base"]{--pick:var(--accent)}
+</style><script id="rpg-v10-laboratorio">
 (()=>{'use strict';
 // Visual-only extension over the REAL v0.9 offline application. No rules or books modified.
 const $=(s,p=document)=>p.querySelector(s),$$=(s,p=document)=>[...p.querySelectorAll(s)];
@@ -1301,6 +1305,7 @@ const app=window.RPG_DEMO,sys=window.OP13,roller=window.RPG09;
 if(!app||!sys||!roller){console.error('v0.10: os módulos base não carregaram');return;}
 const escape=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
 const elements={
+ base:{label:'Base',tag:'Suas cores, sua mesa',intro:'O visual base respeita o destaque, a tipografia e as cores que você escolher, sem obrigar um elemento paranormal.',icon:'eye',color:'var(--accent)'},
  sangue:{label:'Sangue',tag:'A vida exige sacrifício',intro:'A interface pulsa. Filamentos rubros correm pelo cenário e os atributos acendem com o ritmo do personagem.',icon:'drop',color:'#f26078'},
  conhecimento:{label:'Conhecimento',tag:'Tudo pode ser revelado',intro:'Sigilos se desenham e orbitam dados. Geometria ritualística dourada acompanha habilidades e rituais.',icon:'eye',color:'#e6ba64'},
  energia:{label:'Energia',tag:'Tudo pode mudar',intro:'Descargas, interferências e néon fazem os painéis parecerem circuitos carregados de instabilidade.',icon:'bolt',color:'#b373ff'},
@@ -1311,6 +1316,7 @@ const icon=n=>({drop:'<path d="M12 2C6 10 5 12 5 16a7 7 0 0 0 14 0c0-4-1-6-7-14z
 const sigil=()=>`<svg viewBox="0 0 200 200" aria-hidden="true"><circle class="v10-glyph-lines" cx="100" cy="100" r="82" stroke-dasharray="3 8"/><circle class="v10-glyph-lines" cx="100" cy="100" r="62"/><path class="v10-glyph-lines" d="M100 9 184 155H16ZM100 191 16 45h168ZM9 100h182"/><path class="v10-glyph-fill" d="M100 29 170 100 100 171 30 100Z"/><path class="v10-glyph-lines" d="M100 30V171M29 100h142M100 30l-71 70 71 71 71-71Z"/><circle cx="100" cy="100" r="24" fill="#080914" stroke="var(--v10-light)" stroke-width="3"/><text x="100" y="108" text-anchor="middle" font-size="24" fill="var(--v10-light)" font-family="Georgia">✧</text></svg>`;
 // Five distinctly designed elemental seals, rather than one recolored icon.
 const glyphs={
+ base:`<circle cx="100" cy="100" r="85"/><path d="M100 10 178 55v90l-78 45-78-45V55Z M22 55l78 45 78-45M100 10v90m-78 45 78-45 78 45"/>`,
  sangue:`<circle r="87" cx="100" cy="100" stroke-dasharray="1 9"/><path d="M100 7 179 148 21 148ZM100 190 21 53 179 53Z"/><path d="M100 22C68 70 56 86 56 112a44 44 0 0 0 88 0c0-26-12-42-44-90Z"/><path d="M100 61C84 85 81 93 81 108a19 19 0 0 0 38 0c0-15-3-23-19-47Z"/>`,
  conhecimento:`<circle cx="100" cy="100" r="89"/><circle cx="100" cy="100" r="70" stroke-dasharray="2 4"/><circle cx="100" cy="100" r="52"/><path d="M100 7v186M7 100h186M35 35l130 130M165 35 35 165M100 21l79 79-79 79-79-79Z"/><path d="M38 100Q100 26 162 100Q100 174 38 100Z"/><circle cx="100" cy="100" r="21"/><circle cx="100" cy="100" r="7"/>`,
  energia:`<polygon points="100,5 165,32 193,100 164,165 100,195 35,165 5,100 35,35"/><path d="M100 5v190M5 100h188M35 35l130 130M165 35 35 165"/><path d="M116 29 65 108h39l-19 63 54-86h-43Z"/><circle cx="100" cy="100" r="84" stroke-dasharray="25 8"/>`,
@@ -1323,9 +1329,9 @@ function getStored(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch{
 function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
 const characterId=()=>$('#rpg05-char-select')?.value||'main';
 const perCharacter=getStored('v10-character-elements',{});
-let chosen=perCharacter[characterId()]||getStored('v10-global-element','sangue');if(!elements[chosen])chosen='sangue';
+let chosen=perCharacter[characterId()]||getStored('v10-global-element','base');if(!elements[chosen])chosen='base';
 let intensity=getStored('v10-intensity','max');if(!['off','low','max'].includes(intensity))intensity='max';
-function chosenElement(){return elements[chosen]||elements.sangue}
+function chosenElement(){return elements[chosen]||elements.base}
 function markSelected(){ $$('[data-v10-theme]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v10Theme===chosen)));$$('[data-v10-current]').forEach(t=>t.textContent=chosenElement().label);$('#v10-story')&&( $('#v10-story').textContent=chosenElement().intro );$('#v10-tag')&&($('#v10-tag').textContent=chosenElement().tag);$('#v10-prefs-theme')&&($('#v10-prefs-theme').value=chosen);$('#v10-intensity')&&($('#v10-intensity').value=intensity)}
 function choose(value,persist=true){if(!elements[value])return;chosen=value;document.documentElement.dataset.paranormal=value;if(persist){save('v10-global-element',chosen);perCharacter[characterId()]=chosen;save('v10-character-elements',perCharacter)}markSelected();updateSigil();drawCharacter();}
 document.documentElement.dataset.paranormal=chosen;
