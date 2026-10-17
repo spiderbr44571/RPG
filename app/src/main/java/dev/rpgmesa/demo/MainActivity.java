@@ -7,14 +7,17 @@ import android.database.Cursor;
 import android.provider.OpenableColumns;
 import android.webkit.JavascriptInterface;
 import org.json.JSONObject;
+import org.json.JSONArray;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.pdf.PdfRenderer;
 import android.os.ParcelFileDescriptor;
 import android.util.Base64;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
+import java.net.URLEncoder;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.io.InputStream;
@@ -46,6 +49,7 @@ public final class MainActivity extends Activity {
     private final HostBridge localHost = new HostBridge();
     private final DriveBridge drive = new DriveBridge();
     private final SheetPdfBridge sheetPdf = new SheetPdfBridge();
+    private final CreatureImageBridge creatureArt = new CreatureImageBridge();
     private static final String OFFLINE_URL = "file:///android_asset/demo-offline.html";
     private WebView browser;
     private TextView mode;
@@ -120,7 +124,7 @@ public final class MainActivity extends Activity {
         browser.addJavascriptInterface(books,"RpgBookBridge");
         browser.addJavascriptInterface(lan,"RpgLanBridge");
         browser.addJavascriptInterface(campaign,"RpgCampaignBridge");
-        browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.addJavascriptInterface(drive,"RpgDriveBridge");browser.addJavascriptInterface(sheetPdf,"RpgSheetPdfBridge");
+        browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.addJavascriptInterface(drive,"RpgDriveBridge");browser.addJavascriptInterface(sheetPdf,"RpgSheetPdfBridge");browser.addJavascriptInterface(creatureArt,"RpgCreatureImageBridge");
         root.addView(browser,new LinearLayout.LayoutParams(-1,0,1));
         setContentView(root);
         home.setOnClickListener(v->openOffline());
@@ -129,7 +133,7 @@ public final class MainActivity extends Activity {
     }
     private int dp(int x){return Math.round(getResources().getDisplayMetrics().density*x);}
     private Button button(String name){Button b=new Button(this);b.setText(name);b.setTextSize(10);b.setAllCaps(false);return b;}
-    private void openOffline(){allowedHost=null;allowedPort=0;mode.setText("● MODO OFFLINE");browser.addJavascriptInterface(books,"RpgBookBridge");browser.addJavascriptInterface(lan,"RpgLanBridge");browser.addJavascriptInterface(campaign,"RpgCampaignBridge");browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.addJavascriptInterface(drive,"RpgDriveBridge");browser.addJavascriptInterface(sheetPdf,"RpgSheetPdfBridge");browser.loadUrl(OFFLINE_URL);}
+    private void openOffline(){allowedHost=null;allowedPort=0;mode.setText("● MODO OFFLINE");browser.addJavascriptInterface(books,"RpgBookBridge");browser.addJavascriptInterface(lan,"RpgLanBridge");browser.addJavascriptInterface(campaign,"RpgCampaignBridge");browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.addJavascriptInterface(drive,"RpgDriveBridge");browser.addJavascriptInterface(sheetPdf,"RpgSheetPdfBridge");browser.addJavascriptInterface(creatureArt,"RpgCreatureImageBridge");browser.loadUrl(OFFLINE_URL);}
     private static boolean isPrivateLan(String h) {
         if(h==null||!h.matches("\\d{1,3}(\\.\\d{1,3}){3}"))return false;
         String[] p=h.split("\\.");int[] n=new int[4];
@@ -154,7 +158,8 @@ public final class MainActivity extends Activity {
               browser.removeJavascriptInterface("RpgCampaignBridge");
               browser.removeJavascriptInterface("RpgLocalHost");
           browser.removeJavascriptInterface("RpgDriveBridge");
-          browser.removeJavascriptInterface("RpgSheetPdfBridge"); // Native API is never available to remote pages.
+          browser.removeJavascriptInterface("RpgSheetPdfBridge");
+          browser.removeJavascriptInterface("RpgCreatureImageBridge"); // Native API is never available to remote pages.
               allowedHost=u.getHost();allowedPort=u.getPort();
               getPreferences(Context.MODE_PRIVATE).edit().putString("lan",u.toString()).apply();
               mode.setText("● CONECTADO À LAN");browser.loadUrl(u.toString());
@@ -373,12 +378,109 @@ public final class MainActivity extends Activity {
           browser.removeJavascriptInterface("RpgLocalHost");
           browser.removeJavascriptInterface("RpgDriveBridge");
           browser.removeJavascriptInterface("RpgSheetPdfBridge");
+          browser.removeJavascriptInterface("RpgCreatureImageBridge");
           allowedHost="127.0.0.1";allowedPort=server.currentPort();
           browser.loadUrl("http://127.0.0.1:"+allowedPort+"/master");
         });
       }
     }
     /** Opens known Google Drive document/folder IDs in an external app without embedding private credentials. */
+    /** Small, explicit Wikimedia Commons lookup. Art is previewed, not auto-assigned. */
+    public final class CreatureImageBridge {
+      private boolean valid(String name,String id){
+        return allowedHost==null && name!=null && !name.isEmpty() && name.length()<=100 &&
+          id!=null && id.matches("[A-Za-z0-9_-]{10,100}");
+      }
+      private String response(String url,int max) throws Exception{
+        HttpURLConnection conn=(HttpURLConnection)new URL(url).openConnection();
+        conn.setConnectTimeout(6500);conn.setReadTimeout(8500);
+        conn.setInstanceFollowRedirects(false);
+        conn.setRequestProperty("User-Agent","RPGMesa/0.19 (Wikimedia Commons attribution search)");
+        try {
+          if(conn.getResponseCode()!=200)throw new IllegalStateException("Fonte indisponível");
+          if(conn.getContentLengthLong()>max)throw new IllegalArgumentException("Resposta muito grande");
+          try(InputStream in=conn.getInputStream();ByteArrayOutputStream out=new ByteArrayOutputStream()){
+            byte[] buf=new byte[8192];int n;while((n=in.read(buf))>0){out.write(buf,0,n);if(out.size()>max)throw new IllegalArgumentException("Resposta muito grande");}
+            return out.toString("UTF-8");
+          }
+        }finally{conn.disconnect();}
+      }
+      private void dispatch(String type,JSONObject data){
+        runOnUiThread(()->{
+          if(allowedHost==null && browser!=null)
+            browser.evaluateJavascript("window.dispatchEvent(new CustomEvent("+JSONObject.quote(type)+",{detail:"+data.toString()+"}));",null);
+        });
+      }
+      private String plain(String html){
+        return html.replaceAll("<[^>]*>","").replace("&amp;","&").replace("&quot;","\"").trim();
+      }
+      @JavascriptInterface public void search(String systemId,String name,String requestId){
+        if(!valid(name,requestId)||systemId==null||!systemId.matches("[a-z0-9-]{1,48}"))return;
+        new Thread(()->{
+          JSONObject result=new JSONObject();
+          try{
+            result.put("requestId",requestId);
+            String q=URLEncoder.encode(name+" fantasy illustration","UTF-8");
+            String url="https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrlimit=8&gsrsearch="+q+"&prop=imageinfo&iiprop=url%7Cextmetadata&iiurlwidth=420&format=json";
+            JSONObject root=new JSONObject(response(url,320000));
+            JSONObject pages=root.optJSONObject("query")==null?null:root.getJSONObject("query").optJSONObject("pages");
+            if(pages!=null){
+              JSONArray keys=pages.names();
+              for(int k=0;keys!=null&&k<keys.length();k++){
+                JSONObject page=pages.optJSONObject(keys.getString(k));
+                if(page==null)continue;
+                String title=page.optString("title","");
+                if(!title.toLowerCase(java.util.Locale.ROOT).matches(".*\\.(png|jpg|jpeg|webp)"))continue;
+                JSONArray info=page.optJSONArray("imageinfo");if(info==null||info.length()==0)continue;
+                JSONObject entry=info.optJSONObject(0);if(entry==null)continue;
+                String thumbnail=entry.optString("thumburl","");
+                if(!thumbnail.startsWith("https://upload.wikimedia.org/"))continue;
+                JSONObject extra=entry.optJSONObject("extmetadata");
+                if(extra==null)continue;
+                String license=plain(extra.optJSONObject("LicenseShortName")==null?"":extra.getJSONObject("LicenseShortName").optString("value",""));
+                String lower=license.toLowerCase(java.util.Locale.ROOT);
+                if(!(lower.contains("cc")||lower.contains("public domain")||lower.contains("pd-")))continue;
+                String artist=plain(extra.optJSONObject("Artist")==null?"":extra.getJSONObject("Artist").optString("value",""));
+                result.put("url",thumbnail).put("license",license.substring(0,Math.min(50,license.length()))).put("artist",artist.substring(0,Math.min(120,artist.length())));
+                result.put("source",entry.optString("descriptionurl",""));
+                break;
+              }
+            }
+          }catch(Exception err){try{result.put("error","Busca não disponível")}catch(Exception ignored){}}
+          dispatch("rpg19-image-search-result",result);
+        },"rpg-commons-lookup").start();
+      }
+      @JavascriptInterface public void saveFromCommons(String candidate,String requestId,String license,String credit){
+        if(!valid("image",requestId)||candidate==null||candidate.length()>1000)return;
+        try{
+          Uri url=Uri.parse(candidate);
+          if(!"https".equals(url.getScheme())||!"upload.wikimedia.org".equalsIgnoreCase(url.getHost()))return;
+        }catch(Exception err){return;}
+        new Thread(()->{
+          try{
+            HttpURLConnection conn=(HttpURLConnection)new URL(candidate).openConnection();
+            conn.setConnectTimeout(6500);conn.setReadTimeout(10000);conn.setInstanceFollowRedirects(false);
+            try{
+              if(conn.getResponseCode()!=200||conn.getContentLengthLong()>1800000)throw new IllegalArgumentException("Imagem indisponível");
+              ByteArrayOutputStream out=new ByteArrayOutputStream();
+              try(InputStream in=conn.getInputStream()){
+                byte[] buf=new byte[8192];int n;while((n=in.read(buf))>0){out.write(buf,0,n);if(out.size()>1800000)throw new IllegalArgumentException("Arquivo grande");}
+              }
+              Bitmap raw=BitmapFactory.decodeByteArray(out.toByteArray(),0,out.size());if(raw==null)throw new IllegalArgumentException("Imagem inválida");
+              float scale=Math.min(1f,320f/Math.max(raw.getWidth(),raw.getHeight()));
+              Bitmap img=Bitmap.createScaledBitmap(raw,Math.max(1,Math.round(raw.getWidth()*scale)),Math.max(1,Math.round(raw.getHeight()*scale)),true);
+              ByteArrayOutputStream jpg=new ByteArrayOutputStream();img.compress(Bitmap.CompressFormat.JPEG,68,jpg);
+              if(img!=raw)img.recycle();raw.recycle();
+              JSONObject result=new JSONObject().put("requestId",requestId)
+               .put("image","data:image/jpeg;base64,"+Base64.encodeToString(jpg.toByteArray(),Base64.NO_WRAP))
+               .put("license",license.substring(0,Math.min(50,license.length())))
+               .put("credit",credit.substring(0,Math.min(140,credit.length())));
+              dispatch("rpg19-image-saved",result);
+            }finally{conn.disconnect();}
+          }catch(Exception error){dispatch("rpg19-image-search-result",new JSONObject());}
+        },"rpg-commons-image").start();
+      }
+    }
     /** SAF: gera um documento PDF local escolhido pelo usuario, sem enviar fichas a servidores. */
     public final class SheetPdfBridge {
       @JavascriptInterface public void savePdf(String filename,String base64){
