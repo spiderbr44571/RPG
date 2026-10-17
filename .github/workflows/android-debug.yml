@@ -89,7 +89,7 @@ jobs:
           import re
           root=Path('app/src/main/assets')
           html=(root/'demo-offline.html').read_text(encoding='utf-8')
-          for filename in ['lan_join.html','lan_player.html','lan_master.html']:
+          for filename in ['lan_join.html','lan_player.html','lan_master.html','lan_gurps.html']:
               raw=(root/filename).read_text(encoding='utf-8')
               scripts=re.findall(r'<script>(.*?)</script>',raw,re.S)
               assert len(scripts)==1,filename
@@ -116,11 +116,16 @@ jobs:
           assert 'rpg16_gurps_engine.js' in html and 'rpg16_gurps_ui.js' in html
           assert (root/'rpg16_gurps.css').stat().st_size>2000
           assert 'RPG16_GURPS.mount' in (root/'rpg15_catalog.js').read_text(encoding='utf-8')
+          assert 'editRemote' in (root/'rpg16_gurps_ui.js').read_text(encoding='utf-8')
+          assert 'Adicionar ficha GURPS' in (root/'rpg11_campaigns.js').read_text(encoding='utf-8')
+          assert 'lan_gurps.html' in server
+          assert 'currentHP' in server and 'currentFP' in server
+          assert 'data-roll' in (root/'lan_gurps.html').read_text(encoding='utf-8')
           assert '"id":"gurps"' in (root/'rpg15_catalog_data.js').read_text(encoding='utf-8')
           assert 'Mesa em rede' not in (root/'rpg09.js').read_text(encoding='utf-8')
           print('VALIDAÇÃO OK: ficha visual, link permanente e atualizacoes LAN')
           PY
-          for file in /tmp/lan_join.html.js /tmp/lan_player.html.js /tmp/lan_master.html.js; do node --check "$file"; done
+          for file in /tmp/lan_join.html.js /tmp/lan_player.html.js /tmp/lan_master.html.js /tmp/lan_gurps.html.js; do node --check "$file"; done
 
       - name: Compilar APK
         shell: bash
