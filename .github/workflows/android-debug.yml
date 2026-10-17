@@ -59,6 +59,9 @@ jobs:
           node --check app/src/main/assets/rpg09.js
           node --check app/src/main/assets/rpg11_campaigns.js
           node --check app/src/main/assets/rpg14_sheet_tabs.js
+          node --check app/src/main/assets/rpg15_catalog_data.js
+          node --check app/src/main/assets/rpg15_catalog.js
+          node --check app/src/main/assets/rpg15_theme_fix.js
           python -m py_compile server/mesa_lan.py
           python - <<'PY'
           import re,json,pathlib
@@ -101,6 +104,13 @@ jobs:
           assert "rpg14_sheet_tabs.js" in html
           assert 'savePlayerCanvas' in server and 'playerProfile' in server
           assert 'sanitizeAttributes' in server
+          catalog=__import__('json').loads((root/'rpg_system_catalog.json').read_text(encoding='utf-8'))
+          assert len(catalog['systems'])==39
+          assert sum(len(s['books']) for s in catalog['systems'])>=200
+          assert 'rpg15_catalog.js' in html and 'rpg15_theme_fix.js' in html
+          assert 'Bibliotecas de<br>' not in html and 'Referências consultadas' not in html
+          assert (root/'rpg15_catalog.css').stat().st_size>1000
+          assert 'Mesa em rede' not in (root/'rpg09.js').read_text(encoding='utf-8')
           print('VALIDAÇÃO OK: ficha visual, link permanente e atualizacoes LAN')
           PY
           for file in /tmp/lan_join.html.js /tmp/lan_player.html.js /tmp/lan_master.html.js; do node --check "$file"; done
