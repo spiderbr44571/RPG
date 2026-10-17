@@ -148,3 +148,23 @@ jobs:
           name: rpg-mesa-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+
+      - name: Empacotar código-fonte do projeto
+        if: success()
+        shell: bash
+        run: |
+          mkdir -p release
+          zip -q -r release/RPG-Mesa-v0.16-Codigo-Fonte.zip \
+            .github app/src app/build.gradle README.md \
+            build.gradle gradle.properties settings.gradle \
+            docs server systems tests \
+            -x '*/__pycache__/*' '*/.DS_Store' '*/.gradle/*'
+          unzip -t release/RPG-Mesa-v0.16-Codigo-Fonte.zip | tail -1
+
+      - name: Publicar código-fonte completo
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rpg-mesa-v016-fonte
+          path: release/RPG-Mesa-v0.16-Codigo-Fonte.zip
+          if-no-files-found: error
