@@ -213,14 +213,19 @@ function onChange(ev){
  if(t.id==='g-portrait'){const file=t.files?.[0];if(file)portrait(file);return}
  }catch(e){notify(e.message,true)}
 }
-async function importSheet(file){
- try{if(file.size>1200000)throw Error('JSON maior que o limite.');
- const data=JSON.parse(await file.text());
- if(data.systemId!=='gurps'||data.edition!=='4e'||!data.attrs||!data.mod)throw Error('Este arquivo não é uma ficha GURPS 4e exportada.');
- const sample=E.create(),s={...sample,...data,id:sample.id};
+function importObject(data){
+ if(remote)throw Error('Encerre a edicao de ficha online antes de importar.');
+ if(data?.systemId!=='gurps'||data?.edition!=='4e'||!data.attrs||!data.mod)throw Error('Ficha GURPS 4e incompatível.');
+ if(!list.length)load();
+ if(list.length>=60)throw Error('Limite de 60 fichas locais.');
+ const sample=E.create(),s={...sample,...JSON.parse(JSON.stringify(data)),id:sample.id};
  for(const k of Object.keys(E.costs))s.attrs[k]=Math.max(1,Math.min(100,number(s.attrs[k],10)));
  for(const key of ['skills','advantages','disadvantages','quirks','techniques','languages','cultures','spells','weapons','items','log'])if(!Array.isArray(s[key]))s[key]=[];
- list.push(s);selected=s.id;tab='identidade';rerender();
+ list.push(s);selected=s.id;tab='identidade';rerender();return s;
+}
+async function importSheet(file){
+ try{if(file.size>1200000)throw Error('JSON maior que o limite.');
+ importObject(JSON.parse(await file.text()));
  }catch(e){notify('Importação rejeitada: '+e.message,true)}
 }
 async function portrait(file){
@@ -251,5 +256,5 @@ function mount(container){
  host=box;host.addEventListener('click',onClick);host.addEventListener('change',onChange);
  active=true;render();return box;
 }
-window.RPG16_GURPS={mount,editRemote,open:()=>window.RPG15?.openSystem('gurps'),engine:E,get current(){if(!list.length)load();return current()},get all(){if(!list.length)load();return list.slice()},exportAll:()=>downloadJSON(list,'gurps4-personagens.json')};
+window.RPG16_GURPS={mount,editRemote,importObject,open:()=>window.RPG15?.openSystem('gurps'),engine:E,get current(){if(!list.length)load();return current()},get all(){if(!list.length)load();return list.slice()},exportAll:()=>downloadJSON(list,'gurps4-personagens.json')};
 })();
