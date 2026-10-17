@@ -37,6 +37,6 @@ assert.ok(quoted.filter(x=>x.kind==='metadata').length<=1,'metadata flooding');
 assert.equal(core.search('descanso',{systemId:'ordem-paranormal',edition:'2024',docs:data,systems}).length,0,'wrong edition');
 assert.equal(core.search('descanso',{systemId:'d-d',edition:'1.3',docs:data,systems}).length,0,'cross-system leak');
 assert.ok(html.includes('IA aguardando configuração ou autorização'),'chat should explain missing consent/key');
-assert.ok(html.includes('O modelo gratuito retornou uma resposta vazia'),'empty cloud replies need fallbacks');
+assert.ok(html.includes('O modelo gratuito retornou vazio.'),'empty cloud replies need fallbacks');
 assert.ok(html.includes('systems:systems()'),'search should receive system alias context');
 console.log('PASS: exact user rest question and four variations, real OP pack, correct source pages, cloud/offline fallback.');
