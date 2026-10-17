@@ -28,9 +28,9 @@ if(a==='assign'){let id=b.dataset.player,v=$('[data-select="'+id+'"]').value;awa
 if(a==='approve'){await api(prefix+'/approve','POST',{playerId:b.dataset.player});await detail()}
 if(a==='review'){let p=record.players.find(x=>x.id===b.dataset.player);let t=document.createElement('textarea');t.readOnly=true;t.value=JSON.stringify(p.proposedSheet,null,2);$('#editor').replaceChildren(t)}
 if(a==='sheet'){let t=prompt('Cole a ficha do personagem em JSON');if(t){await api(prefix+'/characters','POST',{sheet:JSON.parse(t)});await detail()}}
-if(a==='edit'){let c=record.characters.find(x=>x.id===b.dataset.char);let txt=document.createElement('textarea');txt.id='sheet-json';txt.value=JSON.stringify(c.sheet,null,2);let save=document.createElement('button');save.textContent='Salvar ficha';save.onclick=async()=>{try{await api(prefix+'/characters/'+c.id,'PUT',{sheet:JSON.parse(txt.value)});await detail();msg('Ficha atualizada')}catch(err){msg(err.message)}};$('#editor').replaceChildren(txt,save)}
+if(a==='edit'){let c=record.characters.find(x=>x.id===b.dataset.char);let txt=document.createElement('textarea');txt.id='sheet-json';txt.value=JSON.stringify(c.sheet,null,2);let save=document.createElement('button');save.textContent='Salvar ficha';save.onclick=async()=>{try{await api(prefix+'/characters/'+c.id,'POST',{sheet:JSON.parse(txt.value)});await detail();msg('Ficha atualizada')}catch(err){msg(err.message)}};$('#editor').replaceChildren(txt,save)}
 if(a==='effect'){let name=prompt('Nome do efeito');if(name){let unit=prompt('Duração: turn, scene ou permanent','turn');let remaining=unit==='turn'?Number(prompt('Quantos turnos?',3)):null;await api(prefix+'/effects','POST',{characterId:b.dataset.char,name,unit,remaining});await detail()}}
-if(a==='canvas'){await api(prefix+'/canvas','PUT',{nodes:JSON.parse($('#canvas').value)});msg('Canvas salvo')}
+if(a==='canvas'){await api(prefix+'/canvas','POST',{nodes:JSON.parse($('#canvas').value)});msg('Canvas salvo')}
 }catch(err){msg(err.message)}};
 setInterval(()=>{if(key&&selected&&document.visibilityState==='visible')detail().catch(()=>{})},8000);
 </script></html>
