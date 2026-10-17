@@ -321,11 +321,120 @@ public final class LocalCampaignServer extends NanoHTTPD {
       if(ch==null)v.put("character",JSONObject.NULL);
       else {
         JSONObject original=ch.getJSONObject("sheet"),pub=new JSONObject();
-        for(String k:new String[]{"name","class","nex","attrs","skills","resources","photo","sheetTheme","rituaisConhecidos","origem","trilha","systemId","effects"})
+        for(String k:new String[]{"name","class","nex","attrs","skills","resources","photo","sheetTheme","rituaisConhecidos","origem","trilha","systemId","effects","origin","trail","inventory","items","history","description","customRolls","powers","defense","notes"})
           if(original.has(k))pub.put(k,original.get(k));
+        if(pub.optJSONObject("attrs")!=null)pub.put("attrs",sanitizeAttributes(pub.getJSONObject("attrs")));
         v.put("character",pub);
       }
       return v;
+    }
+  }
+
+  // Repara nomes de atributos importados por fichas antigas com textos corrompidos.
+  // Nunca exibe rótulos arbitrários de comprimento excessivo na ficha do jogador.
+  private JSONObject sanitizeAttributes(JSONObject original) throws JSONException {
+    JSONObject clean=new JSONObject();String[] keys={"Agilidade","Força","Intelecto","Presença","Vigor"};
+    for(String key:keys)if(original.has(key)){clean.put(key,original.get(key));}
+    java.util.Iterator<String> it=original.keys();
+    while(it.hasNext()){
+      String raw=it.next();String normalized=java.text.Normalizer.normalize(raw,java.text.Normalizer.Form.NFD)
+        .replaceAll("\\p{M}","").replaceAll("[^A-Za-z]","").toLowerCase(Locale.ROOT);
+      for(String key:keys){
+        String canonical=java.text.Normalizer.normalize(key,java.text.Normalizer.Form.NFD)
+          .replaceAll("\\p{M}","").toLowerCase(Locale.ROOT);
+        if(!clean.has(key) && raw.length()<34 && normalized.startsWith(canonical.substring(0,Math.min(3,canonical.length()))))
+          clean.put(key,original.get(raw));
+      }
+    }
+    return clean;
+  }
+  private JSONObject playerSheet(String cid,JSONObject player) throws JSONException {
+    String ref=player.optString("characterId","");
+    if(ref.isEmpty())throw new IllegalArgumentException("Aguardando ficha do mestre");
+    return entry(campaign(cid).getJSONArray("characters"),ref,"Ficha").getJSONObject("sheet");
+  }
+  private void playerProfile(String cid,JSONObject player,JSONObject body) throws Exception {
+    synchronized(lock){
+      if(body.length()>4)throw new IllegalArgumentException("Campos extras não permitidos");
+      JSONObject sheet=playerSheet(cid,player);
+      for(String name:new String[]{"history","description"}){
+        if(body.has(name)){
+          String v=body.optString(name,"");
+          if(v.length()>12000)throw new IllegalArgumentException("Texto muito grande");
+          sheet.put(name,v);
+        }
+      }
+      if(body.has("customRolls")){
+        JSONArray a=body.optJSONArray("customRolls");
+        if(a==null||a.length()>25)throw new IllegalArgumentException("Limite de rolagens");
+        JSONArray safe=new JSONArray();
+        for(int i=0;i<a.length();i++){
+          JSONObject row=a.optJSONObject(i);
+          if(row==null)throw new IllegalArgumentException("Rolagem inválida");
+          String label=field(row,"label",64),formula=field(row,"formula",32);
+          if(!formula.matches("[1-9][0-9]?d(4|6|8|10|12|20|100)([+-][0-9]{1,3})?"))
+            throw new IllegalArgumentException("Fórmula inválida");
+          safe.put(new JSONObject().put("label",label).put("formula",formula));
+        }
+        sheet.put("customRolls",safe);
+      }
+      if(body.has("inventory")){
+        JSONArray a=body.optJSONArray("inventory");
+        if(a==null||a.length()>80||a.toString().length()>35000)throw new IllegalArgumentException("Inventário inválido");
+        JSONArray out=new JSONArray();
+        for(int i=0;i<a.length();i++){
+          JSONObject row=a.optJSONObject(i);
+          if(row==null)throw new IllegalArgumentException("Item inválido");
+          JSONObject item=new JSONObject();
+          item.put("nome",field(row,"nome",90));
+          String group=row.optString("categoriaItem","geral");
+          if(group.length()>35)throw new IllegalArgumentException("Categoria inválida");
+          item.put("categoriaItem",group);
+          item.put("quantidade",Math.max(0,Math.min(9999,row.optInt("quantidade",1))));
+          String dice=row.optString("dano","");
+          if(!dice.isEmpty()&&!dice.matches("[1-9][0-9]?d(4|6|8|10|12|20|100)([+-][0-9]{1,3})?"))
+            throw new IllegalArgumentException("Dado inválido");
+          item.put("dano",dice);
+          String desc=row.optString("notes","");
+          item.put("notes",desc.substring(0,Math.min(desc.length(),300)));
+          out.put(item);
+        }
+        sheet.put("inventory",out);
+      }
+      persist();
+    }
+  }
+  private void savePlayerCanvas(JSONObject player,JSONObject body) throws Exception {
+    JSONArray nodes=body.optJSONArray("nodes");
+    if(nodes==null||nodes.length()>150||nodes.toString().length()>80000)throw new IllegalArgumentException("Canvas inválido");
+    JSONArray safe=new JSONArray();
+    for(int i=0;i<nodes.length();i++){
+      JSONObject node=nodes.optJSONObject(i);if(node==null)continue;
+      JSONObject x=new JSONObject();
+      x.put("id",field(node,"id",70));
+      String title=node.optString("title","").trim(),txt=node.optString("text","");
+      if(title.length()>90||txt.length()>3000)throw new IllegalArgumentException("Nota muito grande");
+      x.put("title",title).put("text",txt);
+      x.put("x",Math.max(-100000,Math.min(100000,node.optDouble("x",0))));
+      x.put("y",Math.max(-100000,Math.min(100000,node.optDouble("y",0))));
+      safe.put(x);
+    }
+    synchronized(lock){player.put("personalCanvas",safe);persist();}
+  }
+  private void storeRoll(String cid,JSONObject player,JSONObject body)throws Exception{
+    synchronized(lock){
+      JSONObject c=campaign(cid);
+      JSONArray log=c.optJSONArray("rollLog");if(log==null){log=new JSONArray();c.put("rollLog",log);}
+      JSONObject v=new JSONObject();
+      v.put("nickname",player.getString("nickname"));
+      v.put("name",field(body,"name",80));
+      v.put("formula",field(body,"formula",60));
+      String faces=body.optString("faces","");
+      if(faces.length()>180||!faces.matches("[0-9, ]*"))throw new IllegalArgumentException("Resultados inválidos");
+      v.put("faces",faces).put("total",body.optInt("total",0)).put("at",System.currentTimeMillis());
+      log.put(v);
+      while(log.length()>60)log.remove(0);
+      persist();
     }
   }
   private boolean master(IHTTPSession s){
@@ -398,6 +507,11 @@ public final class LocalCampaignServer extends NanoHTTPD {
           if(checkPlayer(p[2],cookie(s,"rpg_guest"))==null)return json(403,"error","Sessão não autorizada");
           return html("lan_player.html");
         }
+        if(p.length==5&&p[1].equals("api")&&p[2].equals("play")&&p[4].equals("canvas")){
+          JSONObject pl=checkPlayer(p[3],cookie(s,"rpg_guest"));
+          if(pl==null)return json(403,"error","Sessão inválida");
+          return response(200,new JSONObject().put("nodes",pl.optJSONArray("personalCanvas")==null?new JSONArray():pl.getJSONArray("personalCanvas")));
+        }
         if(path.equals("/api/admin/campaigns")){
           if(!master(s))return json(403,"error","Acesso do mestre necessário");
           return response(200,new JSONObject().put("campaigns",listCampaigns()));
@@ -460,6 +574,13 @@ public final class LocalCampaignServer extends NanoHTTPD {
           res.put("current",next);persist();
           return response(200,new JSONObject().put("current",next));
         }
+      }
+      if(p.length==5&&p[1].equals("api")&&p[2].equals("play")&&method.equals("POST")){
+        String cid=p[3];JSONObject player=checkPlayer(cid,cookie(s,"rpg_guest"));
+        if(player==null)return json(403,"error","Jogador não autorizado");
+        if("profile".equals(p[4])){playerProfile(cid,player,b);return json(200,"ok","true");}
+        if("canvas".equals(p[4])){savePlayerCanvas(player,b);return json(200,"ok","true");}
+        if("roll".equals(p[4])){storeRoll(cid,player,b);return json(200,"ok","true");}
       }
       if(p.length>=5&&p[1].equals("api")&&p[2].equals("admin")&&p[3].equals("campaigns")){
         if(!master(s))return json(403,"error","Chave do mestre inválida");
