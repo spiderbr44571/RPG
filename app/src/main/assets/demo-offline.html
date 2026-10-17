@@ -1551,12 +1551,12 @@ $$('.v101-hub-note').forEach(x=>x.remove());
 function setStatus(text){$('#r11-status').textContent=text}
 function addBubble(html,user=false){const e=document.createElement('div');e.className='r11-bubble '+(user?'r11-user':'r11-assistant');e.innerHTML=html;const chat=$('#r11-messages');chat.appendChild(e);chat.scrollTop=chat.scrollHeight;return e}
 function matchScore(item,query,words){const text=normalize(`${item.title} ${item.text}`),title=normalize(item.title),phrase=normalize(query).trim();let score=0;if(phrase.length>=3&&text.includes(phrase))score+=25;if(title.includes(phrase)&&phrase.length>=3)score+=15;for(const word of words){const hit=(text.match(new RegExp(word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'))||[]).length;score+=Math.min(hit,5)*(title.includes(word)?5:2)}return score}
-function excerpt(text,query,words){const t=String(text||'');const norm=normalize(t),target=normalize(query).trim();let p=norm.indexOf(target);if(p<0)p=words.map(w=>norm.indexOf(w)).filter(n=>n>=0).sort((a,b)=>a-b)[0]??0;const a=Math.max(0,p-120),b=Math.min(t.length,p+420);return (a?'…':'')+t.slice(a,b)+(b<t.length?'…':'')}
+function excerpt(text,query,words){const t=String(text||'');if(t.length<=1100)return t;const norm=normalize(t),target=normalize(query).trim();let p=norm.indexOf(target);if(p<0)p=words.map(w=>norm.indexOf(w)).filter(n=>n>=0).sort((a,b)=>a-b)[0]??0;const a=Math.max(0,p-120),b=Math.min(t.length,p+420);return (a?'…':'')+t.slice(a,b)+(b<t.length?'…':'')}
 function highlight(text,words){const raw=String(text||'');const re=new RegExp('('+words.filter(w=>w.length>=3).map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')','ig');if(!words.length)return esc(raw);return raw.split(re).map((part,i)=>i%2?'<mark>'+esc(part)+'</mark>':esc(part)).join('')}
 function search(query){
  const words=tokens(query),scope=lookupScope(query);
  const docs=baseDocs.concat(core.makeRulesDocs(window.RPG18_DND_ENGINE,window.GURPS4_ENGINE),privateDocs,core.makeCatalogDocs(systems()));
- const hits=core.search(query,{docs,systemId:scope,edition:activeEdition,limit:12});
+ const hits=core.search(query,{docs,systemId:scope,edition:activeEdition,limit:12,systems:systems()});
  return hits.map((x,i)=>({...x,id:i,excerpt:excerpt(x.text||x.book,query,words)}));
 }
 function sourceLink(x){
@@ -1572,7 +1572,7 @@ function renderSources(hits){
 }
 function localAnswer(query,hits){
  const words=tokens(query);
- if(!hits.length)return '<strong>Nenhuma correspondência neste sistema.</strong><p>Escolha outra edição ou importe o índice privado do livro. Livros cadastrados no Drive não contêm texto consultável automaticamente.</p>';
+ if(!hits.length)return '<strong>Não encontrei trechos dessa regra na edição selecionada.</strong><p>Confira o filtro de sistema e edição. Um link no Drive, sozinho, não disponibiliza o texto do livro; você também pode importar seu índice PDF para pesquisar mais regras.</p>';
  const indexed=hits.filter(x=>x.kind!=='metadata'),metadata=hits.filter(x=>x.kind==='metadata');
  let html='<b>'+indexed.length+' trecho(s) pesquisável(is) · '+metadata.length+' referência(s) do acervo</b>';
  if(indexed.length)html+='<p>Trechos de fontes cadastradas (confira a edição e a página):</p>'+
@@ -1630,17 +1630,19 @@ async function ask(query){
  renderSources(hits);busy=true;$('#r11-send').disabled=true;
  try{
   if(mode==='offline'||!canSend||!hasCloudKey()){
-   addBubble(localAnswer(query,hits));
-   if(mode==='ai')setStatus('● Busca offline — configure e autorize a IA');
+   if(mode==='ai')addBubble('<p><strong>IA cloud não utilizada:</strong> '+(!hasCloudKey()?'conecte sua chave do OpenRouter.':'autorize o envio dos trechos no painel da IA.')+'</p>'+localAnswer(query,hits));
+   else addBubble(localAnswer(query,hits));
+   if(mode==='ai')setStatus('● Consulta respondida offline · configure/autorize a IA');
    return;
   }
   const scope=lookupScope(query);
   if(scope==='all'){addBubble('<b>Escolha o sistema antes de consultar a IA.</b><p>A busca sem IA funciona em todos os sistemas, mas o modelo não deve misturar regras de sistemas diferentes.</p>'+localAnswer(query,hits));return}
-  if(!usable.length){addBubble(localAnswer(query,hits));setStatus('● Sem conteúdo indexado para a IA');return}
+  if(!usable.length){addBubble('<p><strong>Sem textos indexados relevantes para este sistema/edição.</strong> A IA não recebeu material para analisar.</p>'+localAnswer(query,hits));setStatus('● Sem fontes para a IA · pesquisa offline');return}
   const pending=addBubble('<small>Consultando '+esc(model)+' com '+Math.min(4,usable.length)+' fontes do sistema...</small>');
   try{
    const data=await cloudRequest('chat',{question:query,model,systemId:scope,edition:activeEdition,sources:usable.slice(0,4).map(x=>({systemId:x.systemId,book:x.book,title:x.title,page:x.page,text:cutoff(x.excerpt,950)}))});
-   pending.innerHTML='<b>Resposta assistida · '+esc(data.model||model)+'</b><p>'+esc(data.answer||'Sem resposta.').replace(/\n/g,'<br>')+'</p><small>Resposta gerada por IA a partir de trechos do sistema '+esc(systems().find(x=>x.id===scope)?.title||scope)+'. Confira cada página; a IA não altera as regras.</small>';
+   if(!String(data.answer||'').trim())throw Error('O modelo gratuito retornou uma resposta vazia. Abaixo estão os trechos encontrados.');
+   pending.innerHTML='<b>Resposta assistida · '+esc(data.model||model)+'</b><p>'+esc(data.answer).replace(/\n/g,'<br>')+'</p><small>Resposta gerada por IA a partir de trechos do sistema '+esc(systems().find(x=>x.id===scope)?.title||scope)+'. Confira cada página; a IA não altera as regras.</small>';
    setStatus('● IA free conectada');
   }catch(err){
    pending.innerHTML='<b>IA indisponível — busca local</b><p>'+esc(err.message)+'</p>'+localAnswer(query,hits);
@@ -1728,7 +1730,7 @@ function initSystemSelectors(){
  activeSystem=ss.some(x=>x.id===localStorage.getItem('rpg-rules-system'))?localStorage.getItem('rpg-rules-system'):'all';
  $('#r11-system').value=activeSystem;
  if(activeSystem!=='all')$('#r11-index-system').value=activeSystem;
- $('#r11-system').onchange=e=>{activeSystem=e.target.value;localStorage.setItem('rpg-rules-system',activeSystem);if(activeSystem!=='all')$('#r11-index-system').value=activeSystem;setStatus('● Filtro: '+(ss.find(x=>x.id===activeSystem)?.title||'Todos os sistemas'))};
+ $('#r11-system').onchange=e=>{activeSystem=e.target.value;activeEdition='all';$('#r11-edition').value='all';localStorage.setItem('rpg-rules-system',activeSystem);if(activeSystem!=='all')$('#r11-index-system').value=activeSystem;setStatus('● Filtro: '+(ss.find(x=>x.id===activeSystem)?.title||'Todos os sistemas'))};
  $('#r11-edition').onchange=e=>{activeEdition=e.target.value;setStatus('● Edição: '+(activeEdition==='all'?'Todas':activeEdition))};
  loadBooks();
 }
