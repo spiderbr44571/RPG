@@ -49,6 +49,8 @@
   if(/(?:instruct|chat)/.test(id+' '+name))n+=75;
   if(/(?:qwen|llama|gemini|mistral|minimax|deepseek|gpt|glm|solar|command)/.test(id))n+=25;
   if(/(?:reason|thinking|^.*\/r1(?:-|:)|nemotron-3-super|nemotron-3-ultra)/.test(id))n-=25;
+  if(/(?:^|[-/])(?:3b|4b|7b|8b|9b|12b|14b)(?:[-/:]|$)/.test(id))n+=12;
+  if(/(?:70b|72b|100b|120b|200b|235b|405b)/.test(id))n-=16;
   if((Number(model.context_length)||0)>=32000)n+=5;
   return n;
  }
