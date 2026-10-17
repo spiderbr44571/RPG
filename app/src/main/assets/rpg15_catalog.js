@@ -95,6 +95,7 @@ function open(id){
  (arr.length?bookGroups(arr):'<p class="r15-footnote">Esta pasta não contém arquivos no catálogo atual.</p>');
  if(id==='ordem-paranormal')refreshLocalBook();
  if(id==='gurps'&&window.RPG16_GURPS){const slot=detail.querySelector('#r15-ordem-book');window.RPG16_GURPS.mount(slot);window.RPG17_PDF?.attachGurps(slot);}
+ if(id==='d-d'&&window.RPG18_DND){window.RPG18_DND.mount(detail.querySelector('#r15-ordem-book'));}
  window.scrollTo(0,0);
 }
 detail.addEventListener('click',e=>{
