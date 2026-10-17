@@ -532,7 +532,10 @@ public final class LocalCampaignServer extends NanoHTTPD {
         }
         if(p.length==3&&p[1].equals("play")){
           if(checkPlayer(p[2],cookie(s,"rpg_guest"))==null)return json(403,"error","Sessão não autorizada");
-          JSONObject assigned=playerSheet(p[2],checkPlayer(p[2],cookie(s,"rpg_guest")));
+          JSONObject player=checkPlayer(p[2],cookie(s,"rpg_guest"));
+          String ref=player.optString("characterId","");
+          if(ref.isEmpty())return html("lan_player.html");
+          JSONObject assigned=playerSheet(p[2],player);
           return "gurps".equals(assigned.optString("systemId"))?html("lan_gurps.html"):html("lan_player.html");
         }
         if(p.length==5&&p[1].equals("api")&&p[2].equals("play")&&p[4].equals("canvas")){
