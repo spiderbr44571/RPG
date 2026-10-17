@@ -42,6 +42,7 @@ public final class MainActivity extends Activity {
     private final LanBridge lan = new LanBridge();
     private final CampaignBridge campaign = new CampaignBridge();
     private final HostBridge localHost = new HostBridge();
+    private final DriveBridge drive = new DriveBridge();
     private static final String OFFLINE_URL = "file:///android_asset/demo-offline.html";
     private WebView browser;
     private TextView mode;
@@ -68,7 +69,7 @@ public final class MainActivity extends Activity {
         top.addView(mode,new LinearLayout.LayoutParams(0,dp(42),1));
         top.addView(home);top.addView(connect);
         // O único acesso permanente às ferramentas agora é o d20 dentro da interface.
-        // A barra de conexão é substituída pela ferramenta "Mesa em rede".
+        // Campanhas e servidor agora ficam no módulo Mestragem.
         browser=new WebView(this);
         WebSettings cfg=browser.getSettings();
         cfg.setJavaScriptEnabled(true);
@@ -85,6 +86,11 @@ public final class MainActivity extends Activity {
             // Resources / PDFs selected locally stay on device.
             if ("blob".equals(u.getScheme())) return false;
             if ("file".equals(u.getScheme())) return !OFFLINE_URL.equals(u.toString());
+            if(allowedHost==null && "https".equals(u.getScheme()) && "drive.google.com".equalsIgnoreCase(u.getHost()) &&
+                u.getPath()!=null && (u.getPath().matches("/file/d/[A-Za-z0-9_-]{10,160}(/view)?") || u.getPath().matches("/drive/folders/[A-Za-z0-9_-]{10,160}"))) {
+              try{startActivity(new Intent(Intent.ACTION_VIEW,u));}catch(Exception err){showBookError("Não foi possível abrir o Drive.");}
+              return true;
+            }
             return !("http".equals(u.getScheme()) && allowedHost!=null
                && allowedHost.equals(u.getHost()) && allowedPort==u.getPort());
           }
@@ -110,7 +116,7 @@ public final class MainActivity extends Activity {
         browser.addJavascriptInterface(books,"RpgBookBridge");
         browser.addJavascriptInterface(lan,"RpgLanBridge");
         browser.addJavascriptInterface(campaign,"RpgCampaignBridge");
-        browser.addJavascriptInterface(localHost,"RpgLocalHost");
+        browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.addJavascriptInterface(drive,"RpgDriveBridge");
         root.addView(browser,new LinearLayout.LayoutParams(-1,0,1));
         setContentView(root);
         home.setOnClickListener(v->openOffline());
@@ -119,7 +125,7 @@ public final class MainActivity extends Activity {
     }
     private int dp(int x){return Math.round(getResources().getDisplayMetrics().density*x);}
     private Button button(String name){Button b=new Button(this);b.setText(name);b.setTextSize(10);b.setAllCaps(false);return b;}
-    private void openOffline(){allowedHost=null;allowedPort=0;mode.setText("● MODO OFFLINE");browser.addJavascriptInterface(books,"RpgBookBridge");browser.addJavascriptInterface(lan,"RpgLanBridge");browser.addJavascriptInterface(campaign,"RpgCampaignBridge");browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.loadUrl(OFFLINE_URL);}
+    private void openOffline(){allowedHost=null;allowedPort=0;mode.setText("● MODO OFFLINE");browser.addJavascriptInterface(books,"RpgBookBridge");browser.addJavascriptInterface(lan,"RpgLanBridge");browser.addJavascriptInterface(campaign,"RpgCampaignBridge");browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.addJavascriptInterface(drive,"RpgDriveBridge");browser.loadUrl(OFFLINE_URL);}
     private static boolean isPrivateLan(String h) {
         if(h==null||!h.matches("\\d{1,3}(\\.\\d{1,3}){3}"))return false;
         String[] p=h.split("\\.");int[] n=new int[4];
@@ -142,7 +148,8 @@ public final class MainActivity extends Activity {
               browser.removeJavascriptInterface("RpgBookBridge");
               browser.removeJavascriptInterface("RpgLanBridge");
               browser.removeJavascriptInterface("RpgCampaignBridge");
-              browser.removeJavascriptInterface("RpgLocalHost"); // Native API is never available to remote pages.
+              browser.removeJavascriptInterface("RpgLocalHost");
+          browser.removeJavascriptInterface("RpgDriveBridge"); // Native API is never available to remote pages.
               allowedHost=u.getHost();allowedPort=u.getPort();
               getPreferences(Context.MODE_PRIVATE).edit().putString("lan",u.toString()).apply();
               mode.setText("● CONECTADO À LAN");browser.loadUrl(u.toString());
@@ -347,8 +354,24 @@ public final class MainActivity extends Activity {
           browser.removeJavascriptInterface("RpgLanBridge");
           browser.removeJavascriptInterface("RpgCampaignBridge");
           browser.removeJavascriptInterface("RpgLocalHost");
+          browser.removeJavascriptInterface("RpgDriveBridge");
           allowedHost="127.0.0.1";allowedPort=server.currentPort();
           browser.loadUrl("http://127.0.0.1:"+allowedPort+"/master");
+        });
+      }
+    }
+    /** Opens known Google Drive document/folder IDs in an external app without embedding private credentials. */
+    public final class DriveBridge {
+      @JavascriptInterface public void openDocument(String kind,String id){
+        if(id==null || !id.matches("[A-Za-z0-9_-]{10,160}"))return;
+        if(!"file".equals(kind) && !"folder".equals(kind))return;
+        runOnUiThread(()->{
+          if(allowedHost!=null)return; // Not available to remote LAN pages.
+          String path="file".equals(kind)?"/file/d/"+id+"/view":"/drive/folders/"+id;
+          try{
+            Intent intent=new Intent(Intent.ACTION_VIEW,Uri.parse("https://drive.google.com"+path));
+            startActivity(intent);
+          }catch(Exception ex){showBookError("Não foi possível abrir o Google Drive neste aparelho.");}
         });
       }
     }
