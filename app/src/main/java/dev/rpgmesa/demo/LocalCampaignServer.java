@@ -382,21 +382,28 @@ public final class LocalCampaignServer extends NanoHTTPD {
         JSONArray a=body.optJSONArray("inventory");
         if(a==null||a.length()>80||a.toString().length()>35000)throw new IllegalArgumentException("Inventário inválido");
         JSONArray out=new JSONArray();
+        JSONArray existing=sheet.optJSONArray("inventory");
+        if(existing==null)existing=sheet.optJSONArray("items");
         for(int i=0;i<a.length();i++){
           JSONObject row=a.optJSONObject(i);
           if(row==null)throw new IllegalArgumentException("Item inválido");
+          String name=field(row,"nome",90);
+          // Preserva propriedades cadastradas pelo mestre; jogador edita quantidades.
           JSONObject item=new JSONObject();
-          item.put("nome",field(row,"nome",90));
-          String group=row.optString("categoriaItem","geral");
+          if(existing!=null && i<existing.length()){
+            JSONObject prior=existing.optJSONObject(i);
+            if(prior!=null && name.equals(prior.optString("nome")))
+              item=new JSONObject(prior.toString());
+          }
+          item.put("nome",name);
+          String group=item.optString("categoriaItem",row.optString("categoriaItem","geral"));
           if(group.length()>35)throw new IllegalArgumentException("Categoria inválida");
           item.put("categoriaItem",group);
           item.put("quantidade",Math.max(0,Math.min(9999,row.optInt("quantidade",1))));
-          String dice=row.optString("dano","");
-          if(!dice.isEmpty()&&!dice.matches("[1-9][0-9]?d(4|6|8|10|12|20|100)([+-][0-9]{1,3})?"))
-            throw new IllegalArgumentException("Dado inválido");
-          item.put("dano",dice);
-          String desc=row.optString("notes","");
-          item.put("notes",desc.substring(0,Math.min(desc.length(),300)));
+          if(!item.has("notes")){
+            String desc=row.optString("notes","");
+            item.put("notes",desc.substring(0,Math.min(desc.length(),300)));
+          }
           out.put(item);
         }
         sheet.put("inventory",out);
