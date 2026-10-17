@@ -446,7 +446,7 @@ public final class MainActivity extends Activity {
                 break;
               }
             }
-          }catch(Exception err){try{result.put("error","Busca não disponível")}catch(Exception ignored){}}
+          }catch(Exception err){try{result.put("error","Busca não disponível");}catch(Exception ignored){}}
           dispatch("rpg19-image-search-result",result);
         },"rpg-commons-lookup").start();
       }
