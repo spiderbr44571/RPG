@@ -1555,7 +1555,7 @@ function excerpt(text,query,words){const t=String(text||'');const norm=normalize
 function highlight(text,words){const raw=String(text||'');const re=new RegExp('('+words.filter(w=>w.length>=3).map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')','ig');if(!words.length)return esc(raw);return raw.split(re).map((part,i)=>i%2?'<mark>'+esc(part)+'</mark>':esc(part)).join('')}
 function search(query){
  const words=tokens(query),scope=lookupScope(query);
- const docs=baseDocs.concat(privateDocs,core.makeCatalogDocs(systems()));
+ const docs=baseDocs.concat(core.makeRulesDocs(window.RPG18_DND_ENGINE,window.GURPS4_ENGINE),privateDocs,core.makeCatalogDocs(systems()));
  const hits=core.search(query,{docs,systemId:scope,edition:activeEdition,limit:12});
  return hits.map((x,i)=>({...x,id:i,excerpt:excerpt(x.text||x.book,query,words)}));
 }
