@@ -53,7 +53,7 @@
  }
  function getRecord(id){return recordsFor(selected).find(x=>String(x.id)===String(id))}
  const key=(s,id)=>s+'::'+id;
- const artFor=r=>art[key(r.systemId||selected,r.id)]||((r.systemId||selected)==='ordem-paranormal'&&oldArt[r.name])||'';
+ const artFor=r=>{const v=art[key(r.systemId||selected,r.id)];return v==='none'?'':v||((r.systemId||selected)==='ordem-paranormal'&&oldArt[r.name])||''};
  // Old grimoire remains instantiated behind the scenes for compatibility with legacy controls,
  // but never appears in the new bestiary.
  const legacy=document.createElement('div');legacy.hidden=true;legacy.id='r19-legacy-hidden';
@@ -91,12 +91,12 @@
   return list.filter(([k,v])=>v!==undefined&&v!==null&&String(v).trim()!=='').map(([k,v])=>'<div class="r19-info-row"><small>'+esc(k)+'</small><strong>'+esc(v)+'</strong></div>').join('');
  }
  function details(r){
-  currentId=r.id;editorId=null;imageCandidate=null;modal.hidden=false;
+  currentId=r.id;editorId=null;imageCandidate=null;lookupPending='';modal.hidden=false;
   const picture=artFor(r);
-  const k=key(selected,r.id);
+  const k=key(selected,r.id),credit=read('rpg19-monster-image-attribution',{})[k]||'';
   modal.querySelector('#r19-modal-body').innerHTML='<div class="r19-modal-grid">'+
    '<section><div class="r19-large-art" id="r19-hero-art">'+(picture?'<img src="'+esc(picture)+'" alt="Arte de '+esc(r.name)+'">':'<div class="r19-art-missing">✧<small>Busque ou adicione uma imagem</small></div>')+'</div>'+
-   '<div class="r19-art-actions"><button data-image-search="'+esc(r.id)+'">Buscar imagem</button><label>Adicionar imagem<input id="r19-upload" type="file" accept="image/png,image/jpeg,image/webp" hidden></label>'+(picture?'<button data-image-remove="'+esc(r.id)+'">Remover imagem</button>':'')+'</div><small id="r19-image-msg" role="status">Imagens com licença adequada são sugeridas; imagens próprias ficam neste aparelho.</small></section>'+
+   '<div class="r19-art-actions"><button data-image-search="'+esc(r.id)+'">Buscar imagem</button><label>Adicionar imagem<input id="r19-upload" type="file" accept="image/png,image/jpeg,image/webp" hidden></label>'+(picture?'<button data-image-remove="'+esc(r.id)+'">Remover imagem</button>':'')+'</div><small class="r19-image-credit">'+esc(credit)+'</small><small id="r19-image-msg" role="status">Imagens com licença adequada são sugeridas; imagens próprias ficam neste aparelho.</small></section>'+
    '<section class="r19-detail-text"><small>'+esc(byId(selected)?.title||'Sistema')+'</small><h2>'+esc(r.name)+'</h2><div class="r19-full-data">'+info(r)+'</div>'+
     ((r.attacks?.length)?'<h3>Testes e ataques cadastrados</h3>'+r.attacks.map(a=>'<div class="r19-action-line"><strong>'+esc(a.name)+'</strong><span>'+esc(a.test||'')+' · '+esc(a.damage||'')+'</span></div>').join(''):'')+
    '<p class="r19-source"><strong>Fonte:</strong> '+esc(r.source||'Cadastro local')+(r.page?' · página '+esc(r.page):'')+'. Ações não cadastradas devem ser consultadas no livro.</p>'+
@@ -154,7 +154,7 @@
  function itemForCanvas(r){
   const damage=/^\d{1,2}d(?:4|6|8|10|12|20|100)(?:[+-]\d{1,3})?$/i.test(r.damage||'')?r.damage:(r.roll||'');
   const attacks=Array.isArray(r.attacks)?r.attacks:[];
-  return {...deep(r),systemId:selected,damage,roll:damage,bonus:numeric(r.bonus,1000),abilities:[],attacks:attacks.map(a=>({name:a.name,test:a.test,damage:a.damage}))};
+  return {...deep(r),systemId:selected,damage,roll:damage,bonus:Math.max(-1000,Math.min(1000,Number(r.bonus)||0)),abilities:[],attacks:attacks.map(a=>({name:a.name,test:a.test,damage:a.damage}))};
  }
  function spawn(r){
   if(!window.RPGv3?.spawnCatalog){alert('Canvas indisponível nesta tela.');return}
@@ -249,7 +249,7 @@
   if(e.target.closest('[data-edit-cancel]')){const r=getRecord(currentId);if(r)details(r);else modal.hidden=true;return}
   const del=e.target.closest('[data-delete]');if(del){if(confirm('Excluir esta criatura personalizada?')){custom[selected]=currentRecords().filter(r=>r.id!==del.dataset.delete);save();modal.hidden=true;redraw()}return}
   const start=e.target.closest('[data-image-search]');if(start){let r=getRecord(start.dataset.imageSearch);if(r)requestImage(r,true);return}
-  const remove=e.target.closest('[data-image-remove]');if(remove){delete art[key(selected,remove.dataset.imageRemove)];localStorage.setItem(IMAGE,JSON.stringify(art));details(getRecord(remove.dataset.imageRemove));redraw();return}
+  const remove=e.target.closest('[data-image-remove]');if(remove){art[key(selected,remove.dataset.imageRemove)]='none';localStorage.setItem(IMAGE,JSON.stringify(art));details(getRecord(remove.dataset.imageRemove));redraw();return}
   if(e.target.closest('#r19-approve-art')&&imageCandidate){
    const p=imageCandidate;if(!window.RpgCreatureImageBridge?.saveFromCommons)return;
    modal.querySelector('#r19-image-msg').textContent='Guardando a imagem sugerida neste dispositivo...';
