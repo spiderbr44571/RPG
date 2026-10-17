@@ -68,11 +68,12 @@ function openRemoteSheet(char){
  if(!char?.sheet)return feedback('Ficha não encontrada');
  if(editing)finishRemoteSheet(false);
  const old=JSON.parse(JSON.stringify(op.state)),oldStorage=localStorage.getItem('rpg-ordem-v13-character');
- const remote=JSON.parse(JSON.stringify(char.sheet));const mapped={...remote,resources:{...remote.resources}};
+ const remote=JSON.parse(JSON.stringify(char.sheet));window.__rpgRemoteItems=JSON.parse(JSON.stringify(remote.inventory||remote.items||[]));const mapped={...remote,resources:{...remote.resources}};
  for(const k of ['PV','PE','SAN']){const x=mapped.resources[k];mapped.resources[k]=typeof x==='object'?Number(x.current)||0:Number(x)||0}
  window.__rpgRemoteSheetEditing=true;
  if(!op.changeCharacter(mapped)){window.__rpgRemoteSheetEditing=false;return feedback('Classe ou sistema de ficha não suportado.')}
  editing={id:char.id,original:remote,old,oldStorage};
+ window.RPG05_inventory?.render?.();window.RPG14?.readBio?.();
  toolbar.hidden=false;q('#r13-title').textContent=remote.name+' · ficha online';
  for(const k of ['PV','PE','SAN']){const v=remote.resources?.[k];q('#r13-max-'+k).value=typeof v==='object'?Number(v.max)||0:Number(v)||0}
  for(const sel of ['#rpg05-char-select','#rpg05-new-char','#rpg05-del-char']){const el=q(sel);if(el)el.disabled=true}
@@ -81,6 +82,7 @@ function openRemoteSheet(char){
 function finishRemoteSheet(back=true){
  if(!editing)return;
  const old=editing;editing=null;window.__rpgRemoteSheetEditing=false;
+ window.__rpgRemoteItems=null;
  op.changeCharacter(old.old);
  if(old.oldStorage===null)localStorage.removeItem('rpg-ordem-v13-character');
  else localStorage.setItem('rpg-ordem-v13-character',old.oldStorage);
@@ -93,7 +95,7 @@ toolbar.addEventListener('click',async e=>{
  if(b.dataset.r13!=='save')return;b.disabled=true;
  try{
   const modified=op.state,serverOriginal=editing.original;
-  const result={...serverOriginal,...modified,resources:{...(serverOriginal.resources||{})}};
+  const result={...serverOriginal,...modified,inventory:Array.isArray(window.__rpgRemoteItems)?window.__rpgRemoteItems:[],resources:{...(serverOriginal.resources||{})}};
   for(const k of ['PV','PE','SAN']){
    const max=Number(q('#r13-max-'+k).value),current=Number(modified.resources?.[k]);
    if(!Number.isFinite(max)||max<0||max>999999||!Number.isFinite(current)||current<0)throw Error('Valor de '+k+' inválido');
