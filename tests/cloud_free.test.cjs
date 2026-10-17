@@ -23,7 +23,7 @@ const safe=[
  ['no blank API key hardcoded',!main.includes('sk-or-v1-123')],
  ['native key not exposed',!main.includes('@JavascriptInterface public String getKey')],
  ['Android version supports cloud bridge',/versionCode\s+(2[1-9]|[3-9]\d)/.test(grade)],
- ['indexed source requirement',html.includes("usable=hits.filter(x=>x.kind!=='metadata'&&x.text)")],
+ ['unindexed questions are allowed',html.includes("const request=ai.plan(query") && !main.includes('A IA precisa de trechos dos livros do sistema')],
  ['Internet permission',manifest.includes('android.permission.INTERNET')],
  ['turn off cloud',html.includes('r11-cloud-clear')]
 ];
