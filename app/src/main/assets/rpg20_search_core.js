@@ -51,6 +51,19 @@
   add('Ritual',pack.rituais,r=>({title:r.nome,page:r.paginaLivro,text:'Elemento '+r.elemento+'. Círculo '+r.circulo+'.'+(r.custoBasePE?' Custo base '+r.custoBasePE+' PE.':'')+' Confira o PDF para a descrição completa.'}));
   add('Poder',pack.poderesParanormais,r=>({title:r.nome,page:r.paginaLivro,text:'Poder paranormal '+r.nome+'. Elemento '+(r.elemento||'não cadastrado')+'. Consulte a regra completa.'}));
   add('Condição',pack.condicoes,r=>({title:r.nome,page:r.paginaLivro||0,text:r.resumo||r.efeito||'Condição '+r.nome+'. Consulte a regra completa.'}));
+  // Regras conferidas no PDF de Ordem Paranormal v1.3 (paginação impressa 92-93).
+  // Conteúdo parafraseado, sem reproduzir texto do livro.
+  const rest=[
+   {title:'Interlúdio: como descansar',page:92,pdfPage:102,
+    text:'Em Ordem Paranormal, o descanso ocorre durante um interlúdio permitido pelo mestre, normalmente em lugar seguro. Não há duração fixa em horas. Durante um interlúdio, cada personagem pode realizar até duas ações, como dormir, relaxar, alimentar-se, exercitar-se ou revisar o caso. O mestre determina a duração e as condições.'},
+   {title:'Dormir: recuperação de PV e PE',page:93,pdfPage:103,
+    text:'Dormir durante um interlúdio recupera PV e PE conforme o limite de PE por rodada do personagem. Descanso normal: recupera o valor do limite de PE em PV e em PE. Descanso precário: metade. Descanso confortável: o dobro. Descanso luxuoso: o triplo. Só é possível dormir uma vez em cada interlúdio.'},
+   {title:'Relaxar: recuperação de Sanidade',page:93,pdfPage:103,
+    text:'Relaxar recupera Sanidade (SAN) usando os valores de recuperação da ação dormir, em vez de PV e PE. Há 1 SAN adicional para cada participante que escolher relaxar naquele interlúdio. Só é possível relaxar uma vez por interlúdio.'},
+   {title:'Alimentar-se: benefícios no interlúdio',page:93,pdfPage:103,
+    text:'Uma refeição especial pode melhorar as demais ações do interlúdio: prato favorito dá Sanidade adicional ao relaxar; prato nutritivo amplia a recuperação de PV ao dormir; prato energético amplia a recuperação de PE ao dormir; prato rápido ajuda a revisar o caso. Confira a página do livro para cada requisito e bônus.'}
+  ];
+  for(const r of rest)entries.push({...base,...r,id:'op13:interludio:'+r.page+':'+r.title,type:'Descanso e recuperação',sourceConfidence:'verified'});
   return entries;
  }
  function makeRulesDocs(dnd,gurps){
@@ -83,28 +96,53 @@
   });
   return hits.length===1?hits[0].id:null;
  }
+ const familyGroups=[
+  ['descanso','descansar','dormir','repouso','interludio','recuperacao','sono'],
+  ['sanidade','san','relaxar','relaxamento'],
+  ['vida','pv','pontos de vida'],
+  ['esforco','pe','pontos de esforco']
+ ];
+ function searchTerms(query,systemId,systems){
+  let value=' '+norm(query).replace(/\s+/g,' ').trim()+' ';
+  const system=(systems||[]).find(x=>x.id===systemId);
+  if(system){
+   const labels=(aliases[systemId]||[]).concat(system.title||'').map(norm).sort((a,b)=>b.length-a.length);
+   for(const label of labels){
+    if(label.length<3)continue;
+    value=value.replace(' '+label+' ',' ');
+   }
+  }
+  let ts=tokens(value);
+  for(const group of familyGroups)if(ts.some(x=>group.includes(x)))ts=[...new Set(ts.concat(group.filter(x=>x.length>=3)))];
+  return ts.slice(0,28);
+ }
  function docMatch(d,query,ts){
   const title=norm(d.title),text=norm(d.text),book=norm(d.book),name=norm(d.systemName);
   const q=norm(query).trim();let score=0;
   if(q.length>=3 && title.includes(q))score+=45;
   if(q.length>=3 && text.includes(q))score+=23;
   for(const t of ts){
-   if(title.includes(t))score+=10;
+   if(title.includes(t))score+=9;
    if(text.includes(t))score+=Math.min(4,text.split(t).length-1)*2;
-   if(book.includes(t))score+=3;
   }
-  // An entire system name by itself must NOT make every book appear relevant.
-  if(ts.some(t=>name.split(' ').includes(t)) && ts.length===1)score=Math.max(score,1);
+  // Titles, not the name of the system, are what make a metadata hit relevant.
+  if(d.kind==='metadata'){
+   score=0;
+   for(const t of tokens(query))if(title.includes(t)&&!name.includes(t))score+=4;
+   if(q.length>=3&&title.includes(q))score+=12;
+  }
   return score;
  }
  function search(query,options={}){
-  const q=String(query||'').slice(0,MAX),ts=tokens(q);
-  if(!ts.length)return [];
+  const q=String(query||'').slice(0,MAX);
   const docs=Array.isArray(options.docs)?options.docs:[];
   const sys=options.systemId||'all',filter=options.edition||'all',max=Math.min(30,Math.max(1,options.limit||10));
+  const ts=searchTerms(q,sys,options.systems||[]);
+  if(!ts.length)return [];
+  const rankedQuery=ts[0]||q;
   return docs.filter(d=>(sys==='all'||d.systemId===sys)&&(filter==='all'||d.edition===filter))
-    .map(d=>({...d,score:docMatch(d,q,ts)})).filter(d=>d.score>0)
-    .sort((a,b)=>b.score-a.score || (a.kind==='metadata'?1:-1) - (b.kind==='metadata'?1:-1))
+    .map(d=>({...d,score:docMatch(d,rankedQuery,ts)})).filter(d=>d.score>0)
+    .sort((a,b)=>(a.kind==='metadata'?1:0)-(b.kind==='metadata'?1:0) || b.score-a.score)
     .slice(0,max);
  }
  function docsFromIndexes(books,systems){
@@ -119,5 +157,5 @@
    }));
   });
  }
- return {aliases,edition,norm,tokens,makeCatalogDocs,makeOrderDocs,makeRulesDocs,inferSystem,docMatch,search,docsFromIndexes};
+ return {aliases,edition,norm,tokens,searchTerms,makeCatalogDocs,makeOrderDocs,makeRulesDocs,inferSystem,docMatch,search,docsFromIndexes};
 });
