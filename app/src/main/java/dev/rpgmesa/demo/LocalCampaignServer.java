@@ -74,15 +74,15 @@ public final class LocalCampaignServer extends NanoHTTPD {
     return "127.0.0.1";
   }
   public JSONObject status(){
-    synchronized(lock){
+    try { synchronized(lock){
       JSONObject j=new JSONObject();
       j.put("running",true).put("ip",hostIp).put("port",currentPort())
        .put("masterUrl","http://"+hostIp+":"+currentPort()+"/master")
        .put("campaigns",listCampaigns()).put("revision",revision.get());
       return j;
-    }
+    }} catch(Exception e){return new JSONObject();}
   }
-  private JSONArray listCampaigns(){
+  private JSONArray listCampaigns() throws JSONException{
     JSONArray result=new JSONArray(),camps=root.getJSONArray("campaigns");
     for(int i=0;i<camps.length();i++){
       JSONObject c=camps.getJSONObject(i);
@@ -93,7 +93,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
     }
     return result;
   }
-  private String invite(JSONObject c){
+  private String invite(JSONObject c) throws JSONException{
     return "http://"+hostIp+":"+currentPort()+"/join/"+c.getString("id")+"/"+c.getString("invite");
   }
   private void persist() throws IOException {
@@ -130,7 +130,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       return new JSONObject().put("id",c.getString("id")).put("name",name).put("invite",invite(c));
     }
   }
-  private JSONObject campaign(String cid){
+  private JSONObject campaign(String cid) throws JSONException{
     JSONArray a=root.getJSONArray("campaigns");
     for(int i=0;i<a.length();i++){
       JSONObject c=a.getJSONObject(i);
@@ -138,7 +138,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
     }
     throw new IllegalArgumentException("Campanha não encontrada");
   }
-  private static JSONObject entry(JSONArray arr,String id,String what){
+  private static JSONObject entry(JSONArray arr,String id,String what) throws JSONException{
     for(int i=0;i<arr.length();i++){
       JSONObject o=arr.getJSONObject(i);
       if(id.equals(o.optString("id")))return o;
@@ -176,7 +176,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       return new JSONObject().put("id",o.getString("id"));
     }
   }
-  public JSONObject detail(String cid){
+  public JSONObject detail(String cid) throws JSONException{
     synchronized(lock){
       JSONObject data=new JSONObject(campaign(cid).toString());
       data.remove("invite");
@@ -228,7 +228,8 @@ public final class LocalCampaignServer extends NanoHTTPD {
       else throw new IllegalArgumentException("Evento desconhecido");
       JSONArray characters=c.getJSONArray("characters");
       for(int i=0;i<characters.length();i++){
-        JSONObject s=characters.getJSONObject(i).getJSONObject("sheet"),effects=s.optJSONArray("effects");
+        JSONObject s=characters.getJSONObject(i).getJSONObject("sheet");
+        JSONArray effects=s.optJSONArray("effects");
         if(effects==null)continue;
         JSONArray kept=new JSONArray();
         for(int k=0;k<effects.length();k++){
@@ -264,7 +265,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       campaign(cid).put("canvas",new JSONArray(cards.toString()));persist();
     }
   }
-  private JSONObject checkPlayer(String cid,String token){
+  private JSONObject checkPlayer(String cid,String token) throws JSONException{
     if(token==null)return null;
     synchronized(lock){
       JSONArray arr=campaign(cid).getJSONArray("players");
@@ -275,7 +276,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
     }
     return null;
   }
-  private JSONObject playerInfo(String cid,JSONObject p){
+  private JSONObject playerInfo(String cid,JSONObject p) throws JSONException{
     synchronized(lock){
       JSONObject c=campaign(cid),v=new JSONObject().put("campaign",c.getString("name"))
         .put("scene",c.getInt("scene")).put("sceneName",c.getString("sceneName"))
@@ -324,7 +325,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
     r.addHeader("Referrer-Policy","no-referrer");r.addHeader("X-Frame-Options","DENY");
     return r;
   }
-  private Response json(int status,String key,String value){return response(status,new JSONObject().put(key,value));}
+  private Response json(int status,String key,String value){try{return response(status,new JSONObject().put(key,value));}catch(Exception e){return newFixedLengthResponse(Response.Status.INTERNAL_ERROR,"text/plain","Erro");}}
   private Response html(String asset) throws IOException{
     byte[] buf;
     try(InputStream in=context.getAssets().open(asset);ByteArrayOutputStream out=new ByteArrayOutputStream()){
