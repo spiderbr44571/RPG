@@ -5,7 +5,7 @@ const KEY='rpg-gurps4-characters-v1',SEL='rpg-gurps4-selected-v1';
 const ids=['identidade','pericias','vantagens','combate','equipamento','magia','historia'];
 const labels=['Atributos','Perícias','Vantagens e Desvantagens','Combate','Equipamento','Magia / Poderes','História'];
 const $=s=>document.querySelector(s),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let list=[],selected='',tab='identidade',host=null,rollTimeout=0,active=false;
+let list=[],selected='',tab='identidade',host=null,rollTimeout=0,active=false,remote=null;
 const number=(x,defaultValue=0)=>Number.isFinite(Number(x))?Number(x):defaultValue;
 const attrNames={ST:'Força · ST',DX:'Destreza · DX',IQ:'Inteligência · IQ',HT:'Vitalidade · HT'};
 const source='GURPS 4ª edição · GURPS Lite (p. 2, 4–6, 12–29) e Módulo Básico. Consulte os livros para opções avançadas.';
@@ -13,7 +13,7 @@ function load(){try{list=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.i
  list=list.filter(x=>x&&x.systemId==='gurps'&&x.edition==='4e').slice(0,60);
  if(!list.length){list=[E.create()];write()}
  selected=localStorage.getItem(SEL)||list[0].id;if(!list.some(x=>x.id===selected))selected=list[0].id;}
-function write(){try{localStorage.setItem(KEY,JSON.stringify(list));localStorage.setItem(SEL,selected)}catch(e){throw Error('Armazenamento cheio. Exporte a ficha antes de adicionar imagens.')}}
+function write(){if(remote)return;try{localStorage.setItem(KEY,JSON.stringify(list));localStorage.setItem(SEL,selected)}catch(e){throw Error('Armazenamento cheio. Exporte a ficha antes de adicionar imagens.')}}
 function current(){return list.find(x=>x.id===selected)||list[0]}
 function selects(value,options){return options.map(([v,l])=>'<option value="'+esc(v)+'"'+(String(v)===String(value)?' selected':'')+'>'+esc(l)+'</option>').join('')}
 function choice(value,arr){return selects(value,arr.map(s=>[s,s]))}
@@ -78,8 +78,9 @@ function history(s){
 }
 function header(){
  const s=current(),p=E.spent(s);
- return '<div class="g-hero"><div class="g-inline">'+(s.portrait?'<img class="g-portrait" src="'+esc(s.portrait)+'" alt="Retrato de '+esc(s.name)+'">':'<div class="g-portrait" style="display:grid;place-items:center;font:500 38px Georgia,serif;color:#d8bd94">3d6</div>')+'<div><div class="g-eyebrow">GURPS • QUARTA EDIÇÃO</div><h2>'+esc(s.name)+'</h2><div class="g-inline"><span class="g-chip">Pontos: '+p.total+' / '+s.pointBudget+'</span><span class="g-chip">Saldo: '+p.remaining+'</span><span class="g-chip">NT '+esc(s.techLevel)+'</span></div></div></div><div class="g-controls"><select id="g-switch" class="g-sheet-select" aria-label="Selecionar personagem">'+list.map(ch=>'<option value="'+esc(ch.id)+'"'+(ch.id===s.id?' selected':'')+'>'+esc(ch.name)+'</option>').join('')+'</select><button data-action="new" class="g-primary">+ Ficha</button></div></div>'+
- '<div class="g-eyebrow" style="padding:9px 4px">Módulo de regras GURPS 4ª edição • Ficha local • '+esc(source)+'</div>'+
+ const remoteBar=remote?'<section class="g-panel" style="border:2px solid #d1ad72"><div class="g-eyebrow">MODO MESTRE · EDIÇÃO ONLINE</div><h3>Personagem da campanha</h3><p>As alterações só aparecem para o jogador depois de salvar no servidor.</p><div class="g-controls"><button data-action="save-remote" class="g-primary">Salvar na campanha</button><button data-action="cancel-remote">Voltar à Mestragem</button></div></section>':'';
+ return '<div class="g-hero"><div class="g-inline">'+(s.portrait?'<img class="g-portrait" src="'+esc(s.portrait)+'" alt="Retrato de '+esc(s.name)+'">':'<div class="g-portrait" style="display:grid;place-items:center;font:500 38px Georgia,serif;color:#d8bd94">3d6</div>')+'<div><div class="g-eyebrow">GURPS • QUARTA EDIÇÃO</div><h2>'+esc(s.name)+'</h2><div class="g-inline"><span class="g-chip">Pontos: '+p.total+' / '+s.pointBudget+'</span><span class="g-chip">Saldo: '+p.remaining+'</span><span class="g-chip">NT '+esc(s.techLevel)+'</span></div></div></div><div class="g-controls"><select id="g-switch" class="g-sheet-select" aria-label="Selecionar personagem">'+list.map(ch=>'<option value="'+esc(ch.id)+'"'+(ch.id===s.id?' selected':'')+'>'+esc(ch.name)+'</option>').join('')+'</select><button data-action="new" class="g-primary"'+(remote?' disabled':'')+'>+ Ficha</button></div></div>'+
+ remoteBar+'<div class="g-eyebrow" style="padding:9px 4px">Módulo de regras GURPS 4ª edição • Ficha local • '+esc(source)+'</div>'+
  '<div class="g-tabs" role="tablist" aria-label="Seções GURPS">'+ids.map((id,i)=>'<button data-tab="'+id+'" role="tab" aria-selected="'+String(id===tab)+'">'+labels[i]+'</button>').join('')+'</div>';
 }
 function render(full=true){
@@ -131,6 +132,13 @@ function add(type){
 function downloadJSON(data,name){const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 function actions(action){
  let s=current();
+ if(action==='save-remote'){
+  if(!remote)return;
+  const session=remote,copy=JSON.parse(JSON.stringify(s));
+  Promise.resolve().then(()=>session.onSave(copy)).then(()=>finishRemote()).catch(e=>notify('Falha ao salvar na campanha: '+e.message,true));return;
+ }
+ if(action==='cancel-remote'){finishRemote();return}
+ if(remote&&['new','duplicate','delete'].includes(action))throw Error('Nesta edição use Salvar na campanha ou Voltar.');
  if(action==='new'){const name=prompt('Nome do novo personagem GURPS','Novo personagem GURPS');if(name===null)return;const ch=E.create(name.slice(0,100));list.push(ch);selected=ch.id;tab='identidade';rerender()}
  if(action==='export'){downloadJSON(s,'gurps4-'+s.name.toLowerCase().replace(/[^a-z0-9]+/gi,'-')+'.json')}
  if(action==='duplicate'){let c=JSON.parse(JSON.stringify(s));c.id=E.create().id;c.name=(c.name+' — cópia').slice(0,100);list.push(c);selected=c.id;rerender()}
@@ -202,6 +210,20 @@ async function portrait(file){
  img.close?.();current().portrait=canvas.toDataURL('image/jpeg',.7);rerender();
  }catch(e){notify(e.message,true)}
 }
+function finishRemote(returnToMaster=true){
+ if(!remote)return;
+ const prev=remote;remote=null;list=prev.backup;selected=prev.selected;tab=prev.tab;
+ if(host)render();
+ if(returnToMaster)window.RPG_DEMO?.navigate?.('master');
+}
+function editRemote(sheet,onSave){
+ if(!sheet || sheet.systemId!=='gurps'||sheet.edition!=='4e')throw Error('Ficha GURPS incompatível.');
+ if(!list.length)load();
+ if(remote)finishRemote(false);
+ remote={backup:list,selected,tab,onSave};
+ list=[JSON.parse(JSON.stringify(sheet))];selected=list[0].id;tab='identidade';
+ window.RPG_DEMO?.navigate?.('library');window.RPG15?.openSystem?.('gurps');
+}
 function mount(container){
  if(!container)return;
  if(!list.length)load();
@@ -209,5 +231,5 @@ function mount(container){
  host=box;host.addEventListener('click',onClick);host.addEventListener('change',onChange);
  active=true;render();return box;
 }
-window.RPG16_GURPS={mount,open:()=>window.RPG15?.openSystem('gurps'),engine:E,get current(){return current()},get all(){return list.slice()},exportAll:()=>downloadJSON(list,'gurps4-personagens.json')};
+window.RPG16_GURPS={mount,editRemote,open:()=>window.RPG15?.openSystem('gurps'),engine:E,get current(){if(!list.length)load();return current()},get all(){if(!list.length)load();return list.slice()},exportAll:()=>downloadJSON(list,'gurps4-personagens.json')};
 })();
