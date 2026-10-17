@@ -27,12 +27,13 @@ Os PDFs continuam no armazenamento autorizado do usuário. Nenhuma reprodução 
 - Magias e seus pré-requisitos, duração, manutenção, custo progressivo, escolas e listas completas por suplemento.
 - Pormenores de combate: distância/velocidade, ataque rápido, munição, dispersão, local de acerto, resistência e multiplicadores por tipo de lesão, efeitos de ferimentos, recuperação e múltiplas proteções localizadas.
 - Magia/Powers/Psicônicos e tecnologia de suplementos exigem módulos próprios.
-- Fichas GURPS ainda precisam ser conectadas ao servidor de campanhas Android; o aplicativo anterior só sincroniza recursos de Ordem Paranormal.
+- **Integração LAN inicial implementada:** mestre adiciona personagem GURPS do acervo local, edita pela ficha visual GURPS e atribui ao jogador. O navegador mostra a ficha GURPS, PV/PF editáveis, testes 3d6, cena, rodada e canvas pessoal.
+- **Limitações LAN:** a ficha do navegador é de consulta com rolagens e recursos, e não um editor completo de vantagens, perícias e equipamento; alterações estruturais continuam com o mestre. A transmissão de resultados 3d6 ainda é calculada no cliente; validação autoritativa do servidor está planejada.
 - Ajustes de custo opcional/NT/ambientação devem ser conferidos pelo mestre antes de usar.
 - O módulo não apresenta descrições integrais de livros protegidos por direitos autorais.
 
 ## Próximas etapas
-1. **Integração LAN por sistema**: modelo de ficha do jogador/mestre dinâmico baseado em `systemId` e permissões específicas de recursos.
+1. **Aprimorar integração LAN**: permissões configuráveis por campanha, rolagem 3d6 auditada pelo servidor e feedback de estado em tempo real.
 2. Catalogar atributos derivados, perícias, vantagens e desvantagens completas do Módulo Básico com fonte verificável por edição/página.
 3. Adicionar combate avançado e dano, resistências localizadas e condições.
 4. Magia e demais suplementos sob seleção de regras pelo mestre.
@@ -46,3 +47,4 @@ Os PDFs continuam no armazenamento autorizado do usuário. Nenhuma reprodução 
 5. Adicione itens com peso; confira penalidade por carga e esquiva.
 6. Registre vantagens/desvantagens, edite a história e exporte a ficha.
 7. Reabra o app e confira os dados persistidos.
+8. Na Mestragem, adicione a ficha GURPS, atribua a um jogador via convite e confira PV/PF, 3d6, cenas e rodadas no navegador.
