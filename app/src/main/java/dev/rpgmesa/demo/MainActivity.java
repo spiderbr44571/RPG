@@ -405,6 +405,8 @@ public final class MainActivity extends Activity {
       private static final String PREF_NAME = "rpg_openrouter_encrypted";
       private volatile String ephemeralKey = null;
       private final java.util.Set<String> freeModels = java.util.Collections.synchronizedSet(new java.util.HashSet<String>());
+      private volatile String preferredFreeModel = "";
+      private volatile String secondaryFreeModel = "";
 
       private boolean offline(){return allowedHost==null;}
       private boolean keyFormat(String key){
@@ -453,13 +455,13 @@ public final class MainActivity extends Activity {
         try{
           if(save)remember(key);else forgetStored();
           ephemeralKey=key;
-          freeModels.clear();
+          freeModels.clear();preferredFreeModel="";secondaryFreeModel="";
           return true;
         }catch(Exception ex){return false;}
       }
       @JavascriptInterface public void clear(){
         if(!offline())return;
-        ephemeralKey=null;freeModels.clear();forgetStored();
+        ephemeralKey=null;freeModels.clear();preferredFreeModel="";secondaryFreeModel="";forgetStored();
       }
       private JSONObject error(String error) throws Exception {
         return new JSONObject().put("ok",false).put("data",new JSONObject().put("error",error));
@@ -515,23 +517,83 @@ public final class MainActivity extends Activity {
           new java.math.BigDecimal(price.optString("completion","1")).compareTo(java.math.BigDecimal.ZERO)==0;}
         catch(Exception error){return false;}
       }
+      private boolean conversationalFree(JSONObject entry){
+        if(entry==null)return false;
+        String id=entry.optString("id",""),name=entry.optString("name","");
+        if(!id.endsWith(":free")||id.length()>130||!priceZero(entry.optJSONObject("pricing")))return false;
+        String key=(id+" "+name).toLowerCase(java.util.Locale.ROOT);
+        if(key.matches(".*(content[-_ ]?safety|safety[-_ ]?classifier|(?:^|[/ _-])(guard|moderation|classifier|embedding|rerank|reward[-_ ]?model|shield)(?:$|[/ _-])).*"))return false;
+        JSONObject arch=entry.optJSONObject("architecture");
+        if(arch!=null){
+          JSONArray outputs=arch.optJSONArray("output_modalities");
+          if(outputs!=null&&!outputs.toString().contains("\"text\""))return false;
+          JSONArray inputs=arch.optJSONArray("input_modalities");
+          if(inputs!=null&&!inputs.toString().contains("\"text\""))return false;
+        }
+        return true;
+      }
+      private int conversationalScore(JSONObject item){
+        String id=item.optString("id","").toLowerCase(java.util.Locale.ROOT);
+        String title=item.optString("name","").toLowerCase(java.util.Locale.ROOT);
+        int score=0;
+        if((id+" "+title).matches(".*(instruct|chat).*"))score+=75;
+        if(id.matches(".*(qwen|llama|gemini|mistral|minimax|deepseek|gpt|glm|solar|command).*"))score+=25;
+        if(id.matches(".*(reason|thinking|/r1[-:]|nemotron-3-super|nemotron-3-ultra).*"))score-=25;
+        if(item.optInt("context_length",0)>=32000)score+=5;
+        return score;
+      }
       private JSONObject models() throws Exception{
         JSONObject response=http("/models",null);
         JSONArray rows=response.optJSONArray("data");
-        JSONArray output=new JSONArray();
-        output.put(new JSONObject().put("id","openrouter/free").put("name","Roteador gratuito automático"));
-        freeModels.clear();
-        freeModels.add("openrouter/free");
+        java.util.ArrayList<JSONObject> found=new java.util.ArrayList<>();
         if(rows!=null)for(int i=0;i<rows.length();i++){
-          JSONObject row=rows.optJSONObject(i);if(row==null)continue;
-          String id=row.optString("id","");
-          if(id.endsWith(":free")&&id.length()<130&&priceZero(row.optJSONObject("pricing"))){
-            freeModels.add(id);
-            if(output.length()<140)output.put(new JSONObject().put("id",id)
-              .put("name",row.optString("name",id).substring(0,Math.min(120,row.optString("name",id).length()))));
+          JSONObject entry=rows.optJSONObject(i);
+          if(conversationalFree(entry))found.add(entry);
+        }
+        found.sort((a,b)->Integer.compare(conversationalScore(b),conversationalScore(a)));
+        JSONArray output=new JSONArray();
+        output.put(new JSONObject().put("id","openrouter/free").put("name","Roteador automático (gratuito)"));
+        freeModels.clear();freeModels.add("openrouter/free");
+        preferredFreeModel="";secondaryFreeModel="";
+        for(JSONObject entry:found){
+          String id=entry.optString("id","");
+          freeModels.add(id);
+          if(preferredFreeModel.isEmpty())preferredFreeModel=id;
+          else if(secondaryFreeModel.isEmpty())secondaryFreeModel=id;
+          if(output.length()<101){
+            String title=entry.optString("name",id);
+            output.put(new JSONObject().put("id",id).put("name",title.substring(0,Math.min(110,title.length()))));
           }
         }
-        return new JSONObject().put("models",output);
+        return new JSONObject().put("models",output)
+          .put("recommended",preferredFreeModel.isEmpty()?"openrouter/free":preferredFreeModel);
+      }
+      private String answerFromResponse(JSONObject raw){
+        JSONArray choices=raw.optJSONArray("choices");
+        JSONObject choice=choices!=null&&choices.length()>0?choices.optJSONObject(0):null;
+        JSONObject message=choice==null?null:choice.optJSONObject("message");
+        if(message==null||message.isNull("content"))return "";
+        Object content=message.opt("content");
+        StringBuilder output=new StringBuilder();
+        if(content instanceof String)output.append((String)content);
+        else if(content instanceof JSONArray){
+          JSONArray parts=(JSONArray)content;
+          for(int i=0;i<parts.length();i++){
+            JSONObject part=parts.optJSONObject(i);
+            if(part!=null&&"text".equals(part.optString("type"))){
+              String text=part.optString("text","");
+              if(!text.isEmpty())output.append(text).append("\n");
+            }
+          }
+        }
+        String answer=output.toString().trim();
+        if(answer.isEmpty()||answer.equalsIgnoreCase("null")||
+           answer.equalsIgnoreCase("undefined")||answer.equalsIgnoreCase("none")||
+           answer.equalsIgnoreCase("n/a")||
+           answer.matches("(?is)^(?:user|assistant|prompt|content)\\s+safety\\s*[:=-]\\s*(?:safe|unsafe|benign|unknown|0|1)[.!\\s]*$")||
+           answer.matches("(?is)^(?:safety|policy)\\s*(?:classification|label|score)?\\s*[:=-]\\s*(?:safe|unsafe|benign|unknown|0|1)[.!\\s]*$"))
+          return "";
+        return answer;
       }
       private JSONObject chat(JSONObject params) throws Exception{
         String systemId=params.optString("systemId","all");
@@ -588,18 +650,33 @@ public final class MainActivity extends Activity {
           "Responda a partir de conhecimento geral e deixe clara a ausência de conferência documental "+
           "quando a pergunta exigir regra oficial de uma edição.";
         messages.put(new JSONObject().put("role","user").put("content",question+context));
-        JSONObject request=new JSONObject().put("model",model).put("temperature",0.35)
-          .put("max_tokens",1100).put("messages",messages);
-        JSONObject raw=http("/chat/completions",request);
-        JSONArray choices=raw.optJSONArray("choices");
-        JSONObject response=choices!=null&&choices.length()>0?choices.optJSONObject(0):null;
-        JSONObject message=response==null?null:response.optJSONObject("message");
-        String answer=message==null?"":message.optString("content","");
-        if(answer==null||answer.trim().isEmpty())
-          throw new IllegalStateException("O modelo gratuito retornou vazio. Tente novamente ou selecione outro :free");
-        return new JSONObject().put("model",raw.optString("model",model))
-          .put("answer",answer.substring(0,Math.min(7500,answer.length())))
-          .put("sourceMode",sources.length()>0?"indexed":"general");
+        JSONObject request=new JSONObject().put("temperature",0.3).put("max_tokens",1600)
+          .put("messages",messages);
+        String alternate=!preferredFreeModel.isEmpty()&&!preferredFreeModel.equals(model)?preferredFreeModel:
+          (!secondaryFreeModel.isEmpty()&&!secondaryFreeModel.equals(model)?secondaryFreeModel:"");
+        // At most one automatic retry, and only with another catalog-verified free chat model.
+        // Never retry a genuine model refusal as though it were a technical error.
+        String lastFailure="O modelo retornou uma resposta nula, vazia ou de classificação.";
+        for(int attempt=0;attempt<(alternate.isEmpty()?1:2);attempt++){
+          String target=attempt==0?model:alternate;
+          request.put("model",target);
+          try{
+            JSONObject raw=http("/chat/completions",request);
+            String answer=answerFromResponse(raw);
+            if(!answer.isEmpty()){
+              return new JSONObject().put("model",raw.optString("model",target))
+                .put("answer",answer.substring(0,Math.min(7500,answer.length())))
+                .put("sourceMode",sources.length()>0?"indexed":"general")
+                .put("retried",attempt>0);
+            }
+            lastFailure="O modelo "+target+" devolveu uma saída de classificação ou sem texto de resposta.";
+          }catch(Exception err){
+            lastFailure=err.getMessage()==null?"Falha na nuvem":err.getMessage();
+            // An invalid key or a global rate limit cannot be fixed by routing again.
+            if(lastFailure.contains("não autorizada")||lastFailure.contains("Limite de requisições"))break;
+          }
+        }
+        throw new IllegalStateException(lastFailure+" Tente outro modelo gratuito mais tarde.");
       }
       @JavascriptInterface public void request(String action,String input,String requestId){
         if(!offline()||!keyFormat(getKey())||requestId==null||
