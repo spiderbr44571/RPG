@@ -2,7 +2,7 @@ plugins { id 'com.android.application' }
 android {
  namespace 'dev.rpgmesa.demo'
  compileSdk 35
- defaultConfig { applicationId 'dev.rpgmesa.demo'; minSdk 26; targetSdk 28; versionCode 21; versionName '0.21.0-ia-cloud-free' }
+ defaultConfig { applicationId 'dev.rpgmesa.demo'; minSdk 26; targetSdk 28; versionCode 22; versionName '0.22.0-consulta-descanso-corrigida' }
  compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
 }
 
