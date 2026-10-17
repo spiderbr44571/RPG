@@ -1497,12 +1497,12 @@ resize();window.addEventListener('resize',resize,{passive:true});raf=requestAnim
 window.RPG10={get theme(){return chosen},setTheme:choose,roll:dice,rollNotation,openSheet:()=>go('sheet')};window.RPG101={openDice,rollNotation,closeDice,get history(){return [...previousRolls]}};
 })();
 
-</script><script src="rpg20_search_core.js"></script><script src="rpg23_ai_core.js"></script><script>
+</script><script src="rpg20_search_core.js"></script><script src="rpg23_ai_core.js"></script><script src="rpg24_ai_quality.js"></script><script>
 /* RPG Mesa v0.20 — multisystem indexed rules assistant. */
 (()=>{'use strict';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
-const app=window.RPG_DEMO, op=window.OP13, core=window.RPG20_SEARCH, ai=window.RPG23_AI;
-if(!app||!op||!core||!ai)return;
+const app=window.RPG_DEMO, op=window.OP13, core=window.RPG20_SEARCH, ai=window.RPG23_AI, quality=window.RPG24_AI_QUALITY;
+if(!app||!op||!core||!ai||!quality)return;
 const esc=(v)=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const normalize=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 const stop=new Set('o a os as um uma de da do dos das e em no na nos nas como que qual quais para por com sem ao aos ou se eu voce vc é sao ser fazer sobre livro regra funciona funciona os uma meu minha onde quando mais existe qual'.split(' '));
@@ -1610,32 +1610,53 @@ async function cloudRequest(action,data){
  if(!browserCloudKey)throw Error('Informe sua chave pessoal do OpenRouter.');
  const headers={Authorization:'Bearer '+browserCloudKey,Accept:'application/json'};
  const options={method:'GET',headers,signal:AbortSignal.timeout(45000)};
- if(action==='chat'){
-  if(!freeModel(data.model))throw Error('Modelo não gratuito.');
-  if(!Array.isArray(data.sources)||data.sources.length>4||
-     (data.systemId==='all'&&data.sources.length>0)||
-     data.sources.some(x=>x.systemId!==data.systemId))
-    throw Error('Fontes precisam pertencer ao mesmo sistema.');
-  const context=data.sources.map((v,i)=>'['+(i+1)+'] '+v.book+' · página '+v.page+'\n'+String(v.text||'').slice(0,950)).join('\n\n');
-  const instruction=ai.generalInstruction+' Sistema selecionado: '+data.systemId+'; edição: '+data.edition+'.';
-  const previous=(data.history||[]).slice(-8).filter(x=>['user','assistant'].includes(x.role))
-    .map(x=>({role:x.role,content:String(x.content||'').slice(0,900)}));
-  options.method='POST';headers['Content-Type']='application/json';
-  options.body=JSON.stringify({model:data.model,max_tokens:1100,temperature:0.35,messages:[
+ const base='https://openrouter.ai/api/v1/';
+ if(action==='models'){
+  const response=await fetch(base+'models',options),json=await response.json();
+  if(!response.ok)throw Error(json.error?.message||('Erro HTTP '+response.status));
+  const choices=quality.rankFreeModels(json.data||[]);
+  return {models:[{id:'openrouter/free',name:'Roteador gratuito automático'},...choices],
+    recommended:choices[0]?.id||'openrouter/free'};
+ }
+ if(action!=='chat')throw Error('Ação da nuvem não suportada');
+ if(!freeModel(data.model))throw Error('Somente modelos gratuitos de conversa são permitidos.');
+ if(!Array.isArray(data.sources)||data.sources.length>4||
+    (data.systemId==='all'&&data.sources.length>0)||
+    data.sources.some(x=>x.systemId!==data.systemId))
+   throw Error('Fontes precisam pertencer ao mesmo sistema.');
+ const context=data.sources.map((v,i)=>'['+(i+1)+'] '+v.book+' · página '+v.page+'\n'+String(v.text||'').slice(0,950)).join('\n\n');
+ const instruction=ai.generalInstruction+' Sistema selecionado: '+data.systemId+'; edição: '+data.edition+'.';
+ const previous=(data.history||[]).slice(-8).filter(x=>['user','assistant'].includes(x.role))
+   .map(x=>({role:x.role,content:String(x.content||'').slice(0,900)}));
+ const request={model:data.model,max_tokens:1600,temperature:0.3,messages:[
    {role:'system',content:instruction},...previous,
    {role:'user',content:data.question+(context?'\n\nFontes indexadas:\n'+context:
-    '\n\nSem texto indexado para esta pergunta. Use conhecimento geral, sem inventar referências ao livro.')}
-  ]});
+    '\n\nSem texto indexado. Se a pergunta depender de regras oficiais, informe que não houve conferência documental.')}
+ ]};
+ const retry=cachedModels.find(x=>x.id!==data.model)?.id||'';
+ const tryModels=retry?[data.model,retry]:[data.model];
+ let failure='Nenhum modelo gratuito retornou uma resposta utilizável.';
+ for(const [i,chosen] of tryModels.entries()){
+  request.model=chosen;
+  try{
+   const response=await fetch(base+'chat/completions',{method:'POST',headers:{
+    ...headers,'Content-Type':'application/json'},signal:AbortSignal.timeout(45000),body:JSON.stringify(request)});
+   const json=await response.json();
+   if(!response.ok){
+    const message=json.error?.message||('Erro HTTP '+response.status);
+    if(response.status===401||response.status===403||response.status===429)throw Error(message);
+    failure=message;
+    continue;
+   }
+   const accepted=quality.completion(json);
+   if(accepted.ok)return {answer:accepted.answer,model:accepted.model||chosen,retried:i>0};
+   failure=accepted.reason;
+  }catch(err){
+   failure=err.message||String(err);
+   if(/401|403|429|not authorized|unauthorized|rate.limit|limite/i.test(failure))break;
+  }
  }
- const url='https://openrouter.ai/api/v1/'+(action==='models'?'models':'chat/completions');
- const response=await fetch(url,options);const json=await response.json();
- if(!response.ok)throw Error(json.error?.message||('Erro HTTP '+response.status));
- if(action==='models'){
-  return {models:[{id:'openrouter/free',name:'Roteador gratuito automático'},
-   ...(json.data||[]).filter(x=>x.id?.endsWith(':free')&&Number(x.pricing?.prompt)===0&&Number(x.pricing?.completion)===0)
-    .slice(0,130).map(x=>({id:x.id,name:x.name||x.id}))]};
- }
- return {model:json.model||data.model,answer:json.choices?.[0]?.message?.content||''};
+ throw Error(failure+' Selecione outro modelo gratuito ou tente novamente.');
 }
 async function ask(query){
  if(busy)return;
@@ -1670,9 +1691,9 @@ async function ask(query){
   try{
    const result=await cloudRequest('chat',request);
    const answer=String(result.answer||'').trim();
-   if(!answer)throw Error('O modelo gratuito retornou vazio.');
+   if(!quality.validAnswer(answer))throw Error('O modelo gratuito retornou texto nulo, vazio ou uma classificação em vez da resposta.');
    const verified=request.sources.length>0;
-   pending.innerHTML='<b>'+esc(result.model||model)+'</b><p>'+esc(answer).replace(/\n/g,'<br>')+'</p>'+
+   pending.innerHTML='<b>'+esc(result.model||model)+'</b>'+(result.retried?'<small>Outro modelo gratuito respondeu após uma tentativa inválida.</small>':'')+'<p>'+esc(answer).replace(/\n/g,'<br>')+'</p>'+
      '<small>'+(verified?'Resposta com '+request.sources.length+' trecho(s) consultáveis. Confira as páginas citadas.':
        'Resposta baseada em conhecimento geral da IA; não foi conferida com o texto do livro.')+'</small>';
    history.push({role:'user',content:query},{role:'assistant',content:answer.slice(0,900)});
@@ -1698,7 +1719,8 @@ async function populateFreeModels(){
  cachedModels=Array.isArray(data.models)?data.models.filter(x=>x.id==='openrouter/free'||x.id?.endsWith(':free')):[];
  const choices=[{id:'openrouter/free',name:'Roteador gratuito automático'},...cachedModels.filter(x=>x.id!=='openrouter/free')];
  $('#r11-model').innerHTML=choices.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name||x.id)+'</option>').join('');
- model='openrouter/free';
+ model=cachedModels.some(x=>x.id===data.recommended)?data.recommended:'openrouter/free';
+ $('#r11-model').value=model;
 }
 $('#r11-connect').onclick=async()=>{
  try{
@@ -1712,7 +1734,7 @@ $('#r11-connect').onclick=async()=>{
   }
   if(!hasCloudKey())throw Error('Informe sua chave pessoal do OpenRouter.');
   setStatus('● Consultando modelos gratuitos na nuvem...');
-  try{await populateFreeModels();setStatus('● OpenRouter cloud conectado · apenas Free');app.notify('Modelos gratuitos carregados.')}
+  try{await populateFreeModels();setStatus('● IA pronta · modelo de conversa gratuito');app.notify('Modelos gratuitos compatíveis carregados.')}
   catch(err){
    cachedModels=[];model='openrouter/free';
    setStatus('● Cloud configurada · roteador gratuito');
