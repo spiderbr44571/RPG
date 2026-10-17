@@ -1,0 +1,2750 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "type": "google-drive-file-metadata",
+    "sourceFolderId": "1x9pqT6S-4i1luv8gDJDcRGJSLSKCpAC_",
+    "description": "Somente nomes, caminhos, links e tamanhos de arquivos; PDFs não incluídos"
+  },
+  "systems": [
+    {
+      "id": "ordem-paranormal",
+      "title": "Ordem Paranormal",
+      "folderId": "1AERoNqBFBqpJZ-wWrRn9P67V9nSMWINZ",
+      "driveUrl": "https://drive.google.com/drive/folders/1AERoNqBFBqpJZ-wWrRn9P67V9nSMWINZ",
+      "implementation": "partial",
+      "books": [
+        {
+          "id": "1DrbbitCLXMlP3eV0A_iHrcOU9SBehcr4",
+          "title": "ordem-paranormal-rpg-v1-3-lyfxjj.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1DrbbitCLXMlP3eV0A_iHrcOU9SBehcr4/view?usp=drivesdk",
+          "sizeBytes": 188767999,
+          "path": [],
+          "category": "livro"
+        },
+        {
+          "id": "1eUIk_sHNNwtwdQkRTpAScq-x_kuQcWYa",
+          "title": "Ordem Paranormal (Sobrevivendo ao Horror).pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1eUIk_sHNNwtwdQkRTpAScq-x_kuQcWYa/view?usp=drivesdk",
+          "sizeBytes": 84030106,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1lNoFXfaCxIcF6FB61fzKMZs4idsicsBx",
+          "title": "Ordem Paranormal RPG - Suplemento da Comunidade.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1lNoFXfaCxIcF6FB61fzKMZs4idsicsBx/view?usp=drivesdk",
+          "sizeBytes": 48838224,
+          "path": [],
+          "category": "suplemento"
+        },
+        {
+          "id": "1oQNX3Pwo8g6jfaiS8xH_-ui0MmqoMyCU",
+          "title": "Os Espinhos da Aurora Escarlate.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1oQNX3Pwo8g6jfaiS8xH_-ui0MmqoMyCU/view?usp=drivesdk",
+          "sizeBytes": 7340035,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1DOt15PFKi_SDD8GGPYDB_IMHO90QuLSR",
+          "title": "Ficha Ordem Editável.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1DOt15PFKi_SDD8GGPYDB_IMHO90QuLSR/view?usp=drivesdk",
+          "sizeBytes": 324314,
+          "path": [
+            "Fichas"
+          ],
+          "category": "ficha"
+        },
+        {
+          "id": "1mziazpvBpqzMyi76dteLLJK_6AvekyMQ",
+          "title": "OPRPG - Ficha de Personagem Editável (por Kyuu) - Sobrevivendo ao Horror.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1mziazpvBpqzMyi76dteLLJK_6AvekyMQ/view?usp=drivesdk",
+          "sizeBytes": 1332442,
+          "path": [
+            "Fichas"
+          ],
+          "category": "ficha"
+        },
+        {
+          "id": "1Pj7rw5bVLif7xHXwMSvEuwP3TZC8YIyb",
+          "title": "OPRPG - Ficha de Série Editável (por Kyuu) - Sobrevivendo ao Horror.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1Pj7rw5bVLif7xHXwMSvEuwP3TZC8YIyb/view?usp=drivesdk",
+          "sizeBytes": 234975,
+          "path": [
+            "Fichas"
+          ],
+          "category": "ficha"
+        },
+        {
+          "id": "1hkCGiqMA6x_ksu4l9A80ghrLOfLbiudF",
+          "title": "Criação de Personagem 3 - AOP.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1hkCGiqMA6x_ksu4l9A80ghrLOfLbiudF/view?usp=drivesdk",
+          "sizeBytes": 21690227,
+          "path": [
+            "Fichas",
+            "Criar Fichas"
+          ],
+          "category": "ficha"
+        },
+        {
+          "id": "1Ti9hfW8wG9_QckJ9TCAS8XhZiRvx6w3C",
+          "title": "Cópia de Guia_rapido_de_personagem_Ordem_Paranormal.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1Ti9hfW8wG9_QckJ9TCAS8XhZiRvx6w3C/view?usp=drivesdk",
+          "sizeBytes": 3098355,
+          "path": [
+            "Fichas",
+            "Criar Fichas"
+          ],
+          "category": "ficha"
+        }
+      ],
+      "folders": [
+        {
+          "id": "1WrdkQHRI9dQdB_OaGGhhO4YR646l0tAc",
+          "title": "Fichas",
+          "path": [
+            "Fichas"
+          ]
+        },
+        {
+          "id": "1rnmravk7bbkmP1w87EvaQT14ccqGpzmH",
+          "title": "Criar Fichas",
+          "path": [
+            "Fichas",
+            "Criar Fichas"
+          ]
+        }
+      ],
+      "metadataOnly": true
+    },
+    {
+      "id": "d-d",
+      "title": "D&D",
+      "folderId": "1bJUegJkwrHgO8xKhBusNZX8hZiTML3fz",
+      "driveUrl": "https://drive.google.com/drive/folders/1bJUegJkwrHgO8xKhBusNZX8hZiTML3fz",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1zayszwVdDAsgUaQrbeY9fFaGapqDJRc4",
+          "title": "dd-5e-ficha-de-personagem-automatica-biblioteca.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1zayszwVdDAsgUaQrbeY9fFaGapqDJRc4/view?usp=drivesdk",
+          "sizeBytes": 838927,
+          "path": [],
+          "category": "ficha"
+        },
+        {
+          "id": "14Sqn2esK39IUCcOHYZ-Wp_fxD9gWdja2",
+          "title": "Guia do Mestre DnD 5E",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/14Sqn2esK39IUCcOHYZ-Wp_fxD9gWdja2/view?usp=drivesdk",
+          "sizeBytes": 20819357,
+          "path": [
+            "5ed"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1U-mMHj5rwEPwVZzE3D3f5FLPsjIxW5-r",
+          "title": "LDJ 5E",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1U-mMHj5rwEPwVZzE3D3f5FLPsjIxW5-r/view?usp=drivesdk",
+          "sizeBytes": 21959094,
+          "path": [
+            "5ed"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1grVfV0ZaFMN0SlddXUdUvZsKOvTW6tdK",
+          "title": "Ficha Oficial D&D 5E Owlburd.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1grVfV0ZaFMN0SlddXUdUvZsKOvTW6tdK/view?usp=drivesdk",
+          "sizeBytes": 981190,
+          "path": [
+            "5ed"
+          ],
+          "category": "ficha"
+        },
+        {
+          "id": "1DhCCQVcGUpBXbyXrMUDQqZbgpeJxOipC",
+          "title": "dd-3e-livro-do-mestre-3-5-v-digital-biblioteca-elf_240226_120557.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1DhCCQVcGUpBXbyXrMUDQqZbgpeJxOipC/view?usp=drivesdk",
+          "sizeBytes": 12025996,
+          "path": [
+            "3ed"
+          ],
+          "category": "livro"
+        },
+        {
+          "id": "1dCvTfV6nTEOaJ4UREAlspHQLRJyRrm9C",
+          "title": "dd-3e-livro-do-jogador-3-5-v-digital-biblioteca-el_240226_120518.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1dCvTfV6nTEOaJ4UREAlspHQLRJyRrm9C/view?usp=drivesdk",
+          "sizeBytes": 19153804,
+          "path": [
+            "3ed"
+          ],
+          "category": "livro"
+        },
+        {
+          "id": "1ig0AyQZvQ57A65gVRaidediYpPBrezIf",
+          "title": "D&D 2024 Dungeon Master's Guide.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1ig0AyQZvQ57A65gVRaidediYpPBrezIf/view?usp=drivesdk",
+          "sizeBytes": 89447439,
+          "path": [
+            "2024"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1_Gr4ZX8HCwlE0ZHJuTR11nim0ngZ41rw",
+          "title": "D&D 2024- PHB.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1_Gr4ZX8HCwlE0ZHJuTR11nim0ngZ41rw/view?usp=drivesdk",
+          "sizeBytes": 114399029,
+          "path": [
+            "2024"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1is9kvhHQ_0CFDY6QOXMTrkZhL690Glk-",
+          "title": "Ficha D&D 2024 em PT-BR Editável.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1is9kvhHQ_0CFDY6QOXMTrkZhL690Glk-/view?usp=drivesdk",
+          "sizeBytes": 1741785,
+          "path": [
+            "2024",
+            "Fichas"
+          ],
+          "category": "ficha"
+        }
+      ],
+      "folders": [
+        {
+          "id": "16aQKamOjrxmAoabKCfR5THGNrasiWL9j",
+          "title": "5ed",
+          "path": [
+            "5ed"
+          ]
+        },
+        {
+          "id": "1za-hxdC2MumFDCOZGO4xUx8hUyMV7a2k",
+          "title": "3ed",
+          "path": [
+            "3ed"
+          ]
+        },
+        {
+          "id": "1-xZE7kZP64MmsAP-kdW2mYshJ_aFsqcQ",
+          "title": "2024",
+          "path": [
+            "2024"
+          ]
+        },
+        {
+          "id": "14TFN6f_E8F1WAAGMUJ3bsnrOpAQNIt0A",
+          "title": "Fichas",
+          "path": [
+            "2024",
+            "Fichas"
+          ]
+        }
+      ],
+      "metadataOnly": true
+    },
+    {
+      "id": "tormenta-20",
+      "title": "Tormenta 20",
+      "folderId": "1NUu2VyrNpTpiSFU9osVjsh6eGS-lDG6x",
+      "driveUrl": "https://drive.google.com/drive/folders/1NUu2VyrNpTpiSFU9osVjsh6eGS-lDG6x",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "183VX3VngzKhKhGfB5hc7zz3wZVcoDQVL",
+          "title": "Tormenta 20 - Livro de Regras",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/183VX3VngzKhKhGfB5hc7zz3wZVcoDQVL/view?usp=drivesdk",
+          "sizeBytes": 108170988,
+          "path": [],
+          "category": "livro"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "cyberpunk-red",
+      "title": "Cyberpunk RED",
+      "folderId": "1Nowf7uB7v30TnvwbXVcA84LbnaptQIlY",
+      "driveUrl": "https://drive.google.com/drive/folders/1Nowf7uB7v30TnvwbXVcA84LbnaptQIlY",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "10hBLnBuBtOuUYDvwN2bA5aembQ5GSQTt",
+          "title": "Cyberpunk Red.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/10hBLnBuBtOuUYDvwN2bA5aembQ5GSQTt/view?usp=drivesdk",
+          "sizeBytes": 27569390,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1Tw6EW_0wVT74GrZnR3rM0sjNNjYbmd8C",
+          "title": "Cyberpunk RED - Ficha Editável.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1Tw6EW_0wVT74GrZnR3rM0sjNNjYbmd8C/view?usp=drivesdk",
+          "sizeBytes": 1669647,
+          "path": [],
+          "category": "ficha"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "chamado-de-ctchulhu",
+      "title": "Chamado de Ctchulhu",
+      "folderId": "15p5_S-e0EoyWkdfNsEh8EOSqgwg5v0ML",
+      "driveUrl": "https://drive.google.com/drive/folders/15p5_S-e0EoyWkdfNsEh8EOSqgwg5v0ML",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1BHFogM9QafBHWIYA4ehTj2QOxTZW0UM-",
+          "title": "Chamado de Cthulhu - Portais para as Trevas.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1BHFogM9QafBHWIYA4ehTj2QOxTZW0UM-/view?usp=drivesdk",
+          "sizeBytes": 19205377,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1aMr14aslFHGJ9ZzRrJ5Nbr-NakHZZ6IH",
+          "title": "Chamado de Cthulhu - O Grande Grimório.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1aMr14aslFHGJ9ZzRrJ5Nbr-NakHZZ6IH/view?usp=drivesdk",
+          "sizeBytes": 44141990,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1ZcXuP5peOQovmLxV24BgM5S6UNp-U80E",
+          "title": "Chamado de Cthulhu - Idade das Trevas.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1ZcXuP5peOQovmLxV24BgM5S6UNp-U80E/view?usp=drivesdk",
+          "sizeBytes": 40721497,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "147fzsygpCCEakdanJsyuBj-Nri8kXk95",
+          "title": "Chamado de Cthulhu - Guia de Campo de Petersen para Horrores Lovecraftianos.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/147fzsygpCCEakdanJsyuBj-Nri8kXk95/view?usp=drivesdk",
+          "sizeBytes": 31355923,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "19B0h0YgME1pdfFEQqhpmH7nUJ25cfIn7",
+          "title": "Chamado de Cthulhu - Abominações de Petersen.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/19B0h0YgME1pdfFEQqhpmH7nUJ25cfIn7/view?usp=drivesdk",
+          "sizeBytes": 41874085,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1meax1aBkrvj-BRLYCu3Qnh3KTmKnnzld",
+          "title": " Call of Cthulhu - Viral.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1meax1aBkrvj-BRLYCu3Qnh3KTmKnnzld/view?usp=drivesdk",
+          "sizeBytes": 10787377,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1mTLHhGiVKFC6F80Ch8DwNc1upxqrdxbz",
+          "title": "Chamado de Cthulhu.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1mTLHhGiVKFC6F80Ch8DwNc1upxqrdxbz/view?usp=drivesdk",
+          "sizeBytes": 36379384,
+          "path": [],
+          "category": "documento"
+        }
+      ],
+      "folders": [
+        {
+          "id": "1eRVRIL0ol9Wvpx38FvhktDhGUfbPLojV",
+          "title": "7Ed",
+          "path": [
+            "7Ed"
+          ]
+        }
+      ],
+      "metadataOnly": true
+    },
+    {
+      "id": "alien-rpg",
+      "title": "Alien RPG",
+      "folderId": "1TA7SBEETsXtFXZkPxothtIJxQuNGSSCJ",
+      "driveUrl": "https://drive.google.com/drive/folders/1TA7SBEETsXtFXZkPxothtIJxQuNGSSCJ",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1jR6OaYFqZEWBmAGJ8olqE-AnjHxNVASM",
+          "title": "ALIEN RPG.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1jR6OaYFqZEWBmAGJ8olqE-AnjHxNVASM/view?usp=drivesdk",
+          "sizeBytes": 49659988,
+          "path": [],
+          "category": "livro"
+        },
+        {
+          "id": "1Jf0X04eL2i6nR6PiclndjQiMl-hlP0I2",
+          "title": "ALIEN RPG - Chariot of the Gods.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1Jf0X04eL2i6nR6PiclndjQiMl-hlP0I2/view?usp=drivesdk",
+          "sizeBytes": 8592283,
+          "path": [],
+          "category": "aventura"
+        },
+        {
+          "id": "111wAqu728ZvsybBhElB_FbXYV55Iqgsr",
+          "title": "ALIEN RPG - Destroyer of Worlds - Book.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/111wAqu728ZvsybBhElB_FbXYV55Iqgsr/view?usp=drivesdk",
+          "sizeBytes": 9514598,
+          "path": [],
+          "category": "aventura"
+        },
+        {
+          "id": "1HiEfdaAHbTLlK5xNX-ituShj0hAkAz6m",
+          "title": "Alien RPG - Ficha Editável.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1HiEfdaAHbTLlK5xNX-ituShj0hAkAz6m/view?usp=drivesdk",
+          "sizeBytes": 1721783,
+          "path": [],
+          "category": "ficha"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "fate",
+      "title": "FATE",
+      "folderId": "1mPb5ehoaLZB5Op1gH7ck0-Xkj83IM1Mp",
+      "driveUrl": "https://drive.google.com/drive/folders/1mPb5ehoaLZB5Op1gH7ck0-Xkj83IM1Mp",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1Zavm2ZR0FB3XuAQsLRagHPSDyIeX1K5D",
+          "title": "Ficha Editável FATE Básico.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1Zavm2ZR0FB3XuAQsLRagHPSDyIeX1K5D/view?usp=drivesdk",
+          "sizeBytes": 500462,
+          "path": [],
+          "category": "ficha"
+        },
+        {
+          "id": "1drG5S9Kgncs-wVeIzAtIH5UuSqiy3U4v",
+          "title": "Fate Acelerado",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1drG5S9Kgncs-wVeIzAtIH5UuSqiy3U4v/view?usp=drivesdk",
+          "sizeBytes": 14966949,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1rXmX68FPwLy5eEU-qQkrxE1Lg19wt9Gn",
+          "title": "FATE - Sistema Básico.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1rXmX68FPwLy5eEU-qQkrxE1Lg19wt9Gn/view?usp=drivesdk",
+          "sizeBytes": 55390472,
+          "path": [],
+          "category": "documento"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "gurps",
+      "title": "GURPS",
+      "folderId": "1AXogsm9-KMPsQ_YKOk3EWcBWRAMxo8u7",
+      "driveUrl": "https://drive.google.com/drive/folders/1AXogsm9-KMPsQ_YKOk3EWcBWRAMxo8u7",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "15W_vkwKOvvI7HatBSkfZ2EKJ5dUZm-yg",
+          "title": "Planilha Controle GM Editável GURPS 4ed.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/15W_vkwKOvvI7HatBSkfZ2EKJ5dUZm-yg/view?usp=drivesdk",
+          "sizeBytes": 435797,
+          "path": [
+            "Fichas"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "16IA8I8d6J9z2yR8kQpk0jwHWvFxqX65K",
+          "title": "Planilha Grimorio V1.1 GURPS.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/16IA8I8d6J9z2yR8kQpk0jwHWvFxqX65K/view?usp=drivesdk",
+          "sizeBytes": 472250,
+          "path": [
+            "Fichas"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1txSV9obOkF3yKUevUv1_kZjA8DVi0433",
+          "title": "Planilha Personagem Editavel v2.12 GURPS 4ed.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1txSV9obOkF3yKUevUv1_kZjA8DVi0433/view?usp=drivesdk",
+          "sizeBytes": 5386627,
+          "path": [
+            "Fichas"
+          ],
+          "category": "ficha"
+        },
+        {
+          "id": "1YaZt0Ixjp21noXe4t0k49T-L60ME2z8A",
+          "title": "Planilha NPC Editavel v2.1 GURPS 4ed.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1YaZt0Ixjp21noXe4t0k49T-L60ME2z8A/view?usp=drivesdk",
+          "sizeBytes": 448509,
+          "path": [
+            "Fichas"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1pnr33E9KAdHjA9n7RCTkQ4yCBlPpw0FG",
+          "title": "Planilha Esqueleto Uso do Tempo Edit�vel GURPS.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1pnr33E9KAdHjA9n7RCTkQ4yCBlPpw0FG/view?usp=drivesdk",
+          "sizeBytes": 2858763,
+          "path": [
+            "Fichas"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1fH6OxqB2wwWZnLOqivPDqUeMfUvF68Em",
+          "title": "GURPS Character Sheet.xlsx",
+          "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "url": "https://docs.google.com/spreadsheets/d/1fH6OxqB2wwWZnLOqivPDqUeMfUvF68Em/edit?usp=drivesdk&ouid=104582484677708983023&rtpof=true&sd=true",
+          "sizeBytes": 229436,
+          "path": [
+            "Fichas"
+          ],
+          "category": "ficha"
+        },
+        {
+          "id": "1bXdnOc5s5uMNJimnOvuXTXpKrA-Npn4O",
+          "title": "GURPS 4ed Planilha Personagem Editavel v2.6.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1bXdnOc5s5uMNJimnOvuXTXpKrA-Npn4O/view?usp=drivesdk",
+          "sizeBytes": 714503,
+          "path": [
+            "Fichas"
+          ],
+          "category": "ficha"
+        },
+        {
+          "id": "1Lf2-D2TeQ7NzVZgPVm19nB-CA0hgHZGt",
+          "title": "GURPS4E-PacoteBasico.zip",
+          "mimeType": "application/x-zip-compressed",
+          "url": "https://drive.google.com/file/d/1Lf2-D2TeQ7NzVZgPVm19nB-CA0hgHZGt/view?usp=drivesdk",
+          "sizeBytes": 30013471,
+          "path": [
+            "Utilitários"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1eVFA8zwPFf7xk9T_vbzSaSh1ino3ozkU",
+          "title": "GURPS 4E - Fichas de Combate.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1eVFA8zwPFf7xk9T_vbzSaSh1ino3ozkU/view?usp=drivesdk",
+          "sizeBytes": 1474401,
+          "path": [
+            "Utilitários"
+          ],
+          "category": "ficha"
+        },
+        {
+          "id": "1uoCFKYGtA3iHa7O4-7Zf5MNmC6DCLbeI",
+          "title": "PackGridsHexagonais-GURPZine.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1uoCFKYGtA3iHa7O4-7Zf5MNmC6DCLbeI/view?usp=drivesdk",
+          "sizeBytes": 338012,
+          "path": [
+            "Utilitários"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1LKAx0eXlnF69rdd3zBPeKtqMmU2LzOId",
+          "title": "MapaHexagonal-GURPZine-3-mapa.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1LKAx0eXlnF69rdd3zBPeKtqMmU2LzOId/view?usp=drivesdk",
+          "sizeBytes": 48209,
+          "path": [
+            "Utilitários"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1XZTKjPLgERJtpjMfCK7ulQhF2cRT0dID",
+          "title": "Tabela_Manobras_GURPS_4e.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1XZTKjPLgERJtpjMfCK7ulQhF2cRT0dID/view?usp=drivesdk",
+          "sizeBytes": 24533,
+          "path": [
+            "Utilitários"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "12Q_tD4sgBy9wu0IVpyE1S7sbYyAqa90V",
+          "title": "GURPS 4ªed - Lista de Características.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/12Q_tD4sgBy9wu0IVpyE1S7sbYyAqa90V/view?usp=drivesdk",
+          "sizeBytes": 958881,
+          "path": [
+            "Utilitários"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1nbDJD5WAcC5SP--_JDJC91IpfUi-xjUA",
+          "title": "Como Ser um Mestre de GURPS.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1nbDJD5WAcC5SP--_JDJC91IpfUi-xjUA/view?usp=drivesdk",
+          "sizeBytes": 1914251,
+          "path": [
+            "Utilitários"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1RPllQWl13y3cHsExsyTP44gGs9whiFGn",
+          "title": "GURPS compendium. I - character creation -- Sean Punch; Steve Jackson -- ( WeLib.org ).pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1RPllQWl13y3cHsExsyTP44gGs9whiFGn/view?usp=drivesdk",
+          "sizeBytes": 3902741,
+          "path": [
+            "Expansões"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1pW092Wk620hFF5wgUy_4yQK9Xt6sKEEm",
+          "title": "GURPS 4th edition. Horror -- Kenneth Hite -- ( WeLib.org ).pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1pW092Wk620hFF5wgUy_4yQK9Xt6sKEEm/view?usp=drivesdk",
+          "sizeBytes": 2582976,
+          "path": [
+            "Expansões"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1WOzrbhxp5s8qV9gX_oLwZBou5XfKCSzV",
+          "title": "GURPS 4th edition. Compendium II -- Sean Punch -- ( WeLib.org ).pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1WOzrbhxp5s8qV9gX_oLwZBou5XfKCSzV/view?usp=drivesdk",
+          "sizeBytes": 14623103,
+          "path": [
+            "Expansões"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1RuyzBDIBgAST7JY3fnPLfgGfWfFVkNoE",
+          "title": "GURPS 4th - Template Toolkit 5 - Quick and Pointless.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1RuyzBDIBgAST7JY3fnPLfgGfWfFVkNoE/view?usp=drivesdk",
+          "sizeBytes": 3504326,
+          "path": [
+            "Expansões"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1Fkn6T7yxGdQubeEvvVY_o_fA0FLHiRak",
+          "title": "GURPS 4ª Edição - Viagem Espacial.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1Fkn6T7yxGdQubeEvvVY_o_fA0FLHiRak/view?usp=drivesdk",
+          "sizeBytes": 7490827,
+          "path": [
+            "Expansões"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1arhnoV55p_JkBCgNniyt2ZQUq0gOC4Fv",
+          "title": "GURPS 4ª Edição - Ultra-Tech.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1arhnoV55p_JkBCgNniyt2ZQUq0gOC4Fv/view?usp=drivesdk",
+          "sizeBytes": 7819784,
+          "path": [
+            "Expansões"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1FBFFGnEKEQvfnYdI7Irxmc5nyGnGqqbs",
+          "title": "GURPS 4ª Edição - Supers.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1FBFFGnEKEQvfnYdI7Irxmc5nyGnGqqbs/view?usp=drivesdk",
+          "sizeBytes": 4992050,
+          "path": [
+            "Expansões"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1zdN-7W_i-or0mSDcQi0KvvbFHMBTo0P0",
+          "title": "GURPS 4ª Edição - Poderes.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1zdN-7W_i-or0mSDcQi0KvvbFHMBTo0P0/view?usp=drivesdk",
+          "sizeBytes": 6706445,
+          "path": [
+            "Expansões"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1hWxElI8C22GbckZavfaZu-RengJS5QcM",
+          "title": "GURPS 4ª Edição - Poderes Psíquicos.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1hWxElI8C22GbckZavfaZu-RengJS5QcM/view?usp=drivesdk",
+          "sizeBytes": 2401877,
+          "path": [
+            "Expansões"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1O7jZQcQsFgjug7SUnkgHgSjZR_2aG83R",
+          "title": "GURPS 4ª Edição - Mundos Infinitos.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1O7jZQcQsFgjug7SUnkgHgSjZR_2aG83R/view?usp=drivesdk",
+          "sizeBytes": 6319794,
+          "path": [
+            "Expansões"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1328wy4uORkdJ3MzcvSLECMhV7wT3qhy7",
+          "title": "GURPS 4ª Edição - Mistérios.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1328wy4uORkdJ3MzcvSLECMhV7wT3qhy7/view?usp=drivesdk",
+          "sizeBytes": 3328241,
+          "path": [
+            "Expansões"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1B084Pmw-i9tGaxYrRvpaSeA5NdjIYSHx",
+          "title": "GURPS 4ª Edição - Meta-Tech.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1B084Pmw-i9tGaxYrRvpaSeA5NdjIYSHx/view?usp=drivesdk",
+          "sizeBytes": 1645482,
+          "path": [
+            "Expansões"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1Vn9mI1NjPl4QqIWIsGi-aH0YHtH9hzHs",
+          "title": "GURPS 4ª Edição - Magia.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1Vn9mI1NjPl4QqIWIsGi-aH0YHtH9hzHs/view?usp=drivesdk",
+          "sizeBytes": 22431261,
+          "path": [
+            "Expansões"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "19yytgj_aZJeXm4G_zAVsF0d5QcODrMb6",
+          "title": "GURPS 4ª Edição - Low-Tech.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/19yytgj_aZJeXm4G_zAVsF0d5QcODrMb6/view?usp=drivesdk",
+          "sizeBytes": 3323573,
+          "path": [
+            "Expansões"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "11MCQA6jfgo_pFyW0TyluWHh1oeHBhR_6",
+          "title": "GURPS 4ª Edição - Horror.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/11MCQA6jfgo_pFyW0TyluWHh1oeHBhR_6/view?usp=drivesdk",
+          "sizeBytes": 7271258,
+          "path": [
+            "Expansões"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "12qZrHPlHy06yrAavVj67gMEyjGGG53kz",
+          "title": "GURPS 4ª Edição - High-Tech.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/12qZrHPlHy06yrAavVj67gMEyjGGG53kz/view?usp=drivesdk",
+          "sizeBytes": 5199274,
+          "path": [
+            "Expansões"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1iSmg1jj80VsrUs_Yob0FjRBv9crigNhl",
+          "title": "GURPS 4ª Edição - Cataclismo.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1iSmg1jj80VsrUs_Yob0FjRBv9crigNhl/view?usp=drivesdk",
+          "sizeBytes": 12368500,
+          "path": [
+            "Expansões"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1VW8zlv47rci8kWcDCg_z1CMa4ZsR0NJF",
+          "title": "GURPS 4ª Edição - Campanhas Psíquicas.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1VW8zlv47rci8kWcDCg_z1CMa4ZsR0NJF/view?usp=drivesdk",
+          "sizeBytes": 1194332,
+          "path": [
+            "Expansões"
+          ],
+          "category": "aventura"
+        },
+        {
+          "id": "1320CeM87eIQGfo71JeHqPvWtuIDJaEjk",
+          "title": "GURPS 4ª Edição - Cruzadas.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1320CeM87eIQGfo71JeHqPvWtuIDJaEjk/view?usp=drivesdk",
+          "sizeBytes": 2822031,
+          "path": [
+            "Expansões"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "148H2jdxFeBCNDGg1dP8Z0U7elNTwg4wn",
+          "title": "GURPS 4ª Edição - Bio-Tech.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/148H2jdxFeBCNDGg1dP8Z0U7elNTwg4wn/view?usp=drivesdk",
+          "sizeBytes": 7782702,
+          "path": [
+            "Expansões"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1_XyPB8DX7ovjwubZvYu-LC9xAdu8UFk4",
+          "title": "GURPS 4ª Edição - Artes Marciais.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1_XyPB8DX7ovjwubZvYu-LC9xAdu8UFk4/view?usp=drivesdk",
+          "sizeBytes": 6217330,
+          "path": [
+            "Expansões"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1QMFmpvXBfQ-0bZ_Uy1SGome-JjqYIGsI",
+          "title": "Mini GURPS - Regras Básicas para Jogar RPG -- Steve Jackson, Douglas Quinta Reis -- ( WeLib.org ).pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1QMFmpvXBfQ-0bZ_Uy1SGome-JjqYIGsI/view?usp=drivesdk",
+          "sizeBytes": 23245179,
+          "path": [
+            "Livros de Regras"
+          ],
+          "category": "livro"
+        },
+        {
+          "id": "16wQj9keUGTGJGIoUjwzZaithvfGSq2bW",
+          "title": "GURPS Basic Set Fourth Edition Revised.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/16wQj9keUGTGJGIoUjwzZaithvfGSq2bW/view?usp=drivesdk",
+          "sizeBytes": 108135012,
+          "path": [
+            "Livros de Regras"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1ygdt0AIyvCO9k67okwRDeGaR0C5mcQma",
+          "title": "GURPS 4ª Edição - Ultra-Lite.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1ygdt0AIyvCO9k67okwRDeGaR0C5mcQma/view?usp=drivesdk",
+          "sizeBytes": 1131927,
+          "path": [
+            "Livros de Regras"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1_t3se-HNsKEOq4TdHUZqJnLpHtRu90-b",
+          "title": "GURPS 4ª Edição - Módulo Básico Edição de Luxo.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1_t3se-HNsKEOq4TdHUZqJnLpHtRu90-b/view?usp=drivesdk",
+          "sizeBytes": 18919378,
+          "path": [
+            "Livros de Regras"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "125jvGDp2_QGA5T9BdZqCVs4OEmfbMEQS",
+          "title": "GURPS 4ª Edição - Lite.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/125jvGDp2_QGA5T9BdZqCVs4OEmfbMEQS/view?usp=drivesdk",
+          "sizeBytes": 2768157,
+          "path": [
+            "Livros de Regras"
+          ],
+          "category": "documento"
+        }
+      ],
+      "folders": [
+        {
+          "id": "1nCHESYA6juETf8AKNdruGFuzi_N2p7dO",
+          "title": "Fichas",
+          "path": [
+            "Fichas"
+          ]
+        },
+        {
+          "id": "14e4tf8seeLAasRem23--usrdPpiicTYH",
+          "title": "Utilitários",
+          "path": [
+            "Utilitários"
+          ]
+        },
+        {
+          "id": "1T6Zt1yV6iRI4V1H04EKTVa9ciFcZc4I7",
+          "title": "Expansões",
+          "path": [
+            "Expansões"
+          ]
+        },
+        {
+          "id": "1cxyxwgsPe-pEBUkDTB1D_zEhUf7QL3w6",
+          "title": "Livros de Regras",
+          "path": [
+            "Livros de Regras"
+          ]
+        }
+      ],
+      "metadataOnly": true
+    },
+    {
+      "id": "a-perfect-rock",
+      "title": "A Perfect Rock",
+      "folderId": "1hxm8MAeGa4IsDi3XJ3mU8I86-BrpTH0R",
+      "driveUrl": "https://drive.google.com/drive/folders/1hxm8MAeGa4IsDi3XJ3mU8I86-BrpTH0R",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1bA5olTfJsHmYEXER2kC6pPdoxxG82fwT",
+          "title": "A Perfect Rock.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1bA5olTfJsHmYEXER2kC6pPdoxxG82fwT/view?usp=drivesdk",
+          "sizeBytes": 1416933,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "13r-cWjtB5tc39CBkpjuBGZVdVdUHX3Ah",
+          "title": "A Perfect Rock -  printer friendly.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/13r-cWjtB5tc39CBkpjuBGZVdVdUHX3Ah/view?usp=drivesdk",
+          "sizeBytes": 5530474,
+          "path": [],
+          "category": "documento"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "assimilacao",
+      "title": "Assimilação",
+      "folderId": "12a9YJ1RUuxqOGRk0qBfKgi1yh7QeTTo2",
+      "driveUrl": "https://drive.google.com/drive/folders/12a9YJ1RUuxqOGRk0qBfKgi1yh7QeTTo2",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1L3IJr9PPMB7QQpGwkqYDrfpJLJp1gZWb",
+          "title": "Assimilação RPG.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1L3IJr9PPMB7QQpGwkqYDrfpJLJp1gZWb/view?usp=drivesdk",
+          "sizeBytes": 30123235,
+          "path": [],
+          "category": "livro"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "basic-roleplaying",
+      "title": "Basic Roleplaying",
+      "folderId": "1KXVYzstye99JVDr1KuP-mh2B2ng5VITm",
+      "driveUrl": "https://drive.google.com/drive/folders/1KXVYzstye99JVDr1KuP-mh2B2ng5VITm",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1-dJGf9u6x5pv1aDg8oIPVT15GLcujqNp",
+          "title": "BasicRoleplaying-ORC-Content-Document.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1-dJGf9u6x5pv1aDg8oIPVT15GLcujqNp/view?usp=drivesdk",
+          "sizeBytes": 3843799,
+          "path": [],
+          "category": "documento"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "blade-runners",
+      "title": "Blade Runners",
+      "folderId": "18_2_vXs7zosIffp7vR8W7YuY-Yx0Jifl",
+      "driveUrl": "https://drive.google.com/drive/folders/18_2_vXs7zosIffp7vR8W7YuY-Yx0Jifl",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1snDJOH04UG82otlZEDlYOYIHsv_Rs_BW",
+          "title": "Blade Runner - Core Book.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1snDJOH04UG82otlZEDlYOYIHsv_Rs_BW/view?usp=drivesdk",
+          "sizeBytes": 35847314,
+          "path": [],
+          "category": "livro"
+        },
+        {
+          "id": "1JNiSyJhZ8OwOUJHHyQOaluqPjRSDVl0t",
+          "title": "Blade Runner RPG - Starter Set - Character.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1JNiSyJhZ8OwOUJHHyQOaluqPjRSDVl0t/view?usp=drivesdk",
+          "sizeBytes": 1553288,
+          "path": [
+            "Starter Set"
+          ],
+          "category": "livro"
+        },
+        {
+          "id": "1i1CdPOZETUWrfi1n4gbr6UwgYjX837mY",
+          "title": "Blade Runner RPG - Starter Set - Large Handouts.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1i1CdPOZETUWrfi1n4gbr6UwgYjX837mY/view?usp=drivesdk",
+          "sizeBytes": 1887309,
+          "path": [
+            "Starter Set"
+          ],
+          "category": "livro"
+        },
+        {
+          "id": "14RTN5_IklypvnH0ECsAbGFMWo-jv4ma8",
+          "title": "Blade Runner RPG - Starter Set - Case File 01.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/14RTN5_IklypvnH0ECsAbGFMWo-jv4ma8/view?usp=drivesdk",
+          "sizeBytes": 19233296,
+          "path": [
+            "Starter Set"
+          ],
+          "category": "livro"
+        },
+        {
+          "id": "1SMKaYrs21WzvjrKkcD8yyNOE4Rd-1J4J",
+          "title": "Blade Runner RPG - Starter Set - Small Maps.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1SMKaYrs21WzvjrKkcD8yyNOE4Rd-1J4J/view?usp=drivesdk",
+          "sizeBytes": 5551949,
+          "path": [
+            "Starter Set"
+          ],
+          "category": "livro"
+        },
+        {
+          "id": "1sMVqN3-zl0QygwGX4WHW3kAhqoVlRRDf",
+          "title": "Blade Runner RPG - Starter Set - Large Maps.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1sMVqN3-zl0QygwGX4WHW3kAhqoVlRRDf/view?usp=drivesdk",
+          "sizeBytes": 5220325,
+          "path": [
+            "Starter Set"
+          ],
+          "category": "livro"
+        },
+        {
+          "id": "1eh890GcYtcM_X2Pht8z3l9Kpkr7oVIBP",
+          "title": "Blade Runner RPG - Starter Set - Independent Sentinel.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1eh890GcYtcM_X2Pht8z3l9Kpkr7oVIBP/view?usp=drivesdk",
+          "sizeBytes": 1981411,
+          "path": [
+            "Starter Set"
+          ],
+          "category": "livro"
+        },
+        {
+          "id": "1A8h7uwGzgQq5uclc47V6Rd4yxzc-pyUD",
+          "title": "Blade Runner RPG - Starter Set - LA Map.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1A8h7uwGzgQq5uclc47V6Rd4yxzc-pyUD/view?usp=drivesdk",
+          "sizeBytes": 4454655,
+          "path": [
+            "Starter Set"
+          ],
+          "category": "livro"
+        },
+        {
+          "id": "1EBhz8oucJl5uEoQYatdAGskuntf_4h_2",
+          "title": "Blade Runner RPG - Starter Set - Small Handouts.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1EBhz8oucJl5uEoQYatdAGskuntf_4h_2/view?usp=drivesdk",
+          "sizeBytes": 943280,
+          "path": [
+            "Starter Set"
+          ],
+          "category": "livro"
+        },
+        {
+          "id": "1x4BnYMT1l1OfRrf4DMgVTPgikeeYHvYI",
+          "title": "Blade Runner RPG - Starter Set - Cards.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1x4BnYMT1l1OfRrf4DMgVTPgikeeYHvYI/view?usp=drivesdk",
+          "sizeBytes": 615276,
+          "path": [
+            "Starter Set"
+          ],
+          "category": "livro"
+        },
+        {
+          "id": "1CO5TnU9tpYkGnY6hzmJLfdIMb7wx-4Kp",
+          "title": "Blade Runner RPG - Starter Set - Time Tracker.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1CO5TnU9tpYkGnY6hzmJLfdIMb7wx-4Kp/view?usp=drivesdk",
+          "sizeBytes": 466882,
+          "path": [
+            "Starter Set"
+          ],
+          "category": "livro"
+        },
+        {
+          "id": "1ISAxI-T_1lKNJ72s9InKO_GB03B2Hy4s",
+          "title": "Blade Runner RPG - Starter Set - Poems Handout.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1ISAxI-T_1lKNJ72s9InKO_GB03B2Hy4s/view?usp=drivesdk",
+          "sizeBytes": 163358,
+          "path": [
+            "Starter Set"
+          ],
+          "category": "livro"
+        },
+        {
+          "id": "16iAZ-9ZMj79QYGKN64ENOcCIVfwkBg5c",
+          "title": "Blade Runner RPG - Starter Set - Pamphlet Handout.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/16iAZ-9ZMj79QYGKN64ENOcCIVfwkBg5c/view?usp=drivesdk",
+          "sizeBytes": 125025,
+          "path": [
+            "Starter Set"
+          ],
+          "category": "livro"
+        }
+      ],
+      "folders": [
+        {
+          "id": "1kGa6XLvFJVjVPaovEK7eACw-l4oUjzLC",
+          "title": "Starter Set",
+          "path": [
+            "Starter Set"
+          ]
+        }
+      ],
+      "metadataOnly": true
+    },
+    {
+      "id": "blades-in-the-dark",
+      "title": "Blades In The Dark",
+      "folderId": "1a9i5TX_2p2iTw3FpwGGv0hGGSbmSH5Qu",
+      "driveUrl": "https://drive.google.com/drive/folders/1a9i5TX_2p2iTw3FpwGGv0hGGSbmSH5Qu",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1ZvXqZg18fAjszizsfn9N_IeSQxGu9ccF",
+          "title": "Ghostlines Railjack.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1ZvXqZg18fAjszizsfn9N_IeSQxGu9ccF/view?usp=drivesdk",
+          "sizeBytes": 136602,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1h3vLoWBWYR7fjVOIC2KOsMqrRhqCiXz2",
+          "title": "Escudo do Mestre.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1h3vLoWBWYR7fjVOIC2KOsMqrRhqCiXz2/view?usp=drivesdk",
+          "sizeBytes": 4126226,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1Z821TAUgQTJeXWtOko92Oe1jGzoefNsX",
+          "title": "Blades in the Dark - Kit Completo.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1Z821TAUgQTJeXWtOko92Oe1jGzoefNsX/view?usp=drivesdk",
+          "sizeBytes": 20891975,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1QtnE4liXutPhEmA7RNczAMcpeU3hByjg",
+          "title": "Blades in the Dark - 2ed.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1QtnE4liXutPhEmA7RNczAMcpeU3hByjg/view?usp=drivesdk",
+          "sizeBytes": 30614166,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1SF9URyvv4mzqpxf-wxsQU1Jv8V4j9puC",
+          "title": "Atlas of the Dark.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1SF9URyvv4mzqpxf-wxsQU1Jv8V4j9puC/view?usp=drivesdk",
+          "sizeBytes": 10554205,
+          "path": [],
+          "category": "documento"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "bubblegumshoe",
+      "title": "Bubblegumshoe",
+      "folderId": "1N3okZT5aPcdGw9ldJ3dsuk2Wi-ZzkPkg",
+      "driveUrl": "https://drive.google.com/drive/folders/1N3okZT5aPcdGw9ldJ3dsuk2Wi-ZzkPkg",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1ZO4aNf2MSFbG6shfPhfKPegxMOSiFAvp",
+          "title": "BubbleGumshoe.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1ZO4aNf2MSFbG6shfPhfKPegxMOSiFAvp/view?usp=drivesdk",
+          "sizeBytes": 13384100,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1S2OqLBb51NAbK2yrrydzO7tI8loVu_Uo",
+          "title": "Bubblegumshoe - Character Sheet.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1S2OqLBb51NAbK2yrrydzO7tI8loVu_Uo/view?usp=drivesdk",
+          "sizeBytes": 627031,
+          "path": [],
+          "category": "ficha"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "candela-obscura",
+      "title": "Candela Obscura",
+      "folderId": "1zK3BfvItrdKSTr8GocH9snCyd6SggTBv",
+      "driveUrl": "https://drive.google.com/drive/folders/1zK3BfvItrdKSTr8GocH9snCyd6SggTBv",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1X5AiTM5i9HACdtX9xJIpTuoUA_S8myBM",
+          "title": "Candela Obscura - Deluxe Edition- Core Rulebook -- Spenser Starke; Rowan Hall; Christopher Grey; Tracey -- ( WeLib.org ).pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1X5AiTM5i9HACdtX9xJIpTuoUA_S8myBM/view?usp=drivesdk",
+          "sizeBytes": 67476872,
+          "path": [],
+          "category": "livro"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "city-of-mist",
+      "title": "City Of Mist",
+      "folderId": "1vwA8svvv3A61LPI4I4W0A5XqCaTgJM0S",
+      "driveUrl": "https://drive.google.com/drive/folders/1vwA8svvv3A61LPI4I4W0A5XqCaTgJM0S",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1XS0pDtv4RpNScU7fasz-lBmRAnOiyyDf",
+          "title": "City of Mist.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1XS0pDtv4RpNScU7fasz-lBmRAnOiyyDf/view?usp=drivesdk",
+          "sizeBytes": 33713459,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1PFGMnrRngiV9iczWtjx74lPyawvYGSxn",
+          "title": "City of Mist - A Encruzilhada do Demônio.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1PFGMnrRngiV9iczWtjx74lPyawvYGSxn/view?usp=drivesdk",
+          "sizeBytes": 2570958,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1S61up7PhmD6AKxkE2T5jUyHre_k0H0Jo",
+          "title": "City of Mist - V de Viralizar.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1S61up7PhmD6AKxkE2T5jUyHre_k0H0Jo/view?usp=drivesdk",
+          "sizeBytes": 1943170,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1BOjBL-5VKktHHVtZORLUQ8OxW2U40JgN",
+          "title": "City of Mist RPG - Character Sheets.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1BOjBL-5VKktHHVtZORLUQ8OxW2U40JgN/view?usp=drivesdk",
+          "sizeBytes": 1690475,
+          "path": [],
+          "category": "ficha"
+        },
+        {
+          "id": "1k2yNbpr2IL-tOeHqDfCat0JWHM80iUbs",
+          "title": "Location Maps.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1k2yNbpr2IL-tOeHqDfCat0JWHM80iUbs/view?usp=drivesdk",
+          "sizeBytes": 2035165,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1m7YF4iBaWHhQrQpWkQMwhK2levcS2VER",
+          "title": "City of Mist - Cidade da Amnésia.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1m7YF4iBaWHhQrQpWkQMwhK2levcS2VER/view?usp=drivesdk",
+          "sizeBytes": 6644216,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "124OiPYRvwMNWj2aSa1UQ7Q1zulceeztc",
+          "title": "City of Mist - Case Concept Generator.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/124OiPYRvwMNWj2aSa1UQ7Q1zulceeztc/view?usp=drivesdk",
+          "sizeBytes": 1365066,
+          "path": [],
+          "category": "documento"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "coisinha-verde",
+      "title": "Coisinha Verde",
+      "folderId": "1mGSDOe9FE1J4KZOYM2ajdGuI_8hKOW8N",
+      "driveUrl": "https://drive.google.com/drive/folders/1mGSDOe9FE1J4KZOYM2ajdGuI_8hKOW8N",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1Nzec6ZEsovS9ZJ8zo5OVHdYv4cCFaZHt",
+          "title": "projetohades.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1Nzec6ZEsovS9ZJ8zo5OVHdYv4cCFaZHt/view?usp=drivesdk",
+          "sizeBytes": 3687944,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1PlTbwajFcIU4u50yV5I5liH0YjAtlzcC",
+          "title": "GATUNOS_RPG.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1PlTbwajFcIU4u50yV5I5liH0YjAtlzcC/view?usp=drivesdk",
+          "sizeBytes": 3287663,
+          "path": [],
+          "category": "livro"
+        },
+        {
+          "id": "1TqKWwul_Pvubfe2reCW2BVvXjQuzpo76",
+          "title": "bairrozumbi.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1TqKWwul_Pvubfe2reCW2BVvXjQuzpo76/view?usp=drivesdk",
+          "sizeBytes": 2461634,
+          "path": [],
+          "category": "documento"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "condenados-ao-poder",
+      "title": "Condenados Ao Poder",
+      "folderId": "1TUuJ7i3VZyxV77oCAQY052Xiep47j6Mn",
+      "driveUrl": "https://drive.google.com/drive/folders/1TUuJ7i3VZyxV77oCAQY052Xiep47j6Mn",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1mxWQR97WdZPeGPl5o59viYFh-cOLQQa6",
+          "title": "Criação CAP (Talvez esteja desatualizado).pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1mxWQR97WdZPeGPl5o59viYFh-cOLQQa6/view?usp=drivesdk",
+          "sizeBytes": 68209,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1GQ0Wz-6HdRfLX1J_yg92CuWp0j0lct2R",
+          "title": "Fichas CAP Editável.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1GQ0Wz-6HdRfLX1J_yg92CuWp0j0lct2R/view?usp=drivesdk",
+          "sizeBytes": 2761785,
+          "path": [],
+          "category": "ficha"
+        },
+        {
+          "id": "10NqXnhzVyUp2FWufHiUMEzw6R8n1gmZP",
+          "title": "Livro Completo v.1.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/10NqXnhzVyUp2FWufHiUMEzw6R8n1gmZP/view?usp=drivesdk",
+          "sizeBytes": 42812129,
+          "path": [],
+          "category": "livro"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "cortex-prime",
+      "title": "Cortex Prime",
+      "folderId": "1iCBexYoKveAH0fbFUhgLQom4crsDTVPJ",
+      "driveUrl": "https://drive.google.com/drive/folders/1iCBexYoKveAH0fbFUhgLQom4crsDTVPJ",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1JFNjvhC3HFOEGK4HlzjroXQ_DEIPYn-R",
+          "title": "Cortex Prime.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1JFNjvhC3HFOEGK4HlzjroXQ_DEIPYn-R/view?usp=drivesdk",
+          "sizeBytes": 45521025,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1h4zNEA1geh00i8DHAuPzpB7WzjK_csMZ",
+          "title": "Cortex Prime GM Cheat Sheet.docx",
+          "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "url": "https://docs.google.com/document/d/1h4zNEA1geh00i8DHAuPzpB7WzjK_csMZ/edit?usp=drivesdk&ouid=104582484677708983023&rtpof=true&sd=true",
+          "sizeBytes": 13699,
+          "path": [
+            "Utilitários"
+          ],
+          "category": "ficha"
+        },
+        {
+          "id": "1B56bgwsVl_xJ7FwGtBWPG1mb6JeUxzmO",
+          "title": "Test Contest Challenge Flowcharts.pptx",
+          "mimeType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          "url": "https://docs.google.com/presentation/d/1B56bgwsVl_xJ7FwGtBWPG1mb6JeUxzmO/edit?usp=drivesdk&ouid=104582484677708983023&rtpof=true&sd=true",
+          "sizeBytes": 300338,
+          "path": [
+            "Utilitários"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1RWSyQi51QsIIysm3eLkKP2APKZ-Tdw1m",
+          "title": "Cortex Stress Flowchart.png",
+          "mimeType": "image/png",
+          "url": "https://drive.google.com/file/d/1RWSyQi51QsIIysm3eLkKP2APKZ-Tdw1m/view?usp=drivesdk",
+          "sizeBytes": 352793,
+          "path": [
+            "Utilitários"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1Kc1cArVzCm05AmMPbsqNIzNF-0TJUoqX",
+          "title": "Kannik - Cortex of Fate.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1Kc1cArVzCm05AmMPbsqNIzNF-0TJUoqX/view?usp=drivesdk",
+          "sizeBytes": 5737178,
+          "path": [
+            "Utilitários"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1nifyPLPlnpBQrNlNvKQJhJIYjlW0-5IN",
+          "title": "Whiskey, Grits, n_ Demon Spittle.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1nifyPLPlnpBQrNlNvKQJhJIYjlW0-5IN/view?usp=drivesdk",
+          "sizeBytes": 548016,
+          "path": [
+            "Whisky, Gritts and Demons"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1BMkmCd5uAs7vu1SJCLEBehiDxx4DakK7",
+          "title": "WGDS_Character_Sheet.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1BMkmCd5uAs7vu1SJCLEBehiDxx4DakK7/view?usp=drivesdk",
+          "sizeBytes": 67050,
+          "path": [
+            "Whisky, Gritts and Demons"
+          ],
+          "category": "ficha"
+        },
+        {
+          "id": "1mmA9TZ53DBmPLdBJhmNBE2ArFhbwZ2iL",
+          "title": "Cortex Prime - Spotlights Vol 02 - Kit Bash.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1mmA9TZ53DBmPLdBJhmNBE2ArFhbwZ2iL/view?usp=drivesdk",
+          "sizeBytes": 23099274,
+          "path": [
+            "Spotlight",
+            "Vol 2"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "17lkv86Yo04XEHDr7-vudmrIg-5W1qDfy",
+          "title": "Cortex Prime - Spotlights Vol 02 - Solarpunk.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/17lkv86Yo04XEHDr7-vudmrIg-5W1qDfy/view?usp=drivesdk",
+          "sizeBytes": 9206753,
+          "path": [
+            "Spotlight",
+            "Vol 2"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1UrpZ0G0GdDogoJ6qmDAUMOmJZbfHURy6",
+          "title": "Cortex Prime - Spotlights Vol 02 - Brighter Stars.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1UrpZ0G0GdDogoJ6qmDAUMOmJZbfHURy6/view?usp=drivesdk",
+          "sizeBytes": 8198426,
+          "path": [
+            "Spotlight",
+            "Vol 2"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1h2T6HQpeLrBzb3klnW3l6Rtbuarkt51h",
+          "title": "Cortex Prime - Spotlights Vol 02 - Misty Cove.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1h2T6HQpeLrBzb3klnW3l6Rtbuarkt51h/view?usp=drivesdk",
+          "sizeBytes": 8647921,
+          "path": [
+            "Spotlight",
+            "Vol 2"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1qfedCgBg7MH9M_SRt2uj0PAZilRgOPHo",
+          "title": "Cortex Prime - Spotlights Vol 04 - Safe Zone.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1qfedCgBg7MH9M_SRt2uj0PAZilRgOPHo/view?usp=drivesdk",
+          "sizeBytes": 13209878,
+          "path": [
+            "Spotlight",
+            "Vol 4"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1y5gZxDOLkDxD4quJOZ4iqhZme_jK1VUU",
+          "title": "Cortex Prime - Spotlights Vol 04 - Camp Bewilderwood.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1y5gZxDOLkDxD4quJOZ4iqhZme_jK1VUU/view?usp=drivesdk",
+          "sizeBytes": 2295263,
+          "path": [
+            "Spotlight",
+            "Vol 4"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1XznolASo-sIZ-oCNq3cKM-B7Lb9WcAJ_",
+          "title": "Cortex Prime - Spotlights Vol 04 - Necromancer.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1XznolASo-sIZ-oCNq3cKM-B7Lb9WcAJ_/view?usp=drivesdk",
+          "sizeBytes": 1951339,
+          "path": [
+            "Spotlight",
+            "Vol 4"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1MbyogHpSA-E9Fug4vipMCWQigCaPz7Om",
+          "title": "Cortex Prime - Spotlights Vol 04 - The Snowfall Initiative.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1MbyogHpSA-E9Fug4vipMCWQigCaPz7Om/view?usp=drivesdk",
+          "sizeBytes": 2203319,
+          "path": [
+            "Spotlight",
+            "Vol 4"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1O8WIkB2fn6o2vHGQTAt_GLwzsf6FXwWq",
+          "title": "Cortex Prime - Spotlights Vol 01 - Retired No More.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1O8WIkB2fn6o2vHGQTAt_GLwzsf6FXwWq/view?usp=drivesdk",
+          "sizeBytes": 18163657,
+          "path": [
+            "Spotlight",
+            "Vol 3"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1E-l5AT7D2_YVahtXrvPnVvr9s2Zfi3mZ",
+          "title": "Cortex Prime - Spotlights Vol 01 - Terraverse.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1E-l5AT7D2_YVahtXrvPnVvr9s2Zfi3mZ/view?usp=drivesdk",
+          "sizeBytes": 7931826,
+          "path": [
+            "Spotlight",
+            "Vol 3"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "13ZGzlu28dgDizIn-6EflVaQomjd0yaMY",
+          "title": "Cortex Prime - Spotlights Vol 01 - Titans vs Leviathans.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/13ZGzlu28dgDizIn-6EflVaQomjd0yaMY/view?usp=drivesdk",
+          "sizeBytes": 10909840,
+          "path": [
+            "Spotlight",
+            "Vol 3"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1vujEI2XuVreDolf-w3nGMO0I8YBcDpRG",
+          "title": "Cortex Prime - Spotlights Vol 01 - Strange Towns.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1vujEI2XuVreDolf-w3nGMO0I8YBcDpRG/view?usp=drivesdk",
+          "sizeBytes": 8142957,
+          "path": [
+            "Spotlight",
+            "Vol 3"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1E67LoqEKfLqtYjbEwNId6ys2LSpk4Kg6",
+          "title": "Cortex Prime - Spotlights Vol 01 - Retired No More.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1E67LoqEKfLqtYjbEwNId6ys2LSpk4Kg6/view?usp=drivesdk",
+          "sizeBytes": 18163657,
+          "path": [
+            "Spotlight",
+            "Vol 1"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1P5PuMeUNMU8rWsNXrvP0T5adFA9aS2iI",
+          "title": "Cortex Prime - Spotlights Vol 01 - Terraverse.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1P5PuMeUNMU8rWsNXrvP0T5adFA9aS2iI/view?usp=drivesdk",
+          "sizeBytes": 7931826,
+          "path": [
+            "Spotlight",
+            "Vol 1"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1JNpztpbTHUAXlMA4iSe9UoYq4obHkiaA",
+          "title": "Cortex Prime - Spotlights Vol 01 - Titans vs Leviathans.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1JNpztpbTHUAXlMA4iSe9UoYq4obHkiaA/view?usp=drivesdk",
+          "sizeBytes": 10909840,
+          "path": [
+            "Spotlight",
+            "Vol 1"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1Qtlr-LVquv7FXzoUZNl4JpKG5Pf75lR_",
+          "title": "Cortex Prime - Spotlights Vol 01 - Strange Towns.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1Qtlr-LVquv7FXzoUZNl4JpKG5Pf75lR_/view?usp=drivesdk",
+          "sizeBytes": 8142957,
+          "path": [
+            "Spotlight",
+            "Vol 1"
+          ],
+          "category": "documento"
+        }
+      ],
+      "folders": [
+        {
+          "id": "1YW2BeOZt8yDuP9Wj4FJlTUwmYI6j1meY",
+          "title": "Utilitários",
+          "path": [
+            "Utilitários"
+          ]
+        },
+        {
+          "id": "1mhkG_7vBTXDiwHEIJB_l8a41nfbXl841",
+          "title": "Whisky, Gritts and Demons",
+          "path": [
+            "Whisky, Gritts and Demons"
+          ]
+        },
+        {
+          "id": "1tls-0-swbbRFDkj8N6KEBEZAmSI3aMQW",
+          "title": "Spotlight",
+          "path": [
+            "Spotlight"
+          ]
+        },
+        {
+          "id": "1Yk9oyC1cKWW0MBu4mkrkd052E7dQlrki",
+          "title": "Vol 2",
+          "path": [
+            "Spotlight",
+            "Vol 2"
+          ]
+        },
+        {
+          "id": "15VNvJiU0JGgWjE1KsLWlqK9B42z0Phqc",
+          "title": "Vol 4",
+          "path": [
+            "Spotlight",
+            "Vol 4"
+          ]
+        },
+        {
+          "id": "1R0Ek_FekHowLcFteHfsd98sq0K_zQEKk",
+          "title": "Vol 3",
+          "path": [
+            "Spotlight",
+            "Vol 3"
+          ]
+        },
+        {
+          "id": "1_Ua3WFIFpm9lrG2riKEL4KNhHBauSVWj",
+          "title": "Vol 1",
+          "path": [
+            "Spotlight",
+            "Vol 1"
+          ]
+        }
+      ],
+      "metadataOnly": true
+    },
+    {
+      "id": "cypher-system",
+      "title": "Cypher System",
+      "folderId": "1BB0iB61k01_16ReUIWm5ObMDtytsXklG",
+      "driveUrl": "https://drive.google.com/drive/folders/1BB0iB61k01_16ReUIWm5ObMDtytsXklG",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1gYhawME8dMB4i9yicVCmmYytTP1-M58m",
+          "title": "cypher-system-rulebook-pt-br_compress_230921_082527.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1gYhawME8dMB4i9yicVCmmYytTP1-M58m/view?usp=drivesdk",
+          "sizeBytes": 73500363,
+          "path": [],
+          "category": "livro"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "delta-green",
+      "title": "Delta Green",
+      "folderId": "1Si1KNlB-qigBJf1l1Y2aG5xBCu5aI8rr",
+      "driveUrl": "https://drive.google.com/drive/folders/1Si1KNlB-qigBJf1l1Y2aG5xBCu5aI8rr",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1iGdxHa6pKAm06A0fNNPojpBzLMX2nJMx",
+          "title": "DELTAGREEN_-_RPADP-DG000_-_OESSENCIAL_v0.2.1_26.07.20.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1iGdxHa6pKAm06A0fNNPojpBzLMX2nJMx/view?usp=drivesdk",
+          "sizeBytes": 25877360,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1-JbayatRQbbqji0JpKJMt84okhlsptAA",
+          "title": "Delta Green - Arqint.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1-JbayatRQbbqji0JpKJMt84okhlsptAA/view?usp=drivesdk",
+          "sizeBytes": 8876898,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1jXYtdZuHbdJmJAj9Hblo4s-LHa7ezlKZ",
+          "title": "Delta Green - Ficha de Personagem.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1jXYtdZuHbdJmJAj9Hblo4s-LHa7ezlKZ/view?usp=drivesdk",
+          "sizeBytes": 13826904,
+          "path": [],
+          "category": "ficha"
+        },
+        {
+          "id": "1eqOieNOh0mw3Jg6Y4m6kKU_x2LLLwnFo",
+          "title": "Delta Green - Manual do Chefe de Operações.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1eqOieNOh0mw3Jg6Y4m6kKU_x2LLLwnFo/view?usp=drivesdk",
+          "sizeBytes": 19975533,
+          "path": [],
+          "category": "livro"
+        },
+        {
+          "id": "1L3Q4YUmNoNu8AW0MmqUCoADmEH86o-HB",
+          "title": "Delta Green - Uma Noite de Opera.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1L3Q4YUmNoNu8AW0MmqUCoADmEH86o-HB/view?usp=drivesdk",
+          "sizeBytes": 16396046,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1959oe3nnP_g2S45DOSLB7NqCXVsS-HKY",
+          "title": "A Conspiração.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1959oe3nnP_g2S45DOSLB7NqCXVsS-HKY/view?usp=drivesdk",
+          "sizeBytes": 40956503,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1V-V9WmZwNz6w5wZank1DpGRuoTHEf1Ur",
+          "title": "Delta Green - O essencial.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1V-V9WmZwNz6w5wZank1DpGRuoTHEf1Ur/view?usp=drivesdk",
+          "sizeBytes": 54435627,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1gV7J6jwZ75FPMNyF6vrpm-vaQw7i-CjQ",
+          "title": "Delta Green - Manual do Agente.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1gV7J6jwZ75FPMNyF6vrpm-vaQw7i-CjQ/view?usp=drivesdk",
+          "sizeBytes": 14749242,
+          "path": [],
+          "category": "livro"
+        },
+        {
+          "id": "1iO5rV51kvXQvt24xSsmeSaCmHZ_Eey04",
+          "title": "Delta Green - Convergência.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1iO5rV51kvXQvt24xSsmeSaCmHZ_Eey04/view?usp=drivesdk",
+          "sizeBytes": 15176291,
+          "path": [],
+          "category": "documento"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "diario-do-cacador",
+      "title": "Diário do Caçador",
+      "folderId": "1P4LAEk3ZcoqH054TIZc0hh7qm2ug0thW",
+      "driveUrl": "https://drive.google.com/drive/folders/1P4LAEk3ZcoqH054TIZc0hh7qm2ug0thW",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1VxyN7j3kVSTjacQK2Z5w3xdz1nwnb-NI",
+          "title": "Ficha do Cacador.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1VxyN7j3kVSTjacQK2Z5w3xdz1nwnb-NI/view?usp=drivesdk",
+          "sizeBytes": 705714,
+          "path": [],
+          "category": "ficha"
+        },
+        {
+          "id": "1r2ntuTrWp7pN7SDCEVGF17ALfSPPmcBn",
+          "title": "DIÁRIO DO CAÇADOR_230124_115219.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1r2ntuTrWp7pN7SDCEVGF17ALfSPPmcBn/view?usp=drivesdk",
+          "sizeBytes": 4882810,
+          "path": [],
+          "category": "documento"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "eletric-state",
+      "title": "Eletric State",
+      "folderId": "1yesBxupmw5oyowqr9tun3FVN4UzYVTZu",
+      "driveUrl": "https://drive.google.com/drive/folders/1yesBxupmw5oyowqr9tun3FVN4UzYVTZu",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1R66Da4DOBs-D_eaKW6aq8MM2QE2aGtjh",
+          "title": "The Eletric State - Corebook.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1R66Da4DOBs-D_eaKW6aq8MM2QE2aGtjh/view?usp=drivesdk",
+          "sizeBytes": 68639051,
+          "path": [],
+          "category": "livro"
+        },
+        {
+          "id": "1l17ZYAS0g5dboPKd9zJLgvCPk2EhJlU0",
+          "title": "The Eletric State - Stop Maps.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1l17ZYAS0g5dboPKd9zJLgvCPk2EhJlU0/view?usp=drivesdk",
+          "sizeBytes": 40838979,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1AYsYLiBmhzuIxvDhuO1SLD9r8jVWTuFO",
+          "title": "The Eletric State - Pacifica Map.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1AYsYLiBmhzuIxvDhuO1SLD9r8jVWTuFO/view?usp=drivesdk",
+          "sizeBytes": 17856651,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1QFqPO90KM1rucETqgsm7toWypJ6PJrku",
+          "title": "The Eletric State - Vehicle Sheet.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1QFqPO90KM1rucETqgsm7toWypJ6PJrku/view?usp=drivesdk",
+          "sizeBytes": 15173,
+          "path": [],
+          "category": "ficha"
+        },
+        {
+          "id": "1tlD54EFiOIZzTVTv26DENwiSRs5qzhS-",
+          "title": "The Eletric State - Character Sheet.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1tlD54EFiOIZzTVTv26DENwiSRs5qzhS-/view?usp=drivesdk",
+          "sizeBytes": 30041,
+          "path": [],
+          "category": "ficha"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "fabula-ultima",
+      "title": "Fabula Ultima",
+      "folderId": "1xIKRWTbqlGfVgNo4xl2SZklGusSfMvTx",
+      "driveUrl": "https://drive.google.com/drive/folders/1xIKRWTbqlGfVgNo4xl2SZklGusSfMvTx",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1Vg_5fWZiyomSnF91bxNqHG3BU7cir6Rq",
+          "title": "Fabula Ultima - Bestiary.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1Vg_5fWZiyomSnF91bxNqHG3BU7cir6Rq/view?usp=drivesdk",
+          "sizeBytes": 26874676,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "12GNdyaTqoqW1NNz_FveE6XVHHVHp49rN",
+          "title": "Fabula Ultima - Livro Basico.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/12GNdyaTqoqW1NNz_FveE6XVHHVHp49rN/view?usp=drivesdk",
+          "sizeBytes": 24226583,
+          "path": [],
+          "category": "livro"
+        },
+        {
+          "id": "1pw7GvJe8zFmGS8BjO_wWuG6neiqhK42f",
+          "title": "Fabula Ultima - High Fantasy.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1pw7GvJe8zFmGS8BjO_wWuG6neiqhK42f/view?usp=drivesdk",
+          "sizeBytes": 16843804,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "124Uj_Na5QgeAV0227c13tAgGbKWrMgSt",
+          "title": "Fabula Ultima - Natural Fantasy.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/124Uj_Na5QgeAV0227c13tAgGbKWrMgSt/view?usp=drivesdk",
+          "sizeBytes": 17422886,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1jtsNrJfcXOa5MaE-nEo-vyY7deHX_qhD",
+          "title": "Fabula Ultima - Herdeiros da Supernova.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1jtsNrJfcXOa5MaE-nEo-vyY7deHX_qhD/view?usp=drivesdk",
+          "sizeBytes": 11860101,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1OdbK2wL94YSyDe5zGsQHfoe3Y1xrq1r1",
+          "title": "Fabula Ultima - Techno Fantasy.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1OdbK2wL94YSyDe5zGsQHfoe3Y1xrq1r1/view?usp=drivesdk",
+          "sizeBytes": 12410798,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1A2dGZf5tyAuZ7ZNPL-rIaUL0bDzm99xc",
+          "title": "Fabula Ultima - Codex Extra.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1A2dGZf5tyAuZ7ZNPL-rIaUL0bDzm99xc/view?usp=drivesdk",
+          "sizeBytes": 6961042,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1yR6VotOq96zT78XZAvAhUJWN0KpTmJFO",
+          "title": "Fabula Ultima - Escudo do Mestre.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1yR6VotOq96zT78XZAvAhUJWN0KpTmJFO/view?usp=drivesdk",
+          "sizeBytes": 1140981,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1Am160TpHVDfQT8b1qpUITSbDYHn9yW9S",
+          "title": "Fabula Ultima - Fichas de Mundo.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1Am160TpHVDfQT8b1qpUITSbDYHn9yW9S/view?usp=drivesdk",
+          "sizeBytes": 557744,
+          "path": [
+            "Fichas"
+          ],
+          "category": "ficha"
+        },
+        {
+          "id": "13o2nHbRo1DM1l7oBkge3tSZD6qdiHhMo",
+          "title": "Fabula Ultima - Fichas de Abismo.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/13o2nHbRo1DM1l7oBkge3tSZD6qdiHhMo/view?usp=drivesdk",
+          "sizeBytes": 96724,
+          "path": [
+            "Fichas"
+          ],
+          "category": "ficha"
+        },
+        {
+          "id": "1Zhnt7CMr-5YM4rwFE6DvngFbmMLUZ-3U",
+          "title": "Fabula Ultima - Ficha de Grupo.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1Zhnt7CMr-5YM4rwFE6DvngFbmMLUZ-3U/view?usp=drivesdk",
+          "sizeBytes": 184454,
+          "path": [
+            "Fichas"
+          ],
+          "category": "ficha"
+        },
+        {
+          "id": "1LeJmZ4EefFbrvg9Nhp6rxBx5oAoxZc9W",
+          "title": "Fabula Ultima - Fichas de Personagem.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1LeJmZ4EefFbrvg9Nhp6rxBx5oAoxZc9W/view?usp=drivesdk",
+          "sizeBytes": 327097,
+          "path": [
+            "Fichas"
+          ],
+          "category": "ficha"
+        },
+        {
+          "id": "1ITKWwwJnhCDt3rwQyzzQ0j0DCUUIryWL",
+          "title": "Fabula Ultima - Fichas de Mnemosfera.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1ITKWwwJnhCDt3rwQyzzQ0j0DCUUIryWL/view?usp=drivesdk",
+          "sizeBytes": 60213,
+          "path": [
+            "Fichas"
+          ],
+          "category": "ficha"
+        },
+        {
+          "id": "12XW8qCz87pFhuU3HvwKdXP8-kGW5PVK6",
+          "title": "Fabula Ultima - Fichas de Hoplosferas.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/12XW8qCz87pFhuU3HvwKdXP8-kGW5PVK6/view?usp=drivesdk",
+          "sizeBytes": 55685,
+          "path": [
+            "Fichas"
+          ],
+          "category": "ficha"
+        },
+        {
+          "id": "1_cvXu6fvgv2X6UZshSfGCJ6GJqQ-3idi",
+          "title": "Fabula Ultima - Fichas Interplanetárias.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1_cvXu6fvgv2X6UZshSfGCJ6GJqQ-3idi/view?usp=drivesdk",
+          "sizeBytes": 277228,
+          "path": [
+            "Fichas"
+          ],
+          "category": "ficha"
+        },
+        {
+          "id": "1nH2MZ82p3RIuAeWi9l3lLdoi-VwuFK-N",
+          "title": "Fabula Ultima - Ficha de Receitas.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1nH2MZ82p3RIuAeWi9l3lLdoi-VwuFK-N/view?usp=drivesdk",
+          "sizeBytes": 148019,
+          "path": [
+            "Fichas"
+          ],
+          "category": "ficha"
+        }
+      ],
+      "folders": [
+        {
+          "id": "1IpS47UBaAtnn-HhKlRrR2nmpp2cKuHZV",
+          "title": "Fichas",
+          "path": [
+            "Fichas"
+          ]
+        }
+      ],
+      "metadataOnly": true
+    },
+    {
+      "id": "fallout-rpg",
+      "title": "Fallout RPG",
+      "folderId": "1P3vsXFwH3VQE-rKrOcbWSecTrJPHcaT5",
+      "driveUrl": "https://drive.google.com/drive/folders/1P3vsXFwH3VQE-rKrOcbWSecTrJPHcaT5",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1MVU5qX0qTOTcek__jpwwRS4A_TFg9HmB",
+          "title": "Fallout RPG - Livro de Regra.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1MVU5qX0qTOTcek__jpwwRS4A_TFg9HmB/view?usp=drivesdk",
+          "sizeBytes": 116545385,
+          "path": [],
+          "category": "livro"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "fiasco",
+      "title": "Fiasco",
+      "folderId": "1x-Q5hbD79rMJAhMN5Aw0YUQQ_PoViXDe",
+      "driveUrl": "https://drive.google.com/drive/folders/1x-Q5hbD79rMJAhMN5Aw0YUQQ_PoViXDe",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1MXfuq01iK5RXGIu2lAIF0kny3bsaf2gI",
+          "title": "fiasco-livro-de-regras_230220_092701.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1MXfuq01iK5RXGIu2lAIF0kny3bsaf2gI/view?usp=drivesdk",
+          "sizeBytes": 9286106,
+          "path": [],
+          "category": "livro"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "gatos-espaciais",
+      "title": "Gatos Espaciais",
+      "folderId": "1-RkzP680m-P7xkutizRB1dnXhuqxOEXN",
+      "driveUrl": "https://drive.google.com/drive/folders/1-RkzP680m-P7xkutizRB1dnXhuqxOEXN",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1ViNY_SgLPIMVgYbnVajNtX-KqjjyC2KD",
+          "title": "pdfcoffee.com_gatos-espaciais-prov-pdf-free.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1ViNY_SgLPIMVgYbnVajNtX-KqjjyC2KD/view?usp=drivesdk",
+          "sizeBytes": 4156560,
+          "path": [],
+          "category": "documento"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "kids-on-bikes",
+      "title": "Kids On Bikes",
+      "folderId": "1cbnQj75lb2DGKyHvSYym87pDzkC8SNlU",
+      "driveUrl": "https://drive.google.com/drive/folders/1cbnQj75lb2DGKyHvSYym87pDzkC8SNlU",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1_hOeXFm6SSbATPD2YGiEZoRRspgZHVK1",
+          "title": "Apêndices.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1_hOeXFm6SSbATPD2YGiEZoRRspgZHVK1/view?usp=drivesdk",
+          "sizeBytes": 433695,
+          "path": [
+            "Kids on Bikes 2e - ptBR"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1SgBKC8QWiiN2B3O-opQ0EEQ8b7Y8R72f",
+          "title": "Arquétipos.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1SgBKC8QWiiN2B3O-opQ0EEQ8b7Y8R72f/view?usp=drivesdk",
+          "sizeBytes": 328420,
+          "path": [
+            "Kids on Bikes 2e - ptBR"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1P-oayuDaWlpJxiLUXxphHMNnlxqAs9Kw",
+          "title": "Ficha A4.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1P-oayuDaWlpJxiLUXxphHMNnlxqAs9Kw/view?usp=drivesdk",
+          "sizeBytes": 1270190,
+          "path": [
+            "Kids on Bikes 2e - ptBR"
+          ],
+          "category": "ficha"
+        },
+        {
+          "id": "1iqjJuG-1xaAQ-H3LQaNqw_47mmVoVtfX",
+          "title": "CheatSheet.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1iqjJuG-1xaAQ-H3LQaNqw_47mmVoVtfX/view?usp=drivesdk",
+          "sizeBytes": 1152769,
+          "path": [
+            "Kids on Bikes 2e - ptBR"
+          ],
+          "category": "ficha"
+        },
+        {
+          "id": "11WC3oWuC_PWzXjJh248wKDP0OB8xnx1y",
+          "title": "Kids on Bikes - Strange Adventures - Vol 2.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/11WC3oWuC_PWzXjJh248wKDP0OB8xnx1y/view?usp=drivesdk",
+          "sizeBytes": 7248147,
+          "path": [
+            "Kids on Bikes"
+          ],
+          "category": "aventura"
+        },
+        {
+          "id": "1ZHc-Gp0xcAcndsoCSQj_hq6ISVG14A3s",
+          "title": "Kids on Bikes - Deluxe.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1ZHc-Gp0xcAcndsoCSQj_hq6ISVG14A3s/view?usp=drivesdk",
+          "sizeBytes": 45899421,
+          "path": [
+            "Kids on Bikes"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1dZ2tnZcb9s58XSl1INvi7h5fMLGw_klv",
+          "title": "Kids on Bikes - Strange Adventures - Vol 1.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1dZ2tnZcb9s58XSl1INvi7h5fMLGw_klv/view?usp=drivesdk",
+          "sizeBytes": 43674738,
+          "path": [
+            "Kids on Bikes"
+          ],
+          "category": "aventura"
+        },
+        {
+          "id": "1ODclikYS2HND-WtKYZIfunhU2Xmvyv9t",
+          "title": "Kids on Bikes - Strange Adventures - The House of Pouplar Court.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1ODclikYS2HND-WtKYZIfunhU2Xmvyv9t/view?usp=drivesdk",
+          "sizeBytes": 5839411,
+          "path": [
+            "Kids on Bikes"
+          ],
+          "category": "aventura"
+        }
+      ],
+      "folders": [
+        {
+          "id": "1Et_zZiXOeha4aaP0VM-Nqk-MLKWk3jcT",
+          "title": "Kids on Bikes 2e - ptBR",
+          "path": [
+            "Kids on Bikes 2e - ptBR"
+          ]
+        },
+        {
+          "id": "1Q7B_Krb0LzoQ_J7KhTMkGGC4w_INf-J3",
+          "title": "Kids on Bikes",
+          "path": [
+            "Kids on Bikes"
+          ]
+        }
+      ],
+      "metadataOnly": true
+    },
+    {
+      "id": "kult",
+      "title": "Kult",
+      "folderId": "1Cje2iQoKN4ibWovw0ejDEf9LCdGBXMa1",
+      "driveUrl": "https://drive.google.com/drive/folders/1Cje2iQoKN4ibWovw0ejDEf9LCdGBXMa1",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "11rtWc3tdmJNXzPi_bhrx-mYlT0VzHA_g",
+          "title": "Kult - Divindade Perdida 4ed.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/11rtWc3tdmJNXzPi_bhrx-mYlT0VzHA_g/view?usp=drivesdk",
+          "sizeBytes": 83729100,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1hXlJzS0e_VkElUu3c_pj-xxZ-uip-tyX",
+          "title": "KULT Tarot Deck.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1hXlJzS0e_VkElUu3c_pj-xxZ-uip-tyX/view?usp=drivesdk",
+          "sizeBytes": 3750373,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1oHLkDnJD-G6HvVItpYIUvkipO1eYKIZj",
+          "title": "Kult - O Fabuloso Baile de Lady Morozova.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1oHLkDnJD-G6HvVItpYIUvkipO1eYKIZj/view?usp=drivesdk",
+          "sizeBytes": 6063468,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1Nd9jhIDalgzPrk-7RxMvkt5rmF0uEhjr",
+          "title": "KULT - Divindade Perdida - Ficha Editavel.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1Nd9jhIDalgzPrk-7RxMvkt5rmF0uEhjr/view?usp=drivesdk",
+          "sizeBytes": 1042718,
+          "path": [],
+          "category": "ficha"
+        },
+        {
+          "id": "1Jt1kOJGq0sSYsOwjDi-eTjk2NUC9VXYa",
+          "title": "Using The Kult Tarot.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1Jt1kOJGq0sSYsOwjDi-eTjk2NUC9VXYa/view?usp=drivesdk",
+          "sizeBytes": 3948009,
+          "path": [],
+          "category": "documento"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "m-m",
+      "title": "M&M",
+      "folderId": "1xaQC-vO2dBUsoYDqInRE9LUMV7_PA_8n",
+      "driveUrl": "https://drive.google.com/drive/folders/1xaQC-vO2dBUsoYDqInRE9LUMV7_PA_8n",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1nOMj0KdHnDtJ73n1HL58D7FYF3APao8g",
+          "title": "mutantes-malfeitores-3a-edicao.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1nOMj0KdHnDtJ73n1HL58D7FYF3APao8g/view?usp=drivesdk",
+          "sizeBytes": 30823909,
+          "path": [],
+          "category": "documento"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "melted-lands",
+      "title": "Melted Lands",
+      "folderId": "1W3tIXQ0iJeh8ujYfhXLc-iz6aGhYrcGH",
+      "driveUrl": "https://drive.google.com/drive/folders/1W3tIXQ0iJeh8ujYfhXLc-iz6aGhYrcGH",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1As8THMoYPQIuUU0g41RKtlUaCuG19rg-",
+          "title": "MeltedLands_RPG_Guia_Jogo_Rapido_Regras_v1.0.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1As8THMoYPQIuUU0g41RKtlUaCuG19rg-/view?usp=drivesdk",
+          "sizeBytes": 25590279,
+          "path": [],
+          "category": "livro"
+        },
+        {
+          "id": "16EHbHEBxzHj2-wZ157HICDe2ChB3QbnN",
+          "title": "ANT_ML_FastPlay_Ficha_emBranco.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/16EHbHEBxzHj2-wZ157HICDe2ChB3QbnN/view?usp=drivesdk",
+          "sizeBytes": 4233354,
+          "path": [],
+          "category": "ficha"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "mutant-ano-zero",
+      "title": "Mutant - Ano zero",
+      "folderId": "1VYN6KdBWCOVkinT4oAbXTk4euDflaj0V",
+      "driveUrl": "https://drive.google.com/drive/folders/1VYN6KdBWCOVkinT4oAbXTk4euDflaj0V",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "12aHVBtq_QYvSkOHLWgp41Tvu8P10EZTd",
+          "title": "Mutant - Ano Zero.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/12aHVBtq_QYvSkOHLWgp41Tvu8P10EZTd/view?usp=drivesdk",
+          "sizeBytes": 46006624,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1dacnjcKypr71ClyyUpvk6fZDx3rd0enZ",
+          "title": "Mutant Ano Zero – Zona 01 - Londres.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1dacnjcKypr71ClyyUpvk6fZDx3rd0enZ/view?usp=drivesdk",
+          "sizeBytes": 4374415,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1vH7Q0CAIHytRk-GQ29jDsSrNceLs1QJ1",
+          "title": "Mutant Ano Zero – Zona 02 - A Maçã Morta.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1vH7Q0CAIHytRk-GQ29jDsSrNceLs1QJ1/view?usp=drivesdk",
+          "sizeBytes": 4365663,
+          "path": [],
+          "category": "documento"
+        },
+        {
+          "id": "1HUwrOoa3KsOaAoQkUYVQoG1HNtytGHUp",
+          "title": "Mutant - Ano Zero - Ficha Editável.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1HUwrOoa3KsOaAoQkUYVQoG1HNtytGHUp/view?usp=drivesdk",
+          "sizeBytes": 628352,
+          "path": [],
+          "category": "ficha"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "paranoia",
+      "title": "Paranoia",
+      "folderId": "1xgLPV3R5zgcRamg7NGjNOclnIbFwxTIL",
+      "driveUrl": "https://drive.google.com/drive/folders/1xgLPV3R5zgcRamg7NGjNOclnIbFwxTIL",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1xDI7IQTAnR2sew1WTscMCqo2hShjDC_P",
+          "title": "Paranoia RPG",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1xDI7IQTAnR2sew1WTscMCqo2hShjDC_P/view?usp=drivesdk",
+          "sizeBytes": 46778970,
+          "path": [],
+          "category": "livro"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "runeterra",
+      "title": "Runeterra",
+      "folderId": "1SHE5v1qEIUdiHkn7m3Xe-aAYKtpllgZT",
+      "driveUrl": "https://drive.google.com/drive/folders/1SHE5v1qEIUdiHkn7m3Xe-aAYKtpllgZT",
+      "implementation": "catalog",
+      "books": [],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "s-t-a-l-k-e-r",
+      "title": "S.T.A.L.K.E.R",
+      "folderId": "1dy-Uqtrcq_5x9JxvUKGRkiznIxc3mZdP",
+      "driveUrl": "https://drive.google.com/drive/folders/1dy-Uqtrcq_5x9JxvUKGRkiznIxc3mZdP",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1Qp_5KBfSFey1HKTTMxGLlSSClYK0cjI8",
+          "title": "Stalker RPG - Apêndice de Habilidades.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1Qp_5KBfSFey1HKTTMxGLlSSClYK0cjI8/view?usp=drivesdk",
+          "sizeBytes": 32139800,
+          "path": [],
+          "category": "livro"
+        },
+        {
+          "id": "1imcG2GOguB5Y81lhvup6VubbJVmSXXsD",
+          "title": "Stalker RPG - Quickstart.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1imcG2GOguB5Y81lhvup6VubbJVmSXXsD/view?usp=drivesdk",
+          "sizeBytes": 149579713,
+          "path": [],
+          "category": "livro"
+        },
+        {
+          "id": "1jcfyNGC9UMixyZ_mA_oXkVo5Z_Z0GYkB",
+          "title": "Stalker RPG - Ficha Editável.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1jcfyNGC9UMixyZ_mA_oXkVo5Z_Z0GYkB/view?usp=drivesdk",
+          "sizeBytes": 745308,
+          "path": [],
+          "category": "ficha"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "sacramento",
+      "title": "Sacramento",
+      "folderId": "1UFZvfAoEBqzy3IDxWQP4PNyJD0ylmB94",
+      "driveUrl": "https://drive.google.com/drive/folders/1UFZvfAoEBqzy3IDxWQP4PNyJD0ylmB94",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1DEGDWbxkv4cvTYOxiQWtardoWMrgbNEH",
+          "title": "Sacramento RPG.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1DEGDWbxkv4cvTYOxiQWtardoWMrgbNEH/view?usp=drivesdk",
+          "sizeBytes": 25584482,
+          "path": [],
+          "category": "livro"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "savage-worlds",
+      "title": "Savage Worlds",
+      "folderId": "1c4Z9B9anQ0QGn12BkWPLPy57wMA6uIQ8",
+      "driveUrl": "https://drive.google.com/drive/folders/1c4Z9B9anQ0QGn12BkWPLPy57wMA6uIQ8",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1Nv49h9u8EBDmc9gQzWtP0ZpmWLI20gwG",
+          "title": "savage-worlds---edicao-aventura.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1Nv49h9u8EBDmc9gQzWtP0ZpmWLI20gwG/view?usp=drivesdk",
+          "sizeBytes": 11685025,
+          "path": [],
+          "category": "aventura"
+        },
+        {
+          "id": "1869H8FINv72gilaqP3vjHh8KP-UvqKbY",
+          "title": "ficha-editavel-savage-worlds-ed-aventura.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1869H8FINv72gilaqP3vjHh8KP-UvqKbY/view?usp=drivesdk",
+          "sizeBytes": 3680754,
+          "path": [],
+          "category": "ficha"
+        },
+        {
+          "id": "1LjvhYTSsoSoN08jQM9AiJ1WAFE8lJL9r",
+          "title": "ficha-editavel-savage-worlds-ed-aventura.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1LjvhYTSsoSoN08jQM9AiJ1WAFE8lJL9r/view?usp=drivesdk",
+          "sizeBytes": 3680754,
+          "path": [],
+          "category": "ficha"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "triangle-agency",
+      "title": "Triangle Agency",
+      "folderId": "1zzMJ0Pmlw0SxKHZZ1WndWOpPhb6lOzVm",
+      "driveUrl": "https://drive.google.com/drive/folders/1zzMJ0Pmlw0SxKHZZ1WndWOpPhb6lOzVm",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1RTom_Fnt45mKDcQWfk5WeD7g3YddR2R0",
+          "title": "Ficha Triangle Agency.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1RTom_Fnt45mKDcQWfk5WeD7g3YddR2R0/view?usp=drivesdk",
+          "sizeBytes": 1824226,
+          "path": [],
+          "category": "ficha"
+        }
+      ],
+      "folders": [],
+      "metadataOnly": true
+    },
+    {
+      "id": "world-of-darkness",
+      "title": "World Of Darkness",
+      "folderId": "1CnCgkWzzWpjY7RAdLXy-zw3iSfwrGgwN",
+      "driveUrl": "https://drive.google.com/drive/folders/1CnCgkWzzWpjY7RAdLXy-zw3iSfwrGgwN",
+      "implementation": "catalog",
+      "books": [
+        {
+          "id": "1JqAGsOUKkB1QCyJnrfFJFFaHri-u1R0L",
+          "title": "o-mundo-das-trevas---hunter-the-reckoning-v5.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1JqAGsOUKkB1QCyJnrfFJFFaHri-u1R0L/view?usp=drivesdk",
+          "sizeBytes": 16386724,
+          "path": [
+            "Hunter"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1FEFkWzpWyuWo4O8hj3pWRd4trSsPoJUZ",
+          "title": "HtR - H5 - Ficha Editavel - Caçador A Revanche.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1FEFkWzpWyuWo4O8hj3pWRd4trSsPoJUZ/view?usp=drivesdk",
+          "sizeBytes": 6900261,
+          "path": [
+            "Hunter"
+          ],
+          "category": "ficha"
+        },
+        {
+          "id": "1Pth2XMrw4S1lfZHLd4LJNQDd0GFL-4xt",
+          "title": "Storytellers Toolkit.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1Pth2XMrw4S1lfZHLd4LJNQDd0GFL-4xt/view?usp=drivesdk",
+          "sizeBytes": 3213557,
+          "path": [
+            "Vampiro"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1k4Eq8DUGUKiEbq_GcDz5O94aEpQh7byD",
+          "title": "Vampiro A Mascara V5 - Camarilla.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1k4Eq8DUGUKiEbq_GcDz5O94aEpQh7byD/view?usp=drivesdk",
+          "sizeBytes": 19328762,
+          "path": [
+            "Vampiro"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1ZgzTR053ARcbKptz2wja1NRQyBSMJFDW",
+          "title": "Vampiro a Mascara v5 - Guia Suplementar.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1ZgzTR053ARcbKptz2wja1NRQyBSMJFDW/view?usp=drivesdk",
+          "sizeBytes": 5280055,
+          "path": [
+            "Vampiro"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1Rjgev8s9-5sJJHPyjciOgZivP7f67xGU",
+          "title": "Resumo das Regras v5_231119_011749.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1Rjgev8s9-5sJJHPyjciOgZivP7f67xGU/view?usp=drivesdk",
+          "sizeBytes": 3986473,
+          "path": [
+            "Vampiro"
+          ],
+          "category": "livro"
+        },
+        {
+          "id": "1nGfpb3RyXkmUVmgvfpMYyc6RFFKG9118",
+          "title": "Vampire 5th - Sabbat.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1nGfpb3RyXkmUVmgvfpMYyc6RFFKG9118/view?usp=drivesdk",
+          "sizeBytes": 13910723,
+          "path": [
+            "Vampiro"
+          ],
+          "category": "documento"
+        },
+        {
+          "id": "1rlXDpQ-7gMCeIMUMfoIq0Q05bS-h5Elq",
+          "title": "Vampire 5th - Ficha Editável.pdf",
+          "mimeType": "application/pdf",
+          "url": "https://drive.google.com/file/d/1rlXDpQ-7gMCeIMUMfoIq0Q05bS-h5Elq/view?usp=drivesdk",
+          "sizeBytes": 538012,
+          "path": [
+            "Vampiro"
+          ],
+          "category": "ficha"
+        }
+      ],
+      "folders": [
+        {
+          "id": "1xpxJAtepA2vl-zWRJO0_OTOUBJLGOBQe",
+          "title": "Hunter",
+          "path": [
+            "Hunter"
+          ]
+        },
+        {
+          "id": "1-BgqNPvGdFFln4eBVFHkN-0afuMr9vv4",
+          "title": "Lobisomem",
+          "path": [
+            "Lobisomem"
+          ]
+        },
+        {
+          "id": "1aPqS7_zYl1fdJrtC7z7Ef4Q81HX_N7SI",
+          "title": "Vampiro",
+          "path": [
+            "Vampiro"
+          ]
+        }
+      ],
+      "metadataOnly": true
+    }
+  ]
+}
