@@ -38,7 +38,7 @@ function renderSkills(s){
  const level=E.skillLevel(x,{...s.attrs,Per:d.per,Will:d.will});
  return '<tr><td><strong>'+esc(x.name)+'</strong><small>'+esc(x.specialty||'')+'</small></td><td>'+esc(x.attr)+' / '+esc(x.diff)+'</td><td>'+esc(x.points)+' pt</td><td><b>'+(level??'—')+'</b></td><td class="g-actions"><button data-roll="skill:'+i+'">🎲</button> <button data-remove="skills:'+i+'" aria-label="Excluir perícia">×</button></td></tr>'}).join('');
  return '<section class="g-panel"><div class="g-heading"><div><h3>Perícias, especializações e técnicas</h3><p class="g-muted">Perícias não têm uma lista fixa comum a todos os mundos. Cadastre a perícia e sua dificuldade conforme a edição do livro.</p></div><strong class="g-chip">'+p.skills+' pontos investidos</strong></div><div class="g-scroller"><table class="g-table"><thead><tr><th>Perícia</th><th>Base</th><th>Pontos</th><th>NH</th><th>Ações</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+(s.skills?.length?'':'<p class="g-empty">Nenhuma perícia cadastrada.</p>')+'</section>'+
- '<section class="g-panel"><h3>Adicionar perícia</h3><div class="g-col"><label><span>Nome</span><input id="g-skill-name" placeholder="Ex.: Furtividade" maxlength="100"></label><label><span>Especialização (se exigida)</span><input id="g-skill-spec" maxlength="90" placeholder="Ex.: Pistola / NT 8"></label><label><span>Atributo</span><select id="g-skill-attr">'+optsAttrs('DX')+'</select></label><label><span>Dificuldade</span><select id="g-skill-diff">'+selects('A',[['E','Fácil (F)'],['A','Média (M)'],['H','Difícil (D)'],['VH','Muito Difícil (MD)']])+'</select></label><label><span>Pontos investidos</span><select id="g-skill-pts">'+choice('1',[1,2,4,8,12,16,20,24,28,32,40])+'</select></label><label><span>Bônus/penalidade de NH</span><input id="g-skill-bonus" type="number" value="0" min="-30" max="30"></label></div><button class="g-primary" data-add="skill">+ Adicionar perícia</button><p class="g-muted">1, 2, 4 e 8 pontos determinam os primeiros níveis; cada +4 pontos adiciona +1 NH após 8. Dificuldade Muito Difícil segue o Módulo Básico.</p></section>'+
+ '<section class="g-panel"><h3>Adicionar perícia</h3><div class="g-col"><label><span>Selecionar uma perícia do GURPS Lite (opcional)</span><select id="g-skill-suggest"><option value="">Perícia personalizada ou escolher da lista</option>'+(window.GURPS4_LITE_SKILLS||[]).map((k,i)=>'<option value="'+i+'">'+esc(k.name)+' · '+k.attr+'/'+k.diff+'</option>').join('')+'</select></label><label><span>Nome</span><input id="g-skill-name" placeholder="Ex.: Furtividade" maxlength="100"></label><label><span>Especialização (se exigida)</span><input id="g-skill-spec" maxlength="90" placeholder="Ex.: Pistola / NT 8"></label><label><span>Atributo</span><select id="g-skill-attr">'+optsAttrs('DX')+'</select></label><label><span>Dificuldade</span><select id="g-skill-diff">'+selects('A',[['E','Fácil (F)'],['A','Média (M)'],['H','Difícil (D)'],['VH','Muito Difícil (MD)']])+'</select></label><label><span>Pontos investidos</span><select id="g-skill-pts">'+choice('1',[1,2,4,8,12,16,20,24,28,32,40])+'</select></label><label><span>Bônus/penalidade de NH</span><input id="g-skill-bonus" type="number" value="0" min="-30" max="30"></label></div><button class="g-primary" data-add="skill">+ Adicionar perícia</button><p class="g-muted">1, 2, 4 e 8 pontos determinam os primeiros níveis; cada +4 pontos adiciona +1 NH após 8. Dificuldade Muito Difícil segue o Módulo Básico.</p></section>'+
  listEditor('Técnicas / Especializações','techniques','Técnica',false,true);
 }
 function listEditor(title,key,hint,negative=false,extras=false){
@@ -181,6 +181,15 @@ function onClick(ev){
 function onChange(ev){
  const t=ev.target,s=current();try{
  if(t.id==='g-switch'){selected=t.value;tab='identidade';rerender();return}
+ if(t.id==='g-skill-suggest'){
+  const selectedSample=(window.GURPS4_LITE_SKILLS||[])[Number(t.value)];
+  if(t.value!==''&&selectedSample){
+   host.querySelector('#g-skill-name').value=selectedSample.name;
+   host.querySelector('#g-skill-attr').value=selectedSample.attr;
+   host.querySelector('#g-skill-diff').value=selectedSample.diff;
+  }
+  return;
+ }
  if(t.dataset.attr){s.attrs[t.dataset.attr]=Math.round(Math.max(1,Math.min(100,number(t.value,10))));rerender();return}
  if(t.dataset.mod){const k=t.dataset.mod;let n=number(t.value);if(k==='speed')n=Math.round(n*4)/4;s.mod[k]=Math.max(-20,Math.min(30,n));rerender();return}
  if(t.dataset.setting){s.settings[t.dataset.setting]=number(t.value);rerender();return}
