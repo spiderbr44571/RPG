@@ -14,6 +14,10 @@ import android.graphics.pdf.PdfRenderer;
 import android.os.ParcelFileDescriptor;
 import android.util.Base64;
 import java.io.ByteArrayOutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -36,6 +40,7 @@ public final class MainActivity extends Activity {
     private static final int PICK_BOOK_DOCUMENT = 1105;
     private final BookBridge books = new BookBridge();
     private final LanBridge lan = new LanBridge();
+    private final CampaignBridge campaign = new CampaignBridge();
     private static final String OFFLINE_URL = "file:///android_asset/demo-offline.html";
     private WebView browser;
     private TextView mode;
@@ -103,6 +108,7 @@ public final class MainActivity extends Activity {
         });
         browser.addJavascriptInterface(books,"RpgBookBridge");
         browser.addJavascriptInterface(lan,"RpgLanBridge");
+        browser.addJavascriptInterface(campaign,"RpgCampaignBridge");
         root.addView(browser,new LinearLayout.LayoutParams(-1,0,1));
         setContentView(root);
         home.setOnClickListener(v->openOffline());
@@ -132,7 +138,8 @@ public final class MainActivity extends Activity {
               if(!"http".equals(u.getScheme())||!isPrivateLan(u.getHost())||u.getPort()<1||u.getPort()>65535)
                  throw new IllegalArgumentException("Endereço inválido");
               browser.removeJavascriptInterface("RpgBookBridge");
-              browser.removeJavascriptInterface("RpgLanBridge"); // Remote pages cannot access native functionality.
+              browser.removeJavascriptInterface("RpgLanBridge");
+              browser.removeJavascriptInterface("RpgCampaignBridge"); // Remote pages cannot access native functionality.
               allowedHost=u.getHost();allowedPort=u.getPort();
               getPreferences(Context.MODE_PRIVATE).edit().putString("lan",u.toString()).apply();
               mode.setText("● CONECTADO À LAN");browser.loadUrl(u.toString());
@@ -234,6 +241,58 @@ public final class MainActivity extends Activity {
           startActivity(intent);
         }catch(Exception e){showBookError("Instale um leitor de PDF compatível ou importe o documento novamente.");}
       });}
+    }
+
+
+    /** Interface nativa restrita a um computador da LAN e à API de campanhas.
+     * Executa em thread de JS bridge do WebView, não na thread principal.
+     */
+    public final class CampaignBridge {
+      @JavascriptInterface public String request(String base, String adminKey, String method, String route, String payload) {
+        HttpURLConnection conn=null;
+        try {
+          Uri uri=Uri.parse(base==null?"":base.trim());
+          String ip=uri.getHost();
+          int port=uri.getPort();
+          if(!"http".equals(uri.getScheme())||!isPrivateLan(ip)||port<1024||port>65535)
+             throw new IllegalArgumentException("Use http://192.168.x.x:8765");
+          if(uri.getUserInfo()!=null||uri.getQuery()!=null||uri.getFragment()!=null)
+             throw new IllegalArgumentException("Endereço não permitido");
+          if(route==null||!route.matches("/api/admin/campaigns(/[a-z0-9]{1,32}(/[a-z]+(/[a-z0-9]{1,32})?)?)?"))
+             throw new IllegalArgumentException("Rota não autorizada");
+          String verb=method==null?"":method.toUpperCase(java.util.Locale.ROOT);
+          if(!("GET".equals(verb)||"POST".equals(verb)||"PUT".equals(verb)))
+             throw new IllegalArgumentException("Método não permitido");
+          if(adminKey==null||adminKey.length()<16||adminKey.length()>200)
+             throw new IllegalArgumentException("Chave do mestre inválida");
+          URL remote=new URL("http://"+ip+":"+port+route);
+          conn=(HttpURLConnection)remote.openConnection();
+          conn.setInstanceFollowRedirects(false);
+          conn.setConnectTimeout(3500);conn.setReadTimeout(6500);
+          conn.setRequestMethod(verb);
+          conn.setRequestProperty("Authorization","Bearer "+adminKey);
+          conn.setRequestProperty("Accept","application/json");
+          if(!"GET".equals(verb)){
+             if(payload==null||payload.getBytes(StandardCharsets.UTF_8).length>450000)
+                throw new IllegalArgumentException("Dados excedem limite");
+             conn.setDoOutput(true);conn.setRequestProperty("Content-Type","application/json");
+             try(java.io.OutputStream out=conn.getOutputStream()){
+               out.write(payload.getBytes(StandardCharsets.UTF_8));
+             }
+          }
+          int code=conn.getResponseCode();
+          try(InputStream in=code<400?conn.getInputStream():conn.getErrorStream()){
+             ByteArrayOutputStream bytes=new ByteArrayOutputStream();
+             if(in!=null){byte[] b=new byte[8192];int n;while((n=in.read(b))>=0){
+               if(bytes.size()+n>3_000_000)throw new IllegalArgumentException("Resposta muito grande");
+               bytes.write(b,0,n);
+             }}
+             return "{\"status\":"+code+",\"body\":"+JSONObject.quote(bytes.toString("UTF-8"))+"}";
+          }
+        } catch(Exception exc) {
+          return "{\"status\":0,\"error\":"+JSONObject.quote(exc.getMessage()==null?"Conexão indisponível":exc.getMessage())+"}";
+        } finally {if(conn!=null)conn.disconnect();}
+      }
     }
 
     public final class LanBridge {
