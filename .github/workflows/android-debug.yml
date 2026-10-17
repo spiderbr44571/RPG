@@ -62,6 +62,9 @@ jobs:
           node --check app/src/main/assets/rpg15_catalog_data.js
           node --check app/src/main/assets/rpg15_catalog.js
           node --check app/src/main/assets/rpg15_theme_fix.js
+          node --check app/src/main/assets/rpg16_gurps_engine.js
+          node --check app/src/main/assets/rpg16_gurps_ui.js
+          node tests/gurps4.test.cjs
           python -m py_compile server/mesa_lan.py
           python - <<'PY'
           import re,json,pathlib
@@ -110,6 +113,10 @@ jobs:
           assert 'rpg15_catalog.js' in html and 'rpg15_theme_fix.js' in html
           assert 'Bibliotecas de<br>' not in html and 'Referências consultadas' not in html
           assert (root/'rpg15_catalog.css').stat().st_size>1000
+          assert 'rpg16_gurps_engine.js' in html and 'rpg16_gurps_ui.js' in html
+          assert (root/'rpg16_gurps.css').stat().st_size>2000
+          assert 'RPG16_GURPS.mount' in (root/'rpg15_catalog.js').read_text(encoding='utf-8')
+          assert '"id":"gurps"' in (root/'rpg15_catalog_data.js').read_text(encoding='utf-8')
           assert 'Mesa em rede' not in (root/'rpg09.js').read_text(encoding='utf-8')
           print('VALIDAÇÃO OK: ficha visual, link permanente e atualizacoes LAN')
           PY
