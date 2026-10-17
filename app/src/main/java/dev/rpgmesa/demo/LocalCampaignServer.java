@@ -285,11 +285,11 @@ public final class LocalCampaignServer extends NanoHTTPD {
     if(base.isEmpty())base=slug(p.optString("nickname","agente"));
     return base+"-"+publicId(p);
   }
-  private String permalink(JSONObject campaign,JSONObject p){
+  private String permalink(JSONObject campaign,JSONObject p) throws JSONException{
     return "http://"+hostIp+":"+currentPort()+"/resume/"+campaign.getString("id")+"/"+
       playerTag(p)+"/"+p.getString("secret");
   }
-  private Response redirectPlayer(JSONObject c,JSONObject p){
+  private Response redirectPlayer(JSONObject c,JSONObject p) throws JSONException{
     Response r=newFixedLengthResponse(Response.Status.REDIRECT,"text/plain","");
     r.addHeader("Location","/play/"+c.getString("id"));
     r.addHeader("Set-Cookie","rpg_guest="+p.getString("secret")+"; HttpOnly; SameSite=Strict; Path=/; Max-Age=31536000");
