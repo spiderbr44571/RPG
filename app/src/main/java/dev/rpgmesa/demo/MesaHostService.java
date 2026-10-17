@@ -63,6 +63,7 @@ public final class MesaHostService extends Service {
   @Override public IBinder onBind(Intent intent){return null;}
   public static JSONObject snapshot(){
     if(instance!=null)return instance.status();
-    return new JSONObject().put("running",false).put("starting",starting).put("error",lastError);
+    try{return new JSONObject().put("running",false).put("starting",starting).put("error",lastError);}
+    catch(Exception e){return new JSONObject();}
   }
 }
