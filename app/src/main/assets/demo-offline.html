@@ -739,7 +739,7 @@ let characters=mem(charsKey,[]);
 if(!Array.isArray(characters))characters=[];
 if(!characters.length)characters=[{id:'a-'+Date.now(),name:'Novo agente',character:sys.state}];
 let selectedChar=mem('rpg-v05-selected-char',characters[0].id);if(!characters.some(c=>c.id===selectedChar))selectedChar=characters[0].id;
-function persistCurrent(){const c=characters.find(c=>c.id===selectedChar);if(c){c.character=sys.state;c.name=sys.state.name||'Novo agente';save(charsKey,characters);renderCharSelect(false)}}
+function persistCurrent(){if(window.__rpgRemoteSheetEditing)return;const c=characters.find(c=>c.id===selectedChar);if(c){c.character=sys.state;c.name=sys.state.name||'Novo agente';save(charsKey,characters);renderCharSelect(false)}}
 let selectionRendering=false;
 function renderCharSelect(updateValue=true){const sel=$('#rpg05-char-select'),previous=sel.value;sel.innerHTML=characters.map(c=>`<option value="${escapeHTML(c.id)}">${escapeHTML(c.name)}</option>`).join('');sel.value=selectedChar;}
 function activateCharacter(id){const record=characters.find(c=>c.id===id);if(!record)return;selectedChar=id;save('rpg-v05-selected-char',id);sys.changeCharacter(record.character);renderCharSelect();renderItems();renderCatalogs();}
