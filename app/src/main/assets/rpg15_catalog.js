@@ -14,9 +14,9 @@ const dashboard=document.createElement('div');dashboard.className='r15-ui r15-da
 dashboard.innerHTML='<div class="eyebrow">SEU ACERVO DE RPG</div><div class="r15-head"><div><h1>Biblioteca de <em>mundos.</em></h1><p>Explore sistemas, edições e os livros do seu acervo pessoal.</p></div><div class="r15-count"><strong>'+systems.length+'</strong><small>SISTEMAS CADASTRADOS</small></div></div>'+
  '<section class="r15-hero"><div class="r15-hero-inner"><div class="eyebrow">EM DESTAQUE · MÓDULO INICIAL</div><h2>Ordem<br>Paranormal.</h2><p>O primeiro sistema com módulo de regras, ficha, rituais e mestragem em desenvolvimento.</p><button class="r15-main-btn" data-open-system="ordem-paranormal">Explorar sistema →</button></div></section>'+
  '<div class="r15-search"><input type="search" id="r15-query" placeholder="Buscar sistema, livro ou edição..." aria-label="Buscar sistemas"><div class="r15-filterbar" role="group" aria-label="Filtros"><button data-category="all" aria-pressed="true">Todos</button><button data-category="partial" aria-pressed="false">Em adaptação</button><button data-category="catalog" aria-pressed="false">Catalogados</button><button data-category="fav" aria-pressed="false">Favoritos</button></div></div>'+
- '<div class="r15-row-title"><h2>Comece por aqui</h2><small>Em destaque</small></div><div class="r15-rail" id="r15-highlights"></div>'+
+
  '<div class="r15-row-title"><h2>Todos os sistemas</h2><small id="r15-count-results"></small></div><div class="r15-grid" id="r15-grid"></div>'+
- '<p class="r15-footnote">Catálogo offline com metadados dos arquivos encontrados no Google Drive. Os PDFs não estão embutidos no aplicativo e os demais sistemas ainda precisam ser implementados um a um.</p>';
+ '<p class="r15-footnote">Índice local de links para seu acervo no Google Drive. A classificação indica possíveis fontes de regras, criaturas e expansões; não altera as regras da ficha sem revisão manual.</p>';
 lib.append(dashboard);
 const detail=document.createElement('div');detail.className='r15-ui r15-detail';detail.hidden=true;lib.append(detail);
 const palette=[['#3a1729','#a84065'],['#132d3e','#4ba9ba'],['#35230d','#af995d'],['#251a49','#8670cb'],['#223b2b','#77ad89'],['#382015','#b87945']];
@@ -37,26 +37,83 @@ function visible(sys){const txt=(sys.title+' '+sys.books.map(b=>b.title).join(' 
 function render(){
  const out=systems.filter(visible);
  $('#r15-grid').innerHTML=out.length?out.map(card).join(''):'<p>Nenhum sistema encontrado com esses filtros.</p>';
- $('#r15-highlights').innerHTML=systems.slice(0,9).map(card).join('');
  $('#r15-count-results').textContent=out.length+' de '+systems.length;
 }
 const oldOrder=old.querySelector('#rpg05-lib-home');
+// Only metadata is cataloged. Mechanical effects are never inferred or installed from a book name.
+const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+function bookType(b){
+ const n=normalize((b.title||'')+' '+(b.category||'')), p=normalize((b.path||[]).join(' '));
+ if(/ficha|character sheet|planilha personagem|character_sheet|personagem editavel|player sheet|character cards/.test(n)||/fichas/.test(p))return {label:'Ficha',role:'Personagens'};
+ if(/mapa|maps|battlemap|grid|handout|tarot deck|tarot card/.test(n))return {label:'Mapa / apoio',role:'Material de mesa'};
+ if(/bestiary|bestiario|monster manual|manual dos monstros|guia de campo|criaturas|abominac|horrores lovecraftianos/.test(n))return {label:'Bestiário',role:'Fonte de criaturas'};
+ if(/aventura|adventure|case file|chariot of the gods|destroyer of worlds|os espinhos da aurora|strange adventures|convergencia|viral|portais para as trevas/.test(n))return {label:'Aventura',role:'Cenário / encontros'};
+ if(/suplement|expans|sobrevivendo ao horror|spotlights|high fantasy|natural fantasy|techno fantasy|camarilla|sabbat|grimorio|codex extra|zona 0[12]|atlas of the dark/.test(n))return {label:'Expansão',role:'Conteúdo adicional'};
+ if(/rulebook|livro de regras|livro basico|core book|corebook|sistema basico|pacote basico|manual do agente|guia do mestre|livro do jogador|^ldj |^gurps 4e|^gurps4e|quickstart|fastplay/.test(n))return {label:'Regras',role:'Referência de regras'};
+ return {label:'Documento',role:'Fonte complementar'};
+}
+function driveAnchor(id,kind,href,title){
+ const valid=/^[A-Za-z0-9_-]{10,160}$/.test(id||'') && /^https:\/\/drive\.google\.com\/(file\/d\/|drive\/folders\/)/.test(href||'');
+ return valid?'<a class="r15-drive-link" href="'+esc(href)+'" data-drive-id="'+esc(id)+'" data-drive-kind="'+kind+'" target="_blank" rel="noopener noreferrer">'+title+'</a>':'<span class="r15-drive-unavailable">Link não cadastrado</span>';
+}
+function bookCard(b){
+ const type=bookType(b), location=(b.path||[]).join(' / ');
+ const url=folder(b.url);
+ return '<article class="r15-doc"><div class="r15-doc-head"><span class="r15-book-icon" aria-hidden="true">▤</span><span class="r15-doc-category">'+esc(type.label)+'</span></div>'+
+  '<strong title="'+esc(b.title)+'">'+esc(b.title)+'</strong>'+
+  '<small>'+esc(type.role)+(location?' · '+esc(location):'')+'</small>'+
+  '<span class="r15-doc-review">Fonte catalogada · conteúdo ainda não validado</span>'+
+  '<div class="r15-doc-actions">'+driveAnchor(b.id,'file',url,'Abrir no Drive ↗')+'</div></article>';
+}
+function bookGroups(books){
+ const groups=new Map();
+ for(const b of books){const k=(b.path&&b.path.length)?b.path[0]:'Livros principais e suplementos';
+  if(!groups.has(k))groups.set(k,[]);groups.get(k).push(b);}
+ const order=[...groups].sort((a,b)=>(a[0]==='Livros principais e suplementos'?-1:b[0]==='Livros principais e suplementos'?1:a[0].localeCompare(b[0],'pt-BR')));
+ return order.map(([name,items])=>'<section class="r15-book-group"><div class="r15-row-title"><h2>'+esc(name)+'</h2><small>'+items.length+' arquivo(s)</small></div><div class="r15-doc-grid">'+items.map(bookCard).join('')+'</div></section>').join('');
+}
+function localBookSlot(){
+ return '<section class="r15-order-slot"><div class="r15-order-mark" aria-hidden="true">✧</div><div class="r15-order-info"><h2>Livro local de Ordem Paranormal</h2><p>Importe seu PDF pessoal para ler e abrir as páginas indicadas por fichas, regras e criaturas do aplicativo.</p><small id="r15-order-status">Nenhum PDF local verificado.</small></div><div class="r15-order-actions"><button type="button" id="r15-order-import">+ Adicionar PDF</button><button type="button" id="r15-order-read">Abrir meu livro</button></div></section>';
+}
+function refreshLocalBook(){
+ const source=old.querySelector('#rpg05-book-state'),target=detail.querySelector('#r15-order-status');
+ if(target){target.textContent=source?.textContent?.trim()||'Importe o PDF v1.3 para ativar o leitor local.';}
+}
+document.addEventListener('rpg-book-selected',()=>setTimeout(refreshLocalBook,50));
 function goHome(){if(oldOrder&&oldOrder.parentNode!==old)old.append(oldOrder);selected=null;detail.hidden=true;dashboard.hidden=false;window.scrollTo(0,0)}
 function open(id){
  const sys=systems.find(x=>x.id===id);if(!sys)return;
- if(oldOrder&&oldOrder.parentNode!==old)old.append(oldOrder);
  selected=id;dashboard.hidden=true;detail.hidden=false;
  const pal=colors(sys),arr=sys.books.slice().sort((a,b)=>(a.path||[]).join('/').localeCompare((b.path||[]).join('/'),'pt-BR')||a.title.localeCompare(b.title,'pt-BR'));
  detail.innerHTML='<button class="r15-back" id="r15-go-home">← Todos os sistemas</button>'+
- '<section class="r15-detail-hero" style="--deep:'+pal[0]+';--soft:'+pal[1]+'"><div class="eyebrow">BIBLIOTECA · SISTEMA</div><h1>'+esc(sys.title)+'</h1><p>'+sys.books.length+' documento(s) · '+sys.folders.length+' subpasta(s) registradas</p><div class="r15-tag">'+(sys.implementation==='partial'?'Fichas e regras parcialmente implementadas':'Sistema catalogado · regras ainda não adaptadas')+'</div><p>Os livros ficam aqui; fichas e regras serão vinculadas à edição escolhida durante a adaptação.</p>'+
- '<a class="r15-drive-link" href="'+folder(sys.driveUrl)+'" target="_blank" rel="noopener noreferrer">Ver pasta no Google Drive ↗</a></section>'+
- '<div id="r15-ordem-book"></div><div class="r15-row-title"><h2>Documentos do acervo</h2><small>'+arr.length+' registros</small></div>'+
- (arr.length?arr.map(b=>'<article class="r15-doc"><div><strong>'+esc(b.title)+'</strong><small>'+esc((b.path||[]).join(' / '))+(b.path?.length?' · ':'')+esc(b.category)+' · referência no Drive</small></div><a href="'+folder(b.url)+'" target="_blank" rel="noopener noreferrer">Abrir ↗</a></article>').join(''):'<p class="r15-footnote">Pasta vazia no índice. Pode receber livros depois.</p>');
- detail.querySelector('#r15-go-home').onclick=goHome;
- if(id==='ordem-paranormal'&&oldOrder){detail.querySelector('#r15-ordem-book').appendChild(oldOrder);oldOrder.hidden=false}
+ '<section class="r15-detail-hero" style="--deep:'+pal[0]+';--soft:'+pal[1]+'"><div class="eyebrow">BIBLIOTECA · SISTEMA</div><h1>'+esc(sys.title)+'</h1><p>'+sys.books.length+' documento(s) · '+sys.folders.length+' subpasta(s)</p>'+
+ '<div class="r15-tag">'+(sys.implementation==='partial'?'Módulo em desenvolvimento':'Acervo catalogado')+'</div>'+
+ '<p>Livros, expansões, aventuras e materiais relacionados. Cada fonte mantém seu próprio vínculo ao Drive; regras e criaturas são incorporadas somente após validação.</p>'+
+ driveAnchor(sys.folderId,'folder',sys.driveUrl,'Abrir pasta no Drive ↗')+'</section>'+
+ '<div id="r15-ordem-book">'+(id==='ordem-paranormal'?localBookSlot():'')+'</div>'+
+ '<div class="r15-row-title"><h2>Livros e arquivos relacionados</h2><small>'+arr.length+' registros</small></div>'+
+ (arr.length?bookGroups(arr):'<p class="r15-footnote">Esta pasta não contém arquivos no catálogo atual.</p>');
+ if(id==='ordem-paranormal')refreshLocalBook();
  if(id==='gurps'&&window.RPG16_GURPS){window.RPG16_GURPS.mount(detail.querySelector('#r15-ordem-book'));}
  window.scrollTo(0,0);
 }
+detail.addEventListener('click',e=>{
+ if(e.target.closest('#r15-go-home')){goHome();return;}
+ if(e.target.closest('#r15-order-import')){
+   const btn=old.querySelector('#rpg05-import-pdf');if(btn)btn.click();else window.RPG_DEMO?.notify('Importação local indisponível');
+   return;
+ }
+ if(e.target.closest('#r15-order-read')){
+   const btn=old.querySelector('#rpg05-open-pdf');if(btn)btn.click();else window.RPG_DEMO?.notify('Leitor local indisponível');
+   return;
+ }
+ const link=e.target.closest('[data-drive-id]');
+ if(!link)return;
+ const id=link.dataset.driveId,kind=link.dataset.driveKind;
+ if(window.RpgDriveBridge?.openDocument && /^[A-Za-z0-9_-]{10,160}$/.test(id) && ['file','folder'].includes(kind)){
+   e.preventDefault();window.RpgDriveBridge.openDocument(kind,id);
+ }
+});
 dashboard.addEventListener('click',e=>{
  let action=e.target.closest('[data-open-system],[data-fav-system]');if(!action)return;
  if(action.dataset.openSystem){open(action.dataset.openSystem);return}
@@ -70,5 +127,5 @@ dashboard.querySelector('.r15-filterbar').addEventListener('click',e=>{
  dashboard.querySelectorAll('[data-category]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));render();
 });
 render();
-window.RPG15={systemsCount:systems.length,filesCount:systems.reduce((n,s)=>n+s.books.length,0),openSystem:open,home:goHome};
+window.RPG15={systemsCount:systems.length,filesCount:systems.reduce((n,s)=>n+s.books.length,0),openSystem:open,home:goHome,bookType,bookSources:(id)=>{const sys=systems.find(x=>x.id===id);return sys?sys.books.map(b=>({id:b.id,title:b.title,kind:bookType(b).label,driveUrl:b.url,path:b.path||[]})):[]}};
 })();
