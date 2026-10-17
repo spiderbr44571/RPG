@@ -2,7 +2,12 @@
 'use strict';
 const app=window.RPG_DEMO,op=window.OP13,master=document.querySelector('#screen-master');if(!app||!op||!master)return;
 const q=(s,r=document)=>r.querySelector(s),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let base='',secret='',campaignId='',latest=null;
+let base='',secret='',campaignId='',latest=null,editing=null;
+const toolbar=document.createElement('section');toolbar.id='r13-editor';toolbar.hidden=true;
+toolbar.innerHTML='<div class="r13-head"><div><small>EDIÇÃO REMOTA · MESTRAGEM</small><h3 id="r13-title">Ficha do jogador</h3><p>Edite os campos normais da ficha. Salve para sincronizar com o jogador.</p></div><button data-r13="save" class="btn-primary">Salvar na campanha</button><button data-r13="cancel">Voltar</button></div><div class="r13-limits">'+['PV','PE','SAN'].map(k=>'<label>Máximo de '+k+'<input type="number" id="r13-max-'+k+'" min="0" max="999999"></label>').join('')+'</div><p id="r13-feedback" role="status"></p>';
+const sheetScreen=document.querySelector('#screen-sheet');sheetScreen?.insertBefore(toolbar,sheetScreen.firstChild);
+const editorCss=document.createElement('style');editorCss.textContent='#r13-editor{border:2px solid var(--accent);border-radius:14px;background:var(--panel);padding:15px;margin:14px 0 24px;box-shadow:0 0 28px var(--accent-soft)}#r13-editor .r13-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap}#r13-editor .r13-head>div{flex:1;min-width:155px}#r13-editor .r13-head h3{font:500 25px Georgia,serif;margin:4px 0}#r13-editor small,#r13-editor p{font-size:11px;color:var(--muted)}#r13-editor .r13-limits{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0}#r13-editor label{font-size:10px;color:var(--muted)}#r13-editor input{width:100%;margin-top:4px;color:var(--fg);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px}';document.head.append(editorCss);
+
 const block=document.createElement('section');block.id='r11-campaigns';block.innerHTML='<div class="r11-head"><div><small>MESTRAGEM · CAMPANHAS</small><h2>Campanhas na rede</h2><p>Crie sua campanha, convide jogadores por link e controle fichas, rodadas, cenas, efeitos e o canvas. Sem PC: hospede neste celular ou conecte-se a outro anfitrião.</p></div><b id="r11-status">Desconectado</b></div><div class="r11-fields"><label>Endereço do servidor<input id="r11-server" value="http://192.168.1.10:8765/"></label><label>Chave do mestre<input id="r11-secret" type="password" autocomplete="off" placeholder="Chave do celular anfitrião"></label><button class="btn-primary" data-r11="connect">Conectar</button></div><div id="r11-admin" hidden><div class="r11-fields"><label>Nome da campanha<input id="r11-name" maxlength="90" placeholder="Ex.: Arquivos Perdidos"></label><button data-r11="new" class="btn-primary">Criar campanha</button></div><div id="r11-list"></div><div id="r11-detail"></div></div><p id="r11-feedback" role="status"></p>';master.insertBefore(block,master.querySelector('.page-row')?.nextSibling||master.firstChild);
 
 const localTools=document.createElement('div');localTools.id='r12-host-controls';
@@ -56,8 +61,49 @@ async function list(){
 const data=await api('/api/admin/campaigns');q('#r11-list').className='r11-tabs';q('#r11-list').innerHTML=data.campaigns.map(c=>'<button data-choose="'+esc(c.id)+'" class="'+(campaignId===c.id?'active':'')+'">'+esc(c.name)+'</button>').join('');if(campaignId)await show();}
 async function show(){
 if(!campaignId)return;const data=await api(path());latest=data.campaign;const c=latest;
-q('#r11-detail').innerHTML='<h3 class="r11-heading">'+esc(c.name)+'</h3><div class="r11-row"><input class="r11-link" id="r11-invite" readonly value="'+esc(c.invite)+'"><button data-r11="copy">Copiar convite</button><button data-r11="share">Compartilhar</button></div><p>'+esc(c.sceneName)+' · rodada '+c.turn+'</p><div class="r11-tools"><button data-r11="turn">Próxima rodada</button><button data-r11="scene">Nova cena</button><button data-r11="import">Adicionar ficha do app</button><button data-r11="savecanvas">Salvar canvas</button><button data-r11="loadcanvas">Carregar canvas</button><button data-r11="refresh">Atualizar</button></div><h3 class="r11-heading">Jogadores</h3>'+c.players.map(p=>'<div class="r11-card"><strong>'+esc(p.nickname)+'</strong><small>'+esc(p.status)+(p.hasProposal?' · Ficha enviada para aprovação':'')+'</small><div class="r11-row"><select id="r11-player-'+esc(p.id)+'"><option value="">Aguardando ficha</option>'+c.characters.map(ch=>'<option value="'+esc(ch.id)+'"'+(p.characterId===ch.id?' selected':'')+'>'+esc(ch.sheet.name)+'</option>').join('')+'</select><button data-r11="assign" data-player="'+esc(p.id)+'">Atribuir</button>'+(p.hasProposal?'<button data-r11="review" data-player="'+esc(p.id)+'">Conferir ficha</button><button data-r11="approve" data-player="'+esc(p.id)+'">Aprovar ficha</button>':'')+'</div></div>').join('')+'<h3 class="r11-heading">Fichas e efeitos</h3>'+c.characters.map(ch=>'<div class="r11-card"><strong>'+esc(ch.sheet.name)+'</strong><div class="r11-tools"><button data-r11="edit" data-char="'+esc(ch.id)+'">Editar ficha</button><button data-r11="effect" data-char="'+esc(ch.id)+'">Aplicar efeito</button></div></div>').join('')+'<div id="r11-editor"></div>';
+q('#r11-detail').innerHTML='<h3 class="r11-heading">'+esc(c.name)+'</h3><div class="r11-row"><input class="r11-link" id="r11-invite" readonly value="'+esc(c.invite)+'"><button data-r11="copy">Copiar convite</button><button data-r11="share">Compartilhar</button></div><p>'+esc(c.sceneName)+' · rodada '+c.turn+'</p><div class="r11-tools"><button data-r11="turn">Próxima rodada</button><button data-r11="scene">Nova cena</button><button data-r11="import">Adicionar ficha do app</button><button data-r11="savecanvas">Salvar canvas</button><button data-r11="loadcanvas">Carregar canvas</button><button data-r11="refresh">Atualizar</button></div><h3 class="r11-heading">Jogadores</h3>'+c.players.map(p=>'<div class="r11-card"><strong>'+esc(p.nickname)+'</strong><small>'+esc(p.status)+(p.hasProposal?' · Ficha enviada para aprovação':'')+'</small><div class="r11-row"><select id="r11-player-'+esc(p.id)+'"><option value="">Aguardando ficha</option>'+c.characters.map(ch=>'<option value="'+esc(ch.id)+'"'+(p.characterId===ch.id?' selected':'')+'>'+esc(ch.sheet.name)+'</option>').join('')+'</select><button data-r11="assign" data-player="'+esc(p.id)+'">Atribuir</button>'+(p.characterId?'<button data-r11="edit" data-char="'+esc(p.characterId)+'">Editar ficha</button>':'')+(p.hasProposal?'<button data-r11="review" data-player="'+esc(p.id)+'">Conferir ficha</button><button data-r11="approve" data-player="'+esc(p.id)+'">Aprovar ficha</button>':'')+'</div></div>').join('')+'<h3 class="r11-heading">Fichas e efeitos</h3>'+c.characters.map(ch=>'<div class="r11-card"><strong>'+esc(ch.sheet.name)+'</strong><div class="r11-tools"><button data-r11="edit" data-char="'+esc(ch.id)+'">Editar ficha</button><button data-r11="effect" data-char="'+esc(ch.id)+'">Aplicar efeito</button></div></div>').join('')+'<div id="r11-editor"></div>';
 }
+
+function openRemoteSheet(char){
+ if(!char?.sheet)return feedback('Ficha não encontrada');
+ if(editing)finishRemoteSheet(false);
+ const old=JSON.parse(JSON.stringify(op.state)),oldStorage=localStorage.getItem('rpg-ordem-v13-character');
+ const remote=JSON.parse(JSON.stringify(char.sheet));const mapped={...remote,resources:{...remote.resources}};
+ for(const k of ['PV','PE','SAN']){const x=mapped.resources[k];mapped.resources[k]=typeof x==='object'?Number(x.current)||0:Number(x)||0}
+ window.__rpgRemoteSheetEditing=true;
+ if(!op.changeCharacter(mapped)){window.__rpgRemoteSheetEditing=false;return feedback('Classe ou sistema de ficha não suportado.')}
+ editing={id:char.id,original:remote,old,oldStorage};
+ toolbar.hidden=false;q('#r13-title').textContent=remote.name+' · ficha online';
+ for(const k of ['PV','PE','SAN']){const v=remote.resources?.[k];q('#r13-max-'+k).value=typeof v==='object'?Number(v.max)||0:Number(v)||0}
+ for(const sel of ['#rpg05-char-select','#rpg05-new-char','#rpg05-del-char']){const el=q(sel);if(el)el.disabled=true}
+ app.navigate('sheet');toolbar.scrollIntoView({block:'start'});
+}
+function finishRemoteSheet(back=true){
+ if(!editing)return;
+ const old=editing;editing=null;window.__rpgRemoteSheetEditing=false;
+ op.changeCharacter(old.old);
+ if(old.oldStorage===null)localStorage.removeItem('rpg-ordem-v13-character');
+ else localStorage.setItem('rpg-ordem-v13-character',old.oldStorage);
+ for(const sel of ['#rpg05-char-select','#rpg05-new-char','#rpg05-del-char']){const el=q(sel);if(el)el.disabled=false}
+ toolbar.hidden=true;if(back)app.navigate('master');
+}
+toolbar.addEventListener('click',async e=>{
+ const b=e.target.closest('[data-r13]');if(!b||!editing)return;
+ if(b.dataset.r13==='cancel'){finishRemoteSheet();return}
+ if(b.dataset.r13!=='save')return;b.disabled=true;
+ try{
+  const modified=op.state,serverOriginal=editing.original;
+  const result={...serverOriginal,...modified,resources:{...(serverOriginal.resources||{})}};
+  for(const k of ['PV','PE','SAN']){
+   const max=Number(q('#r13-max-'+k).value),current=Number(modified.resources?.[k]);
+   if(!Number.isFinite(max)||max<0||max>999999||!Number.isFinite(current)||current<0)throw Error('Valor de '+k+' inválido');
+   result.resources[k]={max,current:Math.min(current,max)};
+  }
+  await api(path('/characters/'+editing.id),'POST',{sheet:result});
+  finishRemoteSheet();await show();feedback('Ficha salva no servidor e sincronizada com o jogador.');
+ }catch(err){q('#r13-feedback').textContent='Erro: '+err.message}finally{b.disabled=false}
+});
+
 function selectedSheet(){let sheet=JSON.parse(JSON.stringify(op.state)),computed=op.calc();sheet.resources=sheet.resources||{};for(const k of ['PV','PE','SAN']){let max=Number(computed[k]);if(!Number.isFinite(max))continue;const v=sheet.resources[k];const cur=typeof v==='object'?Number(v.current):Number(v??max);sheet.resources[k]={current:Math.max(0,Math.min(max,Number.isFinite(cur)?cur:max)),max}}return sheet}
 async function act(action,button){
 try{
@@ -71,8 +117,8 @@ else if(action==='import'){await api(path('/characters'),'POST',{sheet:selectedS
 else if(action==='assign'){const id=button.dataset.player;await api(path('/assign'),'POST',{playerId:id,characterId:q('#r11-player-'+id)?.value||null});await show();feedback('Atribuição salva.')}
 else if(action==='review'){const p=latest.players.find(x=>x.id===button.dataset.player);q('#r11-editor').innerHTML='<h3>Ficha enviada por '+esc(p.nickname)+'</h3><textarea id="r11-review" readonly></textarea>';q('#r11-review').value=JSON.stringify(p.proposedSheet,null,2)}
 else if(action==='approve'){const p=latest.players.find(x=>x.id===button.dataset.player);if(!p?.proposedSheet||!confirm('Você conferiu a ficha que '+p.nickname+' enviou?'))return;await api(path('/approve'),'POST',{playerId:button.dataset.player});await show();feedback('Ficha aprovada.')}
-else if(action==='edit'){const char=latest.characters.find(c=>c.id===button.dataset.char);q('#r11-editor').innerHTML='<h3>Editar '+esc(char.sheet.name)+'</h3><textarea id="r11-json"></textarea><button data-r11="save" data-char="'+esc(char.id)+'">Salvar ficha</button>';q('#r11-json').value=JSON.stringify(char.sheet,null,2)}
-else if(action==='save'){await api(path('/characters/'+button.dataset.char),'POST',{sheet:JSON.parse(q('#r11-json').value)});await show();feedback('Ficha salva.')}
+else if(action==='edit'){const char=latest.characters.find(c=>c.id===button.dataset.char);openRemoteSheet(char)}
+else if(action==='save'){feedback('Utilize Salvar na campanha na ficha visual.')}
 else if(action==='effect'){q('#r11-editor').innerHTML='<h3>Aplicar efeito</h3><div class="r11-fields"><label>Nome<input id="r11-effname" value="Efeito temporário"></label><label>Tipo<select id="r11-effunit"><option value="turn">Rodadas</option><option value="scene">Até final da cena</option><option value="permanent">Permanente</option></select></label><label>Rodadas<input id="r11-effcount" type="number" min="1" max="999" value="2"></label><button data-r11="apply" data-char="'+esc(button.dataset.char)+'">Aplicar</button></div>'}
 else if(action==='apply'){const unit=q('#r11-effunit').value;await api(path('/effects'),'POST',{characterId:button.dataset.char,name:q('#r11-effname').value,unit,remaining:unit==='turn'?Number(q('#r11-effcount').value):null});await show();feedback('Efeito enviado ao jogador.')}
 else if(action==='savecanvas'){const nodes=JSON.parse(JSON.stringify(app.S.nodes||[])).map(data=>({kind:'node',data}));const creatures=JSON.parse(JSON.stringify(window.RPGv3?.monsters||[])).map(data=>({kind:'creature',data}));await api(path('/canvas'),'POST',{nodes:nodes.concat(creatures)});feedback('Canvas da campanha salvo no servidor.')}
