@@ -33,7 +33,7 @@ document.addEventListener('click',async e=>{
  const roll=e.target.closest('[data-roll]'),sk=e.target.closest('[data-skill]'),res=e.target.closest('[data-resource]'),atk=e.target.closest('[data-attack]'),def=e.target.closest('[data-defense]');
  if(roll&&data){const d=derived(data.character);displayRoll(roll.dataset.roll,d[roll.dataset.roll]);}
  if(sk&&data){const s=data.character,skill=s.skills[Number(sk.dataset.skill)],d=derived(s),base=level(skill,s,d),mod=num($('#mod')?.value);if(base!==null)displayRoll('Perícia: '+skill.name,base+mod);}
- if(atk&&data){const s=data.character,w=s.weapons[Number(atk.dataset.attack)],d=derived(s),skill=s.skills[Number(w.skillIndex)],base=skill?level(skill,s,d):d.DX;displayRoll('Ataque: '+w.name,base);}
+ if(atk&&data){const s=data.character,w=s.weapons[Number(atk.dataset.attack)],d=derived(s),skill=(w.skillIndex===''||w.skillIndex==null)?null:s.skills[Number(w.skillIndex)],base=skill?level(skill,s,d):d.DX;displayRoll('Ataque: '+w.name,base);}
  if(def&&data){const s=data.character,d=derived(s),kind=def.dataset.defense;displayRoll('Defesa: '+kind,kind==='dodge'?d.dodge:Math.floor(num(kind==='parry'?s.parrySkill:s.blockSkill)/2)+3);}
  if(res&&data){const k=res.dataset.resource,s=data.character,d=derived(s),max=d[k],prop=k==='HP'?'currentHP':'currentFP';const cur=Math.max(-max*5,Math.min(max,num(s[prop])+num(res.dataset.delta)));try{const r=await fetch('/api/play/'+cid+'/resource',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({resource:k,current:cur})});if(!r.ok)throw Error((await r.json()).error);await refresh(true)}catch(err){$('#message').textContent=err.message;}}
 });
