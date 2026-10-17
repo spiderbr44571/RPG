@@ -41,6 +41,7 @@ public final class MainActivity extends Activity {
     private final BookBridge books = new BookBridge();
     private final LanBridge lan = new LanBridge();
     private final CampaignBridge campaign = new CampaignBridge();
+    private final HostBridge localHost = new HostBridge();
     private static final String OFFLINE_URL = "file:///android_asset/demo-offline.html";
     private WebView browser;
     private TextView mode;
@@ -109,6 +110,7 @@ public final class MainActivity extends Activity {
         browser.addJavascriptInterface(books,"RpgBookBridge");
         browser.addJavascriptInterface(lan,"RpgLanBridge");
         browser.addJavascriptInterface(campaign,"RpgCampaignBridge");
+        browser.addJavascriptInterface(localHost,"RpgLocalHost");
         root.addView(browser,new LinearLayout.LayoutParams(-1,0,1));
         setContentView(root);
         home.setOnClickListener(v->openOffline());
@@ -117,7 +119,7 @@ public final class MainActivity extends Activity {
     }
     private int dp(int x){return Math.round(getResources().getDisplayMetrics().density*x);}
     private Button button(String name){Button b=new Button(this);b.setText(name);b.setTextSize(10);b.setAllCaps(false);return b;}
-    private void openOffline(){allowedHost=null;allowedPort=0;mode.setText("● MODO OFFLINE");browser.addJavascriptInterface(books,"RpgBookBridge");browser.addJavascriptInterface(lan,"RpgLanBridge");browser.loadUrl(OFFLINE_URL);}
+    private void openOffline(){allowedHost=null;allowedPort=0;mode.setText("● MODO OFFLINE");browser.addJavascriptInterface(books,"RpgBookBridge");browser.addJavascriptInterface(lan,"RpgLanBridge");browser.addJavascriptInterface(campaign,"RpgCampaignBridge");browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.loadUrl(OFFLINE_URL);}
     private static boolean isPrivateLan(String h) {
         if(h==null||!h.matches("\\d{1,3}(\\.\\d{1,3}){3}"))return false;
         String[] p=h.split("\\.");int[] n=new int[4];
@@ -139,7 +141,8 @@ public final class MainActivity extends Activity {
                  throw new IllegalArgumentException("Endereço inválido");
               browser.removeJavascriptInterface("RpgBookBridge");
               browser.removeJavascriptInterface("RpgLanBridge");
-              browser.removeJavascriptInterface("RpgCampaignBridge"); // Remote pages cannot access native functionality.
+              browser.removeJavascriptInterface("RpgCampaignBridge");
+              browser.removeJavascriptInterface("RpgLocalHost"); // Native API is never available to remote pages.
               allowedHost=u.getHost();allowedPort=u.getPort();
               getPreferences(Context.MODE_PRIVATE).edit().putString("lan",u.toString()).apply();
               mode.setText("● CONECTADO À LAN");browser.loadUrl(u.toString());
@@ -295,6 +298,45 @@ public final class MainActivity extends Activity {
       }
     }
 
+
+    public final class HostBridge {
+      @JavascriptInterface public String status(){
+        try{return MesaHostService.snapshot().toString();}
+        catch(Exception e){return "{\"running\":false,\"error\":\"Sem status\"}";}
+      }
+      @JavascriptInterface public String masterKey(){
+        LocalCampaignServer srv=MesaHostService.instance;
+        return srv==null?"":srv.masterKey();
+      }
+      @JavascriptInterface public void start(){
+        runOnUiThread(()->{
+          if(android.os.Build.VERSION.SDK_INT>=33 &&
+             checkSelfPermission("android.permission.POST_NOTIFICATIONS")!=android.content.pm.PackageManager.PERMISSION_GRANTED)
+            requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"},160);
+          Intent intent=new Intent(MainActivity.this,MesaHostService.class).setAction(MesaHostService.ACTION_START);
+          if(android.os.Build.VERSION.SDK_INT>=26)startForegroundService(intent);
+          else startService(intent);
+        });
+      }
+      @JavascriptInterface public void stop(){
+        runOnUiThread(()->{
+          Intent intent=new Intent(MainActivity.this,MesaHostService.class).setAction(MesaHostService.ACTION_STOP);
+          startService(intent);
+        });
+      }
+      @JavascriptInterface public void openLocalMaster(){
+        runOnUiThread(()->{
+          LocalCampaignServer server=MesaHostService.instance;
+          if(server==null){showBookError("Inicie o servidor primeiro em Mestragem.");return;}
+          browser.removeJavascriptInterface("RpgBookBridge");
+          browser.removeJavascriptInterface("RpgLanBridge");
+          browser.removeJavascriptInterface("RpgCampaignBridge");
+          browser.removeJavascriptInterface("RpgLocalHost");
+          allowedHost="127.0.0.1";allowedPort=server.currentPort();
+          browser.loadUrl("http://127.0.0.1:"+allowedPort+"/master");
+        });
+      }
+    }
     public final class LanBridge {
       @JavascriptInterface public void launchLanMaster(){runOnUiThread(()->promptLan());}
     }
