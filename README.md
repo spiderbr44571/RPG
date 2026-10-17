@@ -1,4 +1,32 @@
-# RPG Mesa 0.9 — offline + mesa em rede local
+# RPG Mesa 0.12 — Servidor dentro do Android
+
+Agora o **APK pode hospedar campanhas diretamente no telefone**, sem computador, Termux nem Python. Todos os jogadores continuam usando o navegador da mesma rede local.
+
+## Como hospedar
+1. Instale o APK de teste no celular que ficará como anfitrião (pode ser do jogador ou do mestre).
+2. No aplicativo, abra **d20 → Mestragem → Servidor neste celular → Iniciar servidor**.
+3. Aguarde o status **Ativo**. O Android mantém uma notificação de serviço em primeiro plano.
+4. Em **Conectar como mestre**, o aplicativo preenche automaticamente o endereço e a chave do servidor **deste próprio telefone**.
+5. Crie uma campanha com nome, copie/compartilhe o convite e envie aos jogadores.
+6. Cada jogador abre o link no navegador, escolhe um nickname e envia a própria ficha JSON para aprovação ou aguarda a atribuição do mestre.
+7. O mestre administra as fichas, jogadores, rodadas, cenas, efeitos e snapshots do canvas dentro de Mestragem.
+
+## Se o anfitrião for um jogador
+O mestre abre o app no seu celular, acessa **Mestragem** e preenche o IP do telefone anfitrião e a chave administrativa fornecida **privadamente** pelo anfitrião. O mestre controla a campanha pelo aplicativo, mas os dados persistem no aparelho anfitrião. Isso exige confiança: o dono do telefone que hospeda pode tecnicamente ler ou alterar os dados armazenados nele.
+
+## Limites e segurança
+- É uma implementação experimental para **rede privada confiável** (Wi-Fi ou hotspot), sem conexão com servidores externos.
+- O serviço não deve ser exposto à internet; não faça redirecionamento de porta no roteador.
+- O endereço da campanha utiliza porta TCP **8765**. Mantenha os aparelhos na mesma rede e verifique isolamento de clientes.
+- O servidor só permanece disponível enquanto o Android mantiver o processo e o serviço em primeiro plano; o sistema pode interrompê-lo, especialmente sob economia de bateria.
+- O armazenamento fica privado dentro do app anfitrião, em `campanhas-android.json`. Desinstalar o aplicativo pode remover essas campanhas. Faça backup antes de atualizar/desinstalar.
+- O servidor utiliza HTTP dentro da LAN, **não TLS**; informações e chave do mestre devem circular apenas numa rede confiável.
+- O antigo servidor Python é legado e opcional, não mais obrigatório para hospedar campanhas.
+- O APK compilado não prova o funcionamento em aparelhos físicos; use um segundo celular para validar entrada e sincronização.
+
+---
+## Documentação anterior (legada)
+### Histórico da versão 0.9
 
 Aplicativo experimental Android e protótipo web para RPG de mesa. Nome provisório. A versão 0.9 troca a antiga barra por **um d20 central**: ao tocar, rola o dado (aleatorização local) com animação de salto/rotação e abre uma central com Biblioteca, Fichas, Canvas, Bestiário, Mestragem, Consulta, Mesa em Rede e Configurações.
 
