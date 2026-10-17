@@ -50,5 +50,5 @@ assert.ok(h.includes('r11-system')&&h.includes('r11-index-system'));
 assert.ok(h.includes('usable=hits.filter(x=>x.kind!=='));
 assert.ok(h.includes('RpgCloudAiBridge.request('));
 assert.ok(fs.existsSync(path.join(__dirname,'../scripts/indexar_pdf.py')));
-assert.ok(fs.existsSync(path.join(__dirname,'../server/ai_proxy.py')));
+assert.ok(!fs.existsSync(path.join(__dirname,'../server/ai_proxy.py')),'old local proxy must be removed');
 console.log('PASS: 39 systems, '+count+' books, strict scope/edition, index import and AI grounding');
