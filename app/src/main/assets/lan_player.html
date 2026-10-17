@@ -1,107 +1,235 @@
-<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="referrer" content="no-referrer"><title>RPG Mesa · Minha ficha</title>
-<style>
-:root{--accent:#b684cf;--bg:#0d0e18;--card:#1a1b29;--text:#f6ecf5;--muted:#a9a2b5;--line:#ffffff24;--scale:1}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 0,color-mix(in srgb,var(--accent) 24%,transparent),transparent 55%),var(--bg);color:var(--text);font:calc(14px * var(--scale))/1.5 system-ui,sans-serif;min-height:100dvh}
-body[data-mode="light"]{--bg:#f7f3fa;--card:#fff;--text:#241d2e;--muted:#625a70;--line:#4c345028}
-body[data-theme="sangue"]{--accent:#eb546f}body[data-theme="conhecimento"]{--accent:#e1b55b}body[data-theme="energia"]{--accent:#af7cfa}body[data-theme="morte"]{--accent:#a8b4ab}body[data-theme="medo"]{--accent:#ecd9fa}
-body[data-theme="base"]{--accent:var(--custom,#b684cf)}
-button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}main{max-width:860px;margin:auto;padding:19px 14px 100px}
-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
-.eyebrow{letter-spacing:.17em;text-transform:uppercase;color:var(--accent);font-size:10px;font-weight:700}
-h1,h2,h3{font-family:Georgia,serif;line-height:1.1;font-weight:normal}h1{font-size:31px;margin:5px 0}h2{font-size:24px}h3{font-size:19px;margin:0 0 14px}
-button{border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--card) 88%,var(--accent));padding:11px;min-height:43px}
-button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-button:disabled{opacity:.55;cursor:not-allowed}
-button.primary{background:var(--accent);color:#15131c;font-weight:700}
-.round-status{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
-.round-status>div{border:1px solid var(--line);background:var(--card);border-radius:15px;padding:13px}
-.round-status small,.resource small,.small{display:block;color:var(--muted);font-size:11px}.round-status strong{font-size:21px;font-family:Georgia,serif}.round-status.changed{animation:flash .65s ease}@keyframes flash{0%{box-shadow:0 0 40px var(--accent)}to{box-shadow:none}}
-section{border:1px solid var(--line);background:var(--card);border-radius:16px;padding:17px;margin-bottom:14px}
-.hero{display:flex;align-items:center;gap:17px}.avatar{width:82px;height:93px;border-radius:14px;object-fit:cover;background:var(--bg);border:1px solid var(--accent)}
-.char-name{font-size:26px;margin:0 0 7px;overflow-wrap:anywhere}.pill{border:1px solid color-mix(in srgb,var(--accent) 65%,transparent);border-radius:99px;padding:5px 10px;color:var(--accent);font-size:11px;display:inline-block}
-.resource{margin:15px 0}.resource-head{display:flex;gap:10px;align-items:center;justify-content:space-between}.resource-head strong{min-width:75px}.resource-controls{display:flex;align-items:center;gap:9px}.resource-controls button{min-width:44px;padding:7px}.resource-controls output{min-width:75px;text-align:center}
-.track{height:10px;background:#0004;border-radius:99px;margin-top:6px;overflow:hidden}.track span{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .25s}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
-.stat{border:1px solid var(--line);border-radius:10px;text-align:center;padding:12px 4px}.stat small{display:block;color:var(--muted);font-size:10px}.stat strong{font-size:24px}
-#feedback{min-height:25px;color:var(--muted);font-size:12px}#prefs[hidden],#notes[hidden]{display:none}
-.field{display:flex;flex-direction:column;gap:5px;margin:12px 0}.field select,.field input,.field textarea{background:var(--bg);padding:9px;border:1px solid var(--line);border-radius:9px;min-height:40px;max-width:100%}
-input[type=color]{height:45px;width:80px;padding:2px}textarea{width:100%;min-height:110px;resize:vertical}
-.effects-list p{padding:8px 10px;border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--bg));border-radius:5px}
-#toast{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);border:1px solid var(--accent);border-radius:14px;background:var(--card);color:var(--text);padding:11px 17px;box-shadow:0 10px 45px #0009;opacity:0;transition:opacity .2s;pointer-events:none;max-width:95vw;text-align:center;z-index:2}#toast.visible{opacity:1}
-.d20{position:fixed;bottom:max(14px,env(safe-area-inset-bottom));right:18px;border:2px solid var(--accent);border-radius:50%;width:55px;height:55px;padding:0;background:var(--card);box-shadow:0 0 18px color-mix(in srgb,var(--accent) 35%,transparent);font-size:20px;z-index:1}
-.d20.roll{animation:roll .85s cubic-bezier(.2,.9,.3,1)}@keyframes roll{0%{transform:translateY(0) rotate(0)}40%{transform:translateY(-22px) rotate(210deg)}100%{transform:translateY(0) rotate(720deg)}}
-@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition:none!important}}
-</style>
-<main>
-<header><div><div class="eyebrow">RPG MESA • FICHA DO JOGADOR</div><h1 id="campaign-name">Sua campanha</h1><small id="connection" class="small">Sincronizando...</small></div><button id="show-prefs" type="button" aria-expanded="false" aria-controls="prefs">⚙ Aparência</button></header>
-<div class="round-status" id="round-status" aria-live="polite"><div><small>CENA ATUAL</small><strong id="scene">—</strong></div><div><small>RODADA</small><strong id="turn">—</strong></div></div>
-<section id="identity"><div class="eyebrow">SEU ACESSO PERMANENTE</div><div class="row"><strong id="identity-name">Aguardando...</strong><span id="identity-tag" class="pill"></span></div><p class="small">Este endereço identifica sua participação. Guarde-o para voltar à mesma ficha.</p><button id="copy-link">Copiar meu link</button></section>
-<section id="prefs" hidden><h3>Personalização da sua tela</h3><p class="small">Essas preferências são privadas deste navegador e não alteram as regras nem a aparência dos outros jogadores.</p>
-<label class="field">Tema<select id="theme"><option value="base">Base (cor personalizada)</option><option value="sangue">Sangue</option><option value="conhecimento">Conhecimento</option><option value="energia">Energia</option><option value="morte">Morte</option><option value="medo">Medo</option></select></label>
-<label class="field">Cor personalizada<input type="color" id="accent" value="#b684cf"></label>
-<label class="field">Modo visual<select id="mode"><option value="dark">Escuro</option><option value="light">Claro</option></select></label>
-<label class="field">Tamanho dos textos<select id="scale"><option value="0.9">Compacto</option><option value="1">Normal</option><option value="1.15">Ampliado</option><option value="1.3">Grande</option></select></label></section>
-<section id="sheet"><p>Carregando ficha...</p></section>
-<section id="notes"><h3>Anotações pessoais</h3><p class="small">Visíveis somente neste navegador, não compartilhadas com o mestre.</p><textarea id="note" placeholder="Suas anotações..."></textarea><button id="save-note">Salvar anotações</button></section>
-<p id="feedback" role="status"></p>
-</main><button class="d20" id="roll-die" title="Rolar d20" aria-label="Rolar d20">20</button><div id="toast" role="status"></div>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="referrer" content="no-referrer"><title>RPG Mesa · Ficha do jogador</title><style>
+:root{--accent:#c6a2d6;--bg:#0b0d16;--surface:#191824;--surface2:#22202e;--fg:#f7edf8;--muted:#aaa0b2;--line:#ffffff26;--fontScale:1;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% 0%,color-mix(in srgb,var(--accent) 16%,transparent),transparent 55%),var(--bg);color:var(--fg);font:calc(14px * var(--fontScale))/1.5 system-ui,sans-serif;min-height:100dvh}
+body[data-mode=light]{--bg:#faf7fc;--surface:#fff;--surface2:#f1eaf5;--fg:#262132;--muted:#655c6b;--line:#56315a24;color-scheme:light}
+body[data-theme=sangue]{--accent:#ea5b72}body[data-theme=conhecimento]{--accent:#e4ba66}body[data-theme=energia]{--accent:#a77aef}body[data-theme=morte]{--accent:#abb8aa}body[data-theme=medo]{--accent:#e3d7f2}body[data-theme=base]{--accent:var(--personal,#c6a2d6)}
+main{max-width:1050px;margin:auto;padding:14px 14px 100px}h1,h2,h3{font-family:Georgia,serif;font-weight:normal;line-height:1.17}h1{margin:2px 0;font-size:30px}h2{font-size:24px}h3{font-size:20px}small,.muted{color:var(--muted);font-size:11px}.eyebrow{font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--accent);font-weight:700}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 0 14px}
+button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:9px 13px;min-height:40px}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);color:#19121c;font-weight:700}
+input,select,textarea{border:1px solid var(--line);border-radius:9px;background:var(--bg);padding:9px;max-width:100%;min-height:39px}input[type=number]{width:80px}textarea{width:100%;min-height:130px;resize:vertical}input[type=color]{padding:3px;width:65px}
+section,.panel{background:var(--surface);border:1px solid var(--line);border-radius:17px;padding:16px;margin:12px 0}
+.row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.grow{flex:1}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}
+.rounds{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.rounds div{padding:12px 15px;background:var(--surface);border:1px solid var(--line);border-radius:12px}.rounds strong{font:normal 24px Georgia,serif;display:block}.rounds.changed{animation:blip .6s ease}@keyframes blip{50%{filter:drop-shadow(0 0 14px var(--accent))}}
+.hero{display:flex;align-items:center;gap:15px}.hero img{height:96px;width:85px;object-fit:cover;border-radius:14px;border:1px solid var(--accent)}.hero h2{margin:0 0 5px}.pill{border:1px solid var(--accent);color:var(--accent);display:inline-block;padding:4px 9px;border-radius:99px;font-size:11px}
+.tabs{display:flex;gap:7px;overflow:auto;scrollbar-width:thin;padding:13px 0 6px;position:sticky;top:0;z-index:2;background:var(--bg)}.tabs button{white-space:nowrap;flex:none}.tabs button[aria-selected=true]{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 15%,var(--surface))}
+.tabpage[hidden],[hidden]{display:none!important}
+.stat{padding:12px 8px;text-align:center;background:var(--surface2);border:1px solid var(--line);border-radius:12px}.stat small{display:block;font-size:10px}.stat strong{font:normal 26px Georgia,serif}
+.meter{padding:10px 0}.meter-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.meter-head button{min-width:36px;padding:6px}.track{height:9px;border-radius:99px;background:#0005;overflow:hidden;margin:8px 0}.track span{display:block;height:100%;background:var(--accent);transition:width .25s}
+.item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}.item strong{font-size:13px}.item small{display:block}.item .actions{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.field{display:block;margin:11px 0}.field span{display:block;color:var(--muted);font-size:11px;margin-bottom:5px}
+#result{position:fixed;top:15%;left:50%;transform:translateX(-50%);z-index:9;padding:16px 20px;max-width:min(95vw,600px);background:var(--surface);border:2px solid var(--accent);border-radius:18px;box-shadow:0 0 90px #000b;opacity:0;pointer-events:none;transition:opacity .2s;text-align:center}
+#result.visible{opacity:1}#rolled-dice{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:10px 0}
+.rolled{min-width:45px;height:51px;display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 22%,var(--bg));border:2px solid var(--accent);clip-path:polygon(50% 0,95% 25%,95% 75%,50% 100%,5% 75%,5% 25%);font-size:19px;font-weight:800;animation:fall .65s ease-out both}
+@keyframes fall{0%{transform:translateY(-38px) rotate(160deg);opacity:.2}80%{transform:translateY(5px) rotate(360deg)}100%{transform:none;opacity:1}}
+#sheet-status{min-height:22px;color:var(--muted);font-size:11px}
+.canvas-viewport{touch-action:none;position:relative;width:100%;height:440px;overflow:hidden;background-color:var(--bg);background-image:radial-gradient(var(--line) 1px,transparent 1px);background-size:25px 25px;border-radius:12px;border:1px solid var(--line)}
+.note-card{position:absolute;width:180px;min-height:98px;padding:10px;border:1px solid var(--accent);border-radius:10px;background:var(--surface2);box-shadow:0 12px 24px #0005;touch-action:none}
+.note-card .title{cursor:grab;touch-action:none;color:var(--accent);font-weight:700;font-size:12px;padding-bottom:5px;user-select:none}.note-card p{font-size:11px;white-space:pre-wrap;max-height:170px;overflow:auto}.note-card button{min-height:27px;padding:3px 8px;font-size:11px}
+.d20{position:fixed;right:15px;bottom:max(17px,env(safe-area-inset-bottom));width:53px;height:53px;border:2px solid var(--accent);background:var(--surface);color:var(--accent);border-radius:50%;font-weight:800;font-size:19px;box-shadow:0 0 18px color-mix(in srgb,var(--accent) 34%,transparent);z-index:3}
+.d20.roll{animation:fall .7s ease-out}@media(max-width:480px){main{padding:10px 9px 100px}section,.panel{padding:12px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hero img{height:75px;width:68px}.item{align-items:flex-start}.item .actions{justify-content:end}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+</style></head><body data-theme="base"><main>
+<header><div><div class="eyebrow">RPG MESA · MINHA CAMPANHA</div><h1 id="campaign">Carregando...</h1><small id="connected">Conectando ao mestre...</small></div><button id="appearance-btn">⚙ Tema</button></header>
+<div id="rounds" class="rounds" aria-live="polite"><div><small>Cena</small><strong id="scene">—</strong></div><div><small>Rodada</small><strong id="turn">—</strong></div></div>
+<div id="hero" class="panel">Aguardando ficha...</div>
+<nav id="tabs" class="tabs" role="tablist" aria-label="Seções da ficha"><button data-tab="attributes" aria-selected="true">Atributos</button><button data-tab="skills">Perícias</button><button data-tab="inventory">Inventário</button><button data-tab="abilities">Habilidades / Rituais</button><button data-tab="story">História</button><button data-tab="canvas">Canvas pessoal</button><button data-tab="settings">Personalização</button></nav>
+<section id="attributes" class="tabpage"></section><section id="skills" class="tabpage" hidden></section><section id="inventory" class="tabpage" hidden></section><section id="abilities" class="tabpage" hidden></section><section id="story" class="tabpage" hidden></section><section id="canvas" class="tabpage" hidden></section><section id="settings" class="tabpage" hidden></section>
+<small id="sheet-status" role="status"></small>
+<section><div class="eyebrow">ACESSO PERMANENTE</div><div class="row"><strong id="nickname">—</strong><span id="short-id" class="pill">—</span><button id="copy-link">Copiar meu link</button></div><p class="muted">Seu link é pessoal: não compartilhe com outras pessoas. O mestre compartilha o convite geral da campanha.</p></section></main>
+<button class="d20" id="quick-die" title="Rolar um d20" aria-label="Rolar d20">20</button>
+<div id="result" role="status" aria-live="polite"><strong id="roll-name"></strong><div id="rolled-dice"></div><strong id="roll-total"></strong></div>
 <script>
 'use strict';
-const $=s=>document.querySelector(s),campaignId=location.pathname.split('/')[2];
-const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const prefKey='rpg-player-theme:'+campaignId;let active=null, lastRevision=-1, syncPending=false, ownLink='', everSynced=false;
-const prefs=(()=>{try{return JSON.parse(localStorage.getItem(prefKey))||{}}catch{return {}}})();
-const themeNames=['base','sangue','conhecimento','energia','morte','medo'];
-function applyPrefs(){
- const theme=themeNames.includes(prefs.theme)?prefs.theme:'base';
- const color=/^#[0-9a-fA-F]{6}$/.test(prefs.accent||'')?prefs.accent:'#b684cf';
- document.body.dataset.theme=theme;document.body.dataset.mode=prefs.mode==='light'?'light':'dark';
- document.body.style.setProperty('--custom',color);document.body.style.setProperty('--scale',String(Math.min(1.3,Math.max(.9,Number(prefs.scale)||1))));
- $('#theme').value=theme;$('#accent').value=color;$('#mode').value=document.body.dataset.mode;$('#scale').value=String(Number(prefs.scale)||1);
+const SKILLS=[{"name":"Acrobacia","attr":"Agilidade","trained":false},{"name":"Adestramento","attr":"Presença","trained":true},{"name":"Artes","attr":"Presença","trained":true},{"name":"Atletismo","attr":"Força","trained":false},{"name":"Atualidades","attr":"Intelecto","trained":false},{"name":"Ciências","attr":"Intelecto","trained":true},{"name":"Crime","attr":"Agilidade","trained":true},{"name":"Diplomacia","attr":"Presença","trained":false},{"name":"Enganação","attr":"Presença","trained":false},{"name":"Fortitude","attr":"Vigor","trained":false},{"name":"Furtividade","attr":"Agilidade","trained":false},{"name":"Iniciativa","attr":"Agilidade","trained":false},{"name":"Intimidação","attr":"Presença","trained":false},{"name":"Intuição","attr":"Presença","trained":false},{"name":"Investigação","attr":"Intelecto","trained":false},{"name":"Luta","attr":"Força","trained":false},{"name":"Medicina","attr":"Intelecto","trained":false},{"name":"Ocultismo","attr":"Intelecto","trained":true},{"name":"Percepção","attr":"Presença","trained":false},{"name":"Pilotagem","attr":"Agilidade","trained":true},{"name":"Pontaria","attr":"Agilidade","trained":false},{"name":"Profissão","attr":"Intelecto","trained":true},{"name":"Reflexos","attr":"Agilidade","trained":false},{"name":"Religião","attr":"Presença","trained":true},{"name":"Sobrevivência","attr":"Intelecto","trained":false},{"name":"Tática","attr":"Intelecto","trained":true},{"name":"Tecnologia","attr":"Intelecto","trained":true},{"name":"Vontade","attr":"Presença","trained":false}],RITUALS=[{"id":"amaldi-oar-arma-conhecimento","name":"Amaldiçoar Arma","element":"Conhecimento","circle":1,"pe":1},{"id":"compreens-o-paranormal-conhecimento","name":"Compreensão Paranormal","element":"Conhecimento","circle":1,"pe":1},{"id":"enfeiti-ar-conhecimento","name":"Enfeitiçar","element":"Conhecimento","circle":1,"pe":1},{"id":"perturba-o-conhecimento","name":"Perturbação","element":"Conhecimento","circle":1,"pe":1},{"id":"ouvir-os-sussurros-conhecimento","name":"Ouvir os Sussurros","element":"Conhecimento","circle":1,"pe":1},{"id":"tecer-ilus-o-conhecimento","name":"Tecer Ilusão","element":"Conhecimento","circle":1,"pe":1},{"id":"terceiro-olho-conhecimento","name":"Terceiro Olho","element":"Conhecimento","circle":1,"pe":1},{"id":"amaldi-oar-arma-energia","name":"Amaldiçoar Arma","element":"Energia","circle":1,"pe":1},{"id":"amaldi-oar-tecnologia-energia","name":"Amaldiçoar Tecnologia","element":"Energia","circle":1,"pe":1},{"id":"coincid-ncia-for-ada-energia","name":"Coincidência Forçada","element":"Energia","circle":1,"pe":1},{"id":"eletrocuss-o-energia","name":"Eletrocussão","element":"Energia","circle":1,"pe":1},{"id":"embaralhar-energia","name":"Embaralhar","element":"Energia","circle":1,"pe":1},{"id":"luz-energia","name":"Luz","element":"Energia","circle":1,"pe":1},{"id":"polariza-o-ca-tica-energia","name":"Polarização Caótica","element":"Energia","circle":1,"pe":1},{"id":"amaldi-oar-arma-morte","name":"Amaldiçoar Arma","element":"Morte","circle":1,"pe":1},{"id":"cicatriza-o-morte","name":"Cicatrização","element":"Morte","circle":1,"pe":1},{"id":"consumir-manancial-morte","name":"Consumir Manancial","element":"Morte","circle":1,"pe":1},{"id":"decad-ncia-morte","name":"Decadência","element":"Morte","circle":1,"pe":1},{"id":"definhar-morte","name":"Definhar","element":"Morte","circle":1,"pe":1},{"id":"espirais-da-perdi-o-morte","name":"Espirais da Perdição","element":"Morte","circle":1,"pe":1},{"id":"desacelerar-impacto-morte","name":"Desacelerar Impacto","element":"Morte","circle":1,"pe":1},{"id":"amaldi-oar-arma-sangue","name":"Amaldiçoar Arma","element":"Sangue","circle":1,"pe":1},{"id":"arma-atroz-sangue","name":"Arma Atroz","element":"Sangue","circle":1,"pe":1},{"id":"armadura-de-sangue-sangue","name":"Armadura de Sangue","element":"Sangue","circle":1,"pe":1},{"id":"corpo-adaptado-sangue","name":"Corpo Adaptado","element":"Sangue","circle":1,"pe":1},{"id":"fortalecimento-sensorial-sangue","name":"Fortalecimento Sensorial","element":"Sangue","circle":1,"pe":1},{"id":"-dio-incontrol-vel-sangue","name":"Ódio Incontrolável","element":"Sangue","circle":1,"pe":1},{"id":"distorcer-apar-ncia-sangue","name":"Distorcer Aparência","element":"Sangue","circle":1,"pe":1},{"id":"ciner-ria-medo","name":"Cinerária","element":"Medo","circle":1,"pe":1},{"id":"aprimorar-mente-conhecimento","name":"Aprimorar Mente","element":"Conhecimento","circle":2,"pe":2},{"id":"detec-o-de-amea-as-conhecimento","name":"Detecção de Ameaças","element":"Conhecimento","circle":2,"pe":2},{"id":"esconder-dos-olhos-conhecimento","name":"Esconder dos Olhos","element":"Conhecimento","circle":2,"pe":2},{"id":"invadir-mente-conhecimento","name":"Invadir Mente","element":"Conhecimento","circle":2,"pe":2},{"id":"localiza-o-conhecimento","name":"Localização","element":"Conhecimento","circle":2,"pe":2},{"id":"chamas-do-caos-energia","name":"Chamas do Caos","element":"Energia","circle":2,"pe":2},{"id":"conten-o-fantasmag-rica-energia","name":"Contenção Fantasmagórica","element":"Energia","circle":2,"pe":2},{"id":"disson-ncia-ac-stica-energia","name":"Dissonância Acústica","element":"Energia","circle":2,"pe":2},{"id":"sopro-do-caos-energia","name":"Sopro do Caos","element":"Energia","circle":2,"pe":2},{"id":"tela-de-ru-do-energia","name":"Tela de Ruído","element":"Energia","circle":2,"pe":2},{"id":"nuvem-de-cinzas-morte","name":"Nuvem de Cinzas","element":"Morte","circle":2,"pe":2},{"id":"eco-espiral-morte","name":"Eco Espiral","element":"Morte","circle":2,"pe":2},{"id":"paradoxo-morte","name":"Paradoxo","element":"Morte","circle":2,"pe":2},{"id":"miasma-entr-pico-morte","name":"Miasma Entrópico","element":"Morte","circle":2,"pe":2},{"id":"velocidade-mortal-morte","name":"Velocidade Mortal","element":"Morte","circle":2,"pe":2},{"id":"aprimorar-f-sico-sangue","name":"Aprimorar Físico","element":"Sangue","circle":2,"pe":2},{"id":"descarnar-sangue","name":"Descarnar","element":"Sangue","circle":2,"pe":2},{"id":"flagelo-de-sangue-sangue","name":"Flagelo de Sangue","element":"Sangue","circle":2,"pe":2},{"id":"hemofagia-sangue","name":"Hemofagia","element":"Sangue","circle":2,"pe":2},{"id":"transfus-o-vital-sangue","name":"Transfusão Vital","element":"Sangue","circle":2,"pe":2},{"id":"prote-o-contra-rituais-medo","name":"Proteção contra Rituais","element":"Medo","circle":2,"pe":2},{"id":"rejeitar-n-voa-medo","name":"Rejeitar Névoa","element":"Medo","circle":2,"pe":2},{"id":"alterar-mem-ria-conhecimento","name":"Alterar Memória","element":"Conhecimento","circle":3,"pe":3},{"id":"contato-paranormal-conhecimento","name":"Contato Paranormal","element":"Conhecimento","circle":3,"pe":3},{"id":"mergulho-mental-conhecimento","name":"Mergulho Mental","element":"Conhecimento","circle":3,"pe":3},{"id":"vid-ncia-conhecimento","name":"Vidência","element":"Conhecimento","circle":3,"pe":3},{"id":"convoca-o-instant-nea-energia","name":"Convocação Instantânea","element":"Energia","circle":3,"pe":3},{"id":"salto-fantasma-energia","name":"Salto Fantasma","element":"Energia","circle":3,"pe":3},{"id":"transfigurar-gua-energia","name":"Transfigurar Água","element":"Energia","circle":3,"pe":3},{"id":"transfigurar-terra-energia","name":"Transfigurar Terra","element":"Energia","circle":3,"pe":3},{"id":"-ncora-temporal-morte","name":"Âncora Temporal","element":"Morte","circle":3,"pe":3},{"id":"poeira-da-podrid-o-morte","name":"Poeira da Podridão","element":"Morte","circle":3,"pe":3},{"id":"tent-culos-de-lodo-morte","name":"Tentáculos de Lodo","element":"Morte","circle":3,"pe":3},{"id":"zerar-entropia-morte","name":"Zerar Entropia","element":"Morte","circle":3,"pe":3},{"id":"ferver-sangue-sangue","name":"Ferver Sangue","element":"Sangue","circle":3,"pe":3},{"id":"forma-monstruosa-sangue","name":"Forma Monstruosa","element":"Sangue","circle":3,"pe":3},{"id":"purgat-rio-sangue","name":"Purgatório","element":"Sangue","circle":3,"pe":3},{"id":"vomitar-pestes-sangue","name":"Vomitar Pestes","element":"Sangue","circle":3,"pe":3},{"id":"dissipar-ritual-medo","name":"Dissipar Ritual","element":"Medo","circle":3,"pe":3},{"id":"controle-mental-conhecimento","name":"Controle Mental","element":"Conhecimento","circle":4,"pe":4},{"id":"inexistir-conhecimento","name":"Inexistir","element":"Conhecimento","circle":4,"pe":4},{"id":"possess-o-conhecimento","name":"Possessão","element":"Conhecimento","circle":4,"pe":4},{"id":"alterar-destino-energia","name":"Alterar Destino","element":"Energia","circle":4,"pe":4},{"id":"deflagra-o-de-energia-energia","name":"Deflagração de Energia","element":"Energia","circle":4,"pe":4},{"id":"teletransporte-energia","name":"Teletransporte","element":"Energia","circle":4,"pe":4},{"id":"convocar-o-algoz-morte","name":"Convocar o Algoz","element":"Morte","circle":4,"pe":4},{"id":"distor-o-temporal-morte","name":"Distorção Temporal","element":"Morte","circle":4,"pe":4},{"id":"fim-inevit-vel-morte","name":"Fim Inevitável","element":"Morte","circle":4,"pe":4},{"id":"capturar-o-cora-o-sangue","name":"Capturar o Coração","element":"Sangue","circle":4,"pe":4},{"id":"inv-lucro-de-carne-sangue","name":"Invólucro de Carne","element":"Sangue","circle":4,"pe":4},{"id":"v-nculo-de-sangue-sangue","name":"Vínculo de Sangue","element":"Sangue","circle":4,"pe":4},{"id":"canalizar-o-medo-medo","name":"Canalizar o Medo","element":"Medo","circle":4,"pe":4},{"id":"conhecendo-o-medo-medo","name":"Conhecendo o Medo","element":"Medo","circle":4,"pe":4},{"id":"l-mina-do-medo-medo","name":"Lâmina do Medo","element":"Medo","circle":4,"pe":4},{"id":"medo-tang-vel-medo","name":"Medo Tangível","element":"Medo","circle":4,"pe":4},{"id":"presen-a-do-medo-medo","name":"Presença do Medo","element":"Medo","circle":4,"pe":4}];
+const $=s=>document.querySelector(s),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cid=location.pathname.split('/')[2],memoKey='rpg-player-look:'+cid;
+let state=null,signature='',tab='attributes',canvasNodes=[],editBusy=false,networkBusy=false,ownLink='',drawTime=0;
+let prefs;try{prefs=JSON.parse(localStorage.getItem(memoKey))||{}}catch{prefs={}}
+const message=x=>$('#sheet-status').textContent=x;
+function appearance(){let name=['base','sangue','conhecimento','energia','morte','medo'].includes(prefs.theme)?prefs.theme:'base';
+ document.body.dataset.theme=name;document.body.dataset.mode=prefs.mode==='light'?'light':'dark';
+ document.body.style.setProperty('--personal',/^#[a-f0-9]{6}$/i.test(prefs.color||'')?prefs.color:'#c6a2d6');
+ document.body.style.setProperty('--fontScale',String(Math.max(.9,Math.min(1.3,Number(prefs.size)||1))))}
+function saveAppearance(){prefs={theme:$('#theme').value,color:$('#color').value,mode:$('#mode').value,size:$('#size').value};localStorage.setItem(memoKey,JSON.stringify(prefs));appearance()}
+function activate(name){tab=name;$('#tabs').querySelectorAll('button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===name)));
+ document.querySelectorAll('.tabpage').forEach(el=>el.hidden=el.id!==name);
+ if(state&&name==='canvas')renderCanvas();
+ if(state&&name==='settings')renderSettings();}
+$('#tabs').onclick=e=>{let b=e.target.closest('[data-tab]');if(b)activate(b.dataset.tab)};
+$('#appearance-btn').onclick=()=>activate('settings');
+const canonical=['Agilidade','Força','Intelecto','Presença','Vigor'];
+function attr(s,key){const found=s.attrs||{};return Number(found[key]??1)||0}
+function skillGrade(s,key){let n=Number(s.skills?.[key]||0);return [0,5,10,15].includes(n)?n:Math.min(15,Math.max(0,n*5))}
+function cryptoDie(size){const array=new Uint32Array(1),limit=Math.floor(4294967296/size)*size;do{crypto.getRandomValues(array)}while(array[0]>=limit);return 1+array[0]%size}
+function rollFormula(formula,mode='sum',chosenAttribute=0){
+ let m=/^([1-9][0-9]?)d(4|6|8|10|12|20|100)([+-][0-9]{1,3})?$/.exec(formula);
+ if(!m)throw Error('Use uma fórmula como 2d6+3');
+ const n=Number(m[1]),sides=Number(m[2]),modifier=Number(m[3]||0);
+ if(n>30||Math.abs(modifier)>500)throw Error('Limite de rolagem excedido');
+ const dice=Array.from({length:n},()=>cryptoDie(sides));
+ const raw=mode==='high'?Math.max(...dice):mode==='low'?Math.min(...dice):dice.reduce((a,b)=>a+b,0);
+ return {formula,faces:dice,total:raw+modifier,raw,modifier,sides,mode};
 }
-function savePrefs(){prefs.theme=$('#theme').value;prefs.accent=$('#accent').value;prefs.mode=$('#mode').value;prefs.scale=$('#scale').value;localStorage.setItem(prefKey,JSON.stringify(prefs));applyPrefs()}
-for(const key of ['theme','accent','mode','scale'])$('#'+key).addEventListener('change',savePrefs);
-applyPrefs();
-$('#show-prefs').onclick=()=>{let p=$('#prefs');p.hidden=!p.hidden;$('#show-prefs').setAttribute('aria-expanded',String(!p.hidden))};
-$('#note').value=localStorage.getItem('rpg-private-notes:'+campaignId)||'';
-$('#save-note').onclick=()=>{localStorage.setItem('rpg-private-notes:'+campaignId,$('#note').value);message('Anotações salvas neste navegador')};
-function message(x){$('#feedback').textContent=x}
-function toast(x){const t=$('#toast');t.textContent=x;t.classList.add('visible');setTimeout(()=>t.classList.remove('visible'),2000)}
-async function refresh(){
- if(syncPending)return;syncPending=true;
+let timer;
+async function roll(label,formula,mode='sum'){
  try{
-  const r=await fetch('/api/play/'+encodeURIComponent(campaignId)+'?t='+Date.now(),{cache:'no-store',credentials:'same-origin',referrerPolicy:'no-referrer'});
-  const j=await r.json();if(!r.ok)throw Error(j.error||'Sessão inválida');
-  const changed=everSynced&&(j.turn!==active?.turn||j.scene!==active?.scene);
-  if(changed){$('#round-status').classList.remove('changed');void $('#round-status').offsetWidth;$('#round-status').classList.add('changed');toast(j.scene!==active.scene?'O mestre iniciou outra cena':'Nova rodada: '+j.turn)}
-  active=j;everSynced=true;$('#campaign-name').textContent=j.campaign;
-  $('#scene').textContent=j.sceneName||('Cena '+j.scene);$('#turn').textContent=j.turn;
-  $('#identity-name').textContent=j.nickname;$('#identity-tag').textContent='#'+j.shortId;
-  ownLink=j.permalink;$('#connection').textContent='● Sincronizado com a mesa';
-  if(!j.character){$('#sheet').innerHTML='<h2>Aguardando atribuição</h2><p class="small">O mestre já recebeu sua entrada. Sua ficha será exibida aqui quando ele aprovar ou atribuir um personagem.</p>';return}
-  let s=j.character,photo=s.photo&&/^data:image\/(png|jpeg|webp);base64,/.test(s.photo)?'<img class="avatar" src="'+esc(s.photo)+'" alt="Retrato do personagem">':'';
-  $('#sheet').innerHTML='<div class="hero">'+photo+'<div><div class="eyebrow">PERSONAGEM • '+esc(s.class||'')+'</div><h2 class="char-name">'+esc(s.name||'Agente')+'</h2><span class="pill">NEX '+esc(s.nex||5)+'%</span></div></div><hr>'
-   +'<h3 style="margin-top:20px">Recursos</h3>'+Object.entries(s.resources||{}).filter(([k,v])=>['PV','PE','SAN'].includes(k)&&v&&typeof v==='object').map(([k,v])=>{
-     let mx=Number(v.max)||0,cur=Number(v.current)||0,pct=mx>0?Math.max(0,Math.min(100,100*cur/mx)):0;
-     return '<div class="resource"><div class="resource-head"><strong>'+esc(k)+'</strong><div class="resource-controls"><button data-resource="'+esc(k)+'" data-delta="-1">−</button><output>'+cur+' / '+mx+'</output><button data-resource="'+esc(k)+'" data-delta="1">+</button></div></div><div class="track"><span style="width:'+pct+'%"></span></div></div>'}).join('')
-   +'<h3 style="margin-top:22px">Atributos</h3><div class="grid">'+Object.entries(s.attrs||{}).map(([k,v])=>'<div class="stat"><small>'+esc(k)+'</small><strong>'+esc(v)+'</strong></div>').join('')+'</div>'
-   +'<h3 style="margin-top:22px">Rituais conhecidos</h3><p>'+esc((s.rituaisConhecidos||[]).join(' · ')||'Nenhum registrado')+'</p>'
-   +'<h3>Efeitos ativos</h3><div class="effects-list">'+((s.effects||[]).map(e=>'<p>'+esc(e.name)+' · '+esc(e.unit)+(e.remaining?' · '+e.remaining+' rodadas':'')+'</p>').join('')||'<p class="small">Nenhum efeito aplicado</p>')+'</div>';
-  $('#feedback').textContent='';
- }catch(e){$('#connection').textContent='● Desconectado · tentando novamente';message(e.message)}
- finally{syncPending=false}
+  const data=rollFormula(formula,mode);
+  $('#roll-name').textContent=label+' · '+formula;
+  $('#rolled-dice').innerHTML=data.faces.map((n,i)=>'<span class="rolled" style="animation-delay:'+Math.min(300,i*45)+'ms">'+n+'</span>').join('');
+  $('#roll-total').textContent='Resultado: '+data.total+(mode==='high'?' (maior dado)':mode==='low'?' (menor dado)':'');
+  $('#result').classList.add('visible');clearTimeout(timer);timer=setTimeout(()=>$('#result').classList.remove('visible'),4400);
+  // O resultado é calculado neste navegador e compartilhado com a campanha para o mestre visualizar.
+  fetch('/api/play/'+cid+'/roll',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:label,formula,faces:data.faces.join(','),total:data.total})}).catch(()=>{});
+  return data;
+ }catch(e){message(e.message);return null}
 }
-$('#sheet').onclick=async e=>{
- const b=e.target.closest('[data-resource]');if(!b||!active?.character)return;
- const k=b.dataset.resource,v=active.character.resources[k];if(!v)return;
- const value=Math.max(0,Math.min(Number(v.max),Number(v.current)+Number(b.dataset.delta)));
- try{let r=await fetch('/api/play/'+encodeURIComponent(campaignId)+'/resource',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({resource:k,current:value})});let data=await r.json();if(!r.ok)throw Error(data.error||'Falha');await refresh()}
- catch(err){message(err.message)}
+$('#quick-die').onclick=()=>{let d=$('#quick-die');d.classList.remove('roll');void d.offsetWidth;d.classList.add('roll');roll('d20 livre','1d20')};
+const itemsOf=s=>Array.isArray(s.inventory)?s.inventory:Array.isArray(s.items)?s.items:[];
+function renderAttributes(s){
+ $('#attributes').innerHTML='<h3>Recursos e atributos</h3><div class="grid">'+
+ ['NEX','Defesa'].map(k=>'<div class="stat"><small>'+k+'</small><strong>'+esc(k==='NEX'?(s.nex||5)+'%':Number(s.defense??s.defesa??(10+attr(s,'Agilidade'))))+'</strong></div>').join('')+
+ canonical.map(k=>'<div class="stat"><small>'+k+'</small><strong>'+attr(s,k)+'</strong><button data-attribute="'+k+'">🎲 Testar</button></div>').join('')+'</div><h3 style="margin-top:20px">PV, PE e SAN</h3>'+
+ ['PV','PE','SAN'].map(k=>{let v=s.resources?.[k]||{},mx=Number(v.max??0),current=Number(v.current??0),pct=mx?Math.max(0,Math.min(100,current/mx*100)):0;
+ return '<div class="meter"><div class="meter-head"><strong>'+k+'</strong><div class="row"><button data-resource="'+k+'" data-step="-1">−</button><span>'+current+' / '+mx+'</span><button data-resource="'+k+'" data-step="1">+</button></div></div><div class="track"><span style="width:'+pct+'%"></span></div></div>'}).join('')+
+ '<p class="muted">Os valores máximos e os atributos dependem do mestre. Você pode ajustar seus recursos atuais.</p>';
+}
+function renderSkills(s,filter=''){
+ const skills=SKILLS.filter(k=>k.name.toLowerCase().includes(filter.toLowerCase()));
+ $('#skills').innerHTML='<h3>Perícias</h3><input id="skill-search" placeholder="Pesquisar entre as 28 perícias" value="'+esc(filter)+'" aria-label="Pesquisar perícia"><div id="skill-list">'+skills.map((k,i)=>{
+ const value=attr(s,k.attr),bonus=skillGrade(s,k.name);
+ return '<div class="item"><div><strong>'+esc(k.name)+'</strong><small>'+esc(k.attr)+' '+value+' · bônus +'+bonus+(k.trained?' · requer treino em usos específicos':'')+'</small></div><button data-skill="'+esc(k.name)+'">🎲 Rolar</button></div>'}).join('')+'</div><p class="muted">Testes de perícia usam vários d20, selecionando o maior (ou menor com atributo 0) e somando o bônus da perícia.</p>';
+}
+function renderInventory(s){
+ const inv=itemsOf(s);
+ $('#inventory').innerHTML='<h3>Inventário</h3><p class="muted">Gerencie quantidade e seus próprios itens. As categorias do RPG permanecem separadas.</p>'+
+ '<div id="item-list">'+(inv.map((it,i)=>'<div class="item"><div><strong>'+esc(it.nome||it.name||'Item')+'</strong><small>'+esc(String(it.categoriaItem||'geral').replaceAll('_',' '))+' · Qtd '+(it.quantidade??1)+(it.dano?' · '+esc(it.dano):'')+'</small></div><div class="actions">'+(it.dano?'<button data-item-roll="'+i+'">🎲 Rolagem</button>':'')+'<button data-item-quantity="'+i+'" data-increment="-1">−</button><button data-item-quantity="'+i+'" data-increment="1">+</button></div></div>').join('')||'<p class="muted">Nenhum item registrado.</p>')+'</div>'+
+ '<h3 style="margin-top:20px">Adicionar item personalizado</h3><div class="grid"><label class="field"><span>Nome</span><input id="new-item" maxlength="90"></label><label class="field"><span>Categoria</span><select id="new-item-cat"><option value="geral">Geral</option><option value="ferramenta">Ferramenta</option><option value="acessorio">Acessório</option><option value="item_paranormal">Paranormal</option><option value="arma">Item de combate (RPG)</option></select></label><label class="field"><span>Rolagem, se houver</span><input id="new-item-dice" placeholder="2d6+2" maxlength="32"></label></div><button class="primary" id="add-item">Adicionar ao inventário</button>';
+}
+function renderAbilities(s){
+ const rituals=(s.rituaisConhecidos||[]).map(id=>RITUALS.find(x=>x.id===id)||RITUALS.find(x=>x.name===id)||{name:id,element:'',circle:'?'});
+ const powers=(s.powers||[]).map(x=>typeof x==='string'?x:x?.nome||x?.name||'Habilidade');
+ const rolls=s.customRolls||[];
+ $('#abilities').innerHTML='<h3>Habilidades</h3>'+ (powers.length?powers.map(x=>'<div class="item"><strong>'+esc(x)+'</strong><small>Consulte suas regras para ativação.</small></div>').join(''):'<p class="muted">Nenhuma registrada.</p>')+
+ '<h3 style="margin-top:22px">Rituais conhecidos</h3>'+(rituals.length?rituals.map(x=>'<div class="item"><div><strong>'+esc(x.name)+'</strong><small>'+esc(x.element)+' · '+esc(x.circle)+'º círculo'+(x.pe?' · custo-base '+x.pe+' PE':'')+'</small></div></div>').join(''):'<p class="muted">Nenhum registrado.</p>')+
+ '<p class="muted">Nem todo ritual exige uma rolagem. Use uma fórmula cadastrada quando o mestre confirmar a mecânica.</p>'+
+ '<h3 style="margin-top:22px">Rolagens fixas configuráveis</h3>'+rolls.map((x,i)=>'<div class="item"><div><strong>'+esc(x.label)+'</strong><small>'+esc(x.formula)+'</small></div><div class="actions"><button data-fixed-roll="'+i+'">🎲 Rolar</button><button data-del-roll="'+i+'">Remover</button></div></div>').join('')+
+ '<div class="grid"><label class="field"><span>Nome do teste</span><input id="roll-label" placeholder="Ritual, habilidade ou teste" maxlength="64"></label><label class="field"><span>Fórmula validada</span><input id="roll-formula" placeholder="2d8+3" maxlength="32"></label></div><button class="primary" id="add-roll">Salvar rolagem</button>';
+}
+function renderStory(s){
+ $('#story').innerHTML='<h3>História e descrição</h3><p class="muted">Seus textos acompanham a ficha da campanha. O mestre também pode lê-los.</p><label class="field"><span>Descrição do personagem</span><textarea id="description" maxlength="12000">'+esc(s.description||'')+'</textarea></label><label class="field"><span>História</span><textarea id="history" maxlength="12000">'+esc(s.history||'')+'</textarea></label><button id="save-story" class="primary">Salvar história</button>';
+}
+function renderSettings(){
+ $('#settings').innerHTML='<h3>Aparência da sua ficha</h3><p class="muted">Preferências pessoais deste navegador, sem alterar outras fichas.</p>'+
+ '<label class="field"><span>Tema</span><select id="theme">'+['base','sangue','conhecimento','energia','morte','medo'].map(k=>'<option value="'+k+'">'+k.charAt(0).toUpperCase()+k.slice(1)+'</option>').join('')+'</select></label>'+
+ '<label class="field"><span>Cor do tema Base</span><input type="color" id="color"></label>'+
+ '<label class="field"><span>Modo</span><select id="mode"><option value="dark">Escuro</option><option value="light">Claro</option></select></label>'+
+ '<label class="field"><span>Texto</span><select id="size"><option value="0.9">Compacto</option><option value="1">Normal</option><option value="1.15">Ampliado</option><option value="1.3">Grande</option></select></label>';
+ $('#theme').value=prefs.theme||'base';$('#color').value=/^#[a-f0-9]{6}$/i.test(prefs.color||'')?prefs.color:'#c6a2d6';$('#mode').value=prefs.mode||'dark';$('#size').value=String(prefs.size||1);
+ for(const id of ['theme','color','mode','size'])$('#'+id).onchange=saveAppearance;
+}
+async function post(path,data){
+ const r=await fetch('/api/play/'+cid+'/'+path,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(data),cache:'no-store'});
+ const out=await r.json();if(!r.ok)throw Error(out.error||'Erro no servidor');return out;
+}
+async function saveProfile(data){try{await post('profile',data);message('Alterações salvas na campanha');await refresh(true)}catch(e){message('Não salvo: '+e.message)}}
+$('#attributes').onclick=async e=>{
+ let a=e.target.closest('[data-attribute]');if(a&&state?.character){let n=attr(state.character,a.dataset.attribute);let count=n===0?2:Math.min(12,n);const suffix='+'+0;await roll('Atributo: '+a.dataset.attribute,count+'d20',n===0?'low':'high');return}
+ let b=e.target.closest('[data-resource]');if(!b||!state?.character)return;
+ const k=b.dataset.resource,v=state.character.resources?.[k];if(!v)return;
+ const current=Math.max(0,Math.min(Number(v.max),Number(v.current)+Number(b.dataset.step)));
+ try{await post('resource',{resource:k,current});await refresh(true)}catch(err){message(err.message)}
 };
-$('#copy-link').onclick=async()=>{if(!ownLink)return message('Aguardando link...');try{await navigator.clipboard.writeText(ownLink);toast('Link pessoal copiado')}catch{message('Copie este link: '+ownLink)}};
-function d20(){const buf=new Uint32Array(1),limit=Math.floor(4294967296/20)*20;do{crypto.getRandomValues(buf)}while(buf[0]>=limit);return 1+buf[0]%20}
-$('#roll-die').onclick=()=>{const n=d20(),b=$('#roll-die');b.textContent=n;b.classList.remove('roll');void b.offsetWidth;b.classList.add('roll');toast('Rolagem: d20 → '+n)};
-refresh();setInterval(()=>{if(document.visibilityState==='visible')refresh()},2000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
-window.addEventListener('focus',refresh);window.addEventListener('pageshow',refresh);
-</script></html>
+$('#skills').oninput=e=>{if(e.target.id==='skill-search'&&state?.character){const v=e.target.value,pos=e.target.selectionStart;renderSkills(state.character,v);const input=$('#skill-search');input.focus();input.setSelectionRange(pos,pos)}};
+$('#skills').onclick=async e=>{
+ const b=e.target.closest('[data-skill]');if(!b||!state?.character)return;
+ const item=SKILLS.find(x=>x.name===b.dataset.skill);if(!item)return;
+ const n=attr(state.character,item.attr),grade=skillGrade(state.character,item.name),count=n===0?2:Math.min(12,n);
+ const suffix=grade?'+'+grade:'';
+ if(item.trained&&grade===0)message('Alguns usos dessa perícia exigem treinamento; confirme a ação com o mestre.');
+ await roll('Perícia: '+item.name,count+'d20'+suffix,n===0?'low':'high');
+};
+$('#inventory').onclick=async e=>{
+ if(!state?.character)return;
+ let list=itemsOf(state.character).map(x=>({...x}));
+ const rollBtn=e.target.closest('[data-item-roll]');
+ if(rollBtn){const v=list[Number(rollBtn.dataset.itemRoll)];if(v?.dano)await roll('Item: '+(v.nome||'Rolagem'),v.dano);return}
+ const qty=e.target.closest('[data-item-quantity]');
+ if(qty){let item=list[Number(qty.dataset.itemQuantity)];if(!item)return;item.quantidade=Math.max(0,Math.min(9999,Number(item.quantidade??1)+Number(qty.dataset.increment)));await saveProfile({inventory:list});return}
+ if(e.target.closest('#add-item')){
+  const name=$('#new-item').value.trim(),cat=$('#new-item-cat').value,formula=$('#new-item-dice').value.trim();
+  if(!name)return message('Informe o nome do item');
+  if(formula&&!/^([1-9][0-9]?)d(4|6|8|10|12|20|100)([+-]\d{1,3})?$/.test(formula))return message('Fórmula inválida');
+  list.push({nome:name,categoriaItem:cat,dano:formula,quantidade:1});await saveProfile({inventory:list});
+ }
+};
+$('#abilities').onclick=async e=>{
+ if(!state?.character)return;const list=(state.character.customRolls||[]).map(x=>({...x}));
+ const b=e.target.closest('[data-fixed-roll]');if(b){let x=list[Number(b.dataset.fixedRoll)];if(x)await roll(x.label,x.formula);return}
+ const d=e.target.closest('[data-del-roll]');if(d){list.splice(Number(d.dataset.delRoll),1);await saveProfile({customRolls:list});return}
+ if(e.target.closest('#add-roll')){
+  let label=$('#roll-label').value.trim(),formula=$('#roll-formula').value.trim();if(!label)return message('Dê nome à rolagem');
+  if(!/^([1-9][0-9]?)d(4|6|8|10|12|20|100)([+-]\d{1,3})?$/.test(formula))return message('Use uma fórmula como 2d6+3');
+  list.push({label,formula});await saveProfile({customRolls:list});
+ }
+};
+$('#story').onclick=e=>{if(e.target.id==='save-story')saveProfile({description:$('#description').value,history:$('#history').value})};
+let dragging=null,scale=1;
+function renderCanvas(){
+ const e=$('#canvas');if(!e)return;
+ e.innerHTML='<h3>Canvas pessoal</h3><p class="muted">Arraste notas pelo espaço infinito. As alterações são guardadas no servidor da sua campanha, mas não aparecem no canvas privado do mestre.</p><div class="row"><button id="add-note" class="primary">+ Nota</button><button id="save-canvas">Salvar canvas</button><button id="zoom-in">Aproximar</button><button id="zoom-out">Afastar</button><span id="zoom-label"></span></div>'+
+ '<div class="canvas-viewport" id="canvas-space"><div id="canvas-world" style="transform-origin:0 0;position:absolute;inset:0;transform:scale('+scale+')">'+canvasNodes.map((n,i)=>'<div class="note-card" data-note="'+i+'" style="left:'+Number(n.x||0)+'px;top:'+Number(n.y||0)+'px"><div class="title" data-drag="'+i+'">'+esc(n.title||'Nova nota')+'</div><p>'+esc(n.text||'')+'</p><button data-edit="'+i+'">Editar</button> <button data-delete="'+i+'">Excluir</button></div>').join('')+'</div></div>';
+ $('#zoom-label').textContent=Math.round(scale*100)+'%';
+}
+$('#canvas').onclick=async e=>{
+ if(e.target.closest('#add-note')){let title=prompt('Título da nota','Anotação');if(title===null)return;canvasNodes.push({id:'n'+Date.now()+'-'+Math.floor(Math.random()*1000),title:title.slice(0,90),text:'',x:30,y:30});renderCanvas()}
+ if(e.target.closest('#save-canvas')){try{await post('canvas',{nodes:canvasNodes});message('Canvas sincronizado com o servidor')}catch(err){message(err.message)}}
+ if(e.target.closest('#zoom-in')){scale=Math.min(2,scale+.2);renderCanvas()}
+ if(e.target.closest('#zoom-out')){scale=Math.max(.4,scale-.2);renderCanvas()}
+ let ed=e.target.closest('[data-edit]');if(ed){let x=canvasNodes[Number(ed.dataset.edit)],v=prompt('Conteúdo da nota',x.text);if(v!==null){x.text=v.slice(0,3000);renderCanvas()}}
+ let dl=e.target.closest('[data-delete]');if(dl&&confirm('Excluir esta nota?')){canvasNodes.splice(Number(dl.dataset.delete),1);renderCanvas()}
+};
+$('#canvas').addEventListener('pointerdown',e=>{
+ const b=e.target.closest('[data-drag]');if(!b)return;
+ const index=Number(b.dataset.drag),n=canvasNodes[index];if(!n)return;
+ dragging={index,x:e.clientX,y:e.clientY,ox:Number(n.x)||0,oy:Number(n.y)||0};
+ b.setPointerCapture(e.pointerId);e.preventDefault()
+});
+$('#canvas').addEventListener('pointermove',e=>{
+ if(!dragging)return;let n=canvasNodes[dragging.index],el=$('[data-note="'+dragging.index+'"]');if(!n||!el)return;
+ n.x=Math.max(-100000,Math.min(100000,dragging.ox+(e.clientX-dragging.x)/scale));
+ n.y=Math.max(-100000,Math.min(100000,dragging.oy+(e.clientY-dragging.y)/scale));
+ el.style.left=n.x+'px';el.style.top=n.y+'px';
+});
+$('#canvas').addEventListener('pointerup',()=>dragging=null);
+$('#canvas').addEventListener('pointercancel',()=>dragging=null);
+async function loadCanvas(){try{let r=await fetch('/api/play/'+cid+'/canvas',{credentials:'same-origin',cache:'no-store'});let out=await r.json();if(r.ok&&Array.isArray(out.nodes)){canvasNodes=out.nodes;if(tab==='canvas')renderCanvas()}}catch{}}
+async function refresh(force=false){
+ if(networkBusy)return;networkBusy=true;
+ try{
+  let r=await fetch('/api/play/'+cid+'?t='+Date.now(),{credentials:'same-origin',cache:'no-store'});
+  let j=await r.json();if(!r.ok)throw Error(j.error||'Acesso não autorizado');
+  const sceneChanged=state&&(state.turn!==j.turn||state.scene!==j.scene);
+  if(sceneChanged){$('#rounds').classList.remove('changed');void $('#rounds').offsetWidth;$('#rounds').classList.add('changed')}
+  state=j;ownLink=j.permalink||'';
+  $('#campaign').textContent=j.campaign;$('#connected').textContent='● Sincronizado com mestre';
+  $('#scene').textContent=j.sceneName||('Cena '+j.scene);$('#turn').textContent=j.turn;$('#nickname').textContent=j.nickname;$('#short-id').textContent='#'+j.shortId;
+  const next=JSON.stringify(j.character||null);
+  if(force||next!==signature){
+   signature=next;
+   const s=j.character;
+   if(!s){$('#hero').innerHTML='<h2>Aguardando ficha</h2><p>O mestre deve aprovar ou atribuir seu personagem.</p>';for(const key of ['attributes','skills','inventory','abilities','story'])$('#'+key).innerHTML='<p class="muted">Aguardando personagem...</p>'}
+   else{
+    let portrait=s.photo&&/^data:image\/(png|jpeg|webp);base64,/.test(s.photo)?'<img src="'+esc(s.photo)+'" alt="Personagem">':'';
+    $('#hero').innerHTML='<div class="hero">'+portrait+'<div><div class="eyebrow">'+esc(s.class||'Personagem')+'</div><h2>'+esc(s.name||'Agente')+'</h2><span class="pill">NEX '+esc(s.nex??5)+'%</span></div></div>';
+    renderAttributes(s);renderSkills(s);renderInventory(s);renderAbilities(s);if(tab!=='story'||force)renderStory(s);
+   }
+  }
+  message('');
+ }catch(e){$('#connected').textContent='● Desconectado, tentando novamente';message(e.message)}
+ finally{networkBusy=false}
+}
+$('#copy-link').onclick=async()=>{if(!ownLink)return message('O link ainda não foi criado');try{await navigator.clipboard.writeText(ownLink);message('Link pessoal copiado')}catch{message('Seu link pessoal: '+ownLink)}};
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});window.addEventListener('focus',()=>refresh());
+appearance();renderSettings();activate('attributes');loadCanvas();refresh();setInterval(()=>{if(!document.hidden)refresh()},2000);
+</script></body></html>
