@@ -102,7 +102,7 @@
   if(!ts.length)return [];
   const docs=Array.isArray(options.docs)?options.docs:[];
   const sys=options.systemId||'all',filter=options.edition||'all',max=Math.min(30,Math.max(1,options.limit||10));
-  return docs.filter(d=>(sys==='all'||d.systemId===sys)&&(filter==='all'||!d.edition||d.edition===filter))
+  return docs.filter(d=>(sys==='all'||d.systemId===sys)&&(filter==='all'||d.edition===filter))
     .map(d=>({...d,score:docMatch(d,q,ts)})).filter(d=>d.score>0)
     .sort((a,b)=>b.score-a.score || (a.kind==='metadata'?1:-1) - (b.kind==='metadata'?1:-1))
     .slice(0,max);
