@@ -14,6 +14,7 @@ import android.graphics.pdf.PdfRenderer;
 import android.os.ParcelFileDescriptor;
 import android.util.Base64;
 import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.io.InputStream;
@@ -38,17 +39,20 @@ import android.webkit.ValueCallback;
 public final class MainActivity extends Activity {
     private static final int PICK_LOCAL_FILE = 1104;
     private static final int PICK_BOOK_DOCUMENT = 1105;
+    private static final int SAVE_CHARACTER_PDF = 1106;
     private final BookBridge books = new BookBridge();
     private final LanBridge lan = new LanBridge();
     private final CampaignBridge campaign = new CampaignBridge();
     private final HostBridge localHost = new HostBridge();
     private final DriveBridge drive = new DriveBridge();
+    private final SheetPdfBridge sheetPdf = new SheetPdfBridge();
     private static final String OFFLINE_URL = "file:///android_asset/demo-offline.html";
     private WebView browser;
     private TextView mode;
     private String allowedHost;
     private int allowedPort;
     private ValueCallback<Uri[]> pendingUpload;
+    private byte[] pendingCharacterPdf;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -116,7 +120,7 @@ public final class MainActivity extends Activity {
         browser.addJavascriptInterface(books,"RpgBookBridge");
         browser.addJavascriptInterface(lan,"RpgLanBridge");
         browser.addJavascriptInterface(campaign,"RpgCampaignBridge");
-        browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.addJavascriptInterface(drive,"RpgDriveBridge");
+        browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.addJavascriptInterface(drive,"RpgDriveBridge");browser.addJavascriptInterface(sheetPdf,"RpgSheetPdfBridge");
         root.addView(browser,new LinearLayout.LayoutParams(-1,0,1));
         setContentView(root);
         home.setOnClickListener(v->openOffline());
@@ -125,7 +129,7 @@ public final class MainActivity extends Activity {
     }
     private int dp(int x){return Math.round(getResources().getDisplayMetrics().density*x);}
     private Button button(String name){Button b=new Button(this);b.setText(name);b.setTextSize(10);b.setAllCaps(false);return b;}
-    private void openOffline(){allowedHost=null;allowedPort=0;mode.setText("● MODO OFFLINE");browser.addJavascriptInterface(books,"RpgBookBridge");browser.addJavascriptInterface(lan,"RpgLanBridge");browser.addJavascriptInterface(campaign,"RpgCampaignBridge");browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.addJavascriptInterface(drive,"RpgDriveBridge");browser.loadUrl(OFFLINE_URL);}
+    private void openOffline(){allowedHost=null;allowedPort=0;mode.setText("● MODO OFFLINE");browser.addJavascriptInterface(books,"RpgBookBridge");browser.addJavascriptInterface(lan,"RpgLanBridge");browser.addJavascriptInterface(campaign,"RpgCampaignBridge");browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.addJavascriptInterface(drive,"RpgDriveBridge");browser.addJavascriptInterface(sheetPdf,"RpgSheetPdfBridge");browser.loadUrl(OFFLINE_URL);}
     private static boolean isPrivateLan(String h) {
         if(h==null||!h.matches("\\d{1,3}(\\.\\d{1,3}){3}"))return false;
         String[] p=h.split("\\.");int[] n=new int[4];
@@ -149,7 +153,8 @@ public final class MainActivity extends Activity {
               browser.removeJavascriptInterface("RpgLanBridge");
               browser.removeJavascriptInterface("RpgCampaignBridge");
               browser.removeJavascriptInterface("RpgLocalHost");
-          browser.removeJavascriptInterface("RpgDriveBridge"); // Native API is never available to remote pages.
+          browser.removeJavascriptInterface("RpgDriveBridge");
+          browser.removeJavascriptInterface("RpgSheetPdfBridge"); // Native API is never available to remote pages.
               allowedHost=u.getHost();allowedPort=u.getPort();
               getPreferences(Context.MODE_PRIVATE).edit().putString("lan",u.toString()).apply();
               mode.setText("● CONECTADO À LAN");browser.loadUrl(u.toString());
@@ -161,6 +166,18 @@ public final class MainActivity extends Activity {
     }
     @Override protected void onActivityResult(int request,int result,Intent data){
         super.onActivityResult(request,result,data);
+        if(request==SAVE_CHARACTER_PDF){
+          final byte[] bytes=pendingCharacterPdf;
+          pendingCharacterPdf=null;
+          if(result==RESULT_OK && data!=null && data.getData()!=null && bytes!=null){
+            try(OutputStream out=getContentResolver().openOutputStream(data.getData(),"w")){
+              if(out==null)throw new IllegalStateException("Destino nao disponivel");
+              out.write(bytes);out.flush();
+              android.widget.Toast.makeText(this,"Ficha PDF salva",android.widget.Toast.LENGTH_SHORT).show();
+            }catch(Exception err){showBookError("Falha ao salvar a ficha em PDF: "+err.getMessage());}
+          }
+          return;
+        }
         if(request==PICK_BOOK_DOCUMENT){
           if(result==RESULT_OK && data!=null && data.getData()!=null){
             try{
@@ -355,12 +372,35 @@ public final class MainActivity extends Activity {
           browser.removeJavascriptInterface("RpgCampaignBridge");
           browser.removeJavascriptInterface("RpgLocalHost");
           browser.removeJavascriptInterface("RpgDriveBridge");
+          browser.removeJavascriptInterface("RpgSheetPdfBridge");
           allowedHost="127.0.0.1";allowedPort=server.currentPort();
           browser.loadUrl("http://127.0.0.1:"+allowedPort+"/master");
         });
       }
     }
     /** Opens known Google Drive document/folder IDs in an external app without embedding private credentials. */
+    /** SAF: gera um documento PDF local escolhido pelo usuario, sem enviar fichas a servidores. */
+    public final class SheetPdfBridge {
+      @JavascriptInterface public void savePdf(String filename,String base64){
+        if(filename==null || !filename.matches("[A-Za-z0-9._-]{1,90}\\.pdf") ||
+           base64==null || base64.length()>3600000)return;
+        runOnUiThread(()->{
+          if(allowedHost!=null)return; // Não expor a ponte em paginas da LAN.
+          try{
+            byte[] bytes=Base64.decode(base64,Base64.DEFAULT);
+            if(bytes.length<200 || bytes.length>2600000 ||
+               !new String(bytes,0,Math.min(5,bytes.length),StandardCharsets.US_ASCII).equals("%PDF-"))
+              throw new IllegalArgumentException("PDF invalido");
+            pendingCharacterPdf=bytes;
+            Intent i=new Intent(Intent.ACTION_CREATE_DOCUMENT);
+            i.addCategory(Intent.CATEGORY_OPENABLE);
+            i.setType("application/pdf");
+            i.putExtra(Intent.EXTRA_TITLE,filename);
+            startActivityForResult(i,SAVE_CHARACTER_PDF);
+          }catch(Exception err){pendingCharacterPdf=null;showBookError("Nao foi possivel preparar o PDF: "+err.getMessage());}
+        });
+      }
+    }
     public final class DriveBridge {
       @JavascriptInterface public void openDocument(String kind,String id){
         if(id==null || !id.matches("[A-Za-z0-9_-]{10,160}"))return;
