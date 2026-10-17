@@ -324,6 +324,21 @@ public final class MainActivity extends Activity {
           startService(intent);
         });
       }
+      @JavascriptInterface public void shareInvite(String value){
+        runOnUiThread(()->{
+          try {
+            Uri url=Uri.parse(value==null?"":value);
+            if(!"http".equals(url.getScheme()) || !isPrivateLan(url.getHost()) || url.getPort()!=8765 ||
+               url.getPath()==null || !url.getPath().matches("/join/[a-f0-9]{32}/[A-Za-z0-9_-]{30,60}") ||
+               url.getQuery()!=null || url.getFragment()!=null)
+              throw new IllegalArgumentException("Convite inválido");
+            Intent send=new Intent(Intent.ACTION_SEND);
+            send.setType("text/plain");
+            send.putExtra(Intent.EXTRA_TEXT,"Convite para nossa campanha de RPG:\n"+url);
+            startActivity(Intent.createChooser(send,"Compartilhar convite"));
+          }catch(Exception e){showBookError("Link de convite inválido ou indisponível.");}
+        });
+      }
       @JavascriptInterface public void openLocalMaster(){
         runOnUiThread(()->{
           LocalCampaignServer server=MesaHostService.instance;
