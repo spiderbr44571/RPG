@@ -477,7 +477,7 @@ public final class MainActivity extends Activity {
       }
       private JSONObject http(String route,JSONObject body) throws Exception{
         HttpURLConnection con=(HttpURLConnection)new URL(API+route).openConnection();
-        con.setConnectTimeout(7000);con.setReadTimeout(34000);
+        con.setConnectTimeout(5500);con.setReadTimeout(body==null?16000:19000);
         con.setInstanceFollowRedirects(false);
         con.setRequestProperty("Authorization","Bearer "+getKey());
         con.setRequestProperty("Accept","application/json");
@@ -506,7 +506,7 @@ public final class MainActivity extends Activity {
             String reason=response.optJSONObject("error")==null?"Provedor cloud indisponível":
               response.getJSONObject("error").optString("message","Provedor cloud indisponível");
             if(status==401||status==403)reason="Chave do OpenRouter não autorizada";
-            if(status==429)reason="Limite de requisições gratuitas atingido; use a busca offline";
+            if(status==429)reason="Limite de requisições gratuitas atingido; tente novamente mais tarde";
             throw new IllegalStateException(reason.substring(0,Math.min(190,reason.length())));
           }
           return response;
@@ -650,15 +650,20 @@ public final class MainActivity extends Activity {
           "Responda a partir de conhecimento geral e deixe clara a ausência de conferência documental "+
           "quando a pergunta exigir regra oficial de uma edição.";
         messages.put(new JSONObject().put("role","user").put("content",question+context));
-        JSONObject request=new JSONObject().put("temperature",0.3).put("max_tokens",1600)
+        JSONObject request=new JSONObject().put("temperature",0.25).put("max_tokens",850)
           .put("messages",messages);
-        String alternate=!preferredFreeModel.isEmpty()&&!preferredFreeModel.equals(model)?preferredFreeModel:
-          (!secondaryFreeModel.isEmpty()&&!secondaryFreeModel.equals(model)?secondaryFreeModel:"");
-        // At most one automatic retry, and only with another catalog-verified free chat model.
-        // Never retry a genuine model refusal as though it were a technical error.
-        String lastFailure="O modelo retornou uma resposta nula, vazia ou de classificação.";
-        for(int attempt=0;attempt<(alternate.isEmpty()?1:2);attempt++){
-          String target=attempt==0?model:alternate;
+        // One request owns the entire cloud failover. JS timeout must exceed all native attempts.
+        java.util.LinkedHashSet<String> candidates=new java.util.LinkedHashSet<>();
+        candidates.add(model);
+        if(!preferredFreeModel.isEmpty()&&freeModels.contains(preferredFreeModel))candidates.add(preferredFreeModel);
+        if(!secondaryFreeModel.isEmpty()&&freeModels.contains(secondaryFreeModel))candidates.add(secondaryFreeModel);
+        candidates.add("openrouter/free");
+        String lastFailure="Não foi possível obter uma resposta dos modelos gratuitos.";
+        int attempt=0;
+        for(String target:candidates){
+          if(++attempt>3)break;
+          if(!("openrouter/free".equals(target)||freeModels.contains(target)))continue;
+          reportProgress(params.optString("_requestId",""),"Consultando modelo gratuito "+attempt+" de "+Math.min(3,candidates.size())+"…");
           request.put("model",target);
           try{
             JSONObject raw=http("/chat/completions",request);
@@ -667,16 +672,28 @@ public final class MainActivity extends Activity {
               return new JSONObject().put("model",raw.optString("model",target))
                 .put("answer",answer.substring(0,Math.min(7500,answer.length())))
                 .put("sourceMode",sources.length()>0?"indexed":"general")
-                .put("retried",attempt>0);
+                .put("attempts",attempt).put("retried",attempt>1);
             }
-            lastFailure="O modelo "+target+" devolveu uma saída de classificação ou sem texto de resposta.";
+            lastFailure="O modelo gratuito "+target+" não retornou uma resposta válida.";
           }catch(Exception err){
             lastFailure=err.getMessage()==null?"Falha na nuvem":err.getMessage();
-            // An invalid key or a global rate limit cannot be fixed by routing again.
+            // Key errors and the account's rate limit affect all models: no pointless retries.
             if(lastFailure.contains("não autorizada")||lastFailure.contains("Limite de requisições"))break;
           }
+          reportProgress(params.optString("_requestId",""),"Sem resposta aproveitável; tentando outro modelo gratuito…");
         }
-        throw new IllegalStateException(lastFailure+" Tente outro modelo gratuito mais tarde.");
+        throw new IllegalStateException(lastFailure+" Nenhuma resposta da IA foi gerada. Tente novamente mais tarde.");
+
+      }
+      private void reportProgress(String requestId,String message){
+        if(requestId==null||!requestId.matches("[A-Za-z0-9_-]{8,80}"))return;
+        runOnUiThread(()->{
+          if(!offline()||browser==null)return;
+          try{
+            JSONObject body=new JSONObject().put("requestId",requestId).put("message",message);
+            browser.evaluateJavascript("window.dispatchEvent(new CustomEvent('rpg25-cloud-progress',{detail:"+body.toString()+"}));",null);
+          }catch(Exception ignored){}
+        });
       }
       @JavascriptInterface public void request(String action,String input,String requestId){
         if(!offline()||!keyFormat(getKey())||requestId==null||
@@ -685,7 +702,7 @@ public final class MainActivity extends Activity {
         new Thread(()->{
           JSONObject result;
           try{
-            JSONObject data="models".equals(action)?models():chat(new JSONObject(input));
+            JSONObject data="models".equals(action)?models():chat(new JSONObject(input).put("_requestId",requestId));
             result=new JSONObject().put("ok",true).put("data",data);
           }catch(Exception err){
             try{result=error(err.getMessage()==null?"IA cloud indisponível":err.getMessage());}
