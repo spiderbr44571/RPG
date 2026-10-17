@@ -1,5 +1,7 @@
 # RPG Mesa 0.20 — Consulta multissistema e IA
 
+> **Documento histórico da v0.20.** A v0.21 removeu a necessidade de servidor de IA. Para configurar o OpenRouter diretamente no Android, consulte [IA Cloud Free v0.21](./IA-CLOUD-FREE-v0.21.md).
+
 ## Como usar sem IA
 
 1. Abra **Consulta IA → Busca offline**.
