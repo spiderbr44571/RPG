@@ -32,3 +32,8 @@
 #r18-dnd .d18-roll-actions select{width:auto}#r18-dnd .d18-result{border:1px solid var(--accent);padding:9px 15px;border-radius:9px;color:var(--accent)}
 #r18-dnd .d18-license{margin-top:22px;padding-top:14px;border-top:1px solid var(--line);font-size:10px}
 @media(max-width:650px){#r18-dnd{padding:12px}#r18-dnd .d18-attrs,#r18-dnd .d18-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}#r18-dnd .d18-fields{grid-template-columns:1fr}#r18-dnd .d18-slots{grid-template-columns:repeat(2,minmax(0,1fr))}#r18-dnd .d18-skill{gap:6px}#r18-dnd .d18-skill label{font-size:9px}#r18-dnd .d18-skill span{min-width:100%;flex:auto}#r18-dnd .d18-skill button{margin-left:auto}}
+
+.d18-system-switch{display:flex;gap:9px;align-items:center;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);padding:13px;border-radius:13px;margin:10px 0 15px}
+.d18-system-switch strong{font-size:11px;color:var(--accent)}
+.d18-system-switch span{font-size:10px;color:var(--muted)}
+.d18-system-switch button{padding:10px 12px;border:1px solid var(--accent);background:var(--accent-soft);color:var(--accent);border-radius:9px;font-weight:700;font-size:11px;cursor:pointer}
