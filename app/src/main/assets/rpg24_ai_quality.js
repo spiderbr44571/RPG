@@ -57,5 +57,10 @@
   return rows.filter(freeCandidate).sort((a,b)=>qualityScore(b)-qualityScore(a)||a.id.localeCompare(b.id))
    .map(x=>({id:x.id,name:String(x.name||x.id).slice(0,110)})).slice(0,100);
  }
- return {validAnswer,messageText,completion,freeCandidate,qualityScore,rankFreeModels};
+ function fallbackModels(selected,available,max=3){
+  const ordered=[selected,...(Array.isArray(available)?available:[]).filter(x=>x&&x.id!=='openrouter/free').map(x=>x.id),'openrouter/free'];
+  const valid=id=>id==='openrouter/free'||(Array.isArray(available)&&available.some(x=>x.id===id&&id.endsWith(':free')));
+  return [...new Set(ordered.filter(id=>typeof id==='string'&&valid(id)))].slice(0,max);
+ }
+ return {validAnswer,messageText,completion,freeCandidate,qualityScore,rankFreeModels,fallbackModels};
 });
