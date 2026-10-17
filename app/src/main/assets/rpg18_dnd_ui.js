@@ -72,7 +72,8 @@
    f.text().then(v=>{importObject(JSON.parse(v));alert('Ficha importada como novo personagem.')}).catch(err=>alert(err.message));return}
   if(t.dataset.attr){s.attrs[t.dataset.attr]=Math.min(30,Math.max(1,n(t.value,10)));save();render();return}
   if(t.dataset.root){
-   const k=t.dataset.root;if(['level','experience','hitPointsMax','hitPointsCurrent','hitPointsTemp','initiativeBonus','armorClass','speed'].includes(k)){s[k]=k==='armorClass'&&t.value.trim()===''?null:n(t.value,0)}else{s[k]=String(t.value).slice(0,12000)}
+   const k=t.dataset.root;if(k.startsWith('new-'))return; // Draft fields are applied only by the Add button.
+   if(['level','experience','hitPointsMax','hitPointsCurrent','hitPointsTemp','initiativeBonus','armorClass','speed'].includes(k)){s[k]=k==='armorClass'&&t.value.trim()===''?null:n(t.value,0)}else{s[k]=String(t.value).slice(0,12000)}
    if(k==='level')s.level=Math.min(20,Math.max(1,s.level));if(k==='hitPointsMax')s.hitPointsMax=Math.max(1,s.hitPointsMax);
    if(['hitPointsCurrent','hitPointsMax'].includes(k))s.hitPointsCurrent=Math.min(Math.max(0,s.hitPointsCurrent),s.hitPointsMax);
    if(k==='hitPointsTemp')s.hitPointsTemp=Math.max(0,s.hitPointsTemp);
@@ -128,6 +129,13 @@
  }
  function mount(container){
   if(!container)return;load();const box=document.createElement('section');box.id='r18-dnd';container.append(box);host=box;host.addEventListener('click',action);host.addEventListener('change',change);render();return box;
+ }
+ const sheet=document.querySelector('#screen-sheet'),anchor=sheet?.querySelector('.page-row');
+ if(anchor){
+  const switcher=document.createElement('div');switcher.className='d18-system-switch';
+  switcher.innerHTML='<strong>Fichas por sistema</strong><button type="button" data-open-system-sheet="d-d">D&D 5e (2014)</button><button type="button" data-open-system-sheet="gurps">GURPS 4ª edição</button><span>Ordem Paranormal: editor abaixo.</span>';
+  anchor.insertAdjacentElement('afterend',switcher);
+  switcher.addEventListener('click',event=>{const b=event.target.closest('[data-open-system-sheet]');if(!b)return;window.RPG_DEMO?.navigate?.('library');window.RPG15?.openSystem?.(b.dataset.openSystemSheet);});
  }
  window.RPG18_DND={mount,importObject,open:()=>window.RPG15?.openSystem('d-d'),get current(){load();return get()},get all(){load();return list.slice()}};
 })();
