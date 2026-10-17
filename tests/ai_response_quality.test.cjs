@@ -41,7 +41,7 @@ const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/dev/rpgmesa
 const html=fs.readFileSync(path.join(dir,'demo-offline.html'),'utf8');
 assert.ok(java.includes('private String answerFromResponse(JSONObject raw)'), 'native parser');
 assert.ok(java.includes('message.isNull("content")'), 'native must detect JSON null');
-assert.ok(java.includes('String alternate='), 'native retry with free fallback');
+assert.ok(java.includes('java.util.LinkedHashSet<String> candidates=') && java.includes('if(++attempt>3)break'), 'native bounded free-model fallback');
 assert.ok(java.includes('conversationalFree(entry)'), 'filter free list in native');
 assert.ok(html.includes('quality.validAnswer(answer)'), 'browser never displays null');
 assert.ok(html.includes("const accepted=quality.completion(json)"), 'browser parser');
