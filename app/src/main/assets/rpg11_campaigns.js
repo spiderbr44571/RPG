@@ -68,7 +68,15 @@ function openRemoteSheet(char){
  if(!char?.sheet)return feedback('Ficha não encontrada');
  if(editing)finishRemoteSheet(false);
  const old=JSON.parse(JSON.stringify(op.state)),oldStorage=localStorage.getItem('rpg-ordem-v13-character');
- const remote=JSON.parse(JSON.stringify(char.sheet));window.__rpgRemoteItems=JSON.parse(JSON.stringify(remote.inventory||remote.items||[]));const mapped={...remote,resources:{...remote.resources}};
+ const remote=JSON.parse(JSON.stringify(char.sheet));window.__rpgRemoteItems=JSON.parse(JSON.stringify(remote.inventory||remote.items||[]));
+ const canonical=['Agilidade','Força','Intelecto','Presença','Vigor'],fixedAttrs={};
+ for(const key of canonical){
+  if(remote.attrs?.[key]!==undefined){fixedAttrs[key]=remote.attrs[key];continue}
+  const norm=x=>String(x).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z]/gi,'').toLowerCase();
+  const candidate=Object.keys(remote.attrs||{}).find(k=>k.length<34&&norm(k).startsWith(norm(key).slice(0,3)));
+  fixedAttrs[key]=candidate?remote.attrs[candidate]:1;
+ }
+ const mapped={...remote,origin:remote.origin||remote.origem||'Acadêmico',trail:remote.trail||remote.trilha||'Aniquilador',attrs:fixedAttrs,resources:{...remote.resources}};
  for(const k of ['PV','PE','SAN']){const x=mapped.resources[k];mapped.resources[k]=typeof x==='object'?Number(x.current)||0:Number(x)||0}
  window.__rpgRemoteSheetEditing=true;
  if(!op.changeCharacter(mapped)){window.__rpgRemoteSheetEditing=false;return feedback('Classe ou sistema de ficha não suportado.')}
