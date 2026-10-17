@@ -70,6 +70,26 @@ jobs:
           node --check app/src/main/assets/rpg18_dnd_ui.js
           node --check app/src/main/assets/rpg18_bestiary.js
           node tests/dnd5e.test.cjs
+          node --check app/src/main/assets/rpg19_order_creatures.js
+          node tests/bestiary_multisystem.test.cjs
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          import pathlib, tempfile, subprocess
+          class InlineScripts(HTMLParser):
+              def __init__(self): super().__init__(); self.inline=False; self.blocks=[]
+              def handle_starttag(self, tag, attrs):
+                  if tag == 'script': self.inline=not dict(attrs).get('src'); self.blocks.append('') if self.inline else None
+              def handle_endtag(self, tag):
+                  if tag == 'script': self.inline=False
+              def handle_data(self, data):
+                  if self.inline and self.blocks: self.blocks[-1]+=data
+          parser=InlineScripts(); parser.feed(pathlib.Path('app/src/main/assets/demo-offline.html').read_text())
+          for i,code in enumerate(parser.blocks):
+              if code.strip():
+                  path=pathlib.Path(tempfile.gettempdir())/f'rpg-inline-{i}.js';path.write_text(code)
+                  subprocess.run(['node','--check',str(path)],check=True)
+          print('Validated',len(parser.blocks),'inline script blocks')
+          PY
           node tests/gurps4.test.cjs
           python -m py_compile server/mesa_lan.py
           python - <<'PY'
