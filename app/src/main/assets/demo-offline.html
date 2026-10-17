@@ -1513,7 +1513,15 @@ const pack=op.pack;
 const baseDocs=core.makeOrderDocs(op).concat(core.makeRulesDocs(window.RPG18_DND_ENGINE,window.GURPS4_ENGINE)).map(enrich);
 let activeSystem='all',activeEdition='all';
 function systems(){return window.RPG15_SYSTEMS?.systems||[]}
-function lookupScope(query){return activeSystem==='all'?core.inferSystem(query,systems())||'all':activeSystem}
+function lookupScope(query){return core.inferSystem(query,systems())||activeSystem}
+function synchronizeNamedSystem(query){
+ const named=core.inferSystem(query,systems());
+ if(!named||named===activeSystem)return;
+ activeSystem=named;activeEdition='all';
+ $('#r11-system').value=named;$('#r11-edition').value='all';
+ $('#r11-index-system').value=named;localStorage.setItem('rpg-rules-system',named);
+ setStatus('● Sistema reconhecido: '+(systems().find(x=>x.id===named)?.title||named));
+}
 let privateDocs=[];let mode='offline';let browserCloudKey='';let model='openrouter/free';let canSend=false;let lastSources=[];let busy=false;let cachedModels=[];
 const dbName='RPG-Mesa-Private-Search';
 function openDB(){return new Promise((ok,bad)=>{if(!window.indexedDB)return bad(new Error('Armazenamento indisponível'));const req=indexedDB.open(dbName,1);req.onupgradeneeded=()=>req.result.createObjectStore('books',{keyPath:'id'});req.onsuccess=()=>ok(req.result);req.onerror=()=>bad(req.error)})}
@@ -1626,6 +1634,7 @@ async function cloudRequest(action,data){
 async function ask(query){
  if(busy)return;query=cutoff(query.trim(),350);if(!query)return;
  $('#r11-query').value='';addBubble(esc(query),true);
+ synchronizeNamedSystem(query);
  const hits=search(query),usable=hits.filter(x=>x.kind!=='metadata'&&x.text);
  renderSources(hits);busy=true;$('#r11-send').disabled=true;
  try{
