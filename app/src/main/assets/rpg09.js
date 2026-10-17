@@ -13,7 +13,6 @@ const tools=[
  ['bestiary','Bestiário','book','Grimório e monstros'],
  ['master','Mestragem','crown','Turnos, cenas e efeitos'],
  ['ai','Consulta IA','brain','Pesquisar dentro dos livros'],
- ['online','Mesa em rede','wifi','Links individuais por jogador'],
  ['settings','Personalização','palette','Cores, temas e fontes'],
  ['home','Painel inicial','house','Resumo da campanha']
 ];
@@ -96,7 +95,7 @@ function closeHub(){overlay.classList.remove('open');dice.setAttribute('aria-exp
 dice.addEventListener('click',()=>{roll();openHub()});
 $('.r09-close',overlay).addEventListener('click',closeHub);overlay.addEventListener('click',e=>{if(e.target===overlay)closeHub()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.classList.contains('open'))closeHub()});
-overlay.addEventListener('click',e=>{const b=e.target.closest('[data-r09-tool]');if(!b)return;closeHub();const to=b.dataset.r09Tool;if(to==='online'){app.navigate('online');return}app.navigate(to)});
+overlay.addEventListener('click',e=>{const b=e.target.closest('[data-r09-tool]');if(!b)return;closeHub();const to=b.dataset.r09Tool;if(to==='online'){app.navigate('master');return}app.navigate(to)});
 // Personal profile. Metadata is stored in the existing per-character JSON, not in a second global template.
 const sheet=$('#screen-sheet'),charSelect=$('#rpg05-char-select');
 if(sheet&&charSelect){const profile=document.createElement('div');profile.id='r09-profile';profile.className='r09-profile';
