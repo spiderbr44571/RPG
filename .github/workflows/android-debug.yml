@@ -78,6 +78,8 @@ jobs:
           node tests/cloud_free.test.cjs
           node --check app/src/main/assets/rpg23_ai_core.js
           node tests/universal_ai_chat.test.cjs
+          node --check app/src/main/assets/rpg24_ai_quality.js
+          node tests/ai_response_quality.test.cjs
           python3 -m py_compile scripts/indexar_pdf.py
           python3 - <<'PY'
           from html.parser import HTMLParser
