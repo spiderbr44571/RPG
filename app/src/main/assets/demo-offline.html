@@ -783,8 +783,8 @@ $('#op-pdf-status').textContent=bookMeta.available?'Associado: '+bookMeta.name:'
 
 // Inventário unificado: categorias independentes, modificações != maldições.
 const e=catalog.equipamentos;let inventory=mem(itemKey,{});if(typeof inventory!=='object'||!inventory)inventory={};
-function items(){return Array.isArray(inventory[selectedChar])?inventory[selectedChar]:[]}
-function keepItems(list){inventory[selectedChar]=list.slice(0,120);save(itemKey,inventory)}
+function items(){if(window.__rpgRemoteSheetEditing)return Array.isArray(window.__rpgRemoteItems)?window.__rpgRemoteItems:[];return Array.isArray(inventory[selectedChar])?inventory[selectedChar]:[]}
+function keepItems(list){if(window.__rpgRemoteSheetEditing){window.__rpgRemoteItems=list.slice(0,120);return}inventory[selectedChar]=list.slice(0,120);save(itemKey,inventory)}
 function totalCategory(it){return Number(it.categoriaBase||0)+(it.modificacoes||[]).length+((it.maldicoes||[]).length?2+(it.maldicoes.length-1):0)}
 const levels=['0','I','II','III','IV','V','VI','VII','VIII','IX'];
 function describeItem(it){const mods=(it.modificacoes||[]).join(', '),curse=(it.maldicoes||[]).map(x=>x.nome+' ('+x.elemento+')').join(', ');return `Categoria ${levels[totalCategory(it)]||totalCategory(it)} · ${it.categoriaItem.replaceAll('_',' ')} · ${it.espacos??'?'} espaços${mods?' · Modif.: '+mods:''}${curse?' · Maldições: '+curse:''}`}
@@ -793,6 +793,7 @@ $('#rpg05-sheet-op').append(itemPanel);
 function fillCatalog(){const all=[...e.armas,...e.gerais];$('#rpg05-item-catalog').innerHTML=all.map((it,i)=>`<option value="${i}">${escapeHTML(it.nome)} · ${escapeHTML(it.categoriaItem)}</option>`).join('')}
 fillCatalog();
 function renderItems(){const container=$('#rpg05-inventory-list');if(!container)return;const l=items();container.innerHTML=l.length?l.map((it,i)=>`<div class="rpg05-inventory-row"><div><strong>${escapeHTML(it.nome)}</strong><p class="rpg05-note" style="margin:3px 0">${escapeHTML(describeItem(it))}</p></div><div class="rpg05-controls"><button data-edit-item="${i}" class="rpg05-btn">Configurar</button><button data-remove-item="${i}" class="rpg05-btn">Remover</button></div></div>`).join(''):'<div class="rpg05-empty">Inventário vazio. Adicione uma arma, ferramenta ou item paranormal.</div>'}
+window.RPG05_inventory={render:renderItems};
 $('#rpg05-add-item').onclick=()=>{const all=[...e.armas,...e.gerais];const obj=all[Number($('#rpg05-item-catalog').value)];if(!obj)return;keepItems([...items(),{...structuredClone(obj),modificacoes:[],maldicoes:[],uid:Date.now()+'-'+Math.random()}]);renderItems()};
 $('#rpg05-custom-item').onclick=()=>editDialog({heading:'Criar item personalizado',fields:[{id:'nome',label:'Nome',value:''},{id:'categoriaItem',label:'Categoria (arma, ferramenta, item_paranormal...)',value:'equipamento'},{id:'categoriaBase',label:'Categoria base (0–4)',type:'number',value:'0'},{id:'espacos',label:'Espaços',type:'number',value:'1'}],onSave:obj=>{if(!obj.nome.trim())return;keepItems([...items(),{nome:obj.nome.trim().slice(0,70),categoriaItem:obj.categoriaItem.trim().slice(0,35),categoriaBase:safeInt(obj.categoriaBase,0,4),espacos:safeInt(obj.espacos,0,20),modificacoes:[],maldicoes:[],uid:Date.now()+'-'+Math.random()}]);renderItems()}});
 $('#rpg05-inventory-list').onclick=ev=>{const rm=ev.target.closest('[data-remove-item]'),ed=ev.target.closest('[data-edit-item]');if(rm){const arr=items();arr.splice(Number(rm.dataset.removeItem),1);keepItems(arr);renderItems();return}if(ed)editInventory(Number(ed.dataset.editItem))};
