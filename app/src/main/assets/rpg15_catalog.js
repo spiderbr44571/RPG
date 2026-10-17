@@ -54,6 +54,7 @@ function open(id){
  (arr.length?arr.map(b=>'<article class="r15-doc"><div><strong>'+esc(b.title)+'</strong><small>'+esc((b.path||[]).join(' / '))+(b.path?.length?' · ':'')+esc(b.category)+' · referência no Drive</small></div><a href="'+folder(b.url)+'" target="_blank" rel="noopener noreferrer">Abrir ↗</a></article>').join(''):'<p class="r15-footnote">Pasta vazia no índice. Pode receber livros depois.</p>');
  detail.querySelector('#r15-go-home').onclick=goHome;
  if(id==='ordem-paranormal'&&oldOrder){detail.querySelector('#r15-ordem-book').appendChild(oldOrder);oldOrder.hidden=false}
+ if(id==='gurps'&&window.RPG16_GURPS){window.RPG16_GURPS.mount(detail.querySelector('#r15-ordem-book'));}
  window.scrollTo(0,0);
 }
 dashboard.addEventListener('click',e=>{
