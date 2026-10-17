@@ -1,0 +1,54 @@
+#screen-library .r15-ui{--edge:color-mix(in srgb,var(--accent) 30%,#ffffff1c);max-width:1350px;margin:auto;padding-bottom:100px;color:var(--fg)}
+.r15-ui .eyebrow{color:var(--accent);letter-spacing:.22em}
+.r15-head{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:8px 0 23px}
+.r15-head h1{font:600 clamp(38px,6vw,68px)/.95 'Cormorant Garamond',Georgia,serif;letter-spacing:-.025em;margin:12px 0}
+.r15-head h1 em{color:var(--accent);font-weight:500}
+.r15-head p{color:var(--muted);font-size:13px}
+.r15-count{text-align:right;border-left:1px solid var(--edge);padding-left:17px;flex:none}
+.r15-count strong{display:block;font:600 46px Georgia,serif}
+.r15-count small{font-size:9px;color:var(--muted)}
+.r15-hero{position:relative;min-height:300px;overflow:hidden;border:1px solid #c9748c55;border-radius:22px;background:radial-gradient(circle at 83% 40%,#9b1f4b75,transparent 40%),linear-gradient(120deg,#251525,#160f1f 72%,#421a30);display:flex;align-items:center}
+.r15-hero:after{content:'✧';position:absolute;right:9%;top:0;font:100 220px Georgia,serif;color:#ffa9bf33;transform:rotate(-12deg);pointer-events:none}
+.r15-hero-inner{padding:34px clamp(18px,5vw,53px);position:relative;z-index:1;max-width:65%}
+.r15-hero h2{font:600 clamp(38px,6vw,72px)/.95 'Cormorant Garamond',Georgia,serif;color:#ffe7ec;margin:14px 0}
+.r15-hero p{color:#e4c1d0;font-size:13px;line-height:1.7;max-width:390px}
+.r15-main-btn{border:1px solid var(--accent);border-radius:10px;color:#13131b;background:var(--accent);font-weight:800;font-size:12px;padding:12px 17px;cursor:pointer}
+.r15-search{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;margin:25px 0 12px}
+.r15-search input{min-width:190px;flex:1;max-width:490px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);padding:13px 15px;color:var(--fg);font:500 12px system-ui}
+.r15-filterbar{display:flex;align-items:center;gap:5px;overflow-x:auto;max-width:100%}
+.r15-filterbar button{border:1px solid var(--line);border-radius:999px;padding:10px 12px;color:var(--muted);background:var(--panel2);white-space:nowrap;font:600 11px system-ui;cursor:pointer}
+.r15-filterbar button[aria-pressed=true]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.r15-row-title{display:flex;align-items:center;justify-content:space-between;gap:9px;margin:23px 0 12px}
+.r15-row-title h2{font:600 26px 'Cormorant Garamond',Georgia,serif;margin:0}
+.r15-row-title small{color:var(--muted);font-size:11px}
+.r15-rail{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:3px 3px 12px;scrollbar-width:thin}
+.r15-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:16px}
+.r15-card{border:1px solid var(--line);border-radius:15px;overflow:hidden;background:var(--panel);min-width:0;transition:transform .18s,border-color .18s}
+.r15-card:hover,.r15-card:focus-within{transform:translateY(-3px);border-color:var(--accent)}
+.r15-rail .r15-card{flex:0 0 185px;scroll-snap-align:start}
+.r15-art{position:relative;display:grid;place-items:center;min-height:212px;overflow:hidden;cursor:pointer;background:radial-gradient(circle at 75% 22%,var(--soft),transparent 50%),linear-gradient(132deg,var(--deep),#10121b)}
+.r15-art:after{content:'';position:absolute;inset:12px;border:1px solid #ffffff29;border-radius:3px;pointer-events:none}
+.r15-art .glyph{font:100 110px Georgia,serif;transform:rotate(-13deg);color:#ffffff68;text-shadow:0 0 45px var(--soft)}
+.r15-art .name{position:absolute;bottom:22px;left:16px;right:16px;color:#fff5fb;text-shadow:0 3px 10px #000d;font:600 22px/1 'Cormorant Garamond',Georgia,serif;overflow-wrap:anywhere}
+.r15-art img{position:absolute;inset:0;object-fit:cover;width:100%;height:100%}
+.r15-card-info{padding:12px}
+.r15-card-info strong{display:block;font-size:12px;line-height:1.4}
+.r15-card-info small{display:block;color:var(--muted);font-size:10px;margin:5px 0}
+.r15-tag{border:1px solid var(--edge);color:var(--accent);border-radius:99px;padding:3px 7px;font-size:10px;display:inline-block;line-height:1.4}
+.r15-card-actions{display:flex;justify-content:space-between;gap:7px;align-items:center;margin-top:12px}
+.r15-card-actions button{border:1px solid var(--line);border-radius:7px;background:var(--panel2);padding:6px 8px;color:var(--fg);font-size:11px;cursor:pointer}
+.r15-card-actions [aria-pressed=true]{color:var(--accent)}
+.r15-rail .r15-art{min-height:170px}
+.r15-footnote{font-size:11px;color:var(--muted);line-height:1.8;margin:24px 0}
+.r15-back{border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--fg);padding:10px 15px;cursor:pointer}
+.r15-detail-hero{border:1px solid var(--edge);border-radius:20px;background:radial-gradient(circle at 90% 25%,var(--soft),transparent 39%),linear-gradient(120deg,var(--deep),#15141c);padding:26px;margin-top:18px}
+.r15-detail-hero h1{font:600 clamp(38px,7vw,67px)/.98 'Cormorant Garamond',Georgia,serif;margin:14px 0}
+.r15-detail-hero p{color:#eadde3;font-size:12px}
+.r15-drive-link{display:inline-block;border:1px solid var(--edge);border-radius:9px;color:var(--accent);text-decoration:none;padding:10px 12px;font:600 11px system-ui;margin-top:7px}
+.r15-doc{display:flex;gap:15px;justify-content:space-between;align-items:center;border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:13px;margin:8px 0}
+.r15-doc strong{font-size:12px;overflow-wrap:anywhere}
+.r15-doc small{display:block;color:var(--muted);font-size:10px;margin-top:4px}
+.r15-doc a{color:var(--accent);border:1px solid var(--edge);border-radius:8px;padding:9px 12px;font:600 11px system-ui;white-space:nowrap;text-decoration:none}
+.r15-detail .rpg05-band{margin:16px 0}
+#r15-old[hidden]{display:none!important}
+@media(max-width:700px){.r15-head h1{font-size:42px}.r15-count{display:none}.r15-hero{min-height:280px}.r15-hero-inner{max-width:86%;padding:23px}.r15-hero h2{font-size:44px}.r15-hero:after{font-size:140px;right:-4%;opacity:.55}.r15-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.r15-art{min-height:190px}.r15-card-info{padding:9px}.r15-rail .r15-card{flex-basis:160px}.r15-doc{align-items:flex-start}.r15-doc a{padding:7px 9px}}
