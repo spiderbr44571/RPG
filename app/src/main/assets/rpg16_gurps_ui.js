@@ -8,7 +8,7 @@ const $=s=>document.querySelector(s),esc=x=>String(x??'').replace(/[&<>"']/g,c=>
 let list=[],selected='',tab='identidade',host=null,rollTimeout=0,active=false,remote=null;
 const number=(x,defaultValue=0)=>Number.isFinite(Number(x))?Number(x):defaultValue;
 const attrNames={ST:'Força · ST',DX:'Destreza · DX',IQ:'Inteligência · IQ',HT:'Vitalidade · HT'};
-const source='GURPS 4ª edição · GURPS Lite (p. 2, 4–6, 12–29) e Módulo Básico. Consulte os livros para opções avançadas.';
+const source='Regras-base: GURPS Lite e Módulo Básico. Suplementos em adaptação.';
 function load(){try{list=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(list))list=[]}catch{list=[]}
  list=list.filter(x=>x&&x.systemId==='gurps'&&x.edition==='4e').slice(0,60);
  if(!list.length){list=[E.create()];write()}
@@ -80,7 +80,7 @@ function header(){
  const s=current(),p=E.spent(s);
  const remoteBar=remote?'<section class="g-panel" style="border:2px solid #d1ad72"><div class="g-eyebrow">MODO MESTRE · EDIÇÃO ONLINE</div><h3>Personagem da campanha</h3><p>As alterações só aparecem para o jogador depois de salvar no servidor.</p><div class="g-controls"><button data-action="save-remote" class="g-primary">Salvar na campanha</button><button data-action="cancel-remote">Voltar à Mestragem</button></div></section>':'';
  return '<div class="g-hero"><div class="g-inline">'+(s.portrait?'<img class="g-portrait" src="'+esc(s.portrait)+'" alt="Retrato de '+esc(s.name)+'">':'<div class="g-portrait" style="display:grid;place-items:center;font:500 38px Georgia,serif;color:#d8bd94">3d6</div>')+'<div><div class="g-eyebrow">GURPS • QUARTA EDIÇÃO</div><h2>'+esc(s.name)+'</h2><div class="g-inline"><span class="g-chip">Pontos: '+p.total+' / '+s.pointBudget+'</span><span class="g-chip">Saldo: '+p.remaining+'</span><span class="g-chip">NT '+esc(s.techLevel)+'</span></div></div></div><div class="g-controls"><select id="g-switch" class="g-sheet-select" aria-label="Selecionar personagem">'+list.map(ch=>'<option value="'+esc(ch.id)+'"'+(ch.id===s.id?' selected':'')+'>'+esc(ch.name)+'</option>').join('')+'</select><button data-action="new" class="g-primary"'+(remote?' disabled':'')+'>+ Ficha</button></div></div>'+
- remoteBar+'<div class="g-eyebrow" style="padding:9px 4px">Módulo de regras GURPS 4ª edição • Ficha local • '+esc(source)+'</div>'+
+ remoteBar+'<p class="g-muted" style="padding:1px 4px;margin:10px 0">Módulo de regras GURPS 4ª edição • Ficha local • '+esc(source)+'</p>'+
  '<div class="g-tabs" role="tablist" aria-label="Seções GURPS">'+ids.map((id,i)=>'<button data-tab="'+id+'" role="tab" aria-selected="'+String(id===tab)+'">'+labels[i]+'</button>').join('')+'</div>';
 }
 function render(full=true){
