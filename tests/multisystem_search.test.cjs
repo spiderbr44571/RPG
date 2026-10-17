@@ -48,7 +48,7 @@ const h=fs.readFileSync(path.join(base,'demo-offline.html'),'utf8');
 assert.ok(h.includes('<script src="rpg20_search_core.js"></script>'));
 assert.ok(h.includes('r11-system')&&h.includes('r11-index-system'));
 assert.ok(h.includes('usable=hits.filter(x=>x.kind!=='));
-assert.ok(h.includes('RpgAiProxyBridge.request('));
+assert.ok(h.includes('RpgCloudAiBridge.request('));
 assert.ok(fs.existsSync(path.join(__dirname,'../scripts/indexar_pdf.py')));
 assert.ok(fs.existsSync(path.join(__dirname,'../server/ai_proxy.py')));
 console.log('PASS: 39 systems, '+count+' books, strict scope/edition, index import and AI grounding');
