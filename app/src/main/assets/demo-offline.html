@@ -1591,25 +1591,32 @@ function localAnswer(query,hits){
 }
 function hasCloudKey(){return window.RpgCloudAiBridge?.hasKey?.()||!!browserCloudKey}
 function freeModel(id){return id==='openrouter/free'||(id.endsWith(':free')&&cachedModels.some(m=>m.id===id))}
-async function cloudRequest(action,data){
+async function cloudRequest(action,data,onProgress){
  if(window.RpgCloudAiBridge?.request){
   return new Promise((resolve,reject)=>{
-   const id='cloud-'+crypto.randomUUID(),done=()=>{clearTimeout(timeout);window.removeEventListener('rpg21-cloud-response',handler)};
+   const id='cloud-'+crypto.randomUUID();
+   const done=()=>{clearTimeout(timeout);window.removeEventListener('rpg21-cloud-response',handler);window.removeEventListener('rpg25-cloud-progress',progress)};
    const handler=event=>{
     if(event.detail?.requestId!==id)return;
     done();const msg=event.detail.response||{};
     if(msg.ok)resolve(msg.data||{});
     else reject(Error(String(msg.data?.error||'Falha no provedor cloud').slice(0,220)));
    };
-   const timeout=setTimeout(()=>{done();reject(Error('Tempo de resposta do modelo gratuito excedido.'))},45000);
+   const progress=event=>{
+    if(event.detail?.requestId!==id)return;
+    if(typeof onProgress==='function')onProgress(String(event.detail.message||'Consultando IA na nuvem…').slice(0,160));
+   };
+   // 3 attempts × 5.5s connect + 19s response = up to 74s, with a safety margin.
+   const timeout=setTimeout(()=>{done();reject(Error('Os modelos gratuitos não responderam dentro do limite total. Você pode tentar novamente.'))},action==='chat'?95000:35000);
    window.addEventListener('rpg21-cloud-response',handler);
+   window.addEventListener('rpg25-cloud-progress',progress);
    try{window.RpgCloudAiBridge.request(action,JSON.stringify(data||{}),id)}
    catch(err){done();reject(err)}
   });
  }
  if(!browserCloudKey)throw Error('Informe sua chave pessoal do OpenRouter.');
  const headers={Authorization:'Bearer '+browserCloudKey,Accept:'application/json'};
- const options={method:'GET',headers,signal:AbortSignal.timeout(45000)};
+ const options={method:'GET',headers,signal:AbortSignal.timeout(25000)};
  const base='https://openrouter.ai/api/v1/';
  if(action==='models'){
   const response=await fetch(base+'models',options),json=await response.json();
@@ -1633,30 +1640,32 @@ async function cloudRequest(action,data){
    {role:'user',content:data.question+(context?'\n\nFontes indexadas:\n'+context:
     '\n\nSem texto indexado. Se a pergunta depender de regras oficiais, informe que não houve conferência documental.')}
  ]};
- const retry=cachedModels.find(x=>x.id!==data.model)?.id||'';
- const tryModels=retry?[data.model,retry]:[data.model];
+ const tryModels=quality.fallbackModels(data.model,cachedModels,3);
  let failure='Nenhum modelo gratuito retornou uma resposta utilizável.';
  for(const [i,chosen] of tryModels.entries()){
+  if(typeof onProgress==='function')onProgress('Tentativa '+(i+1)+' de '+tryModels.length+' · '+chosen+'…');
   request.model=chosen;
   try{
    const response=await fetch(base+'chat/completions',{method:'POST',headers:{
-    ...headers,'Content-Type':'application/json'},signal:AbortSignal.timeout(45000),body:JSON.stringify(request)});
+    ...headers,'Content-Type':'application/json'},signal:AbortSignal.timeout(23000),body:JSON.stringify(request)});
    const json=await response.json();
    if(!response.ok){
     const message=json.error?.message||('Erro HTTP '+response.status);
-    if(response.status===401||response.status===403||response.status===429)throw Error(message);
+    if(response.status===401||response.status===403||response.status===429)throw Error('Conta ou chave impedida: '+message);
     failure=message;
     continue;
    }
    const accepted=quality.completion(json);
-   if(accepted.ok)return {answer:accepted.answer,model:accepted.model||chosen,retried:i>0};
+   if(accepted.ok)return {answer:accepted.answer,model:accepted.model||chosen,retried:i>0,attempts:i+1};
    failure=accepted.reason;
   }catch(err){
-   failure=err.message||String(err);
-   if(/401|403|429|not authorized|unauthorized|rate.limit|limite/i.test(failure))break;
+   failure=err?.name==='TimeoutError'?'Tempo esgotado nesse modelo gratuito.':err.message||String(err);
+   if(/conta ou chave impedida|401|403|429|not authorized|unauthorized|rate.limit/i.test(failure))break;
   }
+  if(typeof onProgress==='function' && i+1<tryModels.length)onProgress('Modelo indisponível; tentando outra IA gratuita…');
  }
- throw Error(failure+' Selecione outro modelo gratuito ou tente novamente.');
+ throw Error(failure+' Nenhuma resposta da IA foi gerada. Tente novamente.');
+
 }
 async function ask(query){
  if(busy)return;
@@ -1678,7 +1687,7 @@ async function ask(query){
    addBubble('<strong>Para conversar com a IA gratuita:</strong><p>'+
      (!hasCloudKey()?'Adicione uma chave pessoal do OpenRouter e toque em Conectar à nuvem.':
       'Marque a autorização de envio de perguntas no painel IA na nuvem.')+
-     '</p><small>Enquanto isso, estas são as fontes pesquisáveis localmente:</small>'+localAnswer(query,hits));
+     '</p><small>O modo Busca offline permanece separado; o chat não troca de modo automaticamente.</small>');
    setStatus('● IA aguardando configuração ou autorização');
    return;
   }
@@ -1689,7 +1698,10 @@ async function ask(query){
   const pending=addBubble('<small>Consultando '+esc(model)+' na nuvem · '+esc(sourceMode)+'...</small>');
   setStatus('● IA consultando · '+sourceMode);
   try{
-   const result=await cloudRequest('chat',request);
+   const result=await cloudRequest('chat',request,message=>{
+    pending.innerHTML='<small>'+esc(message)+'</small>';
+    setStatus('● '+message);
+   });
    const answer=String(result.answer||'').trim();
    if(!quality.validAnswer(answer))throw Error('O modelo gratuito retornou texto nulo, vazio ou uma classificação em vez da resposta.');
    const verified=request.sources.length>0;
@@ -1700,10 +1712,11 @@ async function ask(query){
    history=history.slice(-8);
    setStatus('● Resposta cloud · '+(verified?'com fontes':'sem fontes locais'));
   }catch(err){
-   pending.innerHTML='<b>IA gratuita indisponível</b><p>'+esc(err.message)+
-    '</p><p>Você pode tentar novamente, selecionar outro modelo :free ou consultar as fontes offline.</p>'+
-    (hits.length?localAnswer(query,hits):'');
-   setStatus('● Modelo não respondeu · busca offline disponível');
+   pending.innerHTML='<b>IA gratuita não respondeu</b><p>'+esc(err.message)+
+    '</p><p>A pergunta continua disponível. Nenhuma pesquisa local foi apresentada como se fosse uma resposta da IA.</p>'+
+    '<button type="button" class="r11-light-btn r25-retry">↻ Tentar novamente com IA</button>';
+   pending.querySelector('.r25-retry')?.addEventListener('click',()=>{if(!busy)ask(query)});
+   setStatus('● IA indisponível · tente outra vez');
   }
  }catch(err){
   addBubble('<b>Erro na consulta</b><p>'+esc(err.message||err)+'</p>');
