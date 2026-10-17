@@ -47,7 +47,7 @@ assert.equal(core.search('Stress',{docs:ix,systemId:'gurps',edition:'2024'}).len
 const h=fs.readFileSync(path.join(base,'demo-offline.html'),'utf8');
 assert.ok(h.includes('<script src="rpg20_search_core.js"></script>'));
 assert.ok(h.includes('r11-system')&&h.includes('r11-index-system'));
-assert.ok(h.includes('usable=hits.filter(x=>x.kind!=='));
+assert.ok(h.includes('const request=ai.plan(query'),'cloud must not require pre-indexed sources');
 assert.ok(h.includes('RpgCloudAiBridge.request('));
 assert.ok(fs.existsSync(path.join(__dirname,'../scripts/indexar_pdf.py')));
 assert.ok(!fs.existsSync(path.join(__dirname,'../server/ai_proxy.py')),'old local proxy must be removed');
