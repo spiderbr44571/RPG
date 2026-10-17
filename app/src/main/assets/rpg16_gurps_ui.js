@@ -156,7 +156,7 @@ function test(which){
   const kind=part[1],value=kind==='dodge'?d.dodge:kind==='parry'?Math.floor((Number(s.parrySkill)||0)/2)+3:Math.floor((Number(s.blockSkill)||0)/2)+3;
   if(kind!=='dodge'&&!(kind==='parry'?s.parrySkill:s.blockSkill))throw Error('Defina a perícia de Aparar/Bloqueio antes do teste.');
   rollTarget(({dodge:'Esquiva',parry:'Aparar',block:'Bloqueio'})[kind],value,modifier);
- }else if(part[0]==='attack'){const w=s.weapons[Number(part[1])];if(!w)throw Error('Arma não encontrada');const skill=s.skills[Number(w.skillIndex)];const level=skill?E.skillLevel(skill,{...s.attrs,Per:d.per,Will:d.will}):d.DX;rollTarget('Ataque · '+w.name,level,modifier)}
+ }else if(part[0]==='attack'){const w=s.weapons[Number(part[1])];if(!w)throw Error('Arma não encontrada');const skill=(w.skillIndex===''||w.skillIndex==null)?null:s.skills[Number(w.skillIndex)];const level=skill?E.skillLevel(skill,{...s.attrs,Per:d.per,Will:d.will}):d.DX;rollTarget('Ataque · '+w.name,level,modifier)}
  else if(part[0]==='damage'){const w=s.weapons[Number(part[1])];if(!w?.damage)throw Error('Esta arma ainda não tem uma fórmula de dano.');rollDamage('Dano · '+w.name,w.damage)}
  else if(part[0]==='reaction'){const faces=Array.from({length:3},()=>E.rollDamage('1d',s).faces[0]);showResult('Reação de NPC · 3d6',faces,faces.reduce((a,b)=>a+b,0),'Quanto maior, melhor; aplique os modificadores de reação conforme o livro')}
  else if(part[0]==='free'){rollDamage('Dados livres',get('g-free-dice'))}
@@ -168,7 +168,18 @@ function onClick(ev){
  if(b.dataset.add){add(b.dataset.add);return}
  if(b.dataset.action){actions(b.dataset.action);return}
  if(b.dataset.roll){test(b.dataset.roll);return}
- if(b.dataset.remove){const [key,index]=b.dataset.remove.split(':');if(current()[key]?.[Number(index)]){current()[key].splice(Number(index),1);rerender()};return}
+ if(b.dataset.remove){
+  const [key,index]=b.dataset.remove.split(':'),idx=Number(index),s=current();
+  if(s[key]?.[idx]){
+   s[key].splice(idx,1);
+   if(key==='skills')for(const weapon of (s.weapons||[])){
+    if(weapon.skillIndex===''||weapon.skillIndex==null)continue;
+    const ref=Number(weapon.skillIndex);
+    weapon.skillIndex=ref===idx?'':String(ref>idx?ref-1:ref);
+   }
+   rerender();
+  }return
+ }
  if(b.dataset.resource){
   const s=current(),d=E.derived(s),key=b.dataset.resource,prop=key==='HP'?'currentHP':'currentFP',max=key==='HP'?d.HP:d.FP;
   s[prop]=Math.max(-max*5,Math.min(max,Number(s[prop])+Number(b.dataset.step)));rerender();return;
@@ -190,8 +201,8 @@ function onChange(ev){
   }
   return;
  }
- if(t.dataset.attr){s.attrs[t.dataset.attr]=Math.round(Math.max(1,Math.min(100,number(t.value,10))));rerender();return}
- if(t.dataset.mod){const k=t.dataset.mod;let n=number(t.value);if(k==='speed')n=Math.round(n*4)/4;s.mod[k]=Math.max(-20,Math.min(30,n));rerender();return}
+ if(t.dataset.attr){s.attrs[t.dataset.attr]=Math.round(Math.max(1,Math.min(100,number(t.value,10))));const d=E.derived(s);s.currentHP=Math.min(s.currentHP,d.HP);s.currentFP=Math.min(s.currentFP,d.FP);rerender();return}
+ if(t.dataset.mod){const k=t.dataset.mod;let n=number(t.value);if(k==='speed')n=Math.round(n*4)/4;s.mod[k]=Math.max(-20,Math.min(30,n));const d=E.derived(s);s.currentHP=Math.min(s.currentHP,d.HP);s.currentFP=Math.min(s.currentFP,d.FP);rerender();return}
  if(t.dataset.setting){s.settings[t.dataset.setting]=number(t.value);rerender();return}
  if(t.dataset.root){const k=t.dataset.root;s[k]=['pointBudget','unspentBonus','traitsCost','techLevel'].includes(k)?number(t.value):t.value;rerender();return}
  if(t.dataset.rootText){s[t.dataset.rootText]=t.value.slice(0,16000);persist();return}
