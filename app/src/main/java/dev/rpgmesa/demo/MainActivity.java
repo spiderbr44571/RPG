@@ -50,6 +50,7 @@ public final class MainActivity extends Activity {
     private final DriveBridge drive = new DriveBridge();
     private final SheetPdfBridge sheetPdf = new SheetPdfBridge();
     private final CreatureImageBridge creatureArt = new CreatureImageBridge();
+    private final AiProxyBridge aiProxy = new AiProxyBridge();
     private static final String OFFLINE_URL = "file:///android_asset/demo-offline.html";
     private WebView browser;
     private TextView mode;
@@ -124,7 +125,7 @@ public final class MainActivity extends Activity {
         browser.addJavascriptInterface(books,"RpgBookBridge");
         browser.addJavascriptInterface(lan,"RpgLanBridge");
         browser.addJavascriptInterface(campaign,"RpgCampaignBridge");
-        browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.addJavascriptInterface(drive,"RpgDriveBridge");browser.addJavascriptInterface(sheetPdf,"RpgSheetPdfBridge");browser.addJavascriptInterface(creatureArt,"RpgCreatureImageBridge");
+        browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.addJavascriptInterface(drive,"RpgDriveBridge");browser.addJavascriptInterface(sheetPdf,"RpgSheetPdfBridge");browser.addJavascriptInterface(creatureArt,"RpgCreatureImageBridge");browser.addJavascriptInterface(aiProxy,"RpgAiProxyBridge");
         root.addView(browser,new LinearLayout.LayoutParams(-1,0,1));
         setContentView(root);
         home.setOnClickListener(v->openOffline());
@@ -133,7 +134,7 @@ public final class MainActivity extends Activity {
     }
     private int dp(int x){return Math.round(getResources().getDisplayMetrics().density*x);}
     private Button button(String name){Button b=new Button(this);b.setText(name);b.setTextSize(10);b.setAllCaps(false);return b;}
-    private void openOffline(){allowedHost=null;allowedPort=0;mode.setText("● MODO OFFLINE");browser.addJavascriptInterface(books,"RpgBookBridge");browser.addJavascriptInterface(lan,"RpgLanBridge");browser.addJavascriptInterface(campaign,"RpgCampaignBridge");browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.addJavascriptInterface(drive,"RpgDriveBridge");browser.addJavascriptInterface(sheetPdf,"RpgSheetPdfBridge");browser.addJavascriptInterface(creatureArt,"RpgCreatureImageBridge");browser.loadUrl(OFFLINE_URL);}
+    private void openOffline(){allowedHost=null;allowedPort=0;mode.setText("● MODO OFFLINE");browser.addJavascriptInterface(books,"RpgBookBridge");browser.addJavascriptInterface(lan,"RpgLanBridge");browser.addJavascriptInterface(campaign,"RpgCampaignBridge");browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.addJavascriptInterface(drive,"RpgDriveBridge");browser.addJavascriptInterface(sheetPdf,"RpgSheetPdfBridge");browser.addJavascriptInterface(creatureArt,"RpgCreatureImageBridge");browser.addJavascriptInterface(aiProxy,"RpgAiProxyBridge");browser.loadUrl(OFFLINE_URL);}
     private static boolean isPrivateLan(String h) {
         if(h==null||!h.matches("\\d{1,3}(\\.\\d{1,3}){3}"))return false;
         String[] p=h.split("\\.");int[] n=new int[4];
@@ -159,7 +160,8 @@ public final class MainActivity extends Activity {
               browser.removeJavascriptInterface("RpgLocalHost");
           browser.removeJavascriptInterface("RpgDriveBridge");
           browser.removeJavascriptInterface("RpgSheetPdfBridge");
-          browser.removeJavascriptInterface("RpgCreatureImageBridge"); // Native API is never available to remote pages.
+          browser.removeJavascriptInterface("RpgCreatureImageBridge");
+          browser.removeJavascriptInterface("RpgAiProxyBridge"); // Native API is never available to remote pages.
               allowedHost=u.getHost();allowedPort=u.getPort();
               getPreferences(Context.MODE_PRIVATE).edit().putString("lan",u.toString()).apply();
               mode.setText("● CONECTADO À LAN");browser.loadUrl(u.toString());
@@ -379,12 +381,74 @@ public final class MainActivity extends Activity {
           browser.removeJavascriptInterface("RpgDriveBridge");
           browser.removeJavascriptInterface("RpgSheetPdfBridge");
           browser.removeJavascriptInterface("RpgCreatureImageBridge");
+          browser.removeJavascriptInterface("RpgAiProxyBridge");
           allowedHost="127.0.0.1";allowedPort=server.currentPort();
           browser.loadUrl("http://127.0.0.1:"+allowedPort+"/master");
         });
       }
     }
     /** Opens known Google Drive document/folder IDs in an external app without embedding private credentials. */
+    /** Android bridge for the user's PRIVATE LAN rule-search proxy.
+     * Never exposes arbitrary HTTP, and is removed when a remote LAN site is loaded.
+     */
+    public final class AiProxyBridge {
+      private boolean validBase(String raw) {
+        try{
+          Uri uri=Uri.parse(raw);
+          if(!"http".equals(uri.getScheme())||uri.getHost()==null||uri.getPort()<1024||uri.getPort()>65535 ||
+             uri.getUserInfo()!=null||uri.getQuery()!=null||uri.getFragment()!=null ||
+             (uri.getPath()!=null&&!uri.getPath().isEmpty()))return false;
+          String ip=uri.getHost();
+          String[] parts=ip.split("\\.");
+          if(parts.length!=4)return false;
+          int[] n=new int[4];for(int i=0;i<4;i++){if(!parts[i].matches("\\d{1,3}"))return false;n[i]=Integer.parseInt(parts[i]);if(n[i]>255)return false;}
+          return n[0]==10||n[0]==127||(n[0]==192&&n[1]==168)||(n[0]==172&&n[1]>=16&&n[1]<=31);
+        }catch(Exception ex){return false;}
+      }
+      private void report(String requestId,JSONObject payload){
+        runOnUiThread(()->{
+          if(allowedHost!=null||browser==null)return;
+          try{
+            JSONObject body=new JSONObject().put("requestId",requestId).put("response",payload);
+            browser.evaluateJavascript("window.dispatchEvent(new CustomEvent('rpg20-proxy-response',{detail:"+body+"}));",null);
+          }catch(Exception ignored){}
+        });
+      }
+      @JavascriptInterface public void request(String path,String base,String token,String json,String requestId){
+        if(allowedHost!=null||requestId==null||!requestId.matches("[A-Za-z0-9_-]{8,70}")||
+           !("/models".equals(path)||"/chat".equals(path))||!validBase(base)||
+           token==null||token.length()<15||token.length()>256||json==null||json.length()>16000)return;
+        new Thread(()->{
+          JSONObject result=new JSONObject();
+          try{
+            HttpURLConnection con=(HttpURLConnection)new URL(base+path).openConnection();
+            con.setInstanceFollowRedirects(false);con.setConnectTimeout(6500);con.setReadTimeout(22000);
+            con.setRequestProperty("X-Rpg-Token",token);
+            if("/chat".equals(path)){
+              con.setRequestMethod("POST");con.setDoOutput(true);
+              con.setRequestProperty("Content-Type","application/json");
+              byte[] payload=json.getBytes(StandardCharsets.UTF_8);
+              con.setFixedLengthStreamingMode(payload.length);
+              try(OutputStream out=con.getOutputStream()){out.write(payload);}
+            }
+            int code=con.getResponseCode();
+            if(code>=300&&code<400)throw new IllegalStateException("Redirecionamento recusado");
+            if(con.getContentLengthLong()>130000)throw new IllegalStateException("Resposta muito grande");
+            ByteArrayOutputStream bytes=new ByteArrayOutputStream();
+            try(InputStream in=code>=400?con.getErrorStream():con.getInputStream()){
+              if(in!=null){
+                byte[] buffer=new byte[8192];int n;while((n=in.read(buffer))>0){bytes.write(buffer,0,n);if(bytes.size()>130000)throw new IllegalStateException("Resposta muito grande");}
+              }
+            }finally{con.disconnect();}
+            JSONObject body=new JSONObject(bytes.toString("UTF-8"));
+            result.put("ok",code>=200&&code<300).put("data",body);
+          }catch(Exception err){
+            try{result.put("ok",false).put("data",new JSONObject().put("error","Servidor de IA não disponível neste endereço."));}catch(Exception ignored){}
+          }
+          report(requestId,result);
+        },"rpg-local-ai-proxy").start();
+      }
+    }
     /** Small, explicit Wikimedia Commons lookup. Art is previewed, not auto-assigned. */
     public final class CreatureImageBridge {
       private boolean valid(String name,String id){
