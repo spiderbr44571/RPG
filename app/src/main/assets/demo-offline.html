@@ -1497,26 +1497,23 @@ resize();window.addEventListener('resize',resize,{passive:true});raf=requestAnim
 window.RPG10={get theme(){return chosen},setTheme:choose,roll:dice,rollNotation,openSheet:()=>go('sheet')};window.RPG101={openDice,rollNotation,closeDice,get history(){return [...previousRolls]}};
 })();
 
-</script><script>
-/* RPG Mesa v0.10.2 — library-first rules assistant. No paid content bundled. */
+</script><script src="rpg20_search_core.js"></script><script>
+/* RPG Mesa v0.20 — multisystem indexed rules assistant. */
 (()=>{'use strict';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
-const app=window.RPG_DEMO, op=window.OP13;
-if(!app||!op)return;
+const app=window.RPG_DEMO, op=window.OP13, core=window.RPG20_SEARCH;
+if(!app||!op||!core)return;
 const esc=(v)=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const normalize=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 const stop=new Set('o a os as um uma de da do dos das e em no na nos nas como que qual quais para por com sem ao aos ou se eu voce vc é sao ser fazer sobre livro regra funciona funciona os uma meu minha onde quando mais existe qual'.split(' '));
 const tokens=v=>[...new Set(normalize(v).match(/[a-z0-9]{2,}/g)||[])].filter(w=>!stop.has(w)).slice(0,14);
 const cutoff=(str,max)=>String(str||'').slice(0,max);
-function enrich(doc){return {...doc,title:cutoff(doc.title||doc.book||'Trecho indexado',130),page:Number(doc.page)||0,text:cutoff(doc.text||doc.summary||'',1700),type:doc.type||'PDF pessoal',book:doc.book||'Ordem Paranormal v1.3'}}
+function enrich(doc){return {...doc,title:cutoff(doc.title||doc.book||'Trecho indexado',130),page:Number(doc.page)||0,text:cutoff(doc.text||doc.summary||'',1700),type:doc.type||'PDF pessoal',book:doc.book||'PDF pessoal',systemId:doc.systemId||'ordem-paranormal',kind:doc.kind||'index'}}
 const pack=op.pack;
-const baseDocs=[
-...pack.regras.map(x=>({title:x.nome,book:'Ordem Paranormal RPG 1.3',page:x.paginaLivro,text:x.resumo,type:'Resumo estruturado'})),
-...pack.pericias.map(x=>({title:x.nome,book:'Ordem Paranormal RPG 1.3',page:39,text:`Perícia ${x.nome}. Atributo: ${x.atributo}. ${x.soTreinado?'Uso exige treinamento para certas aplicações.':'Pode ter aplicações sem treinamento.'} Consulte o livro para usos e DT.`,type:'Cadastro de perícias'})),
-...pack.rituais.map(x=>({title:x.nome,book:'Ordem Paranormal RPG 1.3',page:x.paginaLivro,text:`Ritual ${x.nome}. Elemento ${x.elemento}. Círculo ${x.circulo}. ${x.custoBasePE?`Custo base ${x.custoBasePE} PE.`:''} Consulte a descrição do livro para alvo, duração e aprimoramentos.`,type:'Cadastro de rituais'})),
-...pack.poderesParanormais.map(x=>({title:x.nome,book:'Ordem Paranormal RPG 1.3',page:x.paginaLivro,text:`Poder paranormal ${x.nome}. Elemento: ${x.elemento||'não informado no cadastro'}. Consulte o livro para a mecânica completa.`,type:'Cadastro de poderes'})),
-...pack.condicoes.map(x=>({title:x.nome,book:'Ordem Paranormal RPG 1.3',page:x.paginaLivro||0,text:cutoff(x.resumo||x.efeito||`Condição ${x.nome}. Confira descrição na fonte.`,550),type:'Cadastro de condições'}))
-].map(enrich);
+const baseDocs=core.makeOrderDocs(op).concat(core.makeRulesDocs(window.RPG18_DND_ENGINE,window.GURPS4_ENGINE)).map(enrich);
+let activeSystem='all',activeEdition='all';
+function systems(){return window.RPG15_SYSTEMS?.systems||[]}
+function lookupScope(query){return activeSystem==='all'?core.inferSystem(query,systems())||'all':activeSystem}
 let privateDocs=[];let mode='offline';let proxyUrl='';let sessionToken='';let model='openrouter/free';let canSend=false;let lastSources=[];let busy=false;let cachedModels=[];
 const dbName='RPG-Mesa-Private-Search';
 function openDB(){return new Promise((ok,bad)=>{if(!window.indexedDB)return bad(new Error('Armazenamento indisponível'));const req=indexedDB.open(dbName,1);req.onupgradeneeded=()=>req.result.createObjectStore('books',{keyPath:'id'});req.onsuccess=()=>ok(req.result);req.onerror=()=>bad(req.error)})}
@@ -1526,13 +1523,14 @@ async function deleteBook(id){const db=await openDB();return new Promise((ok,bad
 const area=$('#screen-ai');if(!area)return;
 area.innerHTML=`<div class="page-row"><div><div class="eyebrow">CONSULTA À BIBLIOTECA</div><h1 class="page-h">Investigação <i>de regras.</i></h1><p class="page-sub">Busca offline por palavras e chat opcional com modelos gratuitos. Nenhuma regra é criada pela IA.</p></div><span class="r11-status" id="r11-status">● Busca offline pronta</span></div>
 <div class="r11-tabs" role="tablist" aria-label="Modo de consulta"><button type="button" class="r11-mode active" data-r11-mode="offline" aria-selected="true">⌕ Busca offline</button><button type="button" class="r11-mode" data-r11-mode="ai" aria-selected="false">✦ Chat IA · Free</button></div>
-<div class="r11-layout"><div class="r11-conversation surface-flat"><div class="r11-head"><span class="r11-orb">✧</span><div><strong id="r11-mode-label">Bibliotecário local</strong><small id="r11-subtitle">Respostas são trechos encontrados, não interpretações inventadas.</small></div></div><div id="r11-messages" class="r11-messages" aria-live="polite"><div class="r11-bubble r11-assistant"><b>Qual regra você quer encontrar?</b><p>Pesquise por uma palavra, nome de ritual, perícia ou uma pergunta. Sem IA, apresento os trechos encontrados e suas páginas.</p></div></div><form id="r11-form" class="r11-form"><input id="r11-query" aria-label="Pesquisar ou perguntar uma regra" autocomplete="off" maxlength="350" placeholder="Ex.: iniciativa, descanso, resistência..." required><button type="submit" id="r11-send">Buscar <span>↗</span></button></form></div>
+<div class="r11-scope"><label>Sistema <select id="r11-system" aria-label="Sistema da consulta"><option value="all">Todos os sistemas</option></select></label><label>Edição <select id="r11-edition" aria-label="Filtrar edição"><option value="all">Todas as edições</option><option value="5e-2014">D&D 5e · 2014</option><option value="2024">D&D 2024</option><option value="3.5">D&D 3.5</option><option value="4e">4ª edição</option><option value="1.3">1.3</option></select></label><small>Resultados separados por sistema; livros sem texto indexado aparecem apenas como referência.</small></div><div class="r11-layout"><div class="r11-conversation surface-flat"><div class="r11-head"><span class="r11-orb">✧</span><div><strong id="r11-mode-label">Bibliotecário local</strong><small id="r11-subtitle">Respostas são trechos encontrados, não interpretações inventadas.</small></div></div><div id="r11-messages" class="r11-messages" aria-live="polite"><div class="r11-bubble r11-assistant"><b>Qual regra você quer encontrar?</b><p>Pesquise por uma palavra, nome de ritual, perícia ou uma pergunta. Sem IA, apresento os trechos encontrados e suas páginas.</p></div></div><form id="r11-form" class="r11-form"><input id="r11-query" aria-label="Pesquisar ou perguntar uma regra" autocomplete="off" maxlength="350" placeholder="Ex.: iniciativa, descanso, resistência..." required><button type="submit" id="r11-send">Buscar <span>↗</span></button></form></div>
 <aside class="r11-side"><section class="surface-flat r11-box"><h3>Fontes encontradas</h3><div id="r11-sources"><p class="r11-muted">Pesquise para encontrar páginas e trechos.</p></div></section>
-<section class="surface-flat r11-box"><h3>Biblioteca pesquisável</h3><p class="r11-muted" id="r11-count">Índice estruturado de Ordem Paranormal 1.3</p><label class="r11-file">+ Importar índice de PDF (JSON)<input id="r11-import" type="file" accept=".json,application/json" hidden></label><div id="r11-books"></div><p class="r11-small">O livro comercial não é incluído no app. Para pesquisar o texto integral, gere um índice privado do seu PDF com <code>scripts/indexar_pdf.py</code> e importe aqui. O índice fica neste dispositivo.</p></section>
+<section class="surface-flat r11-box"><h3>Biblioteca pesquisável</h3><p class="r11-muted" id="r11-count">Catálogo de todos os sistemas + índices privados</p><label class="r11-index-scope">Vincular índice ao sistema <select id="r11-index-system" aria-label="Sistema do índice PDF"><option value="">Selecione um sistema</option></select></label><label class="r11-file">+ Importar índice de PDF (JSON)<input id="r11-import" type="file" accept=".json,application/json" hidden></label><div id="r11-books"></div><p class="r11-small">Os links do Drive são somente metadados. Para pesquisar as páginas de cada livro, importe um índice privado do PDF gerado por <code>scripts/indexar_pdf.py</code> no computador. Nenhum livro comercial é distribuído no APK.</p></section>
 <section class="surface-flat r11-box" id="r11-ai-settings" hidden><h3>OpenRouter · apenas Free</h3><label>Servidor de IA local <input id="r11-endpoint" spellcheck="false" placeholder="http://192.168.1.10:8790" autocomplete="off"></label><label>Token temporário do servidor <input id="r11-token" type="password" autocomplete="off" placeholder="Token exibido no terminal"></label><button type="button" id="r11-connect" class="r11-light-btn">Conectar e ver modelos gratuitos</button><label>Modelo <select id="r11-model"><option value="openrouter/free">Roteador automático · free</option></select></label><label class="r11-consent"><input id="r11-consent" type="checkbox"> Autorizo enviar esta pergunta e até 4 trechos recuperados ao OpenRouter.</label><p class="r11-small">A chave OpenRouter fica no PC/servidor, nunca no APK. A IA não deve ser considerada fonte oficial. Se falhar, volta à busca offline.</p></section></aside></div>`;
 const style=document.createElement('style');style.id='rpg11-style';style.textContent=`
 .r11-status{align-self:center;border:1px solid var(--v10-border,var(--line));color:var(--v10-light,var(--accent));padding:9px 13px;border-radius:99px;font-size:11px;background:var(--accent-soft)}
 .r11-tabs{display:flex;gap:9px;margin:16px 0}.r11-mode{padding:11px 17px;border-radius:11px;border:1px solid var(--line);color:var(--fg);background:var(--panel2);cursor:pointer;font:600 12px 'DM Sans',sans-serif}.r11-mode.active{border-color:var(--v10-accent,var(--accent));color:var(--v10-light,var(--accent));background:var(--accent-soft)}
+.r11-scope{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin:10px 0 14px}.r11-scope label{display:grid;gap:4px;flex:1;min-width:135px;font-size:11px;color:var(--muted)}.r11-scope select,.r11-index-scope select{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:11px;width:100%;min-width:0}.r11-scope small{flex:1;min-width:200px;color:var(--muted);font-size:10px}.r11-index-scope{display:block;margin:6px 0 10px;color:var(--muted);font-size:11px}.r11-result a{display:inline-block;margin-top:7px;color:var(--accent);font-size:11px}.r11-result[data-kind="metadata"]{opacity:.88}
 .r11-layout{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(245px,.8fr);gap:15px;align-items:start}
 .r11-conversation{display:flex;flex-direction:column;min-height:460px;max-height:min(73dvh,680px);overflow:hidden}
 .r11-head{display:flex;align-items:center;gap:12px;padding:18px;border-bottom:1px solid var(--line)}.r11-head strong{font-size:14px}.r11-head small{display:block;margin-top:4px;color:var(--muted);font-size:10px}.r11-orb{font-size:28px;color:var(--v10-accent,var(--accent));filter:drop-shadow(0 0 10px var(--v10-shadow,transparent));animation:r11-pulse 3s ease-in-out infinite}
@@ -1555,21 +1553,61 @@ function addBubble(html,user=false){const e=document.createElement('div');e.clas
 function matchScore(item,query,words){const text=normalize(`${item.title} ${item.text}`),title=normalize(item.title),phrase=normalize(query).trim();let score=0;if(phrase.length>=3&&text.includes(phrase))score+=25;if(title.includes(phrase)&&phrase.length>=3)score+=15;for(const word of words){const hit=(text.match(new RegExp(word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'))||[]).length;score+=Math.min(hit,5)*(title.includes(word)?5:2)}return score}
 function excerpt(text,query,words){const t=String(text||'');const norm=normalize(t),target=normalize(query).trim();let p=norm.indexOf(target);if(p<0)p=words.map(w=>norm.indexOf(w)).filter(n=>n>=0).sort((a,b)=>a-b)[0]??0;const a=Math.max(0,p-120),b=Math.min(t.length,p+420);return (a?'…':'')+t.slice(a,b)+(b<t.length?'…':'')}
 function highlight(text,words){const raw=String(text||'');const re=new RegExp('('+words.filter(w=>w.length>=3).map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')','ig');if(!words.length)return esc(raw);return raw.split(re).map((part,i)=>i%2?'<mark>'+esc(part)+'</mark>':esc(part)).join('')}
-function search(query){const words=tokens(query);const docs=baseDocs.concat(privateDocs);if(!words.length)return [];
-return docs.map((d,i)=>{const score=matchScore(d,query,words);return{...d,score,id:i}}).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,8).map(x=>({...x,excerpt:excerpt(x.text,query,words)}))}
-function renderSources(hits){lastSources=hits;$('#r11-sources').innerHTML=hits.length?hits.map((x,i)=>`<button class="r11-source" data-r11-source="${i}"><strong>${esc(x.title)}</strong><small>${esc(x.book)} · ${x.page?'p. '+x.page:'página não informada'} · ${esc(x.type)}</small></button>`).join(''):'<p class="r11-muted">Não há fontes que correspondam a esta consulta.</p>'}
-function localAnswer(query,hits){const words=tokens(query);if(!hits.length)return '<strong>Não encontrei trechos correspondentes.</strong><p>Verifique a palavra usada ou importe um índice privado do seu PDF para pesquisar o texto integral. Não vou inventar uma regra.</p>';
-return `<b>${hits.length} resultado(s) na biblioteca</b><p>Trechos recuperados literalmente do índice; confira as páginas originais quando necessário.</p>`+hits.slice(0,5).map(x=>`<div class="r11-result"><strong>${esc(x.title)}</strong><small>${esc(x.book)} · ${x.page?'Página '+x.page:'Página não identificada'} · ${esc(x.type)}</small><p>${highlight(x.excerpt,words)}</p></div>`).join('')}
+function search(query){
+ const words=tokens(query),scope=lookupScope(query);
+ const docs=baseDocs.concat(privateDocs,core.makeCatalogDocs(systems()));
+ const hits=core.search(query,{docs,systemId:scope,edition:activeEdition,limit:12});
+ return hits.map((x,i)=>({...x,id:i,excerpt:excerpt(x.text||x.book,query,words)}));
+}
+function sourceLink(x){
+ if(x.url&&/^https:\/\/(drive\.google\.com\/file\/d\/|dnd\.wizards\.com\/)/.test(x.url))
+  return '<a href="'+esc(x.url)+'" rel="noopener noreferrer" target="_blank">Abrir fonte ↗</a>';
+ return '';
+}
+function renderSources(hits){
+ lastSources=hits;
+ $('#r11-sources').innerHTML=hits.length?hits.map((x,i)=>
+  '<button class="r11-source" data-r11-source="'+i+'"><strong>'+esc(x.title)+'</strong><small>'+esc(x.systemName||'Sistema')+' · '+esc(x.book)+' · '+(x.page?'p. '+x.page:'sem página')+' · '+esc(x.type)+'</small></button>'
+ ).join(''):'<p class="r11-muted">Nenhuma fonte corresponde a esta busca e edição.</p>';
+}
+function localAnswer(query,hits){
+ const words=tokens(query);
+ if(!hits.length)return '<strong>Nenhuma correspondência neste sistema.</strong><p>Escolha outra edição ou importe o índice privado do livro. Livros cadastrados no Drive não contêm texto consultável automaticamente.</p>';
+ const indexed=hits.filter(x=>x.kind!=='metadata'),metadata=hits.filter(x=>x.kind==='metadata');
+ let html='<b>'+indexed.length+' trecho(s) pesquisável(is) · '+metadata.length+' referência(s) do acervo</b>';
+ if(indexed.length)html+='<p>Trechos de fontes cadastradas (confira a edição e a página):</p>'+
+ indexed.slice(0,7).map(x=>'<div class="r11-result" data-kind="index"><strong>'+esc(x.title)+'</strong><small>'+esc(x.systemName)+' · '+esc(x.book)+' · '+(x.page?'Página '+x.page:'Página não indexada')+' · '+esc(x.type)+'</small><p>'+highlight(x.excerpt,words)+'</p>'+sourceLink(x)+'</div>').join('');
+ if(metadata.length)html+='<p><strong>Livros relacionados:</strong> só os títulos foram catalogados. Importe o índice desses PDFs para consultar as regras.</p>'+
+ metadata.slice(0,6).map(x=>'<div class="r11-result" data-kind="metadata"><strong>'+esc(x.title)+'</strong><small>'+esc(x.systemName)+' · '+esc(x.edition||'Edição não identificada')+'</small>'+sourceLink(x)+'</div>').join('');
+ return html;
+}
 function validEndpoint(raw){const u=new URL(String(raw||''));if(u.username||u.password||u.search||u.hash)throw Error('Endereço inválido');const p=u.hostname;if(u.protocol!=='http:'||!/^((10|127)\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})$/.test(p))throw Error('Use o endereço HTTP de um PC na sua rede local.');return u.origin}
 async function proxyRequest(path,body){const base=validEndpoint(proxyUrl);const options={method:body?'POST':'GET',headers:{'X-Rpg-Token':sessionToken,'Content-Type':'application/json'},signal:AbortSignal.timeout(23000)};if(body)options.body=JSON.stringify(body);const response=await fetch(base+path,options);const data=await response.json();if(!response.ok)throw Error(String(data.error||'Falha no servidor').slice(0,200));return data}
-async function ask(query){if(busy)return;query=cutoff(query.trim(),350);if(!query)return;$('#r11-query').value='';addBubble(esc(query),true);const hits=search(query);renderSources(hits);busy=true;$('#r11-send').disabled=true;
-try{
- if(mode==='offline'||!canSend||!proxyUrl||!sessionToken){addBubble(localAnswer(query,hits));if(mode==='ai')setStatus('● Busca offline — configure e autorize a IA');return}
- if(!hits.length){addBubble(localAnswer(query,hits));return}
- addBubble(`<small>Consultando ${esc(model)} com ${Math.min(4,hits.length)} trechos...</small>`);const messages=$$('#r11-messages .r11-assistant');const pending=messages[messages.length-1];
- try{const data=await proxyRequest('/chat',{question:query,model,sources:hits.slice(0,4).map(x=>({book:x.book,title:x.title,page:x.page,text:cutoff(x.excerpt,950)}))});pending.innerHTML=`<b>Resposta assistida · ${esc(data.model||model)}</b><p>${esc(data.answer||'Sem resposta.').replace(/\n/g,'<br>')}</p><small>Texto gerado por IA. Confira o trecho original e a página. Os dados de ficha não são alterados.</small>`;setStatus('● IA free conectada')}
- catch(err){pending.innerHTML=`<b>IA indisponível — resultados locais</b><p>${esc(err.message)}</p>`+localAnswer(query,hits);setStatus('● IA falhou — busca offline ativa')}
- }finally{busy=false;$('#r11-send').disabled=false;$('#r11-messages').scrollTop=$('#r11-messages').scrollHeight}}
+async function ask(query){
+ if(busy)return;query=cutoff(query.trim(),350);if(!query)return;
+ $('#r11-query').value='';addBubble(esc(query),true);
+ const hits=search(query),usable=hits.filter(x=>x.kind!=='metadata'&&x.text);
+ renderSources(hits);busy=true;$('#r11-send').disabled=true;
+ try{
+  if(mode==='offline'||!canSend||!proxyUrl||!sessionToken){
+   addBubble(localAnswer(query,hits));
+   if(mode==='ai')setStatus('● Busca offline — configure e autorize a IA');
+   return;
+  }
+  const scope=lookupScope(query);
+  if(scope==='all'){addBubble('<b>Escolha o sistema antes de consultar a IA.</b><p>A busca sem IA funciona em todos os sistemas, mas o modelo não deve misturar regras de sistemas diferentes.</p>'+localAnswer(query,hits));return}
+  if(!usable.length){addBubble(localAnswer(query,hits));setStatus('● Sem conteúdo indexado para a IA');return}
+  const pending=addBubble('<small>Consultando '+esc(model)+' com '+Math.min(4,usable.length)+' fontes do sistema...</small>');
+  try{
+   const data=await proxyRequest('/chat',{question:query,model,systemId:scope,edition:activeEdition,sources:usable.slice(0,4).map(x=>({systemId:x.systemId,book:x.book,title:x.title,page:x.page,text:cutoff(x.excerpt,950)}))});
+   pending.innerHTML='<b>Resposta assistida · '+esc(data.model||model)+'</b><p>'+esc(data.answer||'Sem resposta.').replace(/\n/g,'<br>')+'</p><small>Resposta gerada por IA a partir de trechos do sistema '+esc(systems().find(x=>x.id===scope)?.title||scope)+'. Confira cada página; a IA não altera as regras.</small>';
+   setStatus('● IA free conectada');
+  }catch(err){
+   pending.innerHTML='<b>IA indisponível — busca local</b><p>'+esc(err.message)+'</p>'+localAnswer(query,hits);
+   setStatus('● IA falhou — busca offline ativa');
+  }
+ }finally{busy=false;$('#r11-send').disabled=false;$('#r11-messages').scrollTop=$('#r11-messages').scrollHeight}
+}
 $('#r11-form').onsubmit=e=>{e.preventDefault();ask($('#r11-query').value)};
 $$('[data-r11-mode]').forEach(button=>button.onclick=()=>{mode=button.dataset.r11Mode;$$('[data-r11-mode]').forEach(b=>{b.classList.toggle('active',b===button);b.setAttribute('aria-selected',String(b===button))});$('#r11-ai-settings').hidden=mode!=='ai';$('#r11-mode-label').textContent=mode==='ai'?'Bibliotecário + OpenRouter Free':'Bibliotecário local';$('#r11-subtitle').textContent=mode==='ai'?'A IA usa trechos pesquisados e nunca edita regras.':'Busca literal sem enviar dados para nenhum provedor.';setStatus(mode==='ai'?'● IA opcional — configure servidor':'● Busca offline pronta')});
 $('#r11-connect').onclick=async()=>{try{proxyUrl=validEndpoint($('#r11-endpoint').value);sessionToken=$('#r11-token').value.trim();if(sessionToken.length<15)throw Error('Informe o token do servidor.');setStatus('● Conectando...');const data=await proxyRequest('/models');cachedModels=Array.isArray(data.models)?data.models:[];const modelSelect=$('#r11-model');modelSelect.innerHTML=[{id:'openrouter/free',name:'Free Router (automático)'},...cachedModels.filter(x=>x.id&&x.id!=='openrouter/free')].map(x=>`<option value="${esc(x.id)}">${esc(x.name||x.id)}</option>`).join('');model='openrouter/free';setStatus('● Servidor conectado — modelos Free');app.notify('Conexão local verificada.')}
@@ -1577,12 +1615,47 @@ catch(err){setStatus('● Sem conexão — busca offline');app.notify('Falha: '+
 $('#r11-model').onchange=e=>model=e.target.value;
 $('#r11-consent').onchange=e=>canSend=e.target.checked;
 $('#r11-sources').onclick=e=>{const b=e.target.closest('[data-r11-source]');if(!b)return;const x=lastSources[Number(b.dataset.r11Source)];if(!x)return;addBubble(`<b>${esc(x.title)}</b><small>${esc(x.book)} · ${x.page?'Página '+x.page:'Sem página cadastrada'}</small><p>${esc(x.excerpt)}</p>`)};
-function refreshBooks(books){privateDocs=books.flatMap(b=>b.chunks.map(x=>enrich({...x,book:b.book.title,type:'Índice privado do PDF'})));$('#r11-count').textContent=`${baseDocs.length} entradas estruturadas + ${privateDocs.length} trechos privados pesquisáveis.`;$('#r11-books').innerHTML=books.map(b=>`<div class="r11-book"><span>${esc(b.book.title)} <small>(${b.chunks.length} trechos)</small></span><button data-r11-remove="${esc(b.id)}" title="Excluir índice local" aria-label="Excluir índice ${esc(b.book.title)}">✕</button></div>`).join('')}
-async function loadBooks(){try{refreshBooks(await getBooks())}catch(err){$('#r11-count').textContent='Armazenamento privado indisponível: importar funciona até fechar o app.';refreshBooks(window.rpgVolatileBooks||[])}}
-$('#r11-import').onchange=async e=>{const f=e.target.files?.[0];e.target.value='';if(!f)return;if(f.size>12*1024*1024){app.notify('Índice muito grande (limite 12 MB).');return}try{const data=JSON.parse(await f.text());if(data.kind!=='rpg-book-index-v1'||!data.book||!Array.isArray(data.chunks)||data.chunks.length>14000)throw Error('Formato inválido. Use o indexador oficial deste protótipo.');const title=cutoff(String(data.book.title||'PDF pessoal'),135),chunks=data.chunks.map(x=>({page:Number(x.page)||0,title:cutoff(x.title||'Trecho do PDF',100),text:cutoff(x.text,1550)})).filter(x=>x.text.trim());if(!chunks.length)throw Error('Arquivo não contém texto pesquisável.');const item={id:'private-'+Array.from(new Uint32Array(2).map(()=>crypto.getRandomValues(new Uint32Array(1))[0])).join('-'),book:{title},chunks};try{await saveBook(item);await loadBooks()}catch{window.rpgVolatileBooks=(window.rpgVolatileBooks||[]).concat(item);refreshBooks(window.rpgVolatileBooks);app.notify('Índice carregado temporariamente; persistência não disponível.')}setStatus('● Busca offline pronta');app.notify('Índice importado: '+chunks.length+' trechos')}
-catch(err){app.notify('Falha no índice: '+err.message)}};
+function refreshBooks(books){
+ privateDocs=core.docsFromIndexes(books,systems()).map(enrich);
+ $('#r11-count').textContent=systems().length+' sistemas, '+systems().reduce((n,s)=>n+(s.books||[]).length,0)+' livros no Drive, '+baseDocs.length+' regras locais e '+privateDocs.length+' trechos privados.';
+ $('#r11-books').innerHTML=books.map(b=>'<div class="r11-book"><span>'+esc(b.book.title)+' <small>('+esc(systems().find(s=>s.id===(b.systemId||'ordem-paranormal'))?.title||'Ordem Paranormal')+' · '+b.chunks.length+' trechos)</small></span><button data-r11-remove="'+esc(b.id)+'" title="Excluir índice local">✕</button></div>').join('');
+}
+async function loadBooks(){
+ try{refreshBooks(await getBooks())}
+ catch{refreshBooks(window.rpgVolatileBooks||[]);setStatus('● Índices carregados temporariamente')}
+}
+$('#r11-import').onchange=async e=>{
+ const f=e.target.files?.[0];e.target.value='';if(!f)return;
+ if(f.size>12*1024*1024){app.notify('Índice maior que 12 MB.');return}
+ try{
+  const systemId=$('#r11-index-system').value;
+  if(!systems().some(s=>s.id===systemId))throw Error('Selecione o sistema correto antes de importar.');
+  const data=JSON.parse(await f.text());
+  if(data.kind!=='rpg-book-index-v1'||!data.book||!Array.isArray(data.chunks)||data.chunks.length>14000)throw Error('Índice inválido. Utilize o indexador do aplicativo.');
+  if(data.systemId&&data.systemId!==systemId)throw Error('O índice pertence a '+data.systemId+'. Selecione o sistema correspondente.');
+  const title=cutoff(data.book.title||'PDF pessoal',135);
+  const chunks=data.chunks.map(x=>({page:Number(x.page)||0,title:cutoff(x.title||'Trecho do PDF',120),text:cutoff(x.text,1550)})).filter(x=>x.text.trim());
+  if(!chunks.length)throw Error('O PDF não contém texto extraível.');
+  const item={id:'private-'+crypto.randomUUID(),systemId,edition:cutoff(data.edition||'','30'),sourceBookId:cutoff(data.sourceBookId||'',160),book:{title},chunks};
+  try{await saveBook(item);await loadBooks()}
+  catch{window.rpgVolatileBooks=(window.rpgVolatileBooks||[]).concat(item);refreshBooks(window.rpgVolatileBooks);app.notify('Índice carregado temporariamente; armazenamento privado indisponível.')}
+  app.notify('Índice de '+esc(systems().find(s=>s.id===systemId)?.title)+' importado: '+chunks.length+' trechos.');
+ }catch(err){app.notify('Não foi possível importar: '+err.message)}
+};
 $('#r11-books').onclick=async e=>{const b=e.target.closest('[data-r11-remove]');if(!b)return;try{await deleteBook(b.dataset.r11Remove);await loadBooks()}catch(err){app.notify('Não foi possível remover: '+err.message)}};
-loadBooks();window.RPG11={search,ask,imported:()=>privateDocs.length,baseCount:baseDocs.length};
+function initSystemSelectors(){
+ const ss=systems();
+ $('#r11-system').innerHTML='<option value="all">Todos os 39 sistemas</option>'+ss.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.title)+'</option>').join('');
+ $('#r11-index-system').innerHTML='<option value="">Selecione um sistema</option>'+ss.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.title)+'</option>').join('');
+ activeSystem=ss.some(x=>x.id===localStorage.getItem('rpg-rules-system'))?localStorage.getItem('rpg-rules-system'):'all';
+ $('#r11-system').value=activeSystem;
+ if(activeSystem!=='all')$('#r11-index-system').value=activeSystem;
+ $('#r11-system').onchange=e=>{activeSystem=e.target.value;localStorage.setItem('rpg-rules-system',activeSystem);if(activeSystem!=='all')$('#r11-index-system').value=activeSystem;setStatus('● Filtro: '+(ss.find(x=>x.id===activeSystem)?.title||'Todos os sistemas'))};
+ $('#r11-edition').onchange=e=>{activeEdition=e.target.value;setStatus('● Edição: '+(activeEdition==='all'?'Todas':activeEdition))};
+ loadBooks();
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initSystemSelectors,{once:true});else setTimeout(initSystemSelectors,0);
+window.RPG11={search,ask,imported:()=>privateDocs.length,baseCount:baseDocs.length,get currentSystem(){return activeSystem}};
 })();
 
 </script><style id="rpg14-base-dice-contrast">
