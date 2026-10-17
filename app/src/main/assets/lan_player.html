@@ -219,6 +219,7 @@ async function refresh(force=false){
   let j=await r.json();if(!r.ok)throw Error(j.error||'Acesso não autorizado');
   const sceneChanged=state&&(state.turn!==j.turn||state.scene!==j.scene);
   if(sceneChanged){$('#rounds').classList.remove('changed');void $('#rounds').offsetWidth;$('#rounds').classList.add('changed')}
+  if(j.character?.systemId==='gurps'){location.reload();return}
   state=j;ownLink=j.permalink||'';
   $('#campaign').textContent=j.campaign;$('#connected').textContent='● Sincronizado com mestre';
   $('#scene').textContent=j.sceneName||('Cena '+j.scene);$('#turn').textContent=j.turn;$('#nickname').textContent=j.nickname;$('#short-id').textContent='#'+j.shortId;
