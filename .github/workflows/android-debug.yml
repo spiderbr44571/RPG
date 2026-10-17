@@ -64,6 +64,8 @@ jobs:
           node --check app/src/main/assets/rpg15_theme_fix.js
           node --check app/src/main/assets/rpg16_gurps_engine.js
           node --check app/src/main/assets/rpg16_gurps_ui.js
+          node --check app/src/main/assets/rpg17_sheet_pdf.js
+          node tests/sheet_pdf.test.cjs
           node tests/gurps4.test.cjs
           python -m py_compile server/mesa_lan.py
           python - <<'PY'
