@@ -58,6 +58,7 @@ jobs:
           node --check app/src/main/assets/rpg08.js
           node --check app/src/main/assets/rpg09.js
           node --check app/src/main/assets/rpg11_campaigns.js
+          node --check app/src/main/assets/rpg14_sheet_tabs.js
           python -m py_compile server/mesa_lan.py
           python - <<'PY'
           import re,json,pathlib
@@ -93,6 +94,12 @@ jobs:
           assert "sceneName" in player and 'visibilitychange' in player
           assert 'permalink' in server and '/resume/' in server
           assert 'playerId' in master and "RpgLocalHost" in master
+          assert 'id="skills"' in player and 'id="inventory"' in player
+          assert 'id="canvas"' in player and 'id="story"' in player
+          assert 'rollFormula' in player and 'SKILLS=' in player
+          assert "rpg14_sheet_tabs.js" in html
+          assert 'savePlayerCanvas' in server and 'playerProfile' in server
+          assert 'sanitizeAttributes' in server
           print('VALIDAÇÃO OK: ficha visual, link permanente e atualizacoes LAN')
           PY
           for file in /tmp/lan_join.html.js /tmp/lan_player.html.js /tmp/lan_master.html.js; do node --check "$file"; done
