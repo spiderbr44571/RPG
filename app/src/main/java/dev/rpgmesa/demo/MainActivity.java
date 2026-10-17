@@ -539,6 +539,8 @@ public final class MainActivity extends Activity {
         if((id+" "+title).matches(".*(instruct|chat).*"))score+=75;
         if(id.matches(".*(qwen|llama|gemini|mistral|minimax|deepseek|gpt|glm|solar|command).*"))score+=25;
         if(id.matches(".*(reason|thinking|/r1[-:]|nemotron-3-super|nemotron-3-ultra).*"))score-=25;
+        if(id.matches(".*(?:^|[-/])(?:3b|4b|7b|8b|9b|12b|14b)(?:[-/:]|$).*"))score+=12;
+        if(id.matches(".*(70b|72b|100b|120b|200b|235b|405b).*"))score-=16;
         if(item.optInt("context_length",0)>=32000)score+=5;
         return score;
       }
