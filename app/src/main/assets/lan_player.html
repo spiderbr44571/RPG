@@ -171,15 +171,15 @@ $('#abilities').onclick=async e=>{
  }
 };
 $('#story').onclick=e=>{if(e.target.id==='save-story')saveProfile({description:$('#description').value,history:$('#history').value})};
-let dragging=null,scale=1;
+let dragging=null,panDragging=null,scale=1,pan={x:0,y:0};
 function renderCanvas(){
  const e=$('#canvas');if(!e)return;
  e.innerHTML='<h3>Canvas pessoal</h3><p class="muted">Arraste notas pelo espaço infinito. As alterações são guardadas no servidor da sua campanha, mas não aparecem no canvas privado do mestre.</p><div class="row"><button id="add-note" class="primary">+ Nota</button><button id="save-canvas">Salvar canvas</button><button id="zoom-in">Aproximar</button><button id="zoom-out">Afastar</button><span id="zoom-label"></span></div>'+
- '<div class="canvas-viewport" id="canvas-space"><div id="canvas-world" style="transform-origin:0 0;position:absolute;inset:0;transform:scale('+scale+')">'+canvasNodes.map((n,i)=>'<div class="note-card" data-note="'+i+'" style="left:'+Number(n.x||0)+'px;top:'+Number(n.y||0)+'px"><div class="title" data-drag="'+i+'">'+esc(n.title||'Nova nota')+'</div><p>'+esc(n.text||'')+'</p><button data-edit="'+i+'">Editar</button> <button data-delete="'+i+'">Excluir</button></div>').join('')+'</div></div>';
+ '<div class="canvas-viewport" id="canvas-space"><div id="canvas-world" style="transform-origin:0 0;position:absolute;inset:0;transform:translate('+pan.x+'px,'+pan.y+'px) scale('+scale+')">'+canvasNodes.map((n,i)=>'<div class="note-card" data-note="'+i+'" style="left:'+Number(n.x||0)+'px;top:'+Number(n.y||0)+'px"><div class="title" data-drag="'+i+'">'+esc(n.title||'Nova nota')+'</div><p>'+esc(n.text||'')+'</p><button data-edit="'+i+'">Editar</button> <button data-delete="'+i+'">Excluir</button></div>').join('')+'</div></div>';
  $('#zoom-label').textContent=Math.round(scale*100)+'%';
 }
 $('#canvas').onclick=async e=>{
- if(e.target.closest('#add-note')){let title=prompt('Título da nota','Anotação');if(title===null)return;canvasNodes.push({id:'n'+Date.now()+'-'+Math.floor(Math.random()*1000),title:title.slice(0,90),text:'',x:30,y:30});renderCanvas()}
+ if(e.target.closest('#add-note')){let title=prompt('Título da nota','Anotação');if(title===null)return;const vp=$('#canvas-space');const x=((vp?.clientWidth||300)/2-pan.x)/scale,y=((vp?.clientHeight||300)/2-pan.y)/scale;canvasNodes.push({id:'n'+Date.now()+'-'+Math.floor(Math.random()*1000),title:title.slice(0,90),text:'',x,y});renderCanvas()}
  if(e.target.closest('#save-canvas')){try{await post('canvas',{nodes:canvasNodes});message('Canvas sincronizado com o servidor')}catch(err){message(err.message)}}
  if(e.target.closest('#zoom-in')){scale=Math.min(2,scale+.2);renderCanvas()}
  if(e.target.closest('#zoom-out')){scale=Math.max(.4,scale-.2);renderCanvas()}
@@ -187,19 +187,30 @@ $('#canvas').onclick=async e=>{
  let dl=e.target.closest('[data-delete]');if(dl&&confirm('Excluir esta nota?')){canvasNodes.splice(Number(dl.dataset.delete),1);renderCanvas()}
 };
 $('#canvas').addEventListener('pointerdown',e=>{
- const b=e.target.closest('[data-drag]');if(!b)return;
+ const b=e.target.closest('[data-drag]');
+ if(!b){
+   const viewport=e.target.closest('#canvas-space');
+   if(!viewport||e.target.closest('button'))return;
+   panDragging={x:e.clientX,y:e.clientY,ox:pan.x,oy:pan.y};
+   viewport.setPointerCapture(e.pointerId);e.preventDefault();return;
+ }
  const index=Number(b.dataset.drag),n=canvasNodes[index];if(!n)return;
  dragging={index,x:e.clientX,y:e.clientY,ox:Number(n.x)||0,oy:Number(n.y)||0};
  b.setPointerCapture(e.pointerId);e.preventDefault()
 });
 $('#canvas').addEventListener('pointermove',e=>{
+ if(panDragging){
+   pan.x=panDragging.ox+(e.clientX-panDragging.x);pan.y=panDragging.oy+(e.clientY-panDragging.y);
+   const world=$('#canvas-world');if(world)world.style.transform='translate('+pan.x+'px,'+pan.y+'px) scale('+scale+')';
+   return;
+ }
  if(!dragging)return;let n=canvasNodes[dragging.index],el=$('[data-note="'+dragging.index+'"]');if(!n||!el)return;
  n.x=Math.max(-100000,Math.min(100000,dragging.ox+(e.clientX-dragging.x)/scale));
  n.y=Math.max(-100000,Math.min(100000,dragging.oy+(e.clientY-dragging.y)/scale));
  el.style.left=n.x+'px';el.style.top=n.y+'px';
 });
-$('#canvas').addEventListener('pointerup',()=>dragging=null);
-$('#canvas').addEventListener('pointercancel',()=>dragging=null);
+$('#canvas').addEventListener('pointerup',()=>{dragging=null;panDragging=null});
+$('#canvas').addEventListener('pointercancel',()=>{dragging=null;panDragging=null});
 async function loadCanvas(){try{let r=await fetch('/api/play/'+cid+'/canvas',{credentials:'same-origin',cache:'no-store'});let out=await r.json();if(r.ok&&Array.isArray(out.nodes)){canvasNodes=out.nodes;if(tab==='canvas')renderCanvas()}}catch{}}
 async function refresh(force=false){
  if(networkBusy)return;networkBusy=true;
