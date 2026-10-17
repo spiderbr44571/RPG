@@ -1,10 +1,107 @@
-<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ficha do jogador</title><style>
-:root{--bg:#0c0e16;--panel:#1c1c28;--line:#574d57;--accent:#dca4bd;--fg:#f1e8e3;--muted:#afa1b0}
-*{box-sizing:border-box}body{background:radial-gradient(circle at 85% 0,#54203644,transparent 45%),var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif;margin:0;padding:18px}main{max-width:1050px;margin:0 auto}h1,h2,h3{font-family:Georgia,serif;font-weight:normal;color:#f3c8dc}h1{font-size:32px}.muted,small{color:var(--muted)}section,article{border:1px solid var(--line);background:var(--panel);border-radius:15px;padding:16px;margin:13px 0}label{display:block;margin:10px 0 5px}input,select,textarea,button{font:inherit;max-width:100%;border-radius:9px;border:1px solid #6b596c;background:#10121b;color:var(--fg);padding:10px;min-height:42px}input[type=text],input[type=password],textarea{width:100%}textarea{min-height:145px;resize:vertical;font-family:monospace}button{cursor:pointer}button.primary{background:#834267;color:white;border-color:#e4a2c6}button.danger{background:#3a1c24;color:#ffb6bd}.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}.grid article{margin:0}.status{border-left:3px solid var(--accent);padding:10px;background:#17141f;border-radius:6px}a{color:#efb6d3}.pill{display:inline-block;border-radius:99px;border:1px solid #8d6785;padding:4px 10px;font-size:11px}code{word-break:break-all}.res{display:flex;align-items:center;gap:8px;margin:13px 0}.res strong{min-width:65px}.res button{min-width:44px}.res span{min-width:75px;text-align:center}.portrait{width:76px;height:76px;object-fit:cover;border-radius:10px}.head{display:flex;gap:16px;align-items:center}.hidden{display:none!important}@media(max-width:540px){body{padding:12px}.grid{grid-template-columns:1fr}}
-</style><main><header><h1>✧ Minha campanha</h1><p class="muted" id="header">Sincronizando com o mestre...</p></header><section id="sheet"><p>Carregando...</p></section><p id="feedback" role="status"></p></main>
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="referrer" content="no-referrer"><title>RPG Mesa · Minha ficha</title>
+<style>
+:root{--accent:#b684cf;--bg:#0d0e18;--card:#1a1b29;--text:#f6ecf5;--muted:#a9a2b5;--line:#ffffff24;--scale:1}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 0,color-mix(in srgb,var(--accent) 24%,transparent),transparent 55%),var(--bg);color:var(--text);font:calc(14px * var(--scale))/1.5 system-ui,sans-serif;min-height:100dvh}
+body[data-mode="light"]{--bg:#f7f3fa;--card:#fff;--text:#241d2e;--muted:#625a70;--line:#4c345028}
+body[data-theme="sangue"]{--accent:#eb546f}body[data-theme="conhecimento"]{--accent:#e1b55b}body[data-theme="energia"]{--accent:#af7cfa}body[data-theme="morte"]{--accent:#a8b4ab}body[data-theme="medo"]{--accent:#ecd9fa}
+body[data-theme="base"]{--accent:var(--custom,#b684cf)}
+button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}main{max-width:860px;margin:auto;padding:19px 14px 100px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+.eyebrow{letter-spacing:.17em;text-transform:uppercase;color:var(--accent);font-size:10px;font-weight:700}
+h1,h2,h3{font-family:Georgia,serif;line-height:1.1;font-weight:normal}h1{font-size:31px;margin:5px 0}h2{font-size:24px}h3{font-size:19px;margin:0 0 14px}
+button{border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--card) 88%,var(--accent));padding:11px;min-height:43px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+button:disabled{opacity:.55;cursor:not-allowed}
+button.primary{background:var(--accent);color:#15131c;font-weight:700}
+.round-status{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.round-status>div{border:1px solid var(--line);background:var(--card);border-radius:15px;padding:13px}
+.round-status small,.resource small,.small{display:block;color:var(--muted);font-size:11px}.round-status strong{font-size:21px;font-family:Georgia,serif}.round-status.changed{animation:flash .65s ease}@keyframes flash{0%{box-shadow:0 0 40px var(--accent)}to{box-shadow:none}}
+section{border:1px solid var(--line);background:var(--card);border-radius:16px;padding:17px;margin-bottom:14px}
+.hero{display:flex;align-items:center;gap:17px}.avatar{width:82px;height:93px;border-radius:14px;object-fit:cover;background:var(--bg);border:1px solid var(--accent)}
+.char-name{font-size:26px;margin:0 0 7px;overflow-wrap:anywhere}.pill{border:1px solid color-mix(in srgb,var(--accent) 65%,transparent);border-radius:99px;padding:5px 10px;color:var(--accent);font-size:11px;display:inline-block}
+.resource{margin:15px 0}.resource-head{display:flex;gap:10px;align-items:center;justify-content:space-between}.resource-head strong{min-width:75px}.resource-controls{display:flex;align-items:center;gap:9px}.resource-controls button{min-width:44px;padding:7px}.resource-controls output{min-width:75px;text-align:center}
+.track{height:10px;background:#0004;border-radius:99px;margin-top:6px;overflow:hidden}.track span{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .25s}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.stat{border:1px solid var(--line);border-radius:10px;text-align:center;padding:12px 4px}.stat small{display:block;color:var(--muted);font-size:10px}.stat strong{font-size:24px}
+#feedback{min-height:25px;color:var(--muted);font-size:12px}#prefs[hidden],#notes[hidden]{display:none}
+.field{display:flex;flex-direction:column;gap:5px;margin:12px 0}.field select,.field input,.field textarea{background:var(--bg);padding:9px;border:1px solid var(--line);border-radius:9px;min-height:40px;max-width:100%}
+input[type=color]{height:45px;width:80px;padding:2px}textarea{width:100%;min-height:110px;resize:vertical}
+.effects-list p{padding:8px 10px;border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--bg));border-radius:5px}
+#toast{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);border:1px solid var(--accent);border-radius:14px;background:var(--card);color:var(--text);padding:11px 17px;box-shadow:0 10px 45px #0009;opacity:0;transition:opacity .2s;pointer-events:none;max-width:95vw;text-align:center;z-index:2}#toast.visible{opacity:1}
+.d20{position:fixed;bottom:max(14px,env(safe-area-inset-bottom));right:18px;border:2px solid var(--accent);border-radius:50%;width:55px;height:55px;padding:0;background:var(--card);box-shadow:0 0 18px color-mix(in srgb,var(--accent) 35%,transparent);font-size:20px;z-index:1}
+.d20.roll{animation:roll .85s cubic-bezier(.2,.9,.3,1)}@keyframes roll{0%{transform:translateY(0) rotate(0)}40%{transform:translateY(-22px) rotate(210deg)}100%{transform:translateY(0) rotate(720deg)}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition:none!important}}
+</style>
+<main>
+<header><div><div class="eyebrow">RPG MESA • FICHA DO JOGADOR</div><h1 id="campaign-name">Sua campanha</h1><small id="connection" class="small">Sincronizando...</small></div><button id="show-prefs" type="button" aria-expanded="false" aria-controls="prefs">⚙ Aparência</button></header>
+<div class="round-status" id="round-status" aria-live="polite"><div><small>CENA ATUAL</small><strong id="scene">—</strong></div><div><small>RODADA</small><strong id="turn">—</strong></div></div>
+<section id="identity"><div class="eyebrow">SEU ACESSO PERMANENTE</div><div class="row"><strong id="identity-name">Aguardando...</strong><span id="identity-tag" class="pill"></span></div><p class="small">Este endereço identifica sua participação. Guarde-o para voltar à mesma ficha.</p><button id="copy-link">Copiar meu link</button></section>
+<section id="prefs" hidden><h3>Personalização da sua tela</h3><p class="small">Essas preferências são privadas deste navegador e não alteram as regras nem a aparência dos outros jogadores.</p>
+<label class="field">Tema<select id="theme"><option value="base">Base (cor personalizada)</option><option value="sangue">Sangue</option><option value="conhecimento">Conhecimento</option><option value="energia">Energia</option><option value="morte">Morte</option><option value="medo">Medo</option></select></label>
+<label class="field">Cor personalizada<input type="color" id="accent" value="#b684cf"></label>
+<label class="field">Modo visual<select id="mode"><option value="dark">Escuro</option><option value="light">Claro</option></select></label>
+<label class="field">Tamanho dos textos<select id="scale"><option value="0.9">Compacto</option><option value="1">Normal</option><option value="1.15">Ampliado</option><option value="1.3">Grande</option></select></label></section>
+<section id="sheet"><p>Carregando ficha...</p></section>
+<section id="notes"><h3>Anotações pessoais</h3><p class="small">Visíveis somente neste navegador, não compartilhadas com o mestre.</p><textarea id="note" placeholder="Suas anotações..."></textarea><button id="save-note">Salvar anotações</button></section>
+<p id="feedback" role="status"></p>
+</main><button class="d20" id="roll-die" title="Rolar d20" aria-label="Rolar d20">20</button><div id="toast" role="status"></div>
 <script>
-'use strict';const $=s=>document.querySelector(s),id=location.pathname.split('/')[2],esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let current=null;
-async function refresh(){try{let r=await fetch('/api/play/'+id,{cache:'no-store'});let d=await r.json();if(!r.ok)throw Error(d.error||'Sessão expirada');$('#header').textContent=d.campaign+' • '+d.sceneName+' • Rodada '+d.turn+' • '+d.nickname;if(!d.character){current=null;$('#sheet').innerHTML='<h2>Aguardando o mestre</h2><p>Sua entrada foi registrada. O mestre pode aprovar sua ficha ou atribuir outra.</p>';return}current=d.character;let s=current;let photo=s.photo&&/^data:image\/(png|jpeg|webp);base64,/.test(s.photo)?'<img class="portrait" alt="Personagem" src="'+esc(s.photo)+'">':'';$('#sheet').innerHTML='<div class="head">'+photo+'<div><h2>'+esc(s.name)+'</h2><small>'+esc(s.class||'')+' · NEX '+esc(s.nex??5)+'%</small></div></div><hr><h3>Recursos atuais</h3>'+Object.entries(s.resources||{}).filter(([k,v])=>['PV','PE','SAN'].includes(k)&&v&&typeof v==='object').map(([k,v])=>'<div class="res"><strong>'+esc(k)+'</strong><button data-resource="'+esc(k)+'" data-delta="-1">−</button><span>'+Number(v.current)+' / '+Number(v.max)+'</span><button data-resource="'+esc(k)+'" data-delta="1">+</button></div>').join('')+'<h3>Atributos</h3><p>'+Object.entries(s.attrs||{}).map(([k,v])=>esc(k)+': '+esc(v)).join(' · ')+'</p><h3>Rituais conhecidos</h3><p>'+esc((s.rituaisConhecidos||[]).join(', ')||'Nenhum')+'</p><h3>Efeitos</h3>'+((s.effects||[]).map(e=>'<p>'+esc(e.name)+' · '+esc(e.unit)+(e.remaining?' · '+e.remaining+' turnos':'')+'</p>').join('')||'<p>Nenhum efeito ativo</p>')}catch(e){$('#feedback').textContent=e.message}}
-$('#sheet').onclick=async e=>{let b=e.target.closest('[data-resource]');if(!b||!current)return;let k=b.dataset.resource,res=current.resources[k],currentValue=Number(res.current)+Number(b.dataset.delta);currentValue=Math.min(Number(res.max),Math.max(0,currentValue));try{let r=await fetch('/api/play/'+id+'/resource',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({resource:k,current:currentValue})});let d=await r.json();if(!r.ok)throw Error(d.error||'Erro');await refresh()}catch(err){$('#feedback').textContent=err.message}};
+'use strict';
+const $=s=>document.querySelector(s),campaignId=location.pathname.split('/')[2];
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const prefKey='rpg-player-theme:'+campaignId;let active=null, lastRevision=-1, syncPending=false, ownLink='', everSynced=false;
+const prefs=(()=>{try{return JSON.parse(localStorage.getItem(prefKey))||{}}catch{return {}}})();
+const themeNames=['base','sangue','conhecimento','energia','morte','medo'];
+function applyPrefs(){
+ const theme=themeNames.includes(prefs.theme)?prefs.theme:'base';
+ const color=/^#[0-9a-fA-F]{6}$/.test(prefs.accent||'')?prefs.accent:'#b684cf';
+ document.body.dataset.theme=theme;document.body.dataset.mode=prefs.mode==='light'?'light':'dark';
+ document.body.style.setProperty('--custom',color);document.body.style.setProperty('--scale',String(Math.min(1.3,Math.max(.9,Number(prefs.scale)||1))));
+ $('#theme').value=theme;$('#accent').value=color;$('#mode').value=document.body.dataset.mode;$('#scale').value=String(Number(prefs.scale)||1);
+}
+function savePrefs(){prefs.theme=$('#theme').value;prefs.accent=$('#accent').value;prefs.mode=$('#mode').value;prefs.scale=$('#scale').value;localStorage.setItem(prefKey,JSON.stringify(prefs));applyPrefs()}
+for(const key of ['theme','accent','mode','scale'])$('#'+key).addEventListener('change',savePrefs);
+applyPrefs();
+$('#show-prefs').onclick=()=>{let p=$('#prefs');p.hidden=!p.hidden;$('#show-prefs').setAttribute('aria-expanded',String(!p.hidden))};
+$('#note').value=localStorage.getItem('rpg-private-notes:'+campaignId)||'';
+$('#save-note').onclick=()=>{localStorage.setItem('rpg-private-notes:'+campaignId,$('#note').value);message('Anotações salvas neste navegador')};
+function message(x){$('#feedback').textContent=x}
+function toast(x){const t=$('#toast');t.textContent=x;t.classList.add('visible');setTimeout(()=>t.classList.remove('visible'),2000)}
+async function refresh(){
+ if(syncPending)return;syncPending=true;
+ try{
+  const r=await fetch('/api/play/'+encodeURIComponent(campaignId)+'?t='+Date.now(),{cache:'no-store',credentials:'same-origin',referrerPolicy:'no-referrer'});
+  const j=await r.json();if(!r.ok)throw Error(j.error||'Sessão inválida');
+  const changed=everSynced&&(j.turn!==active?.turn||j.scene!==active?.scene);
+  if(changed){$('#round-status').classList.remove('changed');void $('#round-status').offsetWidth;$('#round-status').classList.add('changed');toast(j.scene!==active.scene?'O mestre iniciou outra cena':'Nova rodada: '+j.turn)}
+  active=j;everSynced=true;$('#campaign-name').textContent=j.campaign;
+  $('#scene').textContent=j.sceneName||('Cena '+j.scene);$('#turn').textContent=j.turn;
+  $('#identity-name').textContent=j.nickname;$('#identity-tag').textContent='#'+j.shortId;
+  ownLink=j.permalink;$('#connection').textContent='● Sincronizado com a mesa';
+  if(!j.character){$('#sheet').innerHTML='<h2>Aguardando atribuição</h2><p class="small">O mestre já recebeu sua entrada. Sua ficha será exibida aqui quando ele aprovar ou atribuir um personagem.</p>';return}
+  let s=j.character,photo=s.photo&&/^data:image\/(png|jpeg|webp);base64,/.test(s.photo)?'<img class="avatar" src="'+esc(s.photo)+'" alt="Retrato do personagem">':'';
+  $('#sheet').innerHTML='<div class="hero">'+photo+'<div><div class="eyebrow">PERSONAGEM • '+esc(s.class||'')+'</div><h2 class="char-name">'+esc(s.name||'Agente')+'</h2><span class="pill">NEX '+esc(s.nex||5)+'%</span></div></div><hr>'
+   +'<h3 style="margin-top:20px">Recursos</h3>'+Object.entries(s.resources||{}).filter(([k,v])=>['PV','PE','SAN'].includes(k)&&v&&typeof v==='object').map(([k,v])=>{
+     let mx=Number(v.max)||0,cur=Number(v.current)||0,pct=mx>0?Math.max(0,Math.min(100,100*cur/mx)):0;
+     return '<div class="resource"><div class="resource-head"><strong>'+esc(k)+'</strong><div class="resource-controls"><button data-resource="'+esc(k)+'" data-delta="-1">−</button><output>'+cur+' / '+mx+'</output><button data-resource="'+esc(k)+'" data-delta="1">+</button></div></div><div class="track"><span style="width:'+pct+'%"></span></div></div>'}).join('')
+   +'<h3 style="margin-top:22px">Atributos</h3><div class="grid">'+Object.entries(s.attrs||{}).map(([k,v])=>'<div class="stat"><small>'+esc(k)+'</small><strong>'+esc(v)+'</strong></div>').join('')+'</div>'
+   +'<h3 style="margin-top:22px">Rituais conhecidos</h3><p>'+esc((s.rituaisConhecidos||[]).join(' · ')||'Nenhum registrado')+'</p>'
+   +'<h3>Efeitos ativos</h3><div class="effects-list">'+((s.effects||[]).map(e=>'<p>'+esc(e.name)+' · '+esc(e.unit)+(e.remaining?' · '+e.remaining+' rodadas':'')+'</p>').join('')||'<p class="small">Nenhum efeito aplicado</p>')+'</div>';
+  $('#feedback').textContent='';
+ }catch(e){$('#connection').textContent='● Desconectado · tentando novamente';message(e.message)}
+ finally{syncPending=false}
+}
+$('#sheet').onclick=async e=>{
+ const b=e.target.closest('[data-resource]');if(!b||!active?.character)return;
+ const k=b.dataset.resource,v=active.character.resources[k];if(!v)return;
+ const value=Math.max(0,Math.min(Number(v.max),Number(v.current)+Number(b.dataset.delta)));
+ try{let r=await fetch('/api/play/'+encodeURIComponent(campaignId)+'/resource',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({resource:k,current:value})});let data=await r.json();if(!r.ok)throw Error(data.error||'Falha');await refresh()}
+ catch(err){message(err.message)}
+};
+$('#copy-link').onclick=async()=>{if(!ownLink)return message('Aguardando link...');try{await navigator.clipboard.writeText(ownLink);toast('Link pessoal copiado')}catch{message('Copie este link: '+ownLink)}};
+function d20(){const buf=new Uint32Array(1),limit=Math.floor(4294967296/20)*20;do{crypto.getRandomValues(buf)}while(buf[0]>=limit);return 1+buf[0]%20}
+$('#roll-die').onclick=()=>{const n=d20(),b=$('#roll-die');b.textContent=n;b.classList.remove('roll');void b.offsetWidth;b.classList.add('roll');toast('Rolagem: d20 → '+n)};
 refresh();setInterval(()=>{if(document.visibilityState==='visible')refresh()},2000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
+window.addEventListener('focus',refresh);window.addEventListener('pageshow',refresh);
 </script></html>
