@@ -12,24 +12,27 @@
  const limit=(s,n)=>plain(s).slice(0,n);
  function cleanName(x){return limit(x||'personagem',65).toLowerCase().replace(/[^a-z0-9._-]+/g,'-').replace(/^-+|-+$/g,'')||'personagem'}
  function check(data){
-  if(!data||data.kind!==SCHEMA||!['gurps','sistema-op-v13'].includes(data.systemId)||!data.sheet||typeof data.sheet!=='object'||Array.isArray(data.sheet))throw Error('PDF sem uma ficha compativel do aplicativo.');
+  if(!data||data.kind!==SCHEMA||!['gurps','sistema-op-v13','d-d'].includes(data.systemId)||!data.sheet||typeof data.sheet!=='object'||Array.isArray(data.sheet))throw Error('PDF sem uma ficha compativel do aplicativo.');
   if(data.systemId==='gurps' && (data.sheet.systemId!=='gurps'||data.sheet.edition!=='4e'||!data.sheet.attrs||!data.sheet.mod))throw Error('Dados GURPS incompatíveis.');
   if(data.systemId==='sistema-op-v13' && (typeof data.sheet.class!=='string'||!data.sheet.attrs||!data.sheet.resources))throw Error('Dados de Ordem Paranormal incompatíveis.');
+  if(data.systemId==='d-d' && (data.sheet.systemId!=='d-d'||data.sheet.edition!=='5e-2014'||!data.sheet.attrs||!data.sheet.klass))throw Error('Dados de D&D 5e (2014) incompatíveis.');
   if(data.items!==undefined && !Array.isArray(data.items))throw Error('Inventario invalido.');
   if(te.encode(JSON.stringify(data)).length>1_900_000)throw Error('Ficha excede 1,9 MB. Reduza o tamanho dos retratos.');
   return data;
  }
  function summarize(data){
-  const s=data.sheet,prefix=data.systemId==='gurps'?'GURPS 4a EDICAO':'ORDEM PARANORMAL 1.3';
+  const s=data.sheet,prefix=data.systemId==='gurps'?'GURPS 4a EDICAO':data.systemId==='d-d'?'D&D 5E 2014':'ORDEM PARANORMAL 1.3';
   const lines=[
    'RPG MESA  |  FICHA PORTATIL',prefix,'Personagem: '+limit(s.name||'Sem nome',85),
    'Formato: '+SCHEMA,'Esta ficha inclui dados completos no anexo JSON do PDF.','','ATRIBUTOS'
   ];
-  const keys=data.systemId==='gurps'?['ST','DX','IQ','HT']:['Força','Agilidade','Vigor','Intelecto','Presença'];
+  const keys=data.systemId==='gurps'?['ST','DX','IQ','HT']:data.systemId==='d-d'?['STR','DEX','CON','INT','WIS','CHA']:['Força','Agilidade','Vigor','Intelecto','Presença'];
   for(const k of keys)lines.push(limit(k,26)+': '+limit(s.attrs?.[k]??'-',40));
   lines.push('','RECURSOS E PROGRESSAO');
   if(data.systemId==='gurps'){
    lines.push('HP atual: '+limit(s.currentHP,24),'FP atual: '+limit(s.currentFP,24),'Pontos: '+limit(s.pointBudget,24),'Edicao: 4e');
+  }else if(data.systemId==='d-d'){
+   lines.push('Classe: '+limit(s.klass,60),'Nivel: '+limit(s.level,20),'Antecedente: '+limit(s.background,60),'PV: '+limit(s.hitPointsCurrent,16)+' / '+limit(s.hitPointsMax,16));
   }else{
    lines.push('Classe: '+limit(s.class,60),'Origem: '+limit(s.origin,60),'Trilha: '+limit(s.trail,60),'NEX: '+limit(s.nex,20));
    for(const [k,v] of Object.entries(s.resources||{}).slice(0,18))lines.push(limit(k,30)+': '+limit(v,50));
@@ -42,6 +45,12 @@
    add('EQUIPAMENTO',s.items,v=>v.name+' | qtd '+(v.qty||1));
    add('ARMAS',s.weapons,v=>v.name+' | '+(v.damage||''));
    add('MAGIAS',s.spells,v=>v.name);
+  }else if(data.systemId==='d-d'){
+   add('PERICIAS TREINADAS',s.skillProficiencies,v=>v);
+   add('ESPECIALIZACOES',s.expertise,v=>v);
+   add('MAGIAS',s.spells,v=>v.name||v);
+   add('INVENTARIO',s.inventory,v=>v.name||v);
+   add('HABILIDADES',s.features,v=>v.name||v);
   }else{
    const skills=s.skills||{};lines.push('', 'PERICIAS');
    for(const [key,value] of Object.entries(skills).slice(0,65))lines.push(limit(key,42)+': '+limit(JSON.stringify(value),55));
@@ -99,7 +108,7 @@
   return check(obj);
  }
  function exported(systemId,sheet,items){
-  return check({kind:SCHEMA,systemId,edition:systemId==='gurps'?'4e':'1.3',exportedAt:new Date().toISOString(),sheet:copy(sheet),...(items?{items:copy(items)}:{})});
+  return check({kind:SCHEMA,systemId,edition:systemId==='gurps'?'4e':systemId==='d-d'?'5e-2014':'1.3',exportedAt:new Date().toISOString(),sheet:copy(sheet),...(items?{items:copy(items)}:{})});
  }
  function saveBytes(bytes,filename){
   if(typeof window==='undefined')return;
@@ -135,6 +144,10 @@
    if(!mod?.importObject)throw Error('Modulo GURPS nao carregado.');
    mod.importObject(data.sheet);mod.open();return;
   }
+  if(data.systemId==='d-d'){
+   const mod=window.RPG18_DND;if(!mod?.importObject)throw Error('Modulo D&D 5e nao carregado.');
+   mod.importObject(data.sheet);mod.open();return;
+  }
   storeOP(data);
  }
  function attachOP(){
@@ -167,6 +180,17 @@
    }catch(err){message(el,err.message,true)}});
   el.querySelector('input').addEventListener('change',e=>readFile(e,el));
  }
+ function attachDnd(box){
+  if(!box||box.querySelector('.r17-export-panel'))return;
+  const el=document.createElement('section');el.className='r17-export-panel';
+  el.innerHTML='<h3>Ficha D&D 5e em PDF</h3><p>PDF legivel com dados completos anexados em JSON. Importar cria um novo personagem.</p><div class="r17-actions"><button type="button" data-r17="dnd-export">Exportar ficha em PDF</button><label>Importar ficha PDF<input type="file" accept=".pdf,application/pdf" data-r17="dnd-import" hidden></label></div><small class="r17-msg" aria-live="polite"></small>';
+  box.appendChild(el);
+  el.addEventListener('click',e=>{if(!e.target.closest('[data-r17="dnd-export"]'))return;
+   try{const s=window.RPG18_DND?.current;if(!s)throw Error('Crie uma ficha D&D primeiro.');
+    saveBytes(makePdf(exported('d-d',s)),'dnd5e-'+(s.name||'personagem')+'.pdf');message(el,'PDF preparado.');
+   }catch(err){message(el,err.message,true)}});
+  el.querySelector('input').addEventListener('change',e=>readFile(e,el));
+ }
  async function readFile(e,box){
   const file=e.target.files?.[0];e.target.value='';if(!file)return;
   try{
@@ -182,5 +206,5 @@
   const style=document.createElement('style');style.textContent='.r17-export-panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;margin:13px 0;padding:16px}.r17-export-panel h3{font:600 23px Cormorant Garamond,Georgia,serif;margin:0 0 5px}.r17-export-panel p{font-size:11px;color:var(--muted);line-height:1.6}.r17-actions{display:flex;gap:10px;flex-wrap:wrap}.r17-actions button,.r17-actions label{display:inline-flex;align-items:center;justify-content:center;padding:11px 13px;border:1px solid var(--accent);color:var(--fg);background:var(--panel2);border-radius:9px;cursor:pointer;font:600 12px system-ui}.r17-actions button{background:var(--accent);color:#15121b}.r17-msg{display:block;margin-top:8px}';document.head.appendChild(style);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attachOP,{once:true});else attachOP();
  }
- return {SCHEMA,makePdf,readPdf,exported,check,attachOP,attachGurps,summarize};
+ return {SCHEMA,makePdf,readPdf,exported,check,attachOP,attachGurps,attachDnd,summarize};
 });
