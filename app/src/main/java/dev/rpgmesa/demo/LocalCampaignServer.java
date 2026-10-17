@@ -145,7 +145,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
     }
     throw new IllegalArgumentException(what+" não encontrado");
   }
-  private static JSONObject sheet(JSONObject input){
+  private static JSONObject sheet(JSONObject input) throws JSONException{
     if(input==null)throw new IllegalArgumentException("Ficha inválida");
     if(input.toString().length()>240000)throw new IllegalArgumentException("Ficha muito grande");
     JSONObject s=new JSONObject(input.toString());
@@ -398,7 +398,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
           return r;
         }
       }
-      if(p.length==5&&p[1].equals("api")&&p[2].equals("play")&&p[4].equals("resource")&&method.equals("PATCH")){
+      if(p.length==5&&p[1].equals("api")&&p[2].equals("play")&&p[4].equals("resource")&&(method.equals("PATCH")||method.equals("POST"))){
         String cid=p[3];
         synchronized(lock){
           JSONObject player=checkPlayer(cid,cookie(s,"rpg_guest"));
@@ -421,7 +421,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
         String cid=p[4];
         if(p.length==6&&p[5].equals("characters")&&method.equals("POST"))
           return response(201,addSheet(cid,b.getJSONObject("sheet")));
-        if(p.length==7&&p[5].equals("characters")&&method.equals("PUT")){
+        if(p.length==7&&p[5].equals("characters")&&(method.equals("PUT")||method.equals("POST"))){
           updateSheet(cid,p[6],b.getJSONObject("sheet"));return json(200,"ok","true");
         }
         if(p.length==6&&p[5].equals("assign")&&method.equals("POST")){
@@ -437,7 +437,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
         if(p.length==6&&p[5].equals("effects")&&method.equals("POST")){
           effect(cid,b.getString("characterId"),b);return json(200,"ok","true");
         }
-        if(p.length==6&&p[5].equals("canvas")&&method.equals("PUT")){
+        if(p.length==6&&p[5].equals("canvas")&&(method.equals("PUT")||method.equals("POST"))){
           canvas(cid,b.getJSONArray("nodes"));return json(200,"ok","true");
         }
       }
