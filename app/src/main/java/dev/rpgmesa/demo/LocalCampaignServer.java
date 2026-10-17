@@ -171,7 +171,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
     synchronized(lock){
       JSONObject c=campaign(cid);
       if(c.getJSONArray("characters").length()>=200)throw new IllegalArgumentException("Limite de fichas");
-      JSONObject o=new JSONObject().put("id",UUID.randomUUID().toString()).put("sheet",sheet(payload));
+      JSONObject o=new JSONObject().put("id",UUID.randomUUID().toString().replace("-","")).put("sheet",sheet(payload));
       c.getJSONArray("characters").put(o);persist();
       return new JSONObject().put("id",o.getString("id"));
     }
@@ -181,7 +181,10 @@ public final class LocalCampaignServer extends NanoHTTPD {
       JSONObject data=new JSONObject(campaign(cid).toString());
       data.remove("invite");
       JSONArray players=data.getJSONArray("players");
-      for(int i=0;i<players.length();i++)players.getJSONObject(i).remove("secret");
+      for(int i=0;i<players.length();i++){
+        JSONObject p=players.getJSONObject(i);
+        p.remove("secret");p.put("hasProposal",p.optJSONObject("proposedSheet")!=null);
+      }
       data.put("invite",invite(campaign(cid)));
       return data;
     }
@@ -249,7 +252,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       int rem=body.optInt("remaining",0);
       if(unit.equals("turn")&&(rem<1||rem>999))throw new IllegalArgumentException("Turnos inválidos");
       JSONArray effects=s.optJSONArray("effects");if(effects==null){effects=new JSONArray();s.put("effects",effects);}
-      effects.put(new JSONObject().put("id",UUID.randomUUID().toString()).put("name",field(body,"name",80))
+      effects.put(new JSONObject().put("id",UUID.randomUUID().toString().replace("-","")).put("name",field(body,"name",80))
        .put("unit",unit).put("remaining",unit.equals("turn")?rem:JSONObject.NULL)
        .put("notes",body.optString("notes","").substring(0,Math.min(500,body.optString("notes","").length()))));
       persist();
@@ -385,7 +388,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
           if(players.length()>=40)return json(400,"error","Campanha cheia");
           JSONObject prop=b.optJSONObject("sheet");
           if(prop!=null)prop=sheet(prop);
-          JSONObject pl=new JSONObject().put("id",UUID.randomUUID().toString()).put("secret",newToken())
+          JSONObject pl=new JSONObject().put("id",UUID.randomUUID().toString().replace("-","")).put("secret",newToken())
             .put("nickname",field(b,"nickname",40)).put("status","aguardando")
             .put("characterId",JSONObject.NULL).put("proposedSheet",prop==null?JSONObject.NULL:prop);
           players.put(pl);persist();
