@@ -1561,7 +1561,7 @@ function search(query){
 }
 function sourceLink(x){
  if(x.url&&/^https:\/\/(drive\.google\.com\/file\/d\/|dnd\.wizards\.com\/)/.test(x.url))
-  return '<a href="'+esc(x.url)+'" rel="noopener noreferrer" target="_blank">Abrir fonte ↗</a>';
+  return '<a href="'+esc(x.url)+'" rel="noopener noreferrer">Abrir fonte ↗</a>';
  return '';
 }
 function renderSources(hits){
@@ -1636,7 +1636,12 @@ $('#r11-connect').onclick=async()=>{try{proxyUrl=validEndpoint($('#r11-endpoint'
 catch(err){setStatus('● Sem conexão — busca offline');app.notify('Falha: '+err.message)}};
 $('#r11-model').onchange=e=>model=e.target.value;
 $('#r11-consent').onchange=e=>canSend=e.target.checked;
-$('#r11-sources').onclick=e=>{const b=e.target.closest('[data-r11-source]');if(!b)return;const x=lastSources[Number(b.dataset.r11Source)];if(!x)return;addBubble(`<b>${esc(x.title)}</b><small>${esc(x.book)} · ${x.page?'Página '+x.page:'Sem página cadastrada'}</small><p>${esc(x.excerpt)}</p>`)};
+$('#r11-sources').onclick=e=>{
+ const b=e.target.closest('[data-r11-source]');if(!b)return;
+ const x=lastSources[Number(b.dataset.r11Source)];if(!x)return;
+ addBubble('<b>'+esc(x.title)+'</b><small>'+esc(x.systemName||x.systemId)+' · '+esc(x.book)+' · '+(x.page?'Página '+x.page:'Sem página indexada')+'</small>'+
+   (x.kind==='metadata'?'<p>Arquivo catalogado no Drive. Importe o índice PDF para pesquisar suas regras.</p>':'<p>'+esc(x.excerpt)+'</p>')+sourceLink(x));
+};
 function refreshBooks(books){
  privateDocs=core.docsFromIndexes(books,systems()).map(enrich);
  $('#r11-count').textContent=systems().length+' sistemas, '+systems().reduce((n,s)=>n+(s.books||[]).length,0)+' livros no Drive, '+baseDocs.length+' regras locais e '+privateDocs.length+' trechos privados.';
