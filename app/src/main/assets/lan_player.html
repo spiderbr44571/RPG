@@ -104,7 +104,7 @@ function renderInventory(s){
  const inv=itemsOf(s);
  $('#inventory').innerHTML='<h3>Inventário</h3><p class="muted">Gerencie quantidade e seus próprios itens. As categorias do RPG permanecem separadas.</p>'+
  '<div id="item-list">'+(inv.map((it,i)=>'<div class="item"><div><strong>'+esc(it.nome||it.name||'Item')+'</strong><small>'+esc(String(it.categoriaItem||'geral').replaceAll('_',' '))+' · Qtd '+(it.quantidade??1)+'</small></div><div class="actions">'+'<button data-item-quantity="'+i+'" data-increment="-1">−</button><button data-item-quantity="'+i+'" data-increment="1">+</button></div></div>').join('')||'<p class="muted">Nenhum item registrado.</p>')+'</div>'+
- '<h3 style="margin-top:20px">Adicionar item personalizado</h3><div class="grid"><label class="field"><span>Nome</span><input id="new-item" maxlength="90"></label><label class="field"><span>Categoria</span><select id="new-item-cat"><option value="geral">Geral</option><option value="ferramenta">Ferramenta</option><option value="acessorio">Acessório</option><option value="item_paranormal">Paranormal</option></select></label><label class="field"><span>Rolagem, se houver</span><input id="new-item-dice" placeholder="2d6+2" maxlength="32"></label></div><button class="primary" id="add-item">Adicionar ao inventário</button>';
+ '<h3 style="margin-top:20px">Adicionar item personalizado</h3><div class="grid"><label class="field"><span>Nome</span><input id="new-item" maxlength="90"></label><label class="field"><span>Categoria</span><select id="new-item-cat"><option value="geral">Geral</option><option value="ferramenta">Ferramenta</option><option value="acessorio">Acessório</option><option value="item_paranormal">Paranormal</option></select></label></div><button class="primary" id="add-item">Adicionar ao inventário</button>';
 }
 function renderAbilities(s){
  const rituals=(s.rituaisConhecidos||[]).map(id=>RITUALS.find(x=>x.id===id)||RITUALS.find(x=>x.name===id)||{name:id,element:'',circle:'?'});
@@ -155,10 +155,9 @@ $('#inventory').onclick=async e=>{
  const qty=e.target.closest('[data-item-quantity]');
  if(qty){let item=list[Number(qty.dataset.itemQuantity)];if(!item)return;item.quantidade=Math.max(0,Math.min(9999,Number(item.quantidade??1)+Number(qty.dataset.increment)));await saveProfile({inventory:list});return}
  if(e.target.closest('#add-item')){
-  const name=$('#new-item').value.trim(),cat=$('#new-item-cat').value,formula=$('#new-item-dice').value.trim();
+  const name=$('#new-item').value.trim(),cat=$('#new-item-cat').value;
   if(!name)return message('Informe o nome do item');
-  if(formula&&!/^([1-9][0-9]?)d(4|6|8|10|12|20|100)([+-]\d{1,3})?$/.test(formula))return message('Fórmula inválida');
-  list.push({nome:name,categoriaItem:cat,dano:formula,quantidade:1});await saveProfile({inventory:list});
+  list.push({nome:name,categoriaItem:cat,quantidade:1});await saveProfile({inventory:list});
  }
 };
 $('#abilities').onclick=async e=>{
