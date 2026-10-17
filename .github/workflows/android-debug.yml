@@ -74,7 +74,8 @@ jobs:
           node tests/bestiary_multisystem.test.cjs
           node --check app/src/main/assets/rpg20_search_core.js
           node tests/multisystem_search.test.cjs
-          python3 -m py_compile scripts/indexar_pdf.py server/ai_proxy.py
+          node tests/cloud_free.test.cjs
+          python3 -m py_compile scripts/indexar_pdf.py
           python3 - <<'PY'
           from html.parser import HTMLParser
           import pathlib, tempfile, subprocess
