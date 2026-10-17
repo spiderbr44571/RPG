@@ -10,7 +10,7 @@ const safe=[
  ['native HTTPS endpoints',main.includes('https://openrouter.ai/api/v1')],
  ['restrict native models',main.includes('model.endsWith(":free")&&freeModels.contains(model)')],
  ['free router only',main.includes('"openrouter/free".equals(model)')],
- ['native model prices checked',main.includes('priceZero(row.optJSONObject("pricing"))')],
+ ['native model prices checked',main.includes('priceZero(entry.optJSONObject("pricing"))')],
  ['Native Android Keystore',main.includes('AndroidKeyStore')],
  ['native encryption AES-GCM',main.includes('AES/GCM/NoPadding')],
  ['only request methods',main.includes('"models".equals(action)||"chat".equals(action)')],
