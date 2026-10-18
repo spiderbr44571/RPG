@@ -1,12 +1,15 @@
 /* RPG Mesa 0.31 - Master tabletop. */
 (function(root){
 'use strict';
-const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const readable=x=>String(x??'')
+  .replace(/cen\uFFFD+rio/gi,'cenário').replace(/Her\uFFFD+i/gi,'Herói')
+  .replace(/\uFFFD+/g,'').trim();
+const esc=x=>readable(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const $=(q,el=document)=>el.querySelector(q);
 const link=document.createElement('link');link.rel='stylesheet';link.href=location.protocol==='file:'?'rpg31_live.css':'/table-master.css';document.head.append(link);
 let active=null;
 function close(){
- const s=active;if(!s)return;active=null;clearInterval(s.timer);s.el.remove();
+ const s=active;if(!s)return;active=null;clearInterval(s.timer);s.camera?.destroy();s.el.remove();
  document.body.style.overflow=s.oldOverflow;
  try{root.RpgSceneDisplay?.setLandscape(false)}catch(_){}
  s.options.onClose?.();
@@ -14,7 +17,7 @@ function close(){
 function open(host,options){
  if(active)close();
  const s={el:document.createElement('div'),oldOverflow:document.body.style.overflow,
-   options,revision:-1,data:null,scene:null,selected:'',cell:48,timer:0,busy:false,folded:false,privateResult:null,editing:false};
+   options,revision:-1,data:null,scene:null,selected:'',cell:48,timer:0,busy:false,folded:false,privateResult:null,editing:false,camera:root.RPG33_CAMERA?.create(),cameraScene:''};
  active=s;s.el.className='r31-live';document.body.appendChild(s.el);document.body.style.overflow='hidden';
  try{root.RpgSceneDisplay?.setLandscape(true)}catch(_){}
  const req=(path='',method='GET',payload)=>options.request(options.route+path,method,payload);
@@ -53,7 +56,9 @@ function open(host,options){
   const d=s.data;if(!d)return;const map=(d.scenarios||[]).find(c=>c.id===d.activeScenarioId);
   s.scene=map;
   s.el.innerHTML='<header><strong>✧ MESTRE</strong><h2>'+esc(map?.name||'Sem cenário publicado')+'</h2>'+
-    '<small>Rodada '+(d.turn||1)+'</small><button data-action="panel">☷</button>'+
+    '<small>Rodada '+(d.turn||1)+'</small><button data-action="panel">Painel</button>'+
+    '<button data-action="zoom-out" title="Afastar">-</button><button data-action="zoom-in" title="Aproximar">+</button>'+
+    '<button data-action="fit" title="Enquadrar mapa">Enquadrar</button>'+
     '<button data-action="edit">Editar mapa</button><button data-action="turn">+ Rodada</button><button data-action="close">Sair</button></header>'+
     '<div class="body"><div id="r31-scroll" class="scroll"><div id="r31-board" class="board"></div></div>'+
     '<aside id="r31-aside" class="'+(s.folded?'folded':'')+'"><section><h3>⚄ Rolagens</h3>'+
@@ -91,8 +96,11 @@ function open(host,options){
   board.innerHTML=(map.rooms||[]).map(r=>'<div class="room '+(r.hidden?'hidden':'')+'" style="left:'+(r.x*s.cell)+'px;top:'+(r.y*s.cell)+'px;width:'+(r.w*s.cell)+'px;height:'+(r.h*s.cell)+'px;border-radius:'+(r.shape==='circle'?'50%':'0')+'"></div>').join('')+
    (map.tokens||[]).map(t=>{const a=assets.get(t.assetId);
     return '<div data-token="'+esc(t.id)+'" class="token '+(s.selected===t.id?'active':'')+'" style="left:'+(t.x*s.cell)+'px;top:'+(t.y*s.cell)+'px;width:'+s.cell+'px;height:'+s.cell+'px">'+
-    (a?.image?'<img alt="" src="'+a.image+'">':'<span>'+esc(a?.emoji||'✧')+'</span>')+'<small>'+esc(t.name)+'</small></div>';
+    (a?.image?'<img alt="" src="'+a.image+'">':'<span>'+esc(readable(t.name).slice(0,2).toUpperCase()||'TK')+'</span>')+'<small>'+esc(t.name||'Token')+'</small></div>';
    }).join('');
+  const sceneChanged=s.cameraScene!==map.id;
+  s.cameraScene=map.id;
+  s.camera?.attach($('#r31-scroll',s.el),board,map.width*s.cell,map.height*s.cell,sceneChanged);
   selection();
  }
  async function refresh(){
@@ -106,13 +114,12 @@ function open(host,options){
      const selectedIds=[...s.el.querySelectorAll('[data-player]:checked')].map(el=>el.dataset.player);
      const effectName=$('#r31-effect',s.el)?.value||'';
 
-     const x=first?0:scroll?.scrollLeft||0,y=first?0:scroll?.scrollTop||0;
+     const x=0,y=0;
       s.revision=d.revision;s.data=d;render();
      const rollInput=$('#r31-formula',s.el),initInput=$('#r32-initiative-formula',s.el),effectInput=$('#r31-effect',s.el);
      if(rollInput)rollInput.value=form;if(initInput)initInput.value=initForm;if(effectInput)effectInput.value=effectName;
      for(const item of s.el.querySelectorAll('[data-player]'))item.checked=selectedIds.includes(item.dataset.player);
-     const sc=$('#r31-scroll',s.el);
-     if(sc){sc.scrollLeft=first?Math.max(0,(sc.scrollWidth-sc.clientWidth)/2):x;sc.scrollTop=first?Math.max(0,(sc.scrollHeight-sc.clientHeight)/2):y}
+     // Pan/zoom sao mantidos no objeto da camera entre sincronizacoes.
    }
   }catch(e){feedback(e.message)}finally{s.busy=false}
  }
@@ -132,6 +139,9 @@ function open(host,options){
    if(button){
     const action=button.dataset.action;
     if(action==='close'){close();return}
+    if(action==='zoom-in'){s.camera?.zoom(1.2);return}
+    if(action==='zoom-out'){s.camera?.zoom(1/1.2);return}
+    if(action==='fit'){s.camera?.fit();return}
     if(action==='panel'){s.folded=!s.folded;$('#r31-aside',s.el).classList.toggle('folded',s.folded);return}
     if(action==='edit'){
       if(!root.RPG29_EDITOR){feedback('Editor indisponível');return}
@@ -175,10 +185,11 @@ function open(host,options){
       await req('/effects-group','POST',{characterIds:ids,name,unit,remaining});feedback('Efeito aplicado');s.revision=-1;await refresh();return;
     }
    }
-   const clicked=e.target.closest('#r31-board');
+   const clicked=e.target.closest('#r31-scroll');
    if(clicked&&s.selected&&s.scene){
-    const b=clicked.getBoundingClientRect(),x=Math.floor((e.clientX-b.left)/s.cell),y=Math.floor((e.clientY-b.top)/s.cell);
-    if(x<0||y<0||x>=s.scene.width||y>=s.scene.height)return;
+    const coords=s.camera?.cellAt(e,s.cell,s.scene.width,s.scene.height);
+    if(!coords)return;
+    const {x,y}=coords;
     await req('/token','POST',{tokenId:s.selected,action:'move',x,y});s.revision=-1;await refresh();
    }
   }catch(error){feedback(error.message)}
