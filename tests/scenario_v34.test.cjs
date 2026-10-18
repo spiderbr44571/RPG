@@ -24,6 +24,11 @@ assert.match(server,/if\(covered\(map,x,y\)\)continue/);
 assert.match(server,/if\(xx<0\|\|tokens\.length\(\)>=250\)continue/);
 assert.match(server,/\.put\("x",xx\)\.put\("y",yy\)\.put\("assetId",""\)/);
 assert.match(old,/data-r30-change="owner"/);
+assert.match(server,/action\.equals\("bind"\)/);
+assert.match(server,/Atribua primeiro uma ficha ao jogador/);
+assert.match(server,/other\.put\("ownerPlayerId",""\)\.put\("characterId",""\)/);
+assert.match(gm,/data-r34-token-bind/);
+assert.match(gm,/req\('\/token','POST',\{action:'bind',tokenId:binder\.dataset\.r34TokenBind,playerId:binder\.value\}\)/);
 // Board begins 190 px right of the page edge and 110 px below the top bar; camera pan+zoom;
 // touch on the visual center of cell (17,8) MUST map to (17,8) regardless of screen origin.
 const mock={window:{},requestAnimationFrame:fn=>fn(),Date,Math,Number,Map};mock.globalThis=mock.window;vm.runInNewContext(camera,mock);
