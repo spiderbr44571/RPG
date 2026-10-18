@@ -27,7 +27,7 @@ function draw(){
    return '<div class="token '+(t.movable?'own':'')+' '+(t.id===selected?'selected':'')+'" data-token="'+esc(t.id)+'" data-movable="'+!!t.movable+'" title="'+esc(t.name)+'" style="left:'+(t.x*cell+1)+'px;top:'+(t.y*cell+1)+'px;width:'+(cell-2)+'px;height:'+(cell-2)+'px">'+(a?.image?'<img alt="" src="'+a.image+'">':'<span class="glyph">'+esc(a?.emoji||'✧')+'</span>')+'<small>'+esc(t.name)+'</small></div>';
  }).join('');
  // Overlay must be last: rooms behind fog are not visible; server strips their objects.
- html+=scene.fog.map(f=>'<div class="fog" style="left:'+(f.x*cell)+'px;top:'+(f.y*cell)+'px;width:'+(f.w*cell)+'px;height:'+(f.h*cell)+'px"></div>').join('');
+ html+=scene.fog.map(f=>'<div class="fog" style="left:'+(f.x*cell)+'px;top:'+(f.y*cell)+'px;width:'+(f.w*cell)+'px;height:'+(f.h*cell)+'px;border-radius:'+(f.shape==='circle'?'50%':'0')+'"></div>').join('');
  board.innerHTML=html;$('#zoom').textContent=cell+' px';
  if(!scene.tokens.some(t=>t.id===selected&&t.movable))selected=scene.tokens.find(t=>t.movable)?.id||'';
 }
