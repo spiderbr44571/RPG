@@ -14,3 +14,19 @@
 .r31-live footer{position:relative;z-index:3;padding:5px 9px;background:#171321;border-top:1px solid #604c69;color:#e8bdd5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(max-width:700px){.r31-live .body{grid-template-columns:minmax(0,1fr) 178px}.r31-live header h2{font-size:14px}.r31-live header button{padding:4px;font-size:10px}}
 @media(max-width:530px) and (orientation:portrait){.r31-live .body{grid-template-columns:minmax(0,1fr)}.r31-live aside{position:absolute;top:48px;bottom:27px;right:0;width:min(245px,69vw);z-index:2;box-shadow:-12px 0 30px #000c}.r31-live aside.folded{display:none}}
+
+/* v0.35 — turno visível e estilos de ocultação da mesa do mestre */
+.r31-live .r35-active-turn{display:flex;gap:5px;align-items:center;color:#f6d0e4;background:#37273b;border:1px solid #ae81a7;border-radius:8px;padding:5px 9px;white-space:nowrap;max-width:240px;overflow:hidden;text-overflow:ellipsis}
+.r31-live .r35-active-turn b{color:#a3ffcc;overflow:hidden;text-overflow:ellipsis}
+.r31-live .r35-current-turn{display:grid;gap:4px;padding:9px;border-radius:9px;border:1px solid #91ffc3;background:#1d3733;color:#adffdc}
+.r31-live .r35-current{border:2px solid #93ffc6!important;background:#18322a!important}
+.r31-live .token.r35-turn-token{border-color:#a4ffd0!important;box-shadow:0 0 0 4px #77ffc563,0 0 24px #69ffacb8!important;z-index:2}
+.r31-live .room.hidden.r35-fog-shadow{background:repeating-linear-gradient(45deg,#080916ba 0 11px,#352a40dc 11px 22px)}
+.r31-live .room.hidden.r35-fog-dark{background:radial-gradient(ellipse at 60% 35%,#090e1c99 0%,#080a18ee 85%);border-color:#5e5a70}
+.r31-live .room.hidden.r35-fog-mist{background:radial-gradient(ellipse at 35% 45%,#c8ddf077 0%,#768ba78e 34%,#22273cba 90%);border-color:#b3c3d3}
+.r31-live .room.hidden.r35-fog-void{background:#06060df3;border-color:#151522}
+@media(max-width:900px){.r31-live .r35-active-turn{max-width:145px;font-size:10px}}
+
+.r31-live .r35-turn-overlay{position:absolute;left:12px;top:12px;z-index:8;pointer-events:none;background:#151a21ed;border:1px solid #84dfbb;border-radius:10px;box-shadow:0 5px 20px #0009;padding:8px 11px;max-width:65%;display:flex;gap:6px;align-items:center;flex-wrap:wrap;color:#e9ffee;font-size:12px}
+.r31-live .r35-turn-overlay strong{color:#9affcf;font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+.r31-live .r35-turn-overlay small{color:#afd8c2}

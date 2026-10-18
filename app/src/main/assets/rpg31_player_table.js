@@ -41,6 +41,15 @@ function resources(s){
   const pct=r.max>0?Math.max(0,Math.min(100,(r.cur/r.max)*100)):0;
   return '<div class="meter"><span>'+esc(r.k)+'</span><div class="track"><i style="width:'+pct+'%;--fill:'+c+'"></i></div><strong>'+r.cur+'/'+r.max+'</strong></div>';
  }).join('')||'<small>Recursos não cadastrados</small>';
+ const moving=state?.movement?.tokens?.[0];
+ if(moving){
+   const element=document.createElement('div');
+   element.className='meter';
+   element.innerHTML='<span>MOVE</span><div class="track"><i style="width:'+
+      (moving.limit>0?Math.max(0,Math.min(100,moving.remaining/moving.limit*100)):0)+
+      '%;--fill:#81d2b0"></i></div><strong>'+moving.remaining+'/'+moving.limit+'q</strong>';
+   $('#resources').appendChild(element);
+ }
 }
 const sections=s=>{
  s=s||{};const groups={};
@@ -81,7 +90,8 @@ function initiative(){
 }
 function render(){
  const s=state?.scene;resources(state?.character);sheet();initiative();
- $('#scene-turn').textContent=(state?.sceneName||'')+' · '+(state?.turn||1);
+ const active=state?.initiative?.entries?.find(p=>p.tokenId===state?.initiative?.activeId);
+ $('#scene-turn').textContent=active?'Vez: '+active.name+' · Rodada '+(state.initiative.round||1):'Sem iniciativa';
  if(!s){$('#empty').hidden=false;$('#board').innerHTML='';return}
  $('#empty').hidden=true;$('#scene-title').textContent=readable(s.name)||'Cenário';
  const board=$('#board'),assets=new Map((state.assets||[]).map(a=>[a.id,a]));
@@ -90,11 +100,12 @@ function render(){
  board.dataset.theme=s.theme;board.style.backgroundImage=bg?'linear-gradient(#ffffff34 1px,transparent 1px),linear-gradient(90deg,#ffffff34 1px,transparent 1px),url('+bg+')':'';
  board.style.backgroundSize=bg?cell+'px '+cell+'px,'+cell+'px '+cell+'px,100% 100%':'';
  let h=s.tokens.map(t=>{const a=assets.get(t.assetId);
-  return '<div data-id="'+esc(t.id)+'" data-movable="'+Boolean(t.movable)+'" class="token '+(t.movable?'own':'')+'" style="left:'+(t.x*cell+1)+'px;top:'+(t.y*cell+1)+'px;width:'+(cell-2)+'px;height:'+(cell-2)+'px">'+
+  return '<div data-id="'+esc(t.id)+'" data-movable="'+Boolean(t.movable)+'" class="token '+(t.movable?'own':'')+
+    (t.id===state.initiative?.activeId?' r35-turn-token':'')+'" style="left:'+(t.x*cell+1)+'px;top:'+(t.y*cell+1)+'px;width:'+(cell-2)+'px;height:'+(cell-2)+'px">'+
    (a?.image?'<img src="'+a.image+'" alt="">':'<span>'+esc((t.name||'TK').slice(0,2).toUpperCase())+'</span>')+
    '<small>'+esc(t.name)+(t.kind==='creature'&&t.maxHp?' · '+t.hp+'/'+t.maxHp+' PV':'')+'</small></div>';
  }).join('');
- h+=(s.fog||[]).map(f=>'<div class="fog" style="left:'+(f.x*cell)+'px;top:'+(f.y*cell)+'px;width:'+(f.w*cell)+'px;height:'+(f.h*cell)+'px;border-radius:'+(f.shape==='circle'?'50%':'0')+'"></div>').join('');
+ h+=(s.fog||[]).map(f=>'<div class="fog r35-fog-'+esc(f.fogStyle||'shadow')+'" style="left:'+(f.x*cell)+'px;top:'+(f.y*cell)+'px;width:'+(f.w*cell)+'px;height:'+(f.h*cell)+'px;border-radius:'+(f.shape==='circle'?'50%':'0')+'"></div>').join('');
  board.innerHTML=h;
  const sceneChanged=cameraScene!==s.id;cameraScene=s.id;
  camera?.attach($('#scroll'),board,s.width*cell,s.height*cell,sceneChanged);
@@ -125,6 +136,12 @@ function mount(){
   const target=e.target.closest('[data-id]');
   if(target){if(target.dataset.movable==='true'){selected=target.dataset.id;msg('Seu token selecionado. Toque no destino.')}return}
   const s=state?.scene;if(!s||!selected)return;
+  const activeId=state?.initiative?.activeId;
+  if((state?.initiative?.entries?.length||0)>0&&selected!==activeId){
+    msg('Aguarde seu turno para movimentar o personagem.');return;
+  }
+  const moving=state?.movement?.tokens?.find(item=>item.tokenId===selected);
+  if(moving&&moving.remaining<=0){msg('Você já utilizou todo o movimento deste turno.');return;}
   const point=camera?.cellAt(e,cell,s.width,s.height);
   if(!point)return;const {x,y}=point;
   try{await api(sceneUrl+'/move','POST',{tokenId:selected,x,y});revision=-1;await refresh()}catch(err){msg(err.message)}
