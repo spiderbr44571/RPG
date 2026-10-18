@@ -1,3 +1,17 @@
+# RPG Mesa v0.35 — iniciativa clara, deslocamento e nevoas
+
+**Mesa ao vivo — mestre:** o personagem/criatura da vez fica visível no topo do painel, sobre o mapa e marcado na lista de iniciativa. O token recebe contorno verde. O botão **Próximo turno** seleciona o próximo participante e reinicia o deslocamento gasto.
+
+**Deslocamento por sistema:** padrão de Ordem Paranormal = **9 quadrados**, D&D 5e = **6**, GURPS = **5** (valor inicial editável). Em **Mesa ao vivo → Movimento por sistema**, o mestre altera o padrão; no painel do token é possível definir um limite exclusivo entre 0 e 60 quadrados. Quando a ficha tiver um campo `movementSquares`, ele tem prioridade sobre o padrão do sistema. Um deslocamento diagonal conta como um quadrado por célula diagonal (Chebyshev); o servidor soma deslocamentos parciais no turno. Jogadores ficam bloqueados após gastar o limite ou tentar agir fora da iniciativa; o mestre pode reposicionar livremente. Sem iniciativa cadastrada, **+ Rodada** reinicia o deslocamento.
+
+**Jogadores:** barras de PV/energia continuam no HUD. Abaixo delas, a barra **MOVE** informa quadrados restantes; a interface mostra o personagem da vez e destaca seu token.
+
+**Estilos de ocultação:** no editor de cenários, escolha o visual padrão para novas áreas ou modifique cada sala. Opções **Sombras, Escuridão, Névoa densa, Escuro total**. Só muda a aparência; todas as opções continuam secretas até reveladas, com pixels protegidos no servidor. Mapas anteriores usam **Sombras** por padrão.
+
+**Limites:** deslocamento calculado por distância Chebyshev entre origem/destino; o aplicativo ainda não mede caminhos com obstáculos sólidos nem ajusta automaticamente ações extras de movimento ou condições particulares do sistema.
+
+---
+
 # RPG Mesa v0.34 — grade confinada e tokens controláveis
 
 - **Mesa ao vivo:** corrigido o posicionamento CSS do mapa. O grid passa a ser filho de um viewport posicionado, isolado e recortado, sem atravessar o cabeçalho ou as ferramentas do mestre.
