@@ -47,7 +47,11 @@ function open(host,opts){
  }
  function chooseTokenAsset(record,isCreature){
   const kind=isCreature?'creature':'character',name=String(record.name||record.sheet?.name||'Personagem').slice(0,70);
-  const asset={id:uid(),name,kind,emoji:isCreature?'👁':'👤',image:''};
+  let savedArt={};
+  try{savedArt=JSON.parse(localStorage.getItem('rpg19-monster-art-v1')||'{}')}catch(_){}
+  let image=isCreature?savedArt[s.creatureSystem+'::'+record.id]||'':record.sheet?.portrait||record.sheet?.photo||'';
+  if(typeof image!=='string'||!/^data:image\/(png|jpeg|webp);base64,/.test(image)||image.length>180000)image='';
+  const asset={id:uid(),name,kind,emoji:isCreature?'👁':'👤',image};
   s.assets.push(asset);s.picked=asset.id;s.category=kind;
   if(isCreature){
    const hp=Math.max(1,Math.min(100000,Math.round(Number(record.hp)||1)));
