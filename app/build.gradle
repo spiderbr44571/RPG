@@ -2,7 +2,7 @@ plugins { id 'com.android.application' }
 android {
  namespace 'dev.rpgmesa.demo'
  compileSdk 35
- defaultConfig { applicationId 'dev.rpgmesa.demo'; minSdk 26; targetSdk 28; versionCode 29; versionName '0.29.0-cenarios-grid' }
+ defaultConfig { applicationId 'dev.rpgmesa.demo'; minSdk 26; targetSdk 28; versionCode 30; versionName '0.30.0-estudio-de-cenarios' }
  compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
 }
 

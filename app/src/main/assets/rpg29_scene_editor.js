@@ -1,104 +1,278 @@
-/* RPG Mesa 0.29: editor offline/LAN de mapas, assets, salas e tokens. */
+/* RPG Mesa 0.30: estúdio de cenários em tela cheia, mapa, tokens e névoa. */
 (function(root){
 'use strict';
+const $=(q,r=document)=>r.querySelector(q);
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const $=(s,e=document)=>e.querySelector(s);
-const id=()=>('s'+(crypto.randomUUID?.()||Math.random().toString(36).slice(2)).replace(/-/g,'')).slice(0,28);
-const builtin=[['map-stone','Ruínas','map','🪨'],['map-forest','Floresta','map','🌲'],['map-cave','Caverna','map','🕯️'],['char-hero','Herói','character','🛡️'],['char-scout','Explorador','character','🧭'],['char-mage','Mago','character','🪄'],['mob-shadow','Criatura','creature','👁️'],['mob-wolf','Lobo','creature','🐺'],['mob-golem','Construto','creature','🗿'],['item-chest','Baú','item','🧰'],['item-key','Chave','item','🗝️'],['item-door','Porta','object','🚪'],['item-altar','Altar','object','🔮'],['item-tree','Árvore','object','🌳']].map(([id,name,kind,emoji])=>({id,name,kind,emoji,image:''}));
-let css=document.createElement('style');css.textContent='.r29{border:1px solid var(--line,#736476);border-radius:17px;padding:13px;margin:15px 0;background:var(--panel,#211d29);color:var(--fg,#fff);font:12px system-ui}.r29 *{box-sizing:border-box}.r29 h2{font:normal 27px Georgia;margin:2px 0}.r29 p{color:var(--muted,#b7abba)}.r29 button,.r29 input,.r29 select{background:var(--panel2,#302b38);color:var(--fg,#fff);border:1px solid var(--line,#766c7f);border-radius:8px;padding:9px;max-width:100%;font:inherit}.r29 button{cursor:pointer}.r29 button.active,.r29 .primary{background:var(--accent,#d5b5cc);color:#1b1520;font-weight:bold}.r29row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:10px 0}.r29row label{display:grid;gap:3px}.r29layout{display:grid;grid-template-columns:210px minmax(0,1fr);gap:12px}.r29side{display:grid;align-content:start;gap:8px}.r29side label{display:grid;gap:4px}.r29assets{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;max-height:265px;overflow:auto}.r29assets button{min-width:0;min-height:53px;font-size:20px;display:grid;place-items:center;padding:4px}.r29assets small{font-size:8px;max-width:54px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.r29assets img{width:34px;height:34px;object-fit:cover}.r29wrap{overflow:auto;max-height:63vh;border:1px solid var(--line,#766);border-radius:11px;background:#0f1118}.r29board{position:relative;touch-action:pan-x pan-y;user-select:none;cursor:crosshair;background-color:#302f38;background-image:linear-gradient(#ffffff30 1px,transparent 1px),linear-gradient(90deg,#ffffff30 1px,transparent 1px);background-size:42px 42px}.r29board[data-theme=forest]{background-color:#2c4234}.r29board[data-theme=cavern]{background-color:#252132}.r29board[data-theme=paper]{background-color:#68503b}.r29room{position:absolute;border:2px dashed #ffe0aeaa;background:#d5b49629;color:#ffe5b3;padding:2px;pointer-events:none;font-size:10px}.r29room.hidden{background:repeating-linear-gradient(45deg,#090a16c9 0 8px,#35263fd9 8px 16px);border-color:#ffaccf}.r29token{position:absolute;width:40px;height:40px;display:grid;place-items:center;border:2px solid #ffe0b0;border-radius:50%;background:#151421ed;color:#fff;font-size:22px;touch-action:none}.r29token.chosen{border-color:#80ffc4;box-shadow:0 0 0 3px #80ffc477}.r29token img{width:32px;height:32px;border-radius:50%;object-fit:cover}.r29token small{position:absolute;top:39px;background:#151421ed;font-size:9px;white-space:nowrap}.r29box{border:1px solid var(--line,#736);border-radius:11px;padding:9px;margin:10px 0}.r29status{color:var(--accent,#ecb7d6);min-height:20px}@media(max-width:750px){.r29layout{grid-template-columns:1fr}.r29assets{grid-template-columns:repeat(7,minmax(46px,1fr))}}';document.head.append(css);
+const uid=()=>('s'+(crypto.randomUUID?.()||Math.random().toString(36).slice(2)).replace(/-/g,'')).slice(0,28);
+const presets=[['map-ruins','Ruínas','map','🪨'],['map-forest','Floresta','map','🌲'],['map-cave','Caverna','map','🕯️'],['char-hero','Herói','character','🛡️'],['char-scout','Explorador','character','🧭'],['char-mage','Mago','character','🪄'],['mob-wolf','Lobo','creature','🐺'],['mob-golem','Construto','creature','🗿'],['mob-shadow','Sombra','creature','👁️'],['item-chest','Baú','item','🧰'],['item-key','Chave','item','🗝️'],['item-door','Porta','object','🚪']].map(([id,name,kind,emoji])=>({id,name,kind,emoji,image:''}));
+const stylesheet=document.createElement('link');stylesheet.rel='stylesheet';stylesheet.href=location.protocol==='file:'?'rpg30_studio.css':'/scene-editor.css';document.head.appendChild(stylesheet);
+let current=null;
+function close(force=false){
+ const s=current;if(!s)return;
+ if(s.dirty&&!force&&!confirm('Há mudanças que ainda não foram salvas. Sair do estúdio?'))return;
+ current=null;s.root.remove();s.host.hidden=true;document.body.style.overflow=s.priorOverflow;
+ try{root.RpgSceneDisplay?.setLandscape(false)}catch(_){}
+ s.host.dispatchEvent(new CustomEvent('rpg29:closed',{bubbles:true}));
+}
 function open(host,opts){
- host.hidden=false;
- let scenes=[],assets=[],active='',selected='',selectedToken='',selectedAsset='char-hero',tool='token',filter='all',pointer=null;
- const api=opts.request,route=opts.route,players=opts.players||[],characters=opts.characters||[];
- const scene=()=>scenes.find(s=>s.id===selected),asset=k=>assets.find(a=>a.id===k);
- const msg=s=>{const el=$('.r29status',host);if(el)el.textContent=s};
- const floor=(n,mx)=>Math.max(0,Math.min(mx,Math.floor(Number(n)||0)));
- function render(){
-  const m=scene();
-  let h='<div class="r29"><div class="r29row"><h2 style="flex:1">✧ Cenários</h2><button data-r29="close">Fechar</button></div><p>Biblioteca de assets, grade, criaturas e salas ocultáveis. O mestre enxerga tudo; jogadores veem apenas áreas reveladas.</p>';
-  h+='<div class="r29row"><select data-r29="select">'+scenes.map(s=>'<option value="'+esc(s.id)+'" '+(s.id===selected?'selected':'')+'>'+esc(s.name)+'</option>').join('')+'</select><button data-r29="new">+ Cenário</button><button data-r29="delete">Excluir</button><button data-r29="publish" class="'+(m&&m.id===active?'active':'')+'">'+(m&&m.id===active?'● Publicado':'Publicar')+'</button><button data-r29="save" class="primary">Salvar na campanha</button></div>';
-  if(m){
-   h+='<div class="r29layout"><aside class="r29side"><label>Nome<input data-r29-field="name" maxlength="80" value="'+esc(m.name)+'"></label>';
-   h+='<div class="r29row"><label>Colunas<input data-r29-field="width" type="number" value="'+m.width+'" min="6" max="60" style="width:72px"></label><label>Linhas<input data-r29-field="height" type="number" value="'+m.height+'" min="6" max="60" style="width:72px"></label></div>';
-   h+='<label>Terreno<select data-r29-field="theme">'+[['stone','Pedra'],['forest','Floresta'],['cavern','Caverna'],['paper','Pergaminho']].map(([v,n])=>'<option value="'+v+'" '+(v===m.theme?'selected':'')+'>'+n+'</option>').join('')+'</select></label>';
-   h+='<label>Imagem de fundo<select data-r29-field="backgroundAssetId"><option value="">Sem imagem</option>'+assets.filter(a=>a.kind==='map'&&a.image).map(a=>'<option value="'+esc(a.id)+'" '+(a.id===m.backgroundAssetId?'selected':'')+'>'+esc(a.name)+'</option>').join('')+'</select></label>';
-   h+='<div class="r29row">'+[['token','Inserir'],['room','Sala'],['erase','Apagar']].map(([v,n])=>'<button data-r29-tool="'+v+'" class="'+(tool===v?'active':'')+'">'+n+'</button>').join('')+'</div>';
-   h+='<label>Assets<select data-r29="filter">'+[['all','Todos'],['map','Mapas'],['character','Personagens'],['creature','Criaturas'],['item','Itens'],['object','Objetos']].map(([v,n])=>'<option value="'+v+'" '+(filter===v?'selected':'')+'>'+n+'</option>').join('')+'</select></label>';
-   h+='<div class="r29assets">'+assets.filter(a=>filter==='all'||a.kind===filter).map(a=>'<button data-r29-asset="'+esc(a.id)+'" title="'+esc(a.name)+'" class="'+(a.id===selectedAsset?'active':'')+'">'+(a.image?'<img alt="" src="'+a.image+'">':esc(a.emoji||'✧'))+'<small>'+esc(a.name)+'</small></button>').join('')+'</div>';
-   h+='<label>Importar imagem JPG / PNG / WebP<input type="file" data-r29="upload" accept="image/png,image/jpeg,image/webp"></label><small>O tipo escolhido acima define onde o novo asset entra.</small></aside>';
-   const img=asset(m.backgroundAssetId)?.image||'',bg=img?'background-image:linear-gradient(#ffffff35 1px,transparent 1px),linear-gradient(90deg,#ffffff35 1px,transparent 1px),url('+img+');background-size:42px 42px,42px 42px,100% 100%;':'';
-   h+='<div><div class="r29wrap"><div id="r29-board" class="r29board" data-theme="'+esc(m.theme)+'" style="width:'+(m.width*42)+'px;height:'+(m.height*42)+'px;'+bg+'">';
-   h+=m.rooms.map(r=>'<div class="r29room '+(r.hidden?'hidden':'')+'" style="left:'+(r.x*42)+'px;top:'+(r.y*42)+'px;width:'+(r.w*42)+'px;height:'+(r.h*42)+'px">'+esc(r.name)+'</div>').join('');
-   h+=m.tokens.map(t=>{const a=asset(t.assetId);return '<div data-r29-token="'+esc(t.id)+'" class="r29token '+(selectedToken===t.id?'chosen':'')+'" style="left:'+(t.x*42+1)+'px;top:'+(t.y*42+1)+'px">'+(a?.image?'<img alt="" src="'+a.image+'">':esc(a?.emoji||'✧'))+'<small>'+esc(t.name)+'</small></div>'}).join('');
-   h+='</div></div><p>Toque na grade para adicionar; arraste o token para mover. Ferramenta Sala: arraste para definir uma área, inicialmente oculta.</p>';
-   h+='<div class="r29box"><strong>Salas</strong><div class="r29row">'+(m.rooms.length?m.rooms.map(r=>'<button data-r29-room="'+esc(r.id)+'">'+(r.hidden?'Revelar ':'Ocultar ')+esc(r.name)+'</button><button data-r29-roomdel="'+esc(r.id)+'">×</button>').join(''):'Nenhuma sala')+'</div></div>';
-   const t=m.tokens.find(t=>t.id===selectedToken);
-   h+='<div class="r29box"><strong>Token selecionado</strong>'+(t?'<div class="r29row"><label>Nome<input data-r29-token-name="'+esc(t.id)+'" maxlength="70" value="'+esc(t.name)+'"></label><label>Controle<select data-r29-token-owner="'+esc(t.id)+'"><option value="">Somente mestre</option>'+((t.kind==='character')?players.filter(p=>p.characterId).map(p=>'<option value="'+esc(p.id)+'" '+(p.id===t.ownerPlayerId?'selected':'')+'>'+esc(p.nickname)+' · '+esc(characters.find(c=>c.id===p.characterId)?.sheet?.name||'Ficha')+'</option>').join(''):'')+'</select></label><label><input type="checkbox" data-r29-token-hidden="'+esc(t.id)+'" '+(t.hidden?'checked':'')+'> Oculto</label><button data-r29="token-delete">Excluir token</button></div>':'<p>Toque em um token para atribuir uma ficha e editar.</p>')+'</div></div></div>';
-  }
-  h+='<p class="r29status" role="status">Alterações não salvas até clicar em Salvar.</p></div>';
-  host.innerHTML=h;
+ if(current)close();
+ if(current)return Promise.resolve();
+ const s={root:document.createElement('section'),host,opts,scenes:[],assets:[],active:'',selected:'',picked:'char-hero',
+  category:'all',importKind:'map',tool:'pan',token:'',showGrid:true,aside:true,dirty:false,
+  scale:1,x:25,y:25,view:null,world:null,gesture:null,pointers:new Map(),pinch:null,priorOverflow:document.body.style.overflow};
+ current=s;host.hidden=false;s.root.className='r30-studio';s.root.setAttribute('role','dialog');s.root.setAttribute('aria-label','Estúdio de cenários');
+ document.body.appendChild(s.root);document.body.style.overflow='hidden';
+ try{root.RpgSceneDisplay?.setLandscape(true)}catch(_){}
+ const getScene=()=>s.scenes.find(m=>m.id===s.selected);
+ const getAsset=id=>s.assets.find(a=>a.id===id);
+ const signal=t=>{const target=$('#r30-message',s.root);if(target)target.textContent=t};
+ function change(){s.dirty=true;const tag=$('#r30-state',s.root);if(tag)tag.textContent='● Não salvo'}
+ const clamp=(n,min,max)=>Math.max(min,Math.min(max,Math.floor(n)));
+ function dimensions(p,q,m){
+  const minX=clamp(Math.floor(Math.min(p.x,q.x)/48),0,m.width-1),minY=clamp(Math.floor(Math.min(p.y,q.y)/48),0,m.height-1);
+  const maxX=clamp(Math.floor(Math.max(p.x,q.x)/48),0,m.width-1),maxY=clamp(Math.floor(Math.max(p.y,q.y)/48),0,m.height-1);
+  return {x:minX,y:minY,w:maxX-minX+1,h:maxY-minY+1};
+ }
+ function cells(p,m){return {x:clamp(p.x/48,0,m.width-1),y:clamp(p.y/48,0,m.height-1)}}
+ function coords(event){
+  const r=s.view.getBoundingClientRect();
+  return {x:(event.clientX-r.left-s.x)/s.scale,y:(event.clientY-r.top-s.y)/s.scale};
+ }
+ function updateTransform(){
+  if(s.world)s.world.style.transform='translate('+s.x+'px,'+s.y+'px) scale('+s.scale+')';
+  const z=$('#r30-zoom',s.root);if(z)z.textContent=Math.round(s.scale*100)+'%';
+ }
+ function fit(){
+  const m=getScene(),v=s.view;if(!v||!m)return;
+  s.scale=Math.max(.13,Math.min(2,(v.clientWidth-28)/(m.width*48),(v.clientHeight-28)/(m.height*48)));
+  s.x=(v.clientWidth-m.width*48*s.scale)/2;s.y=(v.clientHeight-m.height*48*s.scale)/2;updateTransform();
+ }
+ function zoom(factor,cx,cy){
+  const v=s.view;if(!v)return;
+  cx=Number.isFinite(cx)?cx:v.clientWidth/2;cy=Number.isFinite(cy)?cy:v.clientHeight/2;
+  const next=Math.max(.12,Math.min(3,s.scale*factor)),ratio=next/s.scale;
+  s.x=cx-(cx-s.x)*ratio;s.y=cy-(cy-s.y)*ratio;s.scale=next;updateTransform();
+ }
+ function tile(a){return a?.image?'<img alt="" src="'+esc(a.image)+'">':'<span class="emoji">'+esc(a?.emoji||'✧')+'</span>'}
+ function map(){
+  const m=getScene();s.view=$('#r30-view',s.root);s.world=$('#r30-world',s.root);if(!m||!s.world)return;
+  s.world.dataset.theme=m.theme||'stone';s.world.style.width=(m.width*48)+'px';s.world.style.height=(m.height*48)+'px';
+  let html='',bg=getAsset(m.backgroundAssetId);
+  if(bg?.image)html+='<img class="r30-bg" alt="" src="'+esc(bg.image)+'">';
+  if(s.showGrid)html+='<div class="r30-grid"></div>';
+  html+=m.rooms.map(r=>'<div class="r30-room '+(r.shape==='circle'?'circle ':'')+(r.hidden?'hidden':'')+'" style="left:'+(r.x*48)+'px;top:'+(r.y*48)+'px;width:'+(r.w*48)+'px;height:'+(r.h*48)+'px">'+esc(r.name)+'</div>').join('');
+  html+=m.tokens.map(t=>'<div class="r30-token '+(t.id===s.token?'selected':'')+'" data-r30-token="'+esc(t.id)+'" style="left:'+(t.x*48+1)+'px;top:'+(t.y*48+1)+'px">'+tile(getAsset(t.assetId))+'<small>'+esc(t.name)+'</small></div>').join('');
+  html+='<div id="r30-preview" class="r30-preview" hidden></div>';
+  s.world.innerHTML=html;updateTransform();
+ }
+ function library(){
+  const target=$('#r30-assets',s.root);if(!target)return;
+  target.innerHTML=s.assets.filter(a=>s.category==='all'||a.kind===s.category).map(a=>
+   '<button data-r30-asset="'+esc(a.id)+'" title="'+esc(a.name)+'" class="'+(s.picked===a.id?'active':'')+'">'+tile(a)+'<small>'+esc(a.name)+'</small></button>').join('');
+ }
+ function details(){
+  const target=$('#r30-details',s.root),m=getScene();if(!target||!m)return;
+  const t=m.tokens.find(t=>t.id===s.token);
+  let html='<h3>Selecionado</h3>';
+  if(t){
+   html+='<label>Nome<input data-r30-change="name" maxlength="70" value="'+esc(t.name)+'"></label>'+
+     '<label>Jogador que controla<select data-r30-change="owner"><option value="">Somente mestre</option>'+
+     (t.kind==='character'?(opts.players||[]).filter(p=>p.characterId).map(p=>'<option value="'+esc(p.id)+'" '+(p.id===t.ownerPlayerId?'selected':'')+'>'+esc(p.nickname)+'</option>').join(''):'')+'</select></label>'+
+     '<label><input data-r30-change="hidden" type="checkbox" '+(t.hidden?'checked':'')+'> Token oculto</label><button data-r30="delete-token" class="danger">Excluir token</button>';
+  }else html+='<p>Selecione um token para renomeá-lo, ocultá-lo ou vincular uma ficha.</p>';
+  html+='<h3>Áreas / salas ('+m.rooms.length+')</h3>';
+  html+=m.rooms.map(r=>'<div class="r30-line"><button data-r30-room="'+esc(r.id)+'">'+(r.hidden?'◼ Revelar':'◉ Ocultar')+' '+esc(r.name)+'</button><button data-r30-delroom="'+esc(r.id)+'" class="danger">×</button></div>').join('');
+  if(!m.rooms.length)html+='<p>Selecione Retângulo ou Círculo e arraste para marcar uma área.</p>';
+  target.innerHTML=html;
+ }
+ function render(shouldFit=false){
+  const m=getScene(),scale=s.scale,ox=s.x,oy=s.y;
+  s.root.innerHTML='<header class="r30-head"><strong class="r30-name">✦ Estúdio</strong><select id="r30-scenes" aria-label="Cenário">'+
+   s.scenes.map(x=>'<option value="'+esc(x.id)+'" '+(x.id===s.selected?'selected':'')+'>'+esc(x.name)+'</option>').join('')+'</select>'+
+   '<button data-r30="new">＋ Cenário</button><button data-r30="settings">⚙ Mapa</button>'+
+   '<small id="r30-state">'+(s.dirty?'● Não salvo':'✓ Salvo')+'</small><span class="r30-spacer"></span>'+
+   '<button data-r30="assets">▣ Biblioteca</button><button data-r30="publish" class="'+(m&&m.id===s.active?'active':'')+'">'+(m&&m.id===s.active?'● Publicado':'Publicar')+'</button>'+
+   '<button data-r30="save" class="primary">💾 Salvar</button><button data-r30="exit" class="danger">✕ Sair</button></header>'+
+   '<div class="r30-body"><nav class="r30-toolbar" aria-label="Ferramentas">'+
+   [['pan','✋','Navegar'],['token','◉','Tokens'],['rect','▭','Retângulo'],['circle','◯','Círculo'],['erase','⌫','Apagar']].map(([id,ic,name])=>
+   '<button data-r30-tool="'+id+'" title="'+name+'" class="'+(s.tool===id?'active':'')+'">'+ic+'</button><small>'+name+'</small>').join('')+
+   '<button data-r30="zoom-in">＋</button><button data-r30="zoom-out">－</button><button data-r30="fit">⊡</button></nav>'+
+   '<main id="r30-view" class="r30-view"><div id="r30-world" class="r30-world"></div></main>'+
+   '<aside class="r30-side '+(s.aside?'':'folded')+'"><section class="r30-section"><h3>Biblioteca de assets</h3>'+
+   '<select id="r30-category">'+[['all','Todos'],['map','Fundos'],['character','Personagens'],['creature','Criaturas'],['item','Itens'],['object','Objetos']].map(([k,n])=>'<option value="'+k+'" '+(k===s.category?'selected':'')+'>'+n+'</option>').join('')+'</select>'+
+   '<div class="r30-assets" id="r30-assets"></div>'+
+   '<label>Importar PNG ou JPEG</label><select id="r30-import-kind">'+[['map','Fundo do mapa'],['character','Personagem'],['creature','Criatura'],['item','Item'],['object','Objeto']].map(([k,n])=>'<option value="'+k+'" '+(k===s.importKind?'selected':'')+'>'+n+'</option>').join('')+'</select>'+
+   '<input id="r30-file" type="file" accept="image/png,image/jpeg,image/webp">'+
+   '<p>A imagem é reduzida no aparelho antes de salvar. PNGs transparentes são aceitos como tokens.</p>'+
+   '<label><input id="r30-gridcheck" type="checkbox" '+(s.showGrid?'checked':'')+'> Mostrar grade</label></section>'+
+   '<section class="r30-section" id="r30-details"></section></aside></div>'+
+   '<footer class="r30-foot"><span id="r30-zoom">100%</span><span>Arraste no mapa para desenhar ou mover</span><span id="r30-message">Toque em Salvar para publicar alterações.</span></footer>';
+  s.view=$('#r30-view',s.root);s.world=$('#r30-world',s.root);
+  s.scale=scale;s.x=ox;s.y=oy;library();details();map();
+  if(shouldFit)requestAnimationFrame(fit);
+ }
+ async function save(){
+  await opts.request(opts.route+'/scenarios','POST',{scenarios:s.scenes,assets:s.assets,activeScenarioId:s.active});
+  s.dirty=false;const el=$('#r30-state',s.root);if(el)el.textContent='✓ Salvo';signal('Salvo e sincronizado com a campanha.');
  }
  async function load(){
-  let d=await api(route+'/scenarios');scenes=d.scenarios||[];assets=builtin.concat((d.assets||[]).filter(x=>!builtin.some(b=>b.id===x.id)));
-  active=d.activeScenarioId||'';selected=scenes.find(s=>s.id===selected)?.id||scenes[0]?.id||'';selectedToken='';render();
+  const data=await opts.request(opts.route+'/scenarios');if(current!==s)return;
+  s.scenes=data.scenarios||[];s.assets=presets.concat((data.assets||[]).filter(a=>!presets.some(x=>x.id===a.id)));
+  s.active=data.activeScenarioId||'';s.selected=s.scenes[0]?.id||'';render(true);
  }
- const clamp=(v,mx)=>floor(v,mx),cell=(e,b)=>{const r=b.getBoundingClientRect(),m=scene();return {x:clamp((e.clientX-r.left)/42,m.width-1),y:clamp((e.clientY-r.top)/42,m.height-1)}};
- host.addEventListener('pointerdown',e=>{let b=e.target.closest('#r29-board');if(!b||!scene())return;const t=e.target.closest('[data-r29-token]');if(t&&tool!=='erase'){pointer={type:'drag',id:t.dataset.r29Token};t.setPointerCapture?.(e.pointerId);e.preventDefault()}else if(tool==='room'){pointer={type:'room',start:cell(e,b)};e.preventDefault()}});
- host.addEventListener('pointerup',e=>{
-  const b=$('#r29-board',host),m=scene();if(!m||!b||(!e.target.closest('#r29-board')&&!pointer))return;
-  const p=cell(e,b);
-  if(pointer?.type==='drag'){const t=m.tokens.find(x=>x.id===pointer.id);if(t){t.x=p.x;t.y=p.y;selectedToken=t.id}pointer=null;render();return}
-  if(pointer?.type==='room'){const a=pointer.start;pointer=null;m.rooms.push({id:id(),name:'Sala '+(m.rooms.length+1),x:Math.min(a.x,p.x),y:Math.min(a.y,p.y),w:Math.abs(a.x-p.x)+1,h:Math.abs(a.y-p.y)+1,hidden:true});render();return}
-  if(tool==='erase'){m.tokens=m.tokens.filter(t=>t.x!==p.x||t.y!==p.y);selectedToken='';render();return}
-  const a=asset(selectedAsset);
-  if(tool==='token'&&a&&a.kind!=='map'){const t={id:id(),name:a.name,assetId:a.id,kind:a.kind,x:p.x,y:p.y,ownerPlayerId:'',characterId:'',hidden:false};m.tokens.push(t);selectedToken=t.id;render()}
- });
- host.addEventListener('change',async e=>{
-  const m=scene(),t=m?.tokens.find(t=>t.id===selectedToken);
-  if(e.target.dataset.r29==='select'){selected=e.target.value;selectedToken='';render();return}
-  if(e.target.dataset.r29==='filter'){filter=e.target.value;render();return}
-  if(e.target.dataset.r29Field&&m){
-   const k=e.target.dataset.r29Field;m[k]=['width','height'].includes(k)?Math.max(6,Math.min(60,Number(e.target.value)||6)):e.target.value;
-   if(k==='width'||k==='height'){m.tokens=m.tokens.filter(t=>t.x<m.width&&t.y<m.height);m.rooms=m.rooms.filter(r=>r.x+r.w<=m.width&&r.y+r.h<=m.height)}
-   render();return;
-  }
-  if(t&&e.target.dataset.r29TokenName){t.name=e.target.value.trim().slice(0,70)||t.name;render();return}
-  if(t&&e.target.dataset.r29TokenOwner){const p=players.find(x=>x.id===e.target.value);t.ownerPlayerId=p?.id||'';t.characterId=p?.characterId||'';render();return}
-  if(t&&e.target.dataset.r29TokenHidden){t.hidden=e.target.checked;render();return}
-  if(e.target.dataset.r29==='upload'&&e.target.files[0]){
-   let f=e.target.files[0];
-   if(f.size>6e6||!['image/jpeg','image/png','image/webp'].includes(f.type)){msg('Arquivo deve ser JPG/PNG/WebP até 6 MB');return}
-   let url=URL.createObjectURL(f),im=new Image();
+ function upload(f){
+  if(!f||!['image/jpeg','image/png','image/webp'].includes(f.type)||f.size>15e6){signal('Escolha PNG/JPEG/WebP até 15 MB.');return}
+  const objectUrl=URL.createObjectURL(f),im=new Image(),kind=s.importKind;
+  im.onload=()=>{
+   URL.revokeObjectURL(objectUrl);
    try{
-    await new Promise((ok,no)=>{im.onload=ok;im.onerror=no;im.src=url});
-    const max=filter==='map'?900:210,k=Math.min(1,max/im.width,max/im.height),canvas=document.createElement('canvas');
-    canvas.width=Math.max(1,Math.round(im.width*k));canvas.height=Math.max(1,Math.round(im.height*k));
-    let ctx=canvas.getContext('2d');ctx.drawImage(im,0,0,canvas.width,canvas.height);
-    let data=canvas.toDataURL('image/jpeg',0.6);
-    if(data.length>200000)throw Error('Imagem muito grande após compressão');
-    const a={id:id(),name:f.name.replace(/\.[^.]+$/,'').slice(0,60)||'Novo asset',kind:filter==='all'?'object':filter,emoji:'✧',image:data};
-    assets.push(a);selectedAsset=a.id;render();msg('Asset importado, clique Salvar para guardar no servidor.');
-   }catch(ex){msg(ex.message)}finally{URL.revokeObjectURL(url)}
+    const max=kind==='map'?1700:370,ratio=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));
+    const cv=document.createElement('canvas');cv.width=Math.max(1,Math.round(im.naturalWidth*ratio));cv.height=Math.max(1,Math.round(im.naturalHeight*ratio));
+    const ctx=cv.getContext('2d');ctx.drawImage(im,0,0,cv.width,cv.height);
+    const imageType=kind==='map'?'image/jpeg':'image/webp',limit=kind==='map'?860000:280000;
+    let data='';
+    for(const q of [.86,.74,.61,.48,.35]){
+      data=cv.toDataURL(imageType,q);
+      if(kind!=='map'&&!data.startsWith('data:image/webp'))data=cv.toDataURL('image/png');
+      if(data.length<=limit)break;
+    }
+    if(data.length>limit)throw Error('Imagem muito grande após compressão. Reduza a resolução.');
+    const a={id:uid(),name:f.name.replace(/\.[^.]+$/,'').slice(0,69)||'Imagem',kind,emoji:'✧',image:data};
+    s.assets.push(a);s.picked=a.id;s.category=kind;
+    if(kind==='map'&&getScene())getScene().backgroundAssetId=a.id;
+    change();render(false);
+    signal(kind==='map'?'Mapa de fundo aplicado. Salve a campanha.':'Token adicionado à biblioteca.');
+   }catch(err){signal('Imagem: '+err.message)}
+  };
+  im.onerror=()=>{URL.revokeObjectURL(objectUrl);signal('Não foi possível ler a imagem.');};
+  im.src=objectUrl;
+ }
+ function preview(area,shape){
+  const el=$('#r30-preview',s.root);if(!el)return;
+  el.hidden=false;el.classList.toggle('circle',shape==='circle');
+  el.style.left=(area.x*48)+'px';el.style.top=(area.y*48)+'px';
+  el.style.width=(area.w*48)+'px';el.style.height=(area.h*48)+'px';
+ }
+ function finish(e){
+  const m=getScene(),g=s.gesture;s.gesture=null;if(!g||!m)return;
+  const p=coords(e);
+  if(g.kind==='shape'){
+   if(m.rooms.length>=75){signal('Máximo de 75 áreas.');map();return}
+   const area=dimensions(g.start,p,m),name=(g.shape==='circle'?'Círculo ':'Sala ')+(m.rooms.length+1);
+   m.rooms.push({id:uid(),name,shape:g.shape,hidden:true,...area});change();render(false);signal(name+' criado, oculto aos jogadores.');
+  }else if(g.kind==='token'){
+   const t=m.tokens.find(x=>x.id===g.id);if(t){Object.assign(t,cells(p,m));s.token=t.id;change();render(false)}
+  }
+ }
+ s.root.addEventListener('pointerdown',e=>{
+  const viewport=e.target.closest('#r30-view'),m=getScene();if(!viewport||!m)return;
+  const target=e.target.closest('[data-r30-token]');
+  s.pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});viewport.setPointerCapture(e.pointerId);e.preventDefault();
+  if(s.pointers.size>1){s.gesture=null;return}
+  const p=coords(e);
+  if(target&&s.tool!=='pan'&&s.tool!=='erase'){
+   s.token=target.dataset.r30Token;s.gesture={kind:'token',id:s.token};
+   target.classList.add('selected');return;
+  }
+  if(s.tool==='pan'){s.gesture={kind:'pan',x:e.clientX,y:e.clientY,px:s.x,py:s.y};return}
+  if(s.tool==='rect'||s.tool==='circle'){
+   s.gesture={kind:'shape',shape:s.tool==='circle'?'circle':'rect',start:p};
+   preview(dimensions(p,p,m),s.gesture.shape);return;
+  }
+  if(s.tool==='erase'){if(target){m.tokens=m.tokens.filter(x=>x.id!==target.dataset.r30Token);s.token='';change();render(false)}return}
+  if(s.tool==='token'){
+   const a=getAsset(s.picked);if(!a||a.kind==='map'){signal('Selecione um token na biblioteca.');return}
+   if(m.tokens.length>=250){signal('Limite de tokens atingido.');return}
+   const t={id:uid(),name:a.name,kind:a.kind,assetId:a.id,ownerPlayerId:'',characterId:'',hidden:false,...cells(p,m)};
+   m.tokens.push(t);s.token=t.id;change();render(false);
   }
  });
- host.addEventListener('click',async e=>{
-  const a=e.target.closest('[data-r29-asset]');if(a){selectedAsset=a.dataset.r29Asset;render();return}
-  const m=e.target.closest('[data-r29-tool]');if(m){tool=m.dataset.r29Tool;render();return}
-  const room=e.target.closest('[data-r29-room]');if(room){let r=scene()?.rooms.find(x=>x.id===room.dataset.r29Room);if(r){r.hidden=!r.hidden;render()}return}
-  const del=e.target.closest('[data-r29-roomdel]');if(del){scene().rooms=scene().rooms.filter(r=>r.id!==del.dataset.r29Roomdel);render();return}
-  const b=e.target.closest('[data-r29]');if(!b)return;
-  try{
-   switch(b.dataset.r29){
-    case 'new':{const s={id:id(),name:'Novo cenário',width:24,height:18,theme:'stone',backgroundAssetId:'',rooms:[],tokens:[]};scenes.push(s);selected=s.id;render();break}
-    case 'delete':{if(!confirm('Excluir cenário?'))break;scenes=scenes.filter(s=>s.id!==selected);if(active===selected)active='';selected=scenes[0]?.id||'';render();break}
-    case 'publish':{active=active===selected?'':selected;render();msg('Clique Salvar para atualizar a sessão.');break}
-    case 'save':{await api(route+'/scenarios','POST',{scenarios:scenes,assets:assets,activeScenarioId:active});msg('Cenários salvos no servidor.');break}
-    case 'token-delete':{scene().tokens=scene().tokens.filter(x=>x.id!==selectedToken);selectedToken='';render();break}
-    case 'close':host.hidden=true;host.dispatchEvent(new CustomEvent('rpg29:closed',{bubbles:true}));break;
-   }
-  }catch(err){msg('Falha: '+err.message)}
+ s.root.addEventListener('pointermove',e=>{
+  if(!s.pointers.has(e.pointerId))return;
+  s.pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(s.pointers.size===2){
+   const pts=[...s.pointers.values()],d=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);
+   const mid={x:(pts[0].x+pts[1].x)/2,y:(pts[0].y+pts[1].y)/2};
+   if(s.pinch&&s.pinch.d>5){const box=s.view.getBoundingClientRect();zoom(d/s.pinch.d,mid.x-box.left,mid.y-box.top)}
+   s.pinch={d};return;
+  }
+  const g=s.gesture,m=getScene();if(!g||!m)return;
+  if(g.kind==='pan'){s.x=g.px+e.clientX-g.x;s.y=g.py+e.clientY-g.y;updateTransform()}
+  if(g.kind==='shape')preview(dimensions(g.start,coords(e),m),g.shape);
+  if(g.kind==='token'){
+   const target=$('.r30-token[data-r30-token="'+g.id+'"]',s.root);
+   if(target){const c=cells(coords(e),m);target.style.left=(c.x*48+1)+'px';target.style.top=(c.y*48+1)+'px'}
+  }
  });
- return load();
+ function release(e){
+  if(!s.pointers.has(e.pointerId))return;
+  s.pointers.delete(e.pointerId);
+  if(s.pinch){if(s.pointers.size<2){s.pinch=null;s.gesture=null}return}
+  finish(e);
+ }
+ s.root.addEventListener('pointerup',release);s.root.addEventListener('pointercancel',release);
+ s.root.addEventListener('wheel',e=>{
+  if(!e.target.closest('#r30-view'))return;
+  e.preventDefault();const rect=s.view.getBoundingClientRect();
+  zoom(e.deltaY<0?1.12:1/1.12,e.clientX-rect.left,e.clientY-rect.top);
+ },{passive:false});
+ s.root.addEventListener('change',e=>{
+  const m=getScene(),t=m?.tokens.find(x=>x.id===s.token);
+  if(e.target.id==='r30-scenes'){s.selected=e.target.value;s.token='';render(true)}
+  if(e.target.id==='r30-category'){s.category=e.target.value;library()}
+  if(e.target.id==='r30-import-kind')s.importKind=e.target.value;
+  if(e.target.id==='r30-gridcheck'){s.showGrid=e.target.checked;map()}
+  if(e.target.id==='r30-file')upload(e.target.files?.[0]);
+  if(t&&e.target.dataset.r30Change==='name'){t.name=e.target.value.trim().slice(0,70)||t.name;change();render(false)}
+  if(t&&e.target.dataset.r30Change==='owner'){
+   const p=(opts.players||[]).find(p=>p.id===e.target.value);
+   t.ownerPlayerId=p?.id||'';t.characterId=p?.characterId||'';change();details();
+  }
+  if(t&&e.target.dataset.r30Change==='hidden'){t.hidden=e.target.checked;change();details()}
+ });
+ s.root.addEventListener('click',async e=>{
+  const a=e.target.closest('[data-r30-asset]');
+  if(a){s.picked=a.dataset.r30Asset;library();return}
+  const tool=e.target.closest('[data-r30-tool]');
+  if(tool){s.tool=tool.dataset.r30Tool;s.root.querySelectorAll('[data-r30-tool]').forEach(b=>b.classList.toggle('active',b===tool));signal('Ferramenta: '+tool.title);return}
+  const room=e.target.closest('[data-r30-room]');
+  if(room){const r=getScene()?.rooms.find(x=>x.id===room.dataset.r30Room);if(r){r.hidden=!r.hidden;change();render(false)}return}
+  const del=e.target.closest('[data-r30-delroom]');
+  if(del){getScene().rooms=getScene().rooms.filter(x=>x.id!==del.dataset.r30Delroom);change();render(false);return}
+  const b=e.target.closest('[data-r30]');if(!b)return;
+  const m=getScene();
+  try{
+   switch(b.dataset.r30){
+    case 'exit':close();break;
+    case 'save':await save();break;
+    case 'new':{
+     if(s.scenes.length>=16){signal('Limite de 16 cenários.');break}
+     const map={id:uid(),name:'Novo cenário',width:28,height:18,theme:'stone',backgroundAssetId:'',rooms:[],tokens:[]};
+     s.scenes.push(map);s.selected=map.id;s.token='';change();render(true);break;
+    }
+    case 'publish':if(m){s.active=s.active===m.id?'':m.id;change();render(false);signal('Salve para aplicar ao jogo.')}break;
+    case 'assets':s.aside=!s.aside;$('.r30-side',s.root)?.classList.toggle('folded',!s.aside);break;
+    case 'zoom-in':zoom(1.2);break;
+    case 'zoom-out':zoom(1/1.2);break;
+    case 'fit':fit();break;
+    case 'delete-token':if(m){m.tokens=m.tokens.filter(x=>x.id!==s.token);s.token='';change();render(false)}break;
+    case 'settings':{
+     if(!m)break;
+     const name=prompt('Nome do cenário',m.name);if(name===null)break;
+     const w=prompt('Largura em quadrados (6 a 60)',m.width);if(w===null)break;
+     const h=prompt('Altura em quadrados (6 a 60)',m.height);if(h===null)break;
+     m.name=name.trim().slice(0,80)||m.name;
+     m.width=clamp(Number(w)||m.width,6,60);m.height=clamp(Number(h)||m.height,6,60);
+     m.rooms=m.rooms.filter(r=>r.x+r.w<=m.width&&r.y+r.h<=m.height);
+     m.tokens=m.tokens.filter(t=>t.x<m.width&&t.y<m.height);change();render(true);break;
+    }
+   }
+  }catch(err){signal('Erro: '+err.message)}
+ });
+ const observer=new ResizeObserver(()=>{if(current===s&&getScene()&&s.view)updateTransform()});
+ observer.observe(s.root);host.addEventListener('rpg29:closed',()=>observer.disconnect(),{once:true});
+ return load().catch(err=>signal('Falha ao carregar cenários: '+err.message));
 }
-root.RPG29_EDITOR={open};
+root.RPG30_STUDIO={open,close};
+root.RPG29_EDITOR=root.RPG30_STUDIO;
 })(typeof window!=='undefined'?window:globalThis);

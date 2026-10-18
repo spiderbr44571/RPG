@@ -1,3 +1,17 @@
+# RPG Mesa v0.30 — Estúdio de cenários em paisagem
+
+A ferramenta **Mestragem → ✧ Cenários** agora abre um estúdio visual em tela cheia no Android. Enquanto o estúdio estiver aberto, o app solicita orientação paisagem; **✕ Sair** (ou Voltar) devolve à interface normal. Se houver alterações não salvas, é pedida confirmação antes de sair.
+
+**Ferramentas do estúdio:** ✋ para mover o mapa; ◉ para posicionar/mover tokens; ▭ para desenhar uma sala retangular, ◯ para definir uma área circular; ⌫ para apagar tokens; zoom +, -, ajustar; seletor de cenários, botão de publicação e de salvar. A biblioteca lateral permite selecionar objetos e importar fundo de mapa JPG/PNG e retratos de tokens JPG/PNG/WebP, redimensionados no aparelho antes do envio. Para ocultar uma sala, desenhe sua área com arrastar/soltar: áreas novas iniciam ocultas, e o mestre alterna a visibilidade no painel lateral.
+
+**Jogadores:** continuam abrindo seus links permanentes e a opção **▦ Cenário**. O servidor retira da resposta tokens secretos e recorta áreas secretas do fundo de mapa em vez de depender apenas de CSS. Movimentação só é permitida no token cujo jogador corresponde à ficha atribuída.
+
+**Correções:** SVG ausente da opção **Rolagens** na Central da Mesa (a opção antes ficava sem ícone), escala da interface, toque e navegação. O dado flutuante continua a abrir a Central; para rolar dados, use a opção Rolagens.
+
+**Limites atuais:** quadrícula com até 60 × 60 células, até 16 cenários, 75 áreas e 250 tokens por cenário. As áreas circulares são elipses inscritas na seleção e não modelam paredes físicas. Sem iluminação dinâmica, turnos de movimentação automáticos ou trilhas de colisão por paredes. Os mestres devem usar somente a rede local de confiança; não exponha o servidor à Internet.
+
+---
+
 # RPG Mesa v0.29 — Cenários de mesa e grid (LAN)
 
 A v0.29 inclui um **editor de cenários** e o mapa interativo da campanha: mapas em grade, biblioteca de assets (personagens, criaturas, itens, objetos e temas de terreno), importação de imagens pessoais JPG/PNG/WebP compactadas, tokens vinculados ao jogador, salas ocultáveis e publicação para participantes da sessão local.
