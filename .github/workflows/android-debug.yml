@@ -77,6 +77,8 @@ jobs:
           node --check app/src/main/assets/rpg26_local_answers.js
           node --check app/src/main/assets/rpg26_offline_search_ui.js
           node tests/local_answer.test.cjs
+          node --check app/src/main/assets/rpg27_answer_templates.js
+          node tests/structured_offline_answer.test.cjs
           python3 -m py_compile scripts/indexar_pdf.py
           python3 - <<'PY'
           from html.parser import HTMLParser
