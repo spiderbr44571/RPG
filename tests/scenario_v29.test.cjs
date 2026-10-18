@@ -14,7 +14,7 @@ assert.match(html,/z-index:9999!important/);
 assert.doesNotMatch(app,/data-r11="scenario"/);
 assert.match(app,/data-r11="live"/);
 assert.match(fs.readFileSync(p.join(root,'rpg31_master_table.js'),'utf8'),/RPG29_EDITOR.open/);
-assert.match(app,/RPG29_EDITOR\.open/);
+assert.match(app,/RPG31_MASTER\.open/);
 assert.match(gm,/scene-editor\.js/);
 assert.match(player,/id="scene-link"/);
 assert.match(gurps,/id="scene-link"/);
