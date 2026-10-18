@@ -423,6 +423,10 @@ public final class LocalCampaignServer extends NanoHTTPD {
           if(!java.util.Arrays.asList("character","creature","item","object").contains(kind))
             throw new IllegalArgumentException("Tipo de token inválido");
           if("creature".equals(kind)){
+            // Token de criatura criado antes da v0.31: completar recursos ausentes sem apagar o mapa.
+            if(!token.has("maxHp"))token.put("maxHp",Math.max(1,Math.min(100000,token.optInt("hp",1))));
+            if(!token.has("hp"))token.put("hp",token.optInt("maxHp",1));
+            if(!token.has("defense"))token.put("defense",0);
             int mhp=gridNumber(token,"maxHp",1,100000);
             gridNumber(token,"hp",0,mhp);
             gridNumber(token,"defense",0,1000);
