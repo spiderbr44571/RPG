@@ -9,6 +9,7 @@ function close(){
  const s=active;if(!s)return;active=null;clearInterval(s.timer);s.el.remove();
  document.body.style.overflow=s.oldOverflow;
  try{root.RpgSceneDisplay?.setLandscape(false)}catch(_){}
+ s.options.onClose?.();
 }
 function open(host,options){
  if(active)close();
@@ -101,13 +102,13 @@ function open(host,options){
    if(d.revision!==s.revision){
      const first=s.revision<0,scroll=$('#r31-scroll',s.el);
      // Preserva a digitacao do mestre durante as atualizacoes da sessao.
-     const form=q('#r31-formula',s.el)?.value||'1d20',initForm=q('#r32-initiative-formula',s.el)?.value||'1d20';
+     const form=$('#r31-formula',s.el)?.value||'1d20',initForm=$('#r32-initiative-formula',s.el)?.value||'1d20';
      const selectedIds=[...s.el.querySelectorAll('[data-player]:checked')].map(el=>el.dataset.player);
-     const effectName=q('#r31-effect',s.el)?.value||'';
+     const effectName=$('#r31-effect',s.el)?.value||'';
 
      const x=first?0:scroll?.scrollLeft||0,y=first?0:scroll?.scrollTop||0;
       s.revision=d.revision;s.data=d;render();
-     const rollInput=q('#r31-formula',s.el),initInput=q('#r32-initiative-formula',s.el),effectInput=q('#r31-effect',s.el);
+     const rollInput=$('#r31-formula',s.el),initInput=$('#r32-initiative-formula',s.el),effectInput=$('#r31-effect',s.el);
      if(rollInput)rollInput.value=form;if(initInput)initInput.value=initForm;if(effectInput)effectInput.value=effectName;
      for(const item of s.el.querySelectorAll('[data-player]'))item.checked=selectedIds.includes(item.dataset.player);
      const sc=$('#r31-scroll',s.el);
