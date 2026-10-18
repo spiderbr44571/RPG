@@ -631,13 +631,13 @@ public final class LocalCampaignServer extends NanoHTTPD {
         double score=Math.pow(x-(width-1)/2.0,2)+Math.pow(y-(height-1)/2.0,2);
         if(score<best){best=score;xx=x;yy=y;}
       }
-      if(xx<0)continue; // Nunca revelar automaticamente sala inteira sob nevoa.
+      if(xx<0||tokens.length()>=250)continue; // Não ultrapassar limites nem revelar salas ocultas.
       JSONObject sheet=character.optJSONObject("sheet");
       String name=sheet==null?"Personagem":sheet.optString("name","Personagem");
       if(name.trim().isEmpty())name=player.optString("nickname","Personagem");
       tokens.put(new JSONObject().put("id",UUID.randomUUID().toString().replace("-",""))
         .put("kind","character").put("name",name.substring(0,Math.min(name.length(),70)))
-        .put("x",xx).put("y",yy).put("assetId","char-hero")
+        .put("x",xx).put("y",yy).put("assetId","")
         .put("ownerPlayerId",pid).put("characterId",charId).put("hidden",false));
       changed=true;
     }
