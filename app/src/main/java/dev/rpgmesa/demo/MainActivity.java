@@ -574,8 +574,11 @@ public final class MainActivity extends Activity {
       // Se o estudio estiver aberto, o botao Voltar pede confirmacao dentro dele.
       browser.evaluateJavascript("Boolean(document.querySelector('.r30-studio'))",result -> {
         if("true".equals(result))browser.evaluateJavascript("window.RPG30_STUDIO.close()",null);
-        else if(browser.canGoBack())browser.goBack();
-        else MainActivity.super.onBackPressed();
+        else browser.evaluateJavascript("Boolean(document.querySelector('.r31-live'))",live -> {
+          if("true".equals(live))browser.evaluateJavascript("window.RPG31_MASTER && window.RPG31_MASTER.close()",null);
+          else if(browser.canGoBack())browser.goBack();
+          else MainActivity.super.onBackPressed();
+        });
       });
     }
     @Override protected void onDestroy(){if(pendingUpload!=null){pendingUpload.onReceiveValue(null);pendingUpload=null;}if(browser!=null)browser.destroy();super.onDestroy();}

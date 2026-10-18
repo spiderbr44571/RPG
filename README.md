@@ -1,3 +1,31 @@
+# RPG Mesa 0.32 — Iniciativa e Mesa ao Vivo unificada
+
+### Um único fluxo para mestrar
+
+Em **Mestragem → Mesa ao vivo**, o mestre acompanha o mapa compartilhado e pode tocar **Editar mapa** sem sair da campanha. O editor de cenários abre sobre a mesa; ao fechar, a visão do mestre é restaurada e sincronizada. A antiga entrada **Cenários** foi retirada do menu da campanha para não duplicar funcionalidades.
+
+### Iniciativa
+
+O mestre seleciona qualquer token (personagem ou criatura) e escolhe **Rolar iniciativa** ou **Definir valor**. A lista é ordenada do maior resultado para o menor (empates pelo nome) e salva no banco local da campanha. **Próximo turno** avança o destaque e a contagem de rodada ao terminar a lista, e atualiza a duração dos efeitos de turno. É possível remover participantes ou reiniciar a ordem. Os jogadores consultam a iniciativa na mesa, mas só recebem participantes visíveis em suas cenas. Jogadores não podem alterar a ordem de iniciativa.
+
+### Dados detalhados
+
+Cada rolagem mostra os dados individuais. Em **3d20**, por exemplo, `[19, 10, 2]` aparece ao lado do resultado. **Por padrão, rolagens com múltiplos d20 usam o maior resultado** (sistema Ordem Paranormal); uma opção de **Somar dados** continua disponível no painel de rolagens dos jogadores para situações em que a soma seja apropriada. Modificadores são somados ao resultado escolhido. O mestre também vê os dados individuais em suas rolagens privadas, que não são publicadas.
+
+### Compatibilidade de caracteres no navegador
+
+Respostas HTML/JS/CSS/JSON do servidor passaram a enviar diretamente bytes UTF-8 com charset explícito. Ícones que dependiam de símbolos não disponíveis em alguns navegadores foram substituídos por textos e iniciais legíveis, inclusive para tokens sem imagem. Os arquivos da campanha existentes não são sobrescritos.
+
+### Testes e limitações
+
+```bash
+node tests/scenario_v32.test.cjs
+```
+
+A iniciativa é gerenciada manualmente pelo mestre e não calcula automaticamente bônus das fichas. O modo online permanece na rede LAN do anfitrião, sem necessidade de serviços externos; o mestre deve fornecer a notação de dados desejada.
+
+---
+
 # RPG Mesa 0.31 — Mesa compartilhada em tempo real (LAN)
 
 **Mestragem → ◈ Mesa ao vivo** abre o grid publicado, mantendo acesso a todos os jogadores e criaturas. O mestre pode mover tokens, abrir fichas de criaturas (PV, defesa, ataques e notas cadastradas), ajustar PV, selecionar fichas de jogadores para efeitos, avançar rodadas, abrir o estúdio para editar o cenário e rolar dados para todos ou apenas para si. Notações não automatizadas devem ser consultadas no livro: a interface não inventa resultados de regras.

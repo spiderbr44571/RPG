@@ -32,7 +32,7 @@ function portrait(s){return [s?.photo,s?.portrait].find(v=>typeof v==='string'&&
 function resources(s){
  $('#hero-name').textContent=s?.name||'Aguardando ficha';
  $('#hero-subtitle').textContent=s?[s.systemId||'Sistema',s.class||s.trilha||''].filter(Boolean).join(' · '):'Aguardando o mestre';
- const image=portrait(s);$('#avatar').innerHTML=image?'<img src="'+image+'" alt="Personagem">':'✧';
+ const image=portrait(s);$('#avatar').innerHTML=image?'<img src="'+image+'" alt="Personagem">':esc((s?.name||'PC').slice(0,2).toUpperCase());
  $('#resources').innerHTML=resourceList(s).slice(0,7).map((r,i)=>{
   const c=({PV:'#dc6c87',PE:'#76a4e5',SAN:'#b696e6',HP:'#dc6c87',FP:'#7bc9b0'}[r.k]||['#dc6c87','#76a4e5','#b696e6'][i%3]);
   const pct=r.max>0?Math.max(0,Math.min(100,(r.cur/r.max)*100)):0;
@@ -67,8 +67,17 @@ function sheet(){
  $('#sheet-tabs').innerHTML=keys.map(k=>'<button data-tab="'+esc(k)+'" class="'+(k===tab?'active':'')+'">'+esc(k)+'</button>').join('');
  $('#sheet-data').innerHTML=content(groups[tab]);
 }
+function initiative(){
+ const order=state?.initiative?.entries||[];
+ $('#initiative-entries').innerHTML=order.length?order.map((part,i)=>
+ '<div class="entry '+(part.tokenId===state.initiative.activeId?'initiative-current':'')+'">'+
+ '<strong>'+(i+1)+'. '+esc(part.name)+' : '+part.score+'</strong>'+
+ (part.faces?.length?'<span class="dicefaces">'+esc(part.formula)+' ['+esc(part.faces.join(', '))+']</span>':'')+
+ (part.tokenId===state.initiative.activeId?'<small>Turno atual</small>':'')+'</div>').join(''):
+ '<p>Ainda não há iniciativa definida pelo mestre.</p>';
+}
 function render(){
- const s=state?.scene;resources(state?.character);sheet();
+ const s=state?.scene;resources(state?.character);sheet();initiative();
  $('#scene-turn').textContent=(state?.sceneName||'')+' · '+(state?.turn||1);
  if(!s){$('#empty').hidden=false;$('#board').innerHTML='';return}
  $('#empty').hidden=true;$('#scene-title').textContent=s.name;
@@ -79,14 +88,15 @@ function render(){
  board.style.backgroundSize=bg?cell+'px '+cell+'px,'+cell+'px '+cell+'px,100% 100%':'';
  let h=s.tokens.map(t=>{const a=assets.get(t.assetId);
   return '<div data-id="'+esc(t.id)+'" data-movable="'+Boolean(t.movable)+'" class="token '+(t.movable?'own':'')+'" style="left:'+(t.x*cell+1)+'px;top:'+(t.y*cell+1)+'px;width:'+(cell-2)+'px;height:'+(cell-2)+'px">'+
-   (a?.image?'<img src="'+a.image+'" alt="">':'<span>'+esc(a?.emoji||'✧')+'</span>')+
+   (a?.image?'<img src="'+a.image+'" alt="">':'<span>'+esc((t.name||'TK').slice(0,2).toUpperCase())+'</span>')+
    '<small>'+esc(t.name)+(t.kind==='creature'&&t.maxHp?' · '+t.hp+'/'+t.maxHp+' PV':'')+'</small></div>';
  }).join('');
  h+=(s.fog||[]).map(f=>'<div class="fog" style="left:'+(f.x*cell)+'px;top:'+(f.y*cell)+'px;width:'+(f.w*cell)+'px;height:'+(f.h*cell)+'px;border-radius:'+(f.shape==='circle'?'50%':'0')+'"></div>').join('');
  board.innerHTML=h;
  if(!s.tokens.some(t=>t.id===selected&&t.movable))selected=s.tokens.find(t=>t.movable)?.id||'';
  $('#feed').innerHTML=(state.rolls||[]).slice(-3).reverse().map(r=>
-  '<div class="roll"><strong>'+esc(r.by)+'</strong> · '+esc(r.label)+'<div><b>'+r.total+'</b> <small>'+esc(r.formula)+' ['+esc((r.faces||[]).join(', '))+']</small></div></div>').join('');
+  '<div class="roll"><strong>'+esc(r.by)+'</strong> - '+esc(r.label)+'<div><b>'+r.total+'</b><small class="dicefaces">'+
+ esc(r.formula)+' : ['+esc((r.faces||[]).join(', '))+']'+(r.mode==='highest'?' (maior d20)':'')+'</small></div></div>').join('');
 }
 async function refresh(){
  if(busy||document.hidden)return;busy=true;
@@ -98,8 +108,9 @@ async function refresh(){
 function center(){const s=$('#scroll'),b=$('#board');s.scrollLeft=Math.max(0,(b.clientWidth-s.clientWidth)/2);s.scrollTop=Math.max(0,(b.clientHeight-s.clientHeight)/2)}
 async function dice(){
  try{const formula=$('#formula').value.trim();
-  const result=await api(url+'/table-roll','POST',{formula,label:'Rolagem de '+(state?.character?.name||'jogador')});
-  $('#roll-answer').textContent='Resultado '+result.total+' · ['+result.faces.join(', ')+']';
+  const mode=$('#dice-mode').value;
+  const result=await api(url+'/table-roll','POST',{formula,label:'Rolagem de '+(state?.character?.name||'jogador'),...(mode==='sum'?{mode:'sum'}:{})});
+  $('#roll-answer').textContent='Dados: ['+result.faces.join(', ')+'] - '+(result.mode==='highest'?'maior dado':'soma')+' = '+result.total;
   revision=-1;await refresh();
  }catch(e){$('#roll-answer').textContent=e.message}
 }
@@ -121,6 +132,8 @@ function mount(){
  }
  $('#close-sheet').onclick=()=>$('#sheet-modal').classList.remove('open');
  $('#close-dice').onclick=()=>$('#dice-modal').classList.remove('open');
+ $('#open-initiative').onclick=()=>{$('#initiative-modal').classList.add('open');initiative()};
+ $('#close-initiative').onclick=()=>$('#initiative-modal').classList.remove('open');
  $('#sheet-tabs').onclick=e=>{const el=e.target.closest('[data-tab]');if(el){tab=el.dataset.tab;sheet()}};
  document.querySelectorAll('[data-quick]').forEach(el=>el.onclick=()=>$('#formula').value=el.dataset.quick);
  $('#do-roll').onclick=dice;

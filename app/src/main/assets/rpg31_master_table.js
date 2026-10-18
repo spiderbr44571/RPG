@@ -9,11 +9,12 @@ function close(){
  const s=active;if(!s)return;active=null;clearInterval(s.timer);s.el.remove();
  document.body.style.overflow=s.oldOverflow;
  try{root.RpgSceneDisplay?.setLandscape(false)}catch(_){}
+ s.options.onClose?.();
 }
 function open(host,options){
  if(active)close();
  const s={el:document.createElement('div'),oldOverflow:document.body.style.overflow,
-   options,revision:-1,data:null,scene:null,selected:'',cell:48,timer:0,busy:false,folded:false,privateResult:null};
+   options,revision:-1,data:null,scene:null,selected:'',cell:48,timer:0,busy:false,folded:false,privateResult:null,editing:false};
  active=s;s.el.className='r31-live';document.body.appendChild(s.el);document.body.style.overflow='hidden';
  try{root.RpgSceneDisplay?.setLandscape(true)}catch(_){}
  const req=(path='',method='GET',payload)=>options.request(options.route+path,method,payload);
@@ -30,6 +31,7 @@ function open(host,options){
   if(sh.systemId==='gurps')values=[['HP',Number(sh.currentHP??sh.attrs?.ST??0),Number(sh.attrs?.ST||1)],['FP',Number(sh.currentFP??sh.attrs?.HT??0),Number(sh.attrs?.HT||1)]];
   return values.slice(0,5).map(([k,cur,max])=>'<small>'+esc(k)+' '+cur+'/'+max+'</small><div class="track"><i class="bar" style="width:'+Math.max(0,Math.min(100,max>0?100*cur/max:0))+'%"></i></div>').join('');
  }
+ const diceList=roll=>roll&&Array.isArray(roll.faces)?'['+roll.faces.join(', ')+']'+(roll.bonus?' '+(roll.bonus>0?'+':'')+roll.bonus:''):'';
  function selection(){
   const t=s.scene?.tokens?.find(t=>t.id===s.selected),el=$('#r31-details',s.el);
   if(!el)return;
@@ -52,14 +54,25 @@ function open(host,options){
   s.scene=map;
   s.el.innerHTML='<header><strong>✧ MESTRE</strong><h2>'+esc(map?.name||'Sem cenário publicado')+'</h2>'+
     '<small>Rodada '+(d.turn||1)+'</small><button data-action="panel">☷</button>'+
-    '<button data-action="edit">✎ Editar</button><button data-action="turn">+ Rodada</button><button data-action="close">✕</button></header>'+
+    '<button data-action="edit">Editar mapa</button><button data-action="turn">+ Rodada</button><button data-action="close">Sair</button></header>'+
     '<div class="body"><div id="r31-scroll" class="scroll"><div id="r31-board" class="board"></div></div>'+
     '<aside id="r31-aside" class="'+(s.folded?'folded':'')+'"><section><h3>⚄ Rolagens</h3>'+
       '<input id="r31-formula" value="1d20" placeholder="1d20+5" aria-label="Notação do dado">'+
       '<div class="actions"><button data-action="roll-public" class="primary">Todos veem</button><button data-action="roll-private">Só mestre</button></div>'+
-      (s.privateResult?'<div class="info">Privada: '+esc(s.privateResult.formula)+' = '+s.privateResult.total+'</div>':'')+
-      (d.rolls||[]).slice(-4).reverse().map(r=>'<div class="info">'+esc(r.by)+' · '+esc(r.label)+' <b>'+r.total+'</b></div>').join('')+
-    '</section><section><h3>👤 Jogadores e efeitos</h3>'+
+      (s.privateResult?'<div class="info"><b>Rolagem privada</b> '+esc(s.privateResult.formula)+' : <b>'+s.privateResult.total+'</b> <small>Dados: '+esc(diceList(s.privateResult))+'</small></div>':'')+
+      (d.rolls||[]).slice(-5).reverse().map(r=>'<div class="info">'+esc(r.by)+' - '+esc(r.label)+' <b>'+r.total+'</b><small>'+esc(r.formula)+' : '+esc(diceList(r))+'</small></div>').join('')+
+    '</section><section><h3>Iniciativa</h3>'+
+   '<small>Selecione um token para rolar. A ordem fica visível na mesa e é controlada pelo mestre.</small>'+
+   '<input id="r32-initiative-formula" value="1d20" placeholder="1d20+5">'+
+   '<div class="actions"><button data-action="initiative-roll" class="primary">Rolar iniciativa</button><button data-action="initiative-set">Definir valor</button></div>'+
+   '<div class="actions"><button data-action="initiative-next">Próximo turno</button><button data-action="initiative-clear">Reiniciar</button></div>'+
+   '<small>Rodada '+(d.initiative?.round||1)+'</small>'+
+   (d.initiative?.entries||[]).map((item,index)=>
+    '<div class="info '+(item.tokenId===d.initiative.activeId?'selected':'')+'">'+
+     '<b>'+(index+1)+'. '+esc(item.name)+' - '+item.score+'</b>'+
+     (item.faces?.length?'<small>'+esc(item.formula)+' : ['+esc(item.faces.join(', '))+']</small>':'')+
+     '<button data-init-remove="'+esc(item.tokenId)+'" title="Remover da iniciativa">Remover</button></div>').join('')+
+ '</section><section><h3>Jogadores e efeitos</h3>'+
       (d.players||[]).map(p=>{
         const c=(d.characters||[]).find(c=>c.id===p.characterId);
         return '<label class="info check"><input type="checkbox" data-player="'+esc(p.characterId||'')+'" '+(c?'':'disabled')+'><span>'+esc(c?.sheet?.name||p.nickname)+bars(c)+'</span></label>';
@@ -88,8 +101,16 @@ function open(host,options){
    const d=await req('/table');
    if(d.revision!==s.revision){
      const first=s.revision<0,scroll=$('#r31-scroll',s.el);
+     // Preserva a digitacao do mestre durante as atualizacoes da sessao.
+     const form=$('#r31-formula',s.el)?.value||'1d20',initForm=$('#r32-initiative-formula',s.el)?.value||'1d20';
+     const selectedIds=[...s.el.querySelectorAll('[data-player]:checked')].map(el=>el.dataset.player);
+     const effectName=$('#r31-effect',s.el)?.value||'';
+
      const x=first?0:scroll?.scrollLeft||0,y=first?0:scroll?.scrollTop||0;
-     s.revision=d.revision;s.data=d;render();
+      s.revision=d.revision;s.data=d;render();
+     const rollInput=$('#r31-formula',s.el),initInput=$('#r32-initiative-formula',s.el),effectInput=$('#r31-effect',s.el);
+     if(rollInput)rollInput.value=form;if(initInput)initInput.value=initForm;if(effectInput)effectInput.value=effectName;
+     for(const item of s.el.querySelectorAll('[data-player]'))item.checked=selectedIds.includes(item.dataset.player);
      const sc=$('#r31-scroll',s.el);
      if(sc){sc.scrollLeft=first?Math.max(0,(sc.scrollWidth-sc.clientWidth)/2):x;sc.scrollTop=first?Math.max(0,(sc.scrollHeight-sc.clientHeight)/2):y}
    }
@@ -97,27 +118,55 @@ function open(host,options){
  }
  s.el.addEventListener('click',async e=>{
   const token=e.target.closest('[data-token]');if(token){s.selected=token.dataset.token;selection();s.el.querySelectorAll('[data-token]').forEach(t=>t.classList.toggle('active',t===token));return}
-  const hp=e.target.closest('[data-hp]'),att=e.target.closest('[data-attack]'),button=e.target.closest('[data-action]');
+  const hp=e.target.closest('[data-hp]'),att=e.target.closest('[data-attack]'),removeInit=e.target.closest('[data-init-remove]'),button=e.target.closest('[data-action]');
   try{
+   if(removeInit){await req('/initiative','POST',{action:'remove',tokenId:removeInit.dataset.initRemove});s.revision=-1;await refresh();return}
    if(hp){await req('/token','POST',{tokenId:s.selected,action:'health',delta:Number(hp.dataset.hp)});s.revision=-1;await refresh();return}
    if(att){
     const t=s.scene?.tokens.find(t=>t.id===s.selected),a=t?.attacks?.[Number(att.dataset.attack)];
     if(!a)return;
     if(!/^\d{1,2}d(4|6|8|10|12|20|100)([+-]\d{1,3})?$/i.test(a.test||'')){feedback('A notação original deste teste requer rolagem manual: '+(a.test||''));return}
     const result=await req('/table-roll','POST',{formula:a.test,label:t.name+': '+a.name,visibility:'public'});
-    feedback('Rolagem de '+a.name+': '+result.total);s.revision=-1;await refresh();return;
+    feedback('Rolagem de '+a.name+': '+result.total+' '+diceList(result));s.revision=-1;await refresh();return;
    }
    if(button){
     const action=button.dataset.action;
     if(action==='close'){close();return}
     if(action==='panel'){s.folded=!s.folded;$('#r31-aside',s.el).classList.toggle('folded',s.folded);return}
-    if(action==='edit'){close();options.openEditor?.();return}
+    if(action==='edit'){
+      if(!root.RPG29_EDITOR){feedback('Editor indisponível');return}
+      s.editing=true;s.el.classList.add('editing');
+      const onReturn=()=>{s.editing=false;s.el.classList.remove('editing');try{root.RpgSceneDisplay?.setLandscape(true)}catch(_){}s.revision=-1;refresh()};
+      s.el.addEventListener('rpg29:closed',onReturn,{once:true});
+      try{await root.RPG29_EDITOR.open(s.el,{request:options.request,route:options.route,
+        players:s.data?.players||[],characters:s.data?.characters||[]})}
+      catch(error){s.el.removeEventListener('rpg29:closed',onReturn);onReturn();throw error}
+      return;
+    }
     if(action==='turn'){await req('/advance','POST',{kind:'turn'});s.revision=-1;await refresh();return}
+    if(action.startsWith('initiative-')){
+      if(action==='initiative-clear'&&!confirm('Limpar toda a ordem de iniciativa?'))return;
+      const body={action:action==='initiative-roll'?'roll':action==='initiative-set'?'set':action==='initiative-next'?'next':'reset'};
+      if(body.action==='roll'||body.action==='set'){
+        if(!s.selected){feedback('Selecione um token no mapa');return}
+        body.tokenId=s.selected;
+        if(body.action==='roll')body.formula=$('#r32-initiative-formula',s.el).value;
+        else{
+          const score=prompt('Iniciativa do token selecionado (número inteiro)', '10');
+          if(score===null)return;
+          body.score=Number(score);
+          if(!Number.isInteger(body.score)){feedback('Valor inválido');return}
+        }
+      }
+      const result=await req('/initiative','POST',body);
+      feedback('Iniciativa atualizada - rodada '+result.round);
+      s.revision=-1;await refresh();return;
+    }
     if(action==='roll-public'||action==='roll-private'){
       const formula=$('#r31-formula',s.el).value;
       const result=await req('/table-roll','POST',{formula,label:'Mestre',visibility:action==='roll-private'?'master':'public'});
-      if(action==='roll-private'){s.privateResult=result;feedback('Privada: '+result.total+' (somente o mestre recebeu)')}
-      else{feedback('Pública: '+result.total);s.revision=-1;await refresh()}return;
+      if(action==='roll-private'){s.privateResult=result;feedback('Privada: '+result.total+' '+diceList(result)+' (somente o mestre recebeu)');render()}
+      else{feedback('Pública: '+result.total+' '+diceList(result));s.revision=-1;await refresh()}return;
     }
     if(action==='effect'){
       const ids=[...s.el.querySelectorAll('[data-player]:checked')].map(x=>x.dataset.player).filter(Boolean);

@@ -528,7 +528,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
         .put("revision",revision.get()).put("scene",JSONObject.NULL);
       if(original==null){
         response.put("character",playerInfo(cid,player).opt("character"));
-        response.put("rolls",visibleRolls(c,false)).put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName",""));
+        response.put("rolls",visibleRolls(c,false)).put("initiative",new JSONObject().put("round",1).put("activeId","").put("entries",new JSONArray())).put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName",""));
         return response;
       }
       JSONObject scene=new JSONObject().put("id",original.getString("id")).put("name",original.getString("name"))
@@ -574,6 +574,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
         }
       }
       scene.put("rooms",visibleRooms).put("fog",fog).put("tokens",visibleTokens);
+      response.put("initiative",initiativeForPlayer(c,visibleTokens));
       response.put("scene",scene).put("assets",filteredAssets)
         .put("rolls",visibleRolls(c,false)).put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName",""));
       // A ficha integral do jogador e entregue apenas ao proprio titular autenticado.
@@ -606,6 +607,100 @@ public final class LocalCampaignServer extends NanoHTTPD {
   }
 
 
+
+  // Iniciativa pertence a cada campanha. Apenas o mestre modifica a ordem e o turno.
+  private JSONObject initiativeData(JSONObject c)throws JSONException {
+    JSONObject initiative=c.optJSONObject("initiative");
+    if(initiative==null){
+      initiative=new JSONObject().put("entries",new JSONArray()).put("activeId","").put("round",1);
+      c.put("initiative",initiative);
+    }
+    return initiative;
+  }
+  private JSONObject initiativeForPlayer(JSONObject c,JSONArray visibleTokens)throws JSONException {
+    JSONObject source=initiativeData(c),filtered=new JSONObject().put("round",source.optInt("round",1));
+    JSONArray order=new JSONArray(),all=source.optJSONArray("entries");
+    java.util.HashSet<String> visibleIds=new java.util.HashSet<>();
+    for(int i=0;i<visibleTokens.length();i++)visibleIds.add(visibleTokens.getJSONObject(i).getString("id"));
+    if(all!=null)for(int i=0;i<all.length();i++){
+      JSONObject e=all.getJSONObject(i);
+      if(visibleIds.contains(e.optString("tokenId")))order.put(new JSONObject(e.toString()));
+    }
+    String active=source.optString("activeId","");
+    filtered.put("activeId",visibleIds.contains(active)?active:"").put("entries",order);
+    return filtered;
+  }
+  public JSONObject initiativeAction(String cid,JSONObject body)throws Exception {
+    synchronized(lock){
+      JSONObject c=campaign(cid),map=activeScene(c);
+      if(map==null)throw new IllegalArgumentException("Publique primeiro um mapa");
+      JSONObject state=initiativeData(c);
+      JSONArray entries=state.optJSONArray("entries");
+      if(entries==null){entries=new JSONArray();state.put("entries",entries);}
+      String action=body.optString("action","");
+      if("reset".equals(action)){
+        state.put("entries",new JSONArray()).put("round",1).put("activeId","");
+      }else if("next".equals(action)){
+        if(entries.length()==0)throw new IllegalArgumentException("Adicione participantes à iniciativa");
+        int index=-1;
+        for(int i=0;i<entries.length();i++)if(entries.getJSONObject(i).optString("tokenId").equals(state.optString("activeId")))index=i;
+        int next=(index+1)%entries.length();
+        if(next==0&&index>=0)state.put("round",state.optInt("round",1)+1);
+        state.put("activeId",entries.getJSONObject(next).getString("tokenId"));
+        advance(cid,"turn"); // Atualiza duracao dos efeitos e turno da campanha.
+      }else if("roll".equals(action)||"set".equals(action)){
+        String tokenId=sceneId(body,"tokenId");
+        JSONObject token=entry(map.getJSONArray("tokens"),tokenId,"Token do cenário");
+        int total;JSONArray faces=new JSONArray();String formula="";
+        if("roll".equals(action)){
+          formula=field(body,"formula",36).toLowerCase(Locale.ROOT).replace(" ","");
+          java.util.regex.Matcher match=java.util.regex.Pattern.compile("([1-9]|[12][0-9]|30)d(4|6|8|10|12|20|100)([+-][0-9]{1,3})?").matcher(formula);
+          if(!match.matches())throw new IllegalArgumentException("Use 1d20, 3d20+5 etc.");
+          int count=Integer.parseInt(match.group(1)),die=Integer.parseInt(match.group(2));
+          int bonus=match.group(3)==null?0:Integer.parseInt(match.group(3));
+          if(Math.abs(bonus)>100)throw new IllegalArgumentException("Modificador excedido");
+          total=bonus;int best=0,all=0;
+          for(int i=0;i<count;i++){int dieResult=random.nextInt(die)+1;all+=dieResult;best=Math.max(best,dieResult);faces.put(dieResult);}
+          boolean high=(die==20&&count>1&&!"sum".equals(body.optString("mode","highest")));
+          total+=(high?best:all);
+        }else{
+          Object value=body.opt("score");
+          if(!(value instanceof Number))throw new IllegalArgumentException("Informe uma iniciativa numerica");
+          total=body.getInt("score");
+          if(total< -1000||total>1000)throw new IllegalArgumentException("Iniciativa fora do limite");
+        }
+        JSONArray updated=new JSONArray();
+        for(int i=0;i<entries.length();i++){
+          JSONObject e=entries.getJSONObject(i);
+          if(!tokenId.equals(e.optString("tokenId")))updated.put(e);
+        }
+        updated.put(new JSONObject().put("tokenId",tokenId).put("name",token.optString("name"))
+          .put("score",total).put("faces",faces).put("formula",formula));
+        java.util.ArrayList<JSONObject> sortable=new java.util.ArrayList<>();
+        for(int i=0;i<updated.length();i++)sortable.add(updated.getJSONObject(i));
+        sortable.sort((a,b)->{
+          int v=Integer.compare(b.optInt("score"),a.optInt("score"));
+          return v==0?a.optString("name").compareToIgnoreCase(b.optString("name")):v;
+        });
+        JSONArray sorted=new JSONArray();
+        for(JSONObject item:sortable)sorted.put(item);
+        state.put("entries",sorted);
+        if(state.optString("activeId","").isEmpty())state.put("activeId",sorted.getJSONObject(0).getString("tokenId"));
+      }else if("remove".equals(action)){
+        String tokenId=sceneId(body,"tokenId");
+        JSONArray retained=new JSONArray();
+        for(int i=0;i<entries.length();i++){
+          JSONObject e=entries.getJSONObject(i);
+          if(!tokenId.equals(e.optString("tokenId")))retained.put(e);
+        }
+        state.put("entries",retained);
+        if(tokenId.equals(state.optString("activeId")))state.put("activeId",retained.length()>0?retained.getJSONObject(0).getString("tokenId"):"");
+      }else throw new IllegalArgumentException("Acao de iniciativa invalida");
+      persist();
+      return new JSONObject(state.toString());
+    }
+  }
+
   private JSONArray visibleRolls(JSONObject campaign,boolean isMaster)throws JSONException{
     JSONArray all=campaign.optJSONArray("tableRolls"),result=new JSONArray();
     if(all==null)return result;
@@ -632,13 +727,19 @@ public final class LocalCampaignServer extends NanoHTTPD {
       String label=input.optString("label","Rolagem");
       if(label.length()>70)label=label.substring(0,70);
       if(label.isEmpty())label="Rolagem";
-      JSONArray values=new JSONArray();int sum=bonus;
-      for(int i=0;i<count;i++){int value=random.nextInt(faces)+1;sum+=value;values.put(value);}
+      JSONArray values=new JSONArray();int sum=bonus,highest=0,faceSum=0;
+      for(int i=0;i<count;i++){
+        int value=random.nextInt(faces)+1;faceSum+=value;highest=Math.max(highest,value);values.put(value);
+      }
+      String mode=input.optString("mode",count>1&&faces==20?"highest":"sum");
+      if(!mode.equals("sum")&&!mode.equals("highest"))throw new IllegalArgumentException("Modo de rolagem inválido");
+      if(mode.equals("highest")&&faces!=20)throw new IllegalArgumentException("Maior resultado só para d20");
+      sum+=mode.equals("highest")?highest:faceSum;
       String privacy=gm&&"master".equals(input.optString("visibility"))?"master":"public";
       String name=gm?"Mestre":actor.optString("nickname","Jogador");
       JSONObject result=new JSONObject().put("id",UUID.randomUUID().toString().replace("-",""))
         .put("by",name).put("label",label).put("formula",formula).put("faces",values)
-        .put("bonus",bonus).put("total",sum).put("visibility",privacy).put("at",now);
+        .put("bonus",bonus).put("total",sum).put("mode",mode).put("diceSum",faceSum+bonus).put("visibility",privacy).put("at",now);
       if("public".equals(privacy)){
         JSONArray logs=c.optJSONArray("tableRolls");if(logs==null){logs=new JSONArray();c.put("tableRolls",logs);}
         logs.put(result);while(logs.length()>50)logs.remove(0);
@@ -653,7 +754,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       JSONObject scene=activeScene(c);
       result.put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName"))
         .put("campaignName",c.optString("name")).put("revision",revision.get())
-        .put("rolls",visibleRolls(c,true))
+        .put("rolls",visibleRolls(c,true)).put("initiative",new JSONObject(initiativeData(c).toString()))
         .put("players",new JSONArray(c.getJSONArray("players").toString()))
         .put("characters",new JSONArray(c.getJSONArray("characters").toString()));
       JSONArray ps=result.getJSONArray("players");
@@ -854,12 +955,20 @@ public final class LocalCampaignServer extends NanoHTTPD {
     String b=files.get("postData");if(b==null||b.length()>MAX_BYTES)throw new IllegalArgumentException("Payload inválido");
     return new JSONObject(b);
   }
+  // Evita qualquer conversao implicita de charset em browsers de PC ou WebView.
+  // Envia os bytes UTF-8 originais inclusive para acentos e titulos.
+  private Response utf8(Response.Status status,String mime,byte[] bytes){
+    Response r=newFixedLengthResponse(status,mime,new ByteArrayInputStream(bytes),bytes.length);
+    r.addHeader("Content-Language","pt-BR");
+    r.addHeader("X-Content-Type-Options","nosniff");
+    return r;
+  }
   private Response response(int status,JSONObject data){
     Response.Status st=status==200?Response.Status.OK:status==201?Response.Status.CREATED:
       status==400?Response.Status.BAD_REQUEST:status==401?Response.Status.UNAUTHORIZED:
       status==403?Response.Status.FORBIDDEN:status==404?Response.Status.NOT_FOUND:
       Response.Status.INTERNAL_ERROR;
-    Response r=newFixedLengthResponse(st,"application/json; charset=utf-8",data.toString());
+    Response r=utf8(st,"application/json; charset=UTF-8",data.toString().getBytes(StandardCharsets.UTF_8));
     r.addHeader("Cache-Control","no-store");r.addHeader("X-Content-Type-Options","nosniff");
     r.addHeader("Referrer-Policy","no-referrer");r.addHeader("X-Frame-Options","DENY");
     return r;
@@ -870,7 +979,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
     try(InputStream in=context.getAssets().open(asset);ByteArrayOutputStream out=new ByteArrayOutputStream()){
       byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1)out.write(b,0,n);buf=out.toByteArray();
     }
-    Response r=newFixedLengthResponse(Response.Status.OK,"text/html; charset=utf-8",new String(buf,StandardCharsets.UTF_8));
+    Response r=utf8(Response.Status.OK,"text/html; charset=UTF-8",buf);
     r.addHeader("Cache-Control","no-store");r.addHeader("Referrer-Policy","no-referrer");
     r.addHeader("X-Frame-Options","DENY");r.addHeader("X-Content-Type-Options","nosniff");
     r.addHeader("Content-Security-Policy","default-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'");
@@ -881,7 +990,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
     try(InputStream in=context.getAssets().open("rpg29_scene_editor.js");ByteArrayOutputStream out=new ByteArrayOutputStream()){
       byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1)out.write(b,0,n);buf=out.toByteArray();
     }
-    Response r=newFixedLengthResponse(Response.Status.OK,"application/javascript; charset=utf-8",new String(buf,StandardCharsets.UTF_8));
+    Response r=utf8(Response.Status.OK,"application/javascript; charset=UTF-8",buf);
     r.addHeader("Cache-Control","no-store");r.addHeader("X-Content-Type-Options","nosniff");return r;
   }
   private Response sceneEditorStyle()throws IOException{
@@ -889,7 +998,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
     try(InputStream in=context.getAssets().open("rpg30_studio.css");ByteArrayOutputStream out=new ByteArrayOutputStream()){
       byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1)out.write(b,0,n);buf=out.toByteArray();
     }
-    Response r=newFixedLengthResponse(Response.Status.OK,"text/css; charset=utf-8",new String(buf,StandardCharsets.UTF_8));
+    Response r=utf8(Response.Status.OK,"text/css; charset=UTF-8",buf);
     r.addHeader("Cache-Control","no-store");r.addHeader("X-Content-Type-Options","nosniff");return r;
   }
   private Response publishedStyle(String asset)throws IOException{
@@ -897,7 +1006,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
     try(InputStream in=context.getAssets().open(asset);ByteArrayOutputStream out=new ByteArrayOutputStream()){
       byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1)out.write(b,0,n);bytes=out.toByteArray();
     }
-    return newFixedLengthResponse(Response.Status.OK,"text/css; charset=utf-8",new String(bytes,StandardCharsets.UTF_8));
+    return utf8(Response.Status.OK,"text/css; charset=UTF-8",bytes);
   }
   private Response publishedScript(String asset)throws IOException{
     byte[] bytes;
@@ -905,7 +1014,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       byte[] buffer=new byte[8192];int len;while((len=in.read(buffer))!=-1)out.write(buffer,0,len);
       bytes=out.toByteArray();
     }
-    Response r=newFixedLengthResponse(Response.Status.OK,"application/javascript; charset=utf-8",new String(bytes,StandardCharsets.UTF_8));
+    Response r=utf8(Response.Status.OK,"application/javascript; charset=UTF-8",bytes);
     r.addHeader("Cache-Control","private, max-age=120");return r;
   }
   @Override public Response serve(IHTTPSession s) {
@@ -1078,6 +1187,8 @@ public final class LocalCampaignServer extends NanoHTTPD {
         if(p.length==6&&p[5].equals("advance")&&method.equals("POST")){
           advance(cid,b.getString("kind"));return json(200,"ok","true");
         }
+        if(p.length==6&&p[5].equals("initiative")&&method.equals("POST"))
+          return response(200,initiativeAction(cid,b));
         if(p.length==6&&p[5].equals("table-roll")&&method.equals("POST"))
           return response(200,tableRoll(cid,null,b,true));
         if(p.length==6&&p[5].equals("token")&&method.equals("POST")){

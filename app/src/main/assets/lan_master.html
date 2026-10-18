@@ -7,12 +7,12 @@
 'use strict';
 const $=s=>document.querySelector(s),safe=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let key='',selected=null,record=null,scenarioEditing=false;
-document.addEventListener('rpg29:closed',()=>{scenarioEditing=false;detail().catch(()=>{})});
+
 async function api(path,method='GET',body){let r=await fetch(path,{method,headers:{'Authorization':'Bearer '+key,'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body),cache:'no-store'});let j=await r.json();if(!r.ok)throw Error(j.error||'Falha');return j}
 const msg=t=>$('#feedback').textContent=t;
 async function list(){let {campaigns}=await api('/api/admin/campaigns');$('#campaigns').innerHTML=campaigns.map(c=>'<button data-camp="'+safe(c.id)+'">'+safe(c.name)+'</button>').join('');if(selected)await detail();}
 async function detail(){let j=await api('/api/admin/campaigns/'+selected);let c=record=j.campaign;
-$('#details').innerHTML='<section><h2>'+safe(c.name)+'</h2><p>'+safe(c.sceneName)+' • Rodada '+c.turn+'</p><label>Convite para jogadores</label><input id="invite" readonly value="'+safe(c.invite)+'"><div class="row"><button data-act="copy">Copiar convite</button><button data-act="turn">+ Rodada</button><button data-act="scene">Próxima cena</button><button data-act="sheet">Adicionar ficha JSON</button><button data-act="scenario">✧ Cenários</button><button data-act="live">◈ Mesa ao vivo</button></div></section>'
+$('#details').innerHTML='<section><h2>'+safe(c.name)+'</h2><p>'+safe(c.sceneName)+' • Rodada '+c.turn+'</p><label>Convite para jogadores</label><input id="invite" readonly value="'+safe(c.invite)+'"><div class="row"><button data-act="copy">Copiar convite</button><button data-act="turn">+ Rodada</button><button data-act="scene">Próxima cena</button><button data-act="sheet">Adicionar ficha JSON</button><button data-act="live">Mesa ao vivo</button></div></section>'
 +'<section><h2>Jogadores na campanha</h2><div class="grid">'+c.players.map(p=>'<article><strong>'+safe(p.nickname)+'</strong> <span class="pill">'+safe(p.status)+'</span>'+(p.proposedSheet?'<p>Ficha enviada para aprovação</p>':'')+'<select data-select="'+safe(p.id)+'"><option value="">Aguardando ficha</option>'+c.characters.map(ch=>'<option value="'+safe(ch.id)+'" '+(p.characterId===ch.id?'selected':'')+'>'+safe(ch.sheet.name)+'</option>').join('')+'</select><div class="row"><button data-act="assign" data-player="'+safe(p.id)+'">Atribuir</button>'+(p.proposedSheet?'<button data-act="approve" data-player="'+safe(p.id)+'">Aprovar enviada</button><button data-act="review" data-player="'+safe(p.id)+'">Revisar</button>':'')+'</div></article>').join('')+'</div></section>'
 +'<section><h2>Fichas e efeitos</h2><div class="grid">'+c.characters.map(ch=>'<article><strong>'+safe(ch.sheet.name)+'</strong><div class="row"><button data-act="edit" data-char="'+safe(ch.id)+'">Editar JSON</button><button data-act="effect" data-char="'+safe(ch.id)+'">Aplicar efeito</button></div></article>').join('')+'</div><div id="editor"></div></section>'
 +'<section><h2>Canvas privado do mestre</h2><p class="muted">Cartões, posições e objetos armazenados na campanha (JSON). Jogadores não recebem esse conteúdo.</p><textarea id="canvas"></textarea><button data-act="canvas">Salvar canvas</button></section>'+'<section id="scenario-editor" hidden></section>';
@@ -34,11 +34,10 @@ if(a==='effect'){let name=prompt('Nome do efeito');if(name){let unit=prompt('Dur
 if(a==='canvas'){await api(prefix+'/canvas','POST',{nodes:JSON.parse($('#canvas').value)});msg('Canvas salvo')}
 if(a==='live'){
   scenarioEditing=true;window.RPG31_MASTER.open($('#scenario-editor'),{request:api,route:prefix,
-    openEditor:()=>{scenarioEditing=false;document.querySelector('[data-act="scenario"]')?.click()},
+    players:record.players,characters:record.characters,
     onClose:()=>{scenarioEditing=false;detail().catch(()=>{})}});
  }
- if(a==='scenario'){scenarioEditing=true;await window.RPG29_EDITOR.open($('#scenario-editor'),{request:api,route:prefix,players:record.players,characters:record.characters});msg('Editor de cenários aberto. Salve para publicar.')}
-if(a==='scenario-close'){scenarioEditing=false;await detail()}
+ if(a==='scenario-close'){scenarioEditing=false;await detail()}
 }catch(err){msg(err.message)}};
 setInterval(()=>{if(key&&selected&&!scenarioEditing&&document.visibilityState==='visible')detail().catch(()=>{})},8000);
 </script></html>
