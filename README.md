@@ -1,3 +1,26 @@
+# RPG Mesa 0.28 — Pesquisa contextual offline
+
+A aba **Consulta** utiliza um motor de pesquisa 100% local (`rpg28_context_search.js`), sem IA, chaves API, servidor ou rede.
+
+## Como funciona
+
+- Analisa termos da pergunta, suas flexões, famílias de conceitos e tipo de dúvida (efeitos, tempo, custos, condições, comparação e procedimento).
+- Rankeia somente registros **do sistema e da edição selecionados**, com prioridade para assunto efetivo da pergunta. Quando "Todos" está ativo, pode selecionar o sistema explicitamente citado na pergunta.
+- Relaciona trechos de páginas adjacentes do **mesmo livro, sistema e edição**, sem misturar sistemas.
+- Monta explicação, condições, valores e fontes usando exclusivamente trechos indexados ou regras cadastradas. Informações não disponíveis não são inventadas.
+- Reconhece contextos como "quando durmo, o que recupero?" e "parar depois da missão para recuperar energia", associando-os aos registros de interlúdio de Ordem Paranormal.
+- Usa Índices PDF (JSON) privados importados no aparelho. Os 39 sistemas catalogados **não** significam que seus livros estejam integralmente pesquisáveis: textos não indexados não podem fundamentar respostas.
+
+Os grupos de conceitos são editáveis na fonte. O algoritmo **não entende linguagem como uma IA**: é uma recuperação lexical-contextual com ontologia de sinônimos e priorização de evidências, sujeita a ambiguidades. Respostas devem ser verificadas nas páginas citadas.
+
+## Testes
+
+```bash
+node tests/contextual_offline_search.test.cjs
+```
+
+---
+
 # RPG Mesa 0.12 — Servidor dentro do Android
 
 Agora o **APK pode hospedar campanhas diretamente no telefone**, sem computador, Termux nem Python. Todos os jogadores continuam usando o navegador da mesma rede local.

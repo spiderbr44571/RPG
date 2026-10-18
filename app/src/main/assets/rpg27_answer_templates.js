@@ -33,7 +33,7 @@
  function factFrom(doc,text,section,score){
   return {text:shorten(text),source:doc,sourceId:evidenceId(doc),section,score};
  }
- function valuesTable(documents,query){
+ function valuesTable(documents,query,semanticTerms=[]){
   const groups=new Map();
   for(const doc of documents){
    const text=String(doc.text||'').replace(/\s+/g,' ');
@@ -42,7 +42,7 @@
     const label=m[1].trim(),value=m[2].trim(),words=norm(label).split(' ');
     if(label.length<4||label.length>50||value.length<2||value.length>150||/^(?:em|por|sao|exemplo|como|fonte|regra)\b/i.test(label))continue;
     const base=words.length>1?words.slice(0,-1).join(' '):words[0];
-    const overlap=meaningful(query).some(w=>norm(label+' '+doc.title).includes(w));
+    const overlap=meaningful(query).concat(semanticTerms).some(w=>norm(label+' '+doc.title).includes(w));
     if(!overlap)continue;
     const key=evidenceId(doc)+'::'+base;
     const row={label:shorten(label,55),value:shorten(value,155),source:doc,sourceId:evidenceId(doc)};
@@ -63,6 +63,7 @@
     (options.edition==='all'||!options.edition||d.edition===options.edition)).slice(0,8);
   if(!hits.length)return {state:'unavailable',sections:[],values:[],sources:[],lead:null};
   const queryWords=meaningful(query);
+  const semanticWords=(result.queryTerms||[]).filter(x=>x.length>=3).slice(0,70);
   const pool=[],seen=new Set();
   for(const [rank,doc] of hits.entries()){
    for(const [position,sentence] of splitEvidence(doc).entries()){
@@ -71,7 +72,8 @@
     seen.add(normalized);
     const flags=classify(clean,query);
     const titleMatches=queryWords.filter(w=>norm(doc.title).includes(w)).length;
-    let points=flags.matched*8+titleMatches*6+(rank===0?9:Math.max(0,7-rank))+(position===0?3:0);
+    const contextualMatches=semanticWords.filter(w=>normalized.includes(w)).length;
+    let points=flags.matched*8+Math.min(5,contextualMatches)*2+titleMatches*6+(rank===0?9:Math.max(0,7-rank))+(position===0?3:0);
     if(points<3)continue;
     const section=flags.values?'values':flags.conditions?'conditions':'explanation';
     pool.push(factFrom(doc,clean,section,points));
@@ -79,9 +81,9 @@
   }
   pool.sort((a,b)=>b.score-a.score);
   // Ensure a clear introductory explanation when supported by a real passage.
-  const initial=pool.find(x=>x.section==='explanation') ||
-    pool.find(x=>x.section==='conditions'&&!/^\b(?:nao|so)\b/i.test(x.text)) ||
-    pool[0]||null;
+  // A abertura responde ao topico central: prioriza frases das duas fontes melhor ranqueadas.
+  const focus=pool.filter(x=>hits.slice(0,2).includes(x.source));
+  const initial=focus.sort((a,b)=>b.score-a.score)[0]||pool[0]||null;
   const lead=initial?{...initial,text:shorten(initial.text,320)}:null;
   const used=new Set(lead?[norm(lead.text)]:[]);
   const grouped={explanation:[],conditions:[],values:[]};
@@ -93,7 +95,7 @@
    used.add(norm(entry.text));grouped[type].push(entry);
   }
   // Avoid implying a value table is comprehensive: only values explicitly present in a single passage.
-  const table=valuesTable(hits,query);
+  const table=valuesTable(hits,query,semanticWords);
   if(table.length){
    const tableContent=new Set(table.map(x=>norm(x.label+' '+x.value)));
    grouped.values=grouped.values.filter(x=>![...tableContent].some(v=>norm(x.text).includes(v))).slice(0,2);
