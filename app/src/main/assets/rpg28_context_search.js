@@ -33,7 +33,7 @@
  ];
  const SPECIFIC={
   'ordem-paranormal':[
-   {id:'op-interludio',terms:['interludio','descanso','dormir','relaxar','alimentar se','revisar caso','recuperacao','repouso']},
+   {id:'op-interludio',terms:['interludio','descanso','dormir','relaxar','alimentar se','revisar caso','recuperacao','repouso','pausa entre missoes','apos a missao']},
    {id:'op-esforco',terms:['pe','esforco','pontos de esforco','limite de pe','ritual','habilidade']},
    {id:'op-sanidade',terms:['san','sanidade','relaxar','terror','insanidade','mental']}
   ],
@@ -92,6 +92,9 @@
   }
   // Intent words guide evidence selection, but never create a topical match alone.
   const intents=intentOf(question);
+  if(systemId==='ordem-paranormal'&&/\b(?:entre missoes|depois da missao|apos a missao|parar depois|pausa da missao)\b/.test(q)){
+   weights.set('interludio',3.3);weights.set('descanso',2.8);concepts.push('op-interludio');
+  }
   return {original,terms:[...weights.entries()].slice(0,85).map(([term,weight])=>({term,weight,stem:stem(term)})),concepts,intents};
  }
  const cache=new WeakMap();
@@ -149,6 +152,12 @@
     relevance+=Math.min(found,3)*1.7;
    }
    if(relevantKinds.has(d.kind))relevance+=1.4;
+   // Um ritual do elemento Energia nao e a regra de recuperar PE.
+   // Resumos cadastrais genericos nao devem superar regras completas por uma palavra.
+   const entityQuery=model.original.some(w=>present(titleText,w,stem(w))&&w.length>4);
+   if((d.type==='Ritual'||d.type==='Poder'||d.type==='Perícia')&&!entityQuery&&
+      (model.intents.includes('effects')||model.concepts.includes('recuperacao')||model.concepts.includes('repouso')))relevance-=25;
+   if(/(?:confira o pdf|consulte o pdf|consulte a regra completa|consulte o pdf para)/.test(v.body)&&literal<=1)relevance-=12;
    return {...d,matchScore:Math.round(relevance*100)/100,matchedCount:literal,coverage:originalCoverage,semanticMatches:related};
   };
   const scores=subset.map(scoreDoc).filter(x=>x&&x.matchScore>=5.8);
