@@ -9,7 +9,7 @@ const manifest=fs.readFileSync(path.join(__dirname,'../app/src/main/AndroidManif
 const html=fs.readFileSync(path.join(base,'demo-offline.html'),'utf8');
 const player=fs.readFileSync(path.join(base,'lan_scene.html'),'utf8');
 new Function(studio); // JS sintaticamente valido.
-for(const code of ['className=\'r30-studio\'','setLandscape(true)','setLandscape(false)','case \'rect\'','case \'circle\'','data-r30-asset','id="r30-file"','image/jpeg','image/webp','r30-preview','backgroundAssetId','getBoundingClientRect','setPointerCapture','data-r30="exit"'])
+for(const code of ['className=\'r30-studio\'','setLandscape(true)','setLandscape(false)','s.tool===\'rect\'','s.tool===\'circle\'','data-r30-asset','id="r30-file"','image/jpeg','image/webp','r30-preview','backgroundAssetId','getBoundingClientRect','setPointerCapture','data-r30="exit"'])
  assert.ok(studio.includes(code),'feature missing '+code);
 assert.ok(/position:fixed!important;inset:0!important/.test(css),'fullscreen layout');
 assert.ok(/grid-template-columns:52px minmax\(0,1fr\) 195px/.test(css),'editor must prioritize the map');
