@@ -4,6 +4,16 @@
 const $=(q,r=document)=>r.querySelector(q);
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>('s'+(crypto.randomUUID?.()||Math.random().toString(36).slice(2)).replace(/-/g,'')).slice(0,28);
+function creatureRecords(system){
+ const own=window.RPG18_BESTIARY?.listFor?.(system)||[];
+ const originals=system==='ordem-paranormal'?(window.RPG19_ORDER_CREATURES||[]):system==='d-d'?[
+ {id:'srd51-goblin',name:'Goblin',systemId:'d-d',hp:7,defense:15,attack:'1d20+4',damage:'1d6+2',source:'SRD 5.1'},
+ {id:'srd51-wolf',name:'Lobo',systemId:'d-d',hp:11,defense:13,attack:'1d20+4',damage:'2d4+2',source:'SRD 5.1'},
+ {id:'srd51-skeleton',name:'Esqueleto',systemId:'d-d',hp:13,defense:13,attack:'1d20+4',damage:'1d6+2',source:'SRD 5.1'}
+ ]:[];
+ const result=new Map();for(const item of originals.concat(own)){if(item?.id&&item?.name)result.set(item.id,item)}
+ return [...result.values()];
+}
 const presets=[['map-ruins','Ruínas','map','🪨'],['map-forest','Floresta','map','🌲'],['map-cave','Caverna','map','🕯️'],['char-hero','Herói','character','🛡️'],['char-scout','Explorador','character','🧭'],['char-mage','Mago','character','🪄'],['mob-wolf','Lobo','creature','🐺'],['mob-golem','Construto','creature','🗿'],['mob-shadow','Sombra','creature','👁️'],['item-chest','Baú','item','🧰'],['item-key','Chave','item','🗝️'],['item-door','Porta','object','🚪']].map(([id,name,kind,emoji])=>({id,name,kind,emoji,image:''}));
 const stylesheet=document.createElement('link');stylesheet.rel='stylesheet';stylesheet.href=location.protocol==='file:'?'rpg30_studio.css':'/scene-editor.css';document.head.appendChild(stylesheet);
 let current=null;
@@ -18,13 +28,41 @@ function open(host,opts){
  if(current)close();
  if(current)return Promise.resolve();
  const s={root:document.createElement('section'),host,opts,scenes:[],assets:[],active:'',selected:'',picked:'char-hero',
-  category:'all',importKind:'map',tool:'pan',token:'',showGrid:true,aside:true,dirty:false,
+  category:'all',importKind:'map',creatureSystem:'ordem-paranormal',creatureSearch:'',creatureSelection:null,tool:'pan',token:'',showGrid:true,aside:true,dirty:false,
   scale:1,x:25,y:25,view:null,world:null,gesture:null,pointers:new Map(),pinch:null,priorOverflow:document.body.style.overflow};
  current=s;host.hidden=false;s.root.className='r30-studio';s.root.setAttribute('role','dialog');s.root.setAttribute('aria-label','Estúdio de cenários');
  document.body.appendChild(s.root);document.body.style.overflow='hidden';
  try{root.RpgSceneDisplay?.setLandscape(true)}catch(_){}
  const getScene=()=>s.scenes.find(m=>m.id===s.selected);
  const getAsset=id=>s.assets.find(a=>a.id===id);
+ function creatureChoices(){
+  const list=$('#r31-creature-list',s.root);if(!list)return;
+  const search=s.creatureSearch.toLocaleLowerCase('pt-BR');
+  const monsters=creatureRecords(s.creatureSystem).filter(a=>a.name.toLocaleLowerCase('pt-BR').includes(search));
+  const sheets=(opts.characters||[]).filter(ch=>(ch.sheet?.systemId||'ordem-paranormal')===s.creatureSystem&&
+    (ch.sheet?.name||'').toLocaleLowerCase('pt-BR').includes(search));
+  list.innerHTML='<small>'+monsters.length+' criaturas • '+sheets.length+' fichas</small>'+
+   monsters.slice(0,160).map(a=>'<button data-r31-creature="'+esc(a.id)+'">👁 '+esc(a.name)+'</button>').join('')+
+   sheets.map(a=>'<button data-r31-sheet="'+esc(a.id)+'">👤 '+esc(a.sheet.name)+'</button>').join('');
+ }
+ function chooseTokenAsset(record,isCreature){
+  const kind=isCreature?'creature':'character',name=String(record.name||record.sheet?.name||'Personagem').slice(0,70);
+  const asset={id:uid(),name,kind,emoji:isCreature?'👁':'👤',image:''};
+  s.assets.push(asset);s.picked=asset.id;s.category=kind;
+  if(isCreature){
+   const hp=Math.max(1,Math.min(100000,Math.round(Number(record.hp)||1)));
+   s.creatureSelection={assetId:asset.id,name,kind,systemId:s.creatureSystem,
+     creatureId:String(record.id).slice(0,48),hp,maxHp:hp,defense:Math.max(0,Math.min(1000,Math.round(Number(record.defense)||0))),
+     attacks:Array.isArray(record.attacks)?record.attacks.slice(0,25).map(a=>({name:String(a.name||'Ataque').slice(0,70),test:String(a.test||'').slice(0,60),damage:String(a.damage||'').slice(0,60)})):[],
+     attack:String(record.attack||'').slice(0,60),damage:String(record.damage||'').slice(0,60),
+     source:String(record.source||'').slice(0,150),notes:String(record.notes||'').slice(0,2000),
+     powers:String(record.powers||'').slice(0,1000)};
+  }else{
+   const owner=(opts.players||[]).find(p=>p.characterId===record.id);
+   s.creatureSelection={assetId:asset.id,name,kind,ownerPlayerId:owner?.id||'',characterId:owner?.characterId||''};
+  }
+  s.tool='token';change();render(false);signal(name+' selecionado. Toque sobre o grid para colocar.');
+ }
  const signal=t=>{const target=$('#r30-message',s.root);if(target)target.textContent=t};
  function change(){s.dirty=true;const tag=$('#r30-state',s.root);if(tag)tag.textContent='● Não salvo'}
  const clamp=(n,min,max)=>Math.max(min,Math.min(max,Math.floor(n)));
@@ -76,6 +114,9 @@ function open(host,opts){
   let html='<h3>Selecionado</h3>';
   if(t){
    html+='<label>Nome<input data-r30-change="name" maxlength="70" value="'+esc(t.name)+'"></label>'+
+     (t.kind==='creature'?'<h3>Ficha: '+esc(t.systemId||'')+'</h3><p>PV '+t.hp+'/'+t.maxHp+' · Defesa '+t.defense+'</p>'+
+        (t.attacks||[]).map(a=>'<small>'+esc(a.name)+' — '+esc(a.test||'')+' — '+esc(a.damage||'')+'</small>').join('')+
+        '<div class="r30-line"><button data-r31-hp="-1">−1 PV</button><button data-r31-hp="1">+1 PV</button></div>':'')+
      '<label>Jogador que controla<select data-r30-change="owner"><option value="">Somente mestre</option>'+
      (t.kind==='character'?(opts.players||[]).filter(p=>p.characterId).map(p=>'<option value="'+esc(p.id)+'" '+(p.id===t.ownerPlayerId?'selected':'')+'>'+esc(p.nickname)+'</option>').join(''):'')+'</select></label>'+
      '<label><input data-r30-change="hidden" type="checkbox" '+(t.hidden?'checked':'')+'> Token oculto</label><button data-r30="delete-token" class="danger">Excluir token</button>';
@@ -101,6 +142,11 @@ function open(host,opts){
    '<aside class="r30-side '+(s.aside?'':'folded')+'"><section class="r30-section"><h3>Biblioteca de assets</h3>'+
    '<select id="r30-category">'+[['all','Todos'],['map','Fundos'],['character','Personagens'],['creature','Criaturas'],['item','Itens'],['object','Objetos']].map(([k,n])=>'<option value="'+k+'" '+(k===s.category?'selected':'')+'>'+n+'</option>').join('')+'</select>'+
    '<div class="r30-assets" id="r30-assets"></div>'+
+   '<h3>Bestiário e fichas por sistema</h3><select id="r31-system">'+
+   [...new Map([['ordem-paranormal','Ordem Paranormal'],['d-d','D&D 5e'],['gurps','GURPS']].concat((window.RPG15_SYSTEMS?.systems||[]).map(x=>[x.id,x.title||x.id])))].map(([id,name])=>
+     '<option value="'+esc(id)+'" '+(s.creatureSystem===id?'selected':'')+'>'+esc(name)+'</option>').join('')+
+   '</select><input id="r31-search" placeholder="Buscar no bestiário" value="'+esc(s.creatureSearch)+'">'+
+   '<div id="r31-creature-list" class="r31-creature-list"></div>'+
    '<label>Importar PNG ou JPEG</label><select id="r30-import-kind">'+[['map','Fundo do mapa'],['character','Personagem'],['creature','Criatura'],['item','Item'],['object','Objeto']].map(([k,n])=>'<option value="'+k+'" '+(k===s.importKind?'selected':'')+'>'+n+'</option>').join('')+'</select>'+
    '<input id="r30-file" type="file" accept="image/png,image/jpeg,image/webp">'+
    '<p>A imagem é reduzida no aparelho antes de salvar. PNGs transparentes são aceitos como tokens.</p>'+
@@ -108,7 +154,7 @@ function open(host,opts){
    '<section class="r30-section" id="r30-details"></section></aside></div>'+
    '<footer class="r30-foot"><span id="r30-zoom">100%</span><span>Arraste no mapa para desenhar ou mover</span><span id="r30-message">Toque em Salvar para publicar alterações.</span></footer>';
   s.view=$('#r30-view',s.root);s.world=$('#r30-world',s.root);
-  s.scale=scale;s.x=ox;s.y=oy;library();details();map();
+  s.scale=scale;s.x=ox;s.y=oy;library();creatureChoices();details();map();
   if(shouldFit)requestAnimationFrame(fit);
  }
  async function save(){
@@ -183,7 +229,8 @@ function open(host,opts){
   if(s.tool==='token'){
    const a=getAsset(s.picked);if(!a||a.kind==='map'){signal('Selecione um token na biblioteca.');return}
    if(m.tokens.length>=250){signal('Limite de tokens atingido.');return}
-   const t={id:uid(),name:a.name,kind:a.kind,assetId:a.id,ownerPlayerId:'',characterId:'',hidden:false,...cells(p,m)};
+   const chosen=s.creatureSelection?.assetId===a.id?s.creatureSelection:{};
+   const t={id:uid(),name:a.name,kind:a.kind,assetId:a.id,ownerPlayerId:'',characterId:'',hidden:false,...chosen,...cells(p,m)};
    m.tokens.push(t);s.token=t.id;change();render(false);
   }
  });
@@ -220,6 +267,8 @@ function open(host,opts){
   const m=getScene(),t=m?.tokens.find(x=>x.id===s.token);
   if(e.target.id==='r30-scenes'){s.selected=e.target.value;s.token='';render(true)}
   if(e.target.id==='r30-category'){s.category=e.target.value;library()}
+  if(e.target.id==='r31-system'){s.creatureSystem=e.target.value;creatureChoices()}
+  if(e.target.id==='r31-search'){s.creatureSearch=e.target.value;creatureChoices()}
   if(e.target.id==='r30-import-kind')s.importKind=e.target.value;
   if(e.target.id==='r30-gridcheck'){s.showGrid=e.target.checked;map()}
   if(e.target.id==='r30-file')upload(e.target.files?.[0]);
@@ -231,6 +280,15 @@ function open(host,opts){
   if(t&&e.target.dataset.r30Change==='hidden'){t.hidden=e.target.checked;change();details()}
  });
  s.root.addEventListener('click',async e=>{
+  const monster=e.target.closest('[data-r31-creature]');
+  if(monster){const creature=creatureRecords(s.creatureSystem).find(x=>x.id===monster.dataset.r31Creature);if(creature)chooseTokenAsset(creature,true);return}
+  const sheetBtn=e.target.closest('[data-r31-sheet]');
+  if(sheetBtn){const sheet=(opts.characters||[]).find(x=>x.id===sheetBtn.dataset.r31Sheet);if(sheet)chooseTokenAsset(sheet,false);return}
+  const hpbtn=e.target.closest('[data-r31-hp]');if(hpbtn){
+   const token=getScene()?.tokens.find(t=>t.id===s.token);if(token?.kind==='creature'){
+     token.hp=Math.max(0,Math.min(token.maxHp,token.hp+Number(hpbtn.dataset.r31Hp)));change();details();
+   }return;
+  }
   const a=e.target.closest('[data-r30-asset]');
   if(a){s.picked=a.dataset.r30Asset;library();return}
   const tool=e.target.closest('[data-r30-tool]');
