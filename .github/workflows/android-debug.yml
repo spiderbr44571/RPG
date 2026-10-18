@@ -81,6 +81,8 @@ jobs:
           node tests/local_answer.test.cjs
           node --check app/src/main/assets/rpg27_answer_templates.js
           node tests/structured_offline_answer.test.cjs
+          node --check app/src/main/assets/rpg29_scene_editor.js
+          node tests/scenario_v29.test.cjs
           node --check app/src/main/assets/rpg28_context_search.js
           node tests/contextual_offline_search.test.cjs
           python3 -m py_compile scripts/indexar_pdf.py
