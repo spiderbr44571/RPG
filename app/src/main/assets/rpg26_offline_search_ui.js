@@ -1,7 +1,7 @@
 /* RPG Mesa v0.26 — consulta só por pesquisa local e trechos verificáveis. */
 (()=>{'use strict';
  const $=(s,r=document)=>r.querySelector(s);
- const app=window.RPG_DEMO,op=window.OP13,core=window.RPG20_SEARCH,extract=window.RPG26_LOCAL,templates=window.RPG27_TEMPLATES,area=$('#screen-ai');
+ const app=window.RPG_DEMO,op=window.OP13,core=window.RPG20_SEARCH,extract=window.RPG28_CONTEXT||window.RPG26_LOCAL,templates=window.RPG27_TEMPLATES,area=$('#screen-ai');
  if(!area||!op?.pack||!core||!extract||!templates)return;
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const systems=()=>window.RPG15_SYSTEMS?.systems||[];
@@ -9,7 +9,7 @@
  const dbName='RPG-Mesa-Private-Search';
  let activeSystem='all',activeEdition='all',indexed=[],latest=[],latestAnswer=null,formattedAnswer=null;
  area.innerHTML=[
- '<div class="r26-top"><div><div class="eyebrow">CONSULTA À BIBLIOTECA · SEM IA</div><h1 class="page-h">Pergunte <i>aos livros.</i></h1><p class="page-sub">Respostas organizadas em explicação, condições, valores e fontes, extraídas dos textos cadastrados.</p></div><span id="r26-status" class="r26-status">● Pronto para pesquisar</span></div>',
+ '<div class="r26-top"><div><div class="eyebrow">CONSULTA CONTEXTUAL · 100% OFFLINE</div><h1 class="page-h">Pergunte <i>aos livros.</i></h1><p class="page-sub">Encontre regras por contexto, sinônimos e assuntos relacionados, sempre com fontes do sistema selecionado.</p></div><span id="r26-status" class="r26-status">● Pronto para pesquisar</span></div>',
  '<div class="r26-scope"><label>Sistema <select id="r26-system"><option value="all">Todos os sistemas</option></select></label><label>Edição <select id="r26-edition"><option value="all">Todas as edições</option><option value="1.3">Ordem v1.3</option><option value="5e-2014">D&D 5e (2014)</option><option value="2024">D&D 2024</option><option value="3.5">D&D 3.5</option><option value="4e">4ª edição</option></select></label></div>',
  '<div class="r26-layout"><main class="r26-panel"><h2>Buscar respostas nas regras</h2><p>Escreva sua dúvida. O aplicativo organiza os trechos encontrados por assunto e informa livro e página, sem criar valores ou regras não cadastrados.</p>',
  '<form id="r26-form" class="r26-form"><input id="r26-query" maxlength="450" autocomplete="off" placeholder="Ex.: Como funciona o descanso em Ordem Paranormal?" aria-label="Pergunta para pesquisar nos livros" required><button type="submit">Pesquisar ↗</button></form>',
@@ -60,12 +60,13 @@
  function catalog(){return core.makeCatalogDocs(systems())}
  function answerQuestion(question){
   const named=core.inferSystem(question,systems());
-  if(named&&named!==activeSystem){
+  // A escolha explícita do sistema nunca é sobrescrita pelo texto da pergunta.
+  if(activeSystem==='all'&&named){
    activeSystem=named;activeEdition='all';$('#r26-system').value=named;$('#r26-edition').value='all';
    $('#r26-index-system').value=named;localStorage.setItem('rpg-rules-system',named);
   }
   const result=extract.answer(question,base.concat(indexed),{systemId:activeSystem,edition:activeEdition,systems:systems(),core,catalogDocs:catalog()});
-  latestAnswer=result;latest=result.hits||[];
+  latestAnswer=result;latest=(result.hits||[]).concat(result.related||[]);
   return result;
  }
  function sourceTag(doc){
@@ -82,8 +83,12 @@
   if(result.state==='empty'){el.innerHTML='<div class="r26-empty">Digite uma pergunta.</div>';return}
   formattedAnswer=templates.format($('#r26-query').value,result,{systemId:activeSystem,edition:activeEdition});
   let out='<h3>'+esc(formattedAnswer.state==='formatted'?formattedAnswer.title:result.title)+'</h3>';
+   if(result.state==='found'&&result.concepts?.length){
+    const names={'repouso':'Descanso','recuperacao':'Recuperação','vitalidade':'Vida / PV','recurso':'Energia / PE','mental':'Sanidade','teste':'Testes','combate':'Combate','habilidades':'Habilidades','movimento':'Movimento','evolucao':'Evolução','op-interludio':'Interlúdio','op-esforco':'Esforço','op-sanidade':'Sanidade','dnd-descanso':'Descanso D&D','dnd-teste':'Testes D&D','gurps-teste':'Testes 3d6','gurps-pontos':'Pontos de personagem'};
+    out+='<div class="r28-context"><span>Assuntos identificados:</span> '+result.concepts.slice(0,5).map(x=>'<small>'+esc(names[x]||x)+'</small>').join('')+'</div>';
+   }
   if(formattedAnswer.state==='formatted'){
-   out+='<p class="r26-note">Resposta organizada automaticamente a partir de trechos encontrados. Confira a regra completa no livro.</p>';
+   out+='<p class="r26-note">Trechos relacionados por contexto. Relevância '+esc(result.confidence==='alta'?'alta':'parcial')+'; não é uma interpretação livre das regras. Confira as páginas originais.</p>';
    if(formattedAnswer.lead){
     out+='<article class="r27-lead"><strong>Em resumo</strong><p>'+esc(formattedAnswer.lead.text)+'</p>'+
       sourceTag(formattedAnswer.lead.source)+'</article>';
@@ -115,7 +120,7 @@
   const q=String(question||'').trim().slice(0,450);
   if(!q)return;
   $('#r26-query').value=q;status('Pesquisando nos índices locais...');
-  try{const result=answerQuestion(q);render(result);status(result.state==='found'?result.points.length+' passagem(ns) localizada(s)':'Nenhuma regra indexada correspondente')}
+  try{const result=answerQuestion(q);render(result);status(result.state==='found'?result.points.length+' passagem(ns) · '+(activeSystem==='all'?'vários sistemas':sysName(activeSystem)):'Nenhuma regra indexada correspondente')}
   catch(err){status('Erro na pesquisa');$('#r26-answer').textContent=err.message||'Não foi possível pesquisar.'}
  }
  $('#r26-form').addEventListener('submit',e=>{e.preventDefault();perform($('#r26-query').value)});
