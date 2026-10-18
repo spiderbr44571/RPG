@@ -48,6 +48,12 @@ function open(host,options){
   }else{
    const c=(s.data.characters||[]).find(c=>c.id===t.characterId);html+=bars(c);
    html+='<p>'+esc(c?.sheet?.name||'Token sem ficha vinculada')+'</p>';
+   if(t.kind==='character')html+='<label>Jogador que controla este token<select data-r34-token-bind="'+esc(t.id)+'">'+
+    '<option value="">Somente mestre</option>'+
+    (s.data.players||[]).filter(p=>p.characterId).map(p=>
+      '<option value="'+esc(p.id)+'" '+(p.id===t.ownerPlayerId?'selected':'')+'>'+
+      esc(p.nickname||'Jogador')+' - '+esc((s.data.characters||[]).find(c=>c.id===p.characterId)?.sheet?.name||'Ficha')+'</option>').join('')+
+    '</select></label>';
   }
   html+='<small>Toque no mapa para reposicionar o token selecionado.</small>';
   el.innerHTML=html;
@@ -131,6 +137,16 @@ function open(host,options){
   }catch(e){feedback(e.message)}finally{s.busy=false}
  }
  s.el.addEventListener('change',async e=>{
+  const binder=e.target.closest('[data-r34-token-bind]');
+  if(binder){
+   binder.disabled=true;
+   try{
+    await req('/token','POST',{action:'bind',tokenId:binder.dataset.r34TokenBind,playerId:binder.value});
+    feedback('Controle do token atualizado; vinculado à ficha do jogador.');
+    s.revision=-1;await refresh();
+   }catch(error){feedback(error.message);binder.disabled=false}
+   return;
+  }
   const field=e.target.closest('[data-r34-assign]');
   if(!field)return;
   const playerId=field.dataset.r34Assign,characterId=field.value||null;
