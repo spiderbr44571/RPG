@@ -1,6 +1,7 @@
 package dev.rpgmesa.demo;
 
 import android.app.Activity;
+import android.content.pm.ActivityInfo;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.database.Cursor;
@@ -54,6 +55,7 @@ public final class MainActivity extends Activity {
     private final LanBridge lan = new LanBridge();
     private final CampaignBridge campaign = new CampaignBridge();
     private final HostBridge localHost = new HostBridge();
+    private final SceneDisplayBridge sceneDisplay = new SceneDisplayBridge();
     private final DriveBridge drive = new DriveBridge();
     private final SheetPdfBridge sheetPdf = new SheetPdfBridge();
     private final CreatureImageBridge creatureArt = new CreatureImageBridge();
@@ -132,7 +134,7 @@ public final class MainActivity extends Activity {
         browser.addJavascriptInterface(books,"RpgBookBridge");
         browser.addJavascriptInterface(lan,"RpgLanBridge");
         browser.addJavascriptInterface(campaign,"RpgCampaignBridge");
-        browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.addJavascriptInterface(drive,"RpgDriveBridge");browser.addJavascriptInterface(sheetPdf,"RpgSheetPdfBridge");browser.addJavascriptInterface(creatureArt,"RpgCreatureImageBridge");
+        browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.addJavascriptInterface(sceneDisplay,"RpgSceneDisplay");browser.addJavascriptInterface(drive,"RpgDriveBridge");browser.addJavascriptInterface(sheetPdf,"RpgSheetPdfBridge");browser.addJavascriptInterface(creatureArt,"RpgCreatureImageBridge");
         root.addView(browser,new LinearLayout.LayoutParams(-1,0,1));
         setContentView(root);
         home.setOnClickListener(v->openOffline());
@@ -141,7 +143,7 @@ public final class MainActivity extends Activity {
     }
     private int dp(int x){return Math.round(getResources().getDisplayMetrics().density*x);}
     private Button button(String name){Button b=new Button(this);b.setText(name);b.setTextSize(10);b.setAllCaps(false);return b;}
-    private void openOffline(){allowedHost=null;allowedPort=0;mode.setText("● MODO OFFLINE");browser.addJavascriptInterface(books,"RpgBookBridge");browser.addJavascriptInterface(lan,"RpgLanBridge");browser.addJavascriptInterface(campaign,"RpgCampaignBridge");browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.addJavascriptInterface(drive,"RpgDriveBridge");browser.addJavascriptInterface(sheetPdf,"RpgSheetPdfBridge");browser.addJavascriptInterface(creatureArt,"RpgCreatureImageBridge");browser.loadUrl(OFFLINE_URL);}
+    private void openOffline(){setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);allowedHost=null;allowedPort=0;mode.setText("● MODO OFFLINE");browser.addJavascriptInterface(books,"RpgBookBridge");browser.addJavascriptInterface(lan,"RpgLanBridge");browser.addJavascriptInterface(campaign,"RpgCampaignBridge");browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.addJavascriptInterface(drive,"RpgDriveBridge");browser.addJavascriptInterface(sheetPdf,"RpgSheetPdfBridge");browser.addJavascriptInterface(creatureArt,"RpgCreatureImageBridge");browser.loadUrl(OFFLINE_URL);}
     private static boolean isPrivateLan(String h) {
         if(h==null||!h.matches("\\d{1,3}(\\.\\d{1,3}){3}"))return false;
         String[] p=h.split("\\.");int[] n=new int[4];
@@ -164,7 +166,7 @@ public final class MainActivity extends Activity {
               browser.removeJavascriptInterface("RpgBookBridge");
               browser.removeJavascriptInterface("RpgLanBridge");
               browser.removeJavascriptInterface("RpgCampaignBridge");
-              browser.removeJavascriptInterface("RpgLocalHost");
+              browser.removeJavascriptInterface("RpgLocalHost");browser.removeJavascriptInterface("RpgSceneDisplay");
           browser.removeJavascriptInterface("RpgDriveBridge");
           browser.removeJavascriptInterface("RpgSheetPdfBridge");
           browser.removeJavascriptInterface("RpgCreatureImageBridge");
@@ -288,6 +290,16 @@ public final class MainActivity extends Activity {
     /** Interface nativa restrita a um computador da LAN e à API de campanhas.
      * Executa em thread de JS bridge do WebView, não na thread principal.
      */
+    public final class SceneDisplayBridge {
+      @JavascriptInterface public void setLandscape(boolean enabled) {
+        // Paginas LAN remotas nao recebem o bridge.
+        runOnUiThread(() -> {
+          if (allowedHost != null) return;
+          setRequestedOrientation(enabled ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE :
+            ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+        });
+      }
+    }
     public final class CampaignBridge {
       @JavascriptInterface public String request(String base, String adminKey, String method, String route, String payload) {
         HttpURLConnection conn=null;
