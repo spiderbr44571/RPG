@@ -1,0 +1,45 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const root=path.resolve(__dirname,'../app/src/main/assets'),get=n=>fs.readFileSync(path.join(root,n),'utf8');
+const css=get('rpg31_live.css'),camera=get('rpg33_camera.js'),gm=get('rpg31_master_table.js'),player=get('rpg31_player_table.js');
+const server=fs.readFileSync(path.resolve(__dirname,'../app/src/main/java/dev/rpgmesa/demo/LocalCampaignServer.java'),'utf8');
+const old=get('rpg29_scene_editor.js');
+new Function(camera);new Function(gm);new Function(player);
+assert.match(css,/\.r31-live \.scroll\{position:relative!important;isolation:isolate!important;overflow:hidden!important/);
+assert.match(css,/\.r31-live \.body\{position:relative;overflow:hidden;isolation:isolate;/);
+assert.match(css,/\.r31-live \.board\{position:absolute!important;left:0!important;top:0!important/);
+assert.match(css,/\.r31-live aside\{position:relative;z-index:2;/);
+assert.match(css,/\.r31-live header\{position:relative;z-index:3;/);
+assert.match(camera,/const r=board\.getBoundingClientRect\?\.\(\)/);
+assert.match(camera,/x:\(clientX-r\.left\)\*d\.w\/r\.width/);
+assert.match(gm,/data-r34-assign/);
+assert.match(gm,/req\('\/assign','POST',\{playerId,characterId\}\)/);
+assert.match(gm,/s\.camera\?\.cellAt\(e,s\.cell,s\.scene\.width,s\.scene\.height\)/);
+assert.match(player,/camera\?\.cellAt\(e,cell,s\.width,s\.height\)/);
+assert.match(server,/private boolean ensurePlayerTokens\(JSONObject c\)/);
+assert.match(server,/if\(ensurePlayerTokens\(c\)\)persist\(\)/);
+assert.match(server,/ensurePlayerTokens\(c\);\s*persist\(\);/);
+assert.match(server,/\.put\("ownerPlayerId",pid\)\.put\("characterId",charId\)/);
+assert.match(server,/if\(covered\(map,x,y\)\)continue/);
+assert.match(server,/if\(xx<0\|\|tokens\.length\(\)>=250\)continue/);
+assert.match(server,/\.put\("x",xx\)\.put\("y",yy\)\.put\("assetId",""\)/);
+assert.match(old,/data-r30-change="owner"/);
+// Board begins 190 px right of the page edge and 110 px below the top bar; camera pan+zoom;
+// touch on the visual center of cell (17,8) MUST map to (17,8) regardless of screen origin.
+const mock={window:{},requestAnimationFrame:fn=>fn(),Date,Math,Number,Map};mock.globalThis=mock.window;vm.runInNewContext(camera,mock);
+const c=mock.window.RPG33_CAMERA.create(),calls={};
+const view={clientWidth:700,clientHeight:420,style:{},getBoundingClientRect:()=>({left:190,top:110,width:700,height:420}),setPointerCapture(){},
+  addEventListener(n,cb){calls[n]=cb},removeEventListener(n,cb){if(calls[n]===cb)delete calls[n]}};
+const board={offsetWidth:1440,offsetHeight:960,style:{},getBoundingClientRect(){
+  return {left:190+c.x,top:110+c.y,width:1440*c.scale,height:960*c.scale};
+}};
+c.attach(view,board,1440,960,true);c.zoom(1.45);
+const gesture=(type,clientX,clientY)=>calls[type]?.({clientX,clientY,pointerId:1,button:0,target:{closest:()=>null},preventDefault(){}});
+gesture('pointerdown',230,155);gesture('pointermove',300,190);gesture('pointerup',300,190);
+const cellX=17,cellY=8;
+const point={clientX:board.getBoundingClientRect().left+(cellX+0.5)*48*c.scale,
+  clientY:board.getBoundingClientRect().top+(cellY+0.5)*48*c.scale};
+const actual=c.cellAt(point,48,30,20);
+assert.equal(actual.x,cellX);assert.equal(actual.y,cellY);
+c.destroy();
+console.log('PASS v0.34: clipped GM viewport, exact transformed-cell movement, automatic player-owned tokens and in-table assignment');
