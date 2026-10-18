@@ -314,7 +314,7 @@ public final class MainActivity extends Activity {
           conn.setRequestProperty("Authorization","Bearer "+adminKey);
           conn.setRequestProperty("Accept","application/json");
           if(!"GET".equals(verb)){
-             if(payload==null||payload.getBytes(StandardCharsets.UTF_8).length>450000)
+             if(payload==null||payload.getBytes(StandardCharsets.UTF_8).length>1700000)
                 throw new IllegalArgumentException("Dados excedem limite");
              conn.setDoOutput(true);conn.setRequestProperty("Content-Type","application/json");
              try(java.io.OutputStream out=conn.getOutputStream()){
