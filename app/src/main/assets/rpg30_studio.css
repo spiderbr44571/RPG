@@ -44,3 +44,11 @@
 .r30-studio #r30-message{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e8bfd7}
 @media(max-width:780px){.r30-studio .r30-body{grid-template-columns:44px minmax(0,1fr) 158px}.r30-studio .r30-toolbar button{width:36px;height:37px}.r30-studio .r30-name{font-size:17px}.r30-studio .r30-head{padding:4px 6px}.r30-studio .r30-head button{min-height:31px;padding:6px}.r30-studio .r30-head select{max-width:110px}.r30-studio .r30-assets{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px) and (orientation:portrait){.r30-studio .r30-body{grid-template-columns:44px minmax(0,1fr)}.r30-studio .r30-side{position:absolute;right:0;top:52px;bottom:30px;z-index:15;width:min(240px,60vw);box-shadow:-10px 0 30px #000c}.r30-studio .r30-side.folded{display:none}.r30-studio .r30-name{display:none}}
+
+
+/* v0.35 — estilos de bloqueio selecionáveis por sala */
+.r30-studio .r30-room.hidden.r35-fog-shadow{background:repeating-linear-gradient(45deg,#090a19d9 0 11px,#292238e8 11px 22px)}
+.r30-studio .r30-room.hidden.r35-fog-dark{background:radial-gradient(ellipse,#12192dcc,#060811f5);border-color:#9996b6}
+.r30-studio .r30-room.hidden.r35-fog-mist{background:radial-gradient(ellipse at 35% 45%,#bdcfebba,#748aa3dc 45%,#1d293ee9);border-color:#d7ecf6}
+.r30-studio .r30-room.hidden.r35-fog-void{background:#06060dfc;border-color:#3c3546}
+.r30-studio .r30-line select{flex:1;min-width:75px;max-width:100%;padding:6px}
