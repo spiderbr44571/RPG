@@ -46,9 +46,9 @@ assert.equal(core.search('Stress',{docs:ix,systemId:'gurps',edition:'4e'}).lengt
 assert.equal(core.search('Stress',{docs:ix,systemId:'gurps',edition:'2024'}).length,0);
 const h=fs.readFileSync(path.join(base,'demo-offline.html'),'utf8');
 assert.ok(h.includes('<script src="rpg20_search_core.js"></script>'));
-assert.ok(h.includes('r11-system')&&h.includes('r11-index-system'));
-assert.ok(h.includes('const request=ai.plan(query'),'cloud must not require pre-indexed sources');
-assert.ok(h.includes('RpgCloudAiBridge.request('));
+assert.ok(h.includes('rpg26_offline_search_ui.js'));
+assert.ok(h.includes('rpg26_local_answers.js'));
+assert.ok(!h.includes('RpgCloudAiBridge.request('),'offline build does not call cloud AI');
 assert.ok(fs.existsSync(path.join(__dirname,'../scripts/indexar_pdf.py')));
 assert.ok(!fs.existsSync(path.join(__dirname,'../server/ai_proxy.py')),'old local proxy must be removed');
-console.log('PASS: 39 systems, '+count+' books, strict scope/edition, index import and AI grounding');
+console.log('PASS: 39 systems, '+count+' books, strict scope/edition and local book indexes');
