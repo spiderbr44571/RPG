@@ -1081,6 +1081,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
         if(path.equals("/scene-editor.js"))return sceneEditorScript();
         if(path.equals("/scene-editor.css"))return sceneEditorStyle();
         if(path.equals("/scene-bestiary.js"))return publishedScript("rpg19_order_creatures.js");
+        if(path.equals("/table-camera.js"))return publishedScript("rpg33_camera.js");
         if(path.equals("/table-player.js"))return publishedScript("rpg31_player_table.js");
         if(path.equals("/table-master.js"))return publishedScript("rpg31_master_table.js");
         if(path.equals("/table-master.css"))return publishedStyle("rpg31_live.css");
