@@ -21,6 +21,12 @@ function open(host,options){
  function bars(c){
   const sh=c?.sheet;if(!sh)return '';
   let values=Object.entries(sh.resources||{}).filter(([,v])=>v&&typeof v==='object').map(([k,v])=>[k,Number(v.current)||0,Number(v.max)||0]);
+  if(sh.systemId==='d-d'){
+    values=[['PV',Number(sh.hitPointsCurrent??0),Number(sh.hitPointsMax||1)]];
+    for(const [level,slots] of Object.entries(sh.spellSlots||{})){
+      if(slots&&typeof slots==='object'&&Number(slots.max)>0)values.push(['Magia '+level,Number(slots.current||0),Number(slots.max)]);
+    }
+  }
   if(sh.systemId==='gurps')values=[['HP',Number(sh.currentHP??sh.attrs?.ST??0),Number(sh.attrs?.ST||1)],['FP',Number(sh.currentFP??sh.attrs?.HT??0),Number(sh.attrs?.HT||1)]];
   return values.slice(0,5).map(([k,cur,max])=>'<small>'+esc(k)+' '+cur+'/'+max+'</small><div class="track"><i class="bar" style="width:'+Math.max(0,Math.min(100,max>0?100*cur/max:0))+'%"></i></div>').join('');
  }
