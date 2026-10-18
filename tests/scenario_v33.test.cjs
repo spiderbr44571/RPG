@@ -23,7 +23,7 @@ assert.match(gm,/readable\(t\.name\)\.slice\(0,2\)/);
 assert.match(player,/camera\?\.attach\(/);
 assert.match(player,/camera\?\.cellAt\(/);
 assert.match(player,/camera\?\.fit\(\)/);
-assert.match(player,/$('#scroll')/.replace(/[$()]/g, '\\$&') instanceof RegExp ? /#scroll/ : /#scroll/);
+assert.match(player,/'#scroll'/);
 assert.ok(!gm.includes('s.scrollLeft=first'));
 assert.ok(!player.includes('const rect=$(\'#board\').getBoundingClientRect()'));
 // Simulates a landscape PC/tablet: validates fit, pan, pinch, zoom and stable cell coordinates.
