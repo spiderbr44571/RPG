@@ -26,7 +26,9 @@ public final class LocalCampaignServer extends NanoHTTPD {
   private final JSONObject root;
   private final String hostIp;
   private final Object lock = new Object();
-  private static final int MAX_BYTES = 1750000;
+  private static final int MAX_BYTES = 5300000;
+  private String cachedMaskedKey="";
+  private String cachedMaskedImage="";
   private final AtomicInteger revision = new AtomicInteger(0);
 
   public LocalCampaignServer(Context context, int port) throws Exception {
@@ -36,7 +38,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
     this.hostIp = localIp();
     if (database.isFile()) {
       try (FileInputStream in = new FileInputStream(database)) {
-        byte[] raw = new byte[(int)Math.min(database.length(), 4000000)];
+        byte[] raw = new byte[(int)Math.min(database.length(), 16000000)];
         int count = in.read(raw);
         root = new JSONObject(new String(raw,0,Math.max(0,count),StandardCharsets.UTF_8));
       }
@@ -101,7 +103,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       File tmp = new File(database.getParentFile(),database.getName()+".tmp");
       try(FileOutputStream out = new FileOutputStream(tmp)){
         byte[] data=root.toString().getBytes(StandardCharsets.UTF_8);
-        if(data.length>3800000)throw new IOException("Limite de armazenamento de campanhas excedido");
+        if(data.length>15000000)throw new IOException("Limite de armazenamento de campanhas excedido");
         out.write(data);
         out.getFD().sync();
       }
@@ -352,7 +354,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
   }
   private static String optionalImage(JSONObject obj){
     String data=obj.optString("image","");
-    if(!data.isEmpty()&&(data.length()>240000||!data.matches("data:image/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+")))
+    if(!data.isEmpty()&&(data.length()>900000||!data.matches("data:image/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+")))
       throw new IllegalArgumentException("Imagem inválida. Use PNG, JPEG ou WebP compactado.");
     return data;
   }
@@ -371,7 +373,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
     synchronized(lock){
       JSONObject c=campaign(cid);
       JSONArray maps=input.optJSONArray("scenarios"),assets=input.optJSONArray("assets");
-      if(maps==null||assets==null||maps.length()>16||assets.length()>110||input.toString().length()>1550000)
+      if(maps==null||assets==null||maps.length()>16||assets.length()>110||input.toString().length()>5200000)
         throw new IllegalArgumentException("Biblioteca ou cenários excedem o limite");
       java.util.HashSet<String> assetIds=new java.util.HashSet<>(),mapIds=new java.util.HashSet<>();
       for(int i=0;i<assets.length();i++){
@@ -407,6 +409,8 @@ public final class LocalCampaignServer extends NanoHTTPD {
           int w=gridNumber(room,"w",1,width),h=gridNumber(room,"h",1,height);
           if(x+w>width||y+h>height)throw new IllegalArgumentException("Sala fora do cenário");
           if(!(room.opt("hidden") instanceof Boolean))throw new IllegalArgumentException("Visibilidade inválida");
+          if(!java.util.Arrays.asList("rect","circle").contains(room.optString("shape","rect")))
+            throw new IllegalArgumentException("Formato da sala inválido");
         }
         for(int j=0;j<tokens.length();j++){
           JSONObject token=tokens.getJSONObject(j);
@@ -435,14 +439,62 @@ public final class LocalCampaignServer extends NanoHTTPD {
       persist();
     }
   }
+  private static boolean regionContains(JSONObject r,double x,double y){
+    double rx=r.optInt("x"),ry=r.optInt("y"),rw=r.optInt("w"),rh=r.optInt("h");
+    if(rw<=0||rh<=0||x<rx||x>rx+rw||y<ry||y>ry+rh)return false;
+    if(!"circle".equals(r.optString("shape","rect")))return true;
+    double dx=(x-(rx+rw/2.0))/(rw/2.0),dy=(y-(ry+rh/2.0))/(rh/2.0);
+    return dx*dx+dy*dy<=1.0;
+  }
   private static boolean covered(JSONObject map,int x,int y) throws JSONException{
     JSONArray rooms=map.optJSONArray("rooms");if(rooms==null)return false;
     for(int i=0;i<rooms.length();i++){
       JSONObject r=rooms.getJSONObject(i);
-      if(r.optBoolean("hidden",false)&&x>=r.optInt("x")&&x<r.optInt("x")+r.optInt("w")
-        &&y>=r.optInt("y")&&y<r.optInt("y")+r.optInt("h"))return true;
+      if(r.optBoolean("hidden",false)&&regionContains(r,x+0.5,y+0.5))return true;
     }
     return false;
+  }
+  /** Trata nevoa diretamente sobre a imagem antes de envia-la ao navegador.
+   * Ocultar so com CSS permitiria retirar a camada e revelar o mapa do mestre.
+   */
+  private String maskedBackground(JSONObject map,JSONObject original) {
+    try {
+      String data=original.optString("image","");
+      JSONArray rooms=map.getJSONArray("rooms");
+      String key=map.optString("id")+"|"+rooms.toString()+"|"+data.hashCode();
+      if(key.equals(cachedMaskedKey))return cachedMaskedImage;
+      int comma=data.indexOf(',');
+      if(comma<0||comma>90)return "";
+      byte[] bytes=android.util.Base64.decode(data.substring(comma+1),android.util.Base64.DEFAULT);
+      android.graphics.BitmapFactory.Options check=new android.graphics.BitmapFactory.Options();
+      check.inJustDecodeBounds=true;
+      android.graphics.BitmapFactory.decodeByteArray(bytes,0,bytes.length,check);
+      if(check.outWidth<1||check.outHeight<1||check.outWidth>4096||check.outHeight>4096)return "";
+      android.graphics.Bitmap input=android.graphics.BitmapFactory.decodeByteArray(bytes,0,bytes.length);
+      if(input==null)return "";
+      android.graphics.Bitmap output=input.copy(android.graphics.Bitmap.Config.ARGB_8888,true);
+      if(output==null){input.recycle();return "";}
+      android.graphics.Canvas canvas=new android.graphics.Canvas(output);
+      android.graphics.Paint paint=new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+      paint.setStyle(android.graphics.Paint.Style.FILL);paint.setColor(android.graphics.Color.rgb(10,10,19));
+      float unitX=(float)output.getWidth()/map.optInt("width",1);
+      float unitY=(float)output.getHeight()/map.optInt("height",1);
+      for(int i=0;i<rooms.length();i++){
+        JSONObject r=rooms.getJSONObject(i);
+        if(!r.optBoolean("hidden",false))continue;
+        float left=r.optInt("x")*unitX,top=r.optInt("y")*unitY;
+        float right=left+r.optInt("w")*unitX,bottom=top+r.optInt("h")*unitY;
+        if("circle".equals(r.optString("shape","rect"))){
+          canvas.drawOval(left,top,right,bottom,paint);
+        }else canvas.drawRect(left,top,right,bottom,paint);
+      }
+      ByteArrayOutputStream out=new ByteArrayOutputStream();
+      output.compress(android.graphics.Bitmap.CompressFormat.JPEG,75,out);
+      output.recycle();input.recycle();
+      String masked="data:image/jpeg;base64,"+android.util.Base64.encodeToString(out.toByteArray(),android.util.Base64.NO_WRAP);
+      cachedMaskedKey=key;cachedMaskedImage=masked;
+      return masked;
+    }catch(Exception ex){return "";}
   }
   private JSONObject activeScene(JSONObject c)throws JSONException{
     String active=c.optString("activeScenarioId","");
@@ -464,7 +516,8 @@ public final class LocalCampaignServer extends NanoHTTPD {
         JSONObject room=rooms.getJSONObject(i);
         if(room.optBoolean("hidden",false)){
           fog.put(new JSONObject().put("x",room.getInt("x")).put("y",room.getInt("y"))
-            .put("w",room.getInt("w")).put("h",room.getInt("h")));
+            .put("w",room.getInt("w")).put("h",room.getInt("h"))
+            .put("shape",room.optString("shape","rect")));
         }else visibleRooms.put(new JSONObject().put("name",room.getString("name"))
           .put("x",room.getInt("x")).put("y",room.getInt("y")).put("w",room.getInt("w")).put("h",room.getInt("h")));
       }
@@ -486,7 +539,12 @@ public final class LocalCampaignServer extends NanoHTTPD {
       JSONArray filteredAssets=new JSONArray(),allAssets=c.optJSONArray("sceneAssets");
       if(allAssets!=null)for(int i=0;i<allAssets.length();i++){
         JSONObject a=allAssets.getJSONObject(i);
-        if(allowedAssetIds.contains(a.optString("id")))filteredAssets.put(new JSONObject(a.toString()));
+        if(allowedAssetIds.contains(a.optString("id"))){
+          JSONObject visible=new JSONObject(a.toString());
+          if(a.optString("id").equals(background)&&fog.length()>0)
+            visible.put("image",maskedBackground(original,a));
+          filteredAssets.put(visible);
+        }
       }
       scene.put("rooms",visibleRooms).put("fog",fog).put("tokens",visibleTokens);
       response.put("scene",scene).put("assets",filteredAssets);
@@ -694,7 +752,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
     Response r=newFixedLengthResponse(Response.Status.OK,"text/html; charset=utf-8",new String(buf,StandardCharsets.UTF_8));
     r.addHeader("Cache-Control","no-store");r.addHeader("Referrer-Policy","no-referrer");
     r.addHeader("X-Frame-Options","DENY");r.addHeader("X-Content-Type-Options","nosniff");
-    r.addHeader("Content-Security-Policy","default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'");
+    r.addHeader("Content-Security-Policy","default-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'");
     return r;
   }
   private Response sceneEditorScript()throws IOException{
@@ -703,6 +761,14 @@ public final class LocalCampaignServer extends NanoHTTPD {
       byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1)out.write(b,0,n);buf=out.toByteArray();
     }
     Response r=newFixedLengthResponse(Response.Status.OK,"application/javascript; charset=utf-8",new String(buf,StandardCharsets.UTF_8));
+    r.addHeader("Cache-Control","no-store");r.addHeader("X-Content-Type-Options","nosniff");return r;
+  }
+  private Response sceneEditorStyle()throws IOException{
+    byte[] buf;
+    try(InputStream in=context.getAssets().open("rpg30_studio.css");ByteArrayOutputStream out=new ByteArrayOutputStream()){
+      byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1)out.write(b,0,n);buf=out.toByteArray();
+    }
+    Response r=newFixedLengthResponse(Response.Status.OK,"text/css; charset=utf-8",new String(buf,StandardCharsets.UTF_8));
     r.addHeader("Cache-Control","no-store");r.addHeader("X-Content-Type-Options","nosniff");return r;
   }
   @Override public Response serve(IHTTPSession s) {
@@ -716,6 +782,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       if(method.equals("GET")){
         if(path.equals("/")||path.equals("/master"))return html("lan_master.html");
         if(path.equals("/scene-editor.js"))return sceneEditorScript();
+        if(path.equals("/scene-editor.css"))return sceneEditorStyle();
         if(p.length==3&&p[1].equals("scene")){
           if(checkPlayer(p[2],cookie(s,"rpg_guest"))==null)return json(403,"error","Sessão não autorizada");
           return html("lan_scene.html");
