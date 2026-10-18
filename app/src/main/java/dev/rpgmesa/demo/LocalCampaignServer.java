@@ -288,6 +288,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       if(kind.equals("turn"))c.put("turn",c.getInt("turn")+1);
       else if(kind.equals("scene")){c.put("scene",c.getInt("scene")+1);c.put("turn",1);c.put("sceneName","Cena "+c.getInt("scene"));}
       else throw new IllegalArgumentException("Evento desconhecido");
+      c.put("movementSpent",new JSONObject());
       JSONArray characters=c.getJSONArray("characters");
       for(int i=0;i<characters.length();i++){
         JSONObject s=characters.getJSONObject(i).getJSONObject("sheet");
@@ -448,12 +449,15 @@ public final class LocalCampaignServer extends NanoHTTPD {
           if(!(room.opt("hidden") instanceof Boolean))throw new IllegalArgumentException("Visibilidade inválida");
           if(!java.util.Arrays.asList("rect","circle").contains(room.optString("shape","rect")))
             throw new IllegalArgumentException("Formato da sala inválido");
+          if(!java.util.Arrays.asList("shadow","dark","mist","void").contains(room.optString("fogStyle","shadow")))
+            throw new IllegalArgumentException("Estilo de ocultação inválido");
         }
         for(int j=0;j<tokens.length();j++){
           JSONObject token=tokens.getJSONObject(j);
           if(!tids.add(sceneId(token,"id")))throw new IllegalArgumentException("Token duplicado");
           field(token,"name",70);
           gridNumber(token,"x",0,width-1);gridNumber(token,"y",0,height-1);
+          if(token.has("movementSquares"))gridNumber(token,"movementSquares",0,60);
           String asset=optionalSceneId(token,"assetId");
           if(!asset.isEmpty()&&!assetIds.contains(asset))throw new IllegalArgumentException("Asset de token ausente");
           String kind=token.optString("kind","");
@@ -652,7 +656,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
         .put("revision",revision.get()).put("scene",JSONObject.NULL);
       if(original==null){
         response.put("character",playerInfo(cid,player).opt("character"));
-        response.put("rolls",visibleRolls(c,false)).put("initiative",new JSONObject().put("round",1).put("activeId","").put("entries",new JSONArray())).put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName",""));
+        response.put("rolls",visibleRolls(c,false)).put("movement",new JSONObject().put("tokens",new JSONArray())).put("initiative",new JSONObject().put("round",1).put("activeId","").put("entries",new JSONArray())).put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName",""));
         return response;
       }
       JSONObject scene=new JSONObject().put("id",original.getString("id")).put("name",original.getString("name"))
@@ -665,7 +669,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
         if(room.optBoolean("hidden",false)){
           fog.put(new JSONObject().put("x",room.getInt("x")).put("y",room.getInt("y"))
             .put("w",room.getInt("w")).put("h",room.getInt("h"))
-            .put("shape",room.optString("shape","rect")));
+            .put("shape",room.optString("shape","rect")).put("fogStyle",room.optString("fogStyle","shadow")));
         }else visibleRooms.put(new JSONObject().put("name",room.getString("name"))
           .put("x",room.getInt("x")).put("y",room.getInt("y")).put("w",room.getInt("w")).put("h",room.getInt("h")));
       }
@@ -699,6 +703,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       }
       scene.put("rooms",visibleRooms).put("fog",fog).put("tokens",visibleTokens);
       response.put("initiative",initiativeForPlayer(c,visibleTokens));
+      response.put("movement",playerMovement(c,player,visibleTokens));
       response.put("scene",scene).put("assets",filteredAssets)
         .put("rolls",visibleRolls(c,false)).put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName",""));
       // A ficha integral do jogador e entregue apenas ao proprio titular autenticado.
@@ -706,6 +711,73 @@ public final class LocalCampaignServer extends NanoHTTPD {
       return response;
     }
   }
+
+  private static String tokenSystem(JSONObject c,JSONObject token)throws JSONException{
+    String charId=token.optString("characterId","");
+    JSONArray chars=c.optJSONArray("characters");
+    if(chars!=null)for(int i=0;i<chars.length();i++){
+      JSONObject ch=chars.getJSONObject(i);
+      if(charId.equals(ch.optString("id"))&&ch.optJSONObject("sheet")!=null)
+        return ch.getJSONObject("sheet").optString("systemId","ordem-paranormal");
+    }
+    return token.optString("systemId","ordem-paranormal");
+  }
+  private static int defaultSquares(String system){
+    if("d-d".equals(system))return 6;
+    if("gurps".equals(system))return 5;
+    return 9; // Ordem Paranormal e sistemas ainda não configurados
+  }
+  private int movementLimit(JSONObject c,JSONObject t)throws JSONException{
+    if(t.has("movementSquares"))return Math.max(0,Math.min(60,t.optInt("movementSquares",9)));
+    String system=tokenSystem(c,t);
+    String charId=t.optString("characterId","");
+    JSONArray chars=c.optJSONArray("characters");
+    if(chars!=null)for(int i=0;i<chars.length();i++){
+      JSONObject ch=chars.getJSONObject(i);
+      if(!charId.isEmpty()&&charId.equals(ch.optString("id"))){
+        JSONObject sheet=ch.optJSONObject("sheet");
+        if(sheet!=null&&sheet.has("movementSquares"))
+          return Math.max(0,Math.min(60,sheet.optInt("movementSquares",9)));
+      }
+    }
+    JSONObject custom=c.optJSONObject("movementRules");
+    if(custom!=null&&custom.has(system))return Math.max(0,Math.min(60,custom.optInt(system,9)));
+    return defaultSquares(system);
+  }
+  private JSONObject movementSpent(JSONObject c)throws JSONException{
+    JSONObject spent=c.optJSONObject("movementSpent");
+    if(spent==null){spent=new JSONObject();c.put("movementSpent",spent);}
+    return spent;
+  }
+  public void movementRule(String cid,JSONObject input)throws Exception{
+    synchronized(lock){
+      JSONObject c=campaign(cid);
+      String system=field(input,"systemId",60);
+      if(!system.matches("[A-Za-z0-9_-]{1,60}"))
+        throw new IllegalArgumentException("Sistema inválido");
+      int squares=gridNumber(input,"squares",0,60);
+      JSONObject rules=c.optJSONObject("movementRules");
+      if(rules==null){rules=new JSONObject();c.put("movementRules",rules);}
+      rules.put(system,squares);
+      c.put("movementSpent",new JSONObject());persist();
+    }
+  }
+  private JSONObject playerMovement(JSONObject c,JSONObject player,JSONArray tokens)throws JSONException{
+    JSONArray own=new JSONArray();
+    JSONObject spent=movementSpent(c);
+    for(int i=0;i<tokens.length();i++){
+      JSONObject t=tokens.getJSONObject(i);
+      if(!t.optBoolean("movable",false))continue;
+      JSONObject original=activeScene(c);
+      if(original==null)continue;
+      JSONObject source=entry(original.getJSONArray("tokens"),t.optString("id"),"Token");
+      int limit=movementLimit(c,source),used=spent.optInt(t.optString("id"),0);
+      own.put(new JSONObject().put("tokenId",t.optString("id")).put("limit",limit)
+       .put("used",used).put("remaining",Math.max(0,limit-used)));
+    }
+    return new JSONObject().put("tokens",own);
+  }
+
   public JSONObject movePlayerToken(String cid,JSONObject player,JSONObject input)throws Exception{
     synchronized(lock){
       JSONObject c=campaign(cid),map=activeScene(c);
@@ -717,16 +789,26 @@ public final class LocalCampaignServer extends NanoHTTPD {
       if(charId.isEmpty()||!t.optString("ownerPlayerId").equals(player.optString("id"))||
         !t.optString("characterId").equals(charId)||t.optBoolean("hidden",false))
         throw new SecurityException("Este token não pertence ao jogador");
+      JSONObject initiative=initiativeData(c);
+      JSONArray order=initiative.optJSONArray("entries");
+      if(order!=null&&order.length()>0&&!id.equals(initiative.optString("activeId","")))
+        throw new IllegalArgumentException("Aguarde sua vez na iniciativa");
       int oldX=t.getInt("x"),oldY=t.getInt("y");
+      // Cada diagonal vale um quadrado (distância Chebyshev).
       int steps=Math.max(Math.abs(x-oldX),Math.abs(y-oldY));
+      JSONObject spent=movementSpent(c);
+      int already=spent.optInt(id,0),limit=movementLimit(c,t);
+      if(already+steps>limit)
+        throw new IllegalArgumentException("Deslocamento excedido: "+(limit-already)+" de "+limit+" quadrados restantes neste turno");
       // Não permitir atravessar salas ocultas, nem por movimentação diagonal.
       for(int step=0;step<=steps;step++){
         double p=steps==0?0:((double)step/steps);
         int sx=(int)Math.round(oldX+(x-oldX)*p),sy=(int)Math.round(oldY+(y-oldY)*p);
         if(covered(map,sx,sy))throw new IllegalArgumentException("Área ainda não revelada pelo mestre");
       }
-      t.put("x",x).put("y",y);persist();
-      return new JSONObject().put("ok",true).put("x",x).put("y",y).put("revision",revision.get());
+      t.put("x",x).put("y",y);spent.put(id,already+steps);persist();
+      return new JSONObject().put("ok",true).put("x",x).put("y",y)
+        .put("movementRemaining",limit-already-steps).put("revision",revision.get());
     }
   }
 
@@ -764,6 +846,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       String action=body.optString("action","");
       if("reset".equals(action)){
         state.put("entries",new JSONArray()).put("round",1).put("activeId","");
+        c.put("movementSpent",new JSONObject());
       }else if("next".equals(action)){
         if(entries.length()==0)throw new IllegalArgumentException("Adicione participantes à iniciativa");
         int index=-1;
@@ -881,6 +964,8 @@ public final class LocalCampaignServer extends NanoHTTPD {
       result.put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName"))
         .put("campaignName",c.optString("name")).put("revision",revision.get())
         .put("rolls",visibleRolls(c,true)).put("initiative",new JSONObject(initiativeData(c).toString()))
+        .put("movementRules",new JSONObject((c.optJSONObject("movementRules")==null?new JSONObject():c.getJSONObject("movementRules")).toString()))
+        .put("movementSpent",new JSONObject(movementSpent(c).toString()))
         .put("players",new JSONArray(c.getJSONArray("players").toString()))
         .put("characters",new JSONArray(c.getJSONArray("characters").toString()));
       JSONArray ps=result.getJSONArray("players");
@@ -900,6 +985,9 @@ public final class LocalCampaignServer extends NanoHTTPD {
         if(max<1)throw new IllegalArgumentException("Criatura sem PV cadastrado");
         int delta=gridNumber(input,"delta",-100000,100000);
         token.put("hp",Math.max(0,Math.min(max,token.optInt("hp",max)+delta)));
+      }else if(action.equals("speed")){
+        token.put("movementSquares",gridNumber(input,"squares",0,60));
+        movementSpent(c).put(token.getString("id"),0);
       }else if(action.equals("move")){
         token.put("x",gridNumber(input,"x",0,map.getInt("width")-1));
         token.put("y",gridNumber(input,"y",0,map.getInt("height")-1));
@@ -1349,6 +1437,9 @@ public final class LocalCampaignServer extends NanoHTTPD {
         }
         if(p.length==6&&p[5].equals("advance")&&method.equals("POST")){
           advance(cid,b.getString("kind"));return json(200,"ok","true");
+        }
+        if(p.length==6&&p[5].equals("movement")&&method.equals("POST")){
+          movementRule(cid,b);return json(200,"ok","true");
         }
         if(p.length==6&&p[5].equals("initiative")&&method.equals("POST"))
           return response(200,initiativeAction(cid,b));
