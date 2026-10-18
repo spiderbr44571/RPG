@@ -1,3 +1,14 @@
+# RPG Mesa v0.34 — grade confinada e tokens controláveis
+
+- **Mesa ao vivo:** corrigido o posicionamento CSS do mapa. O grid passa a ser filho de um viewport posicionado, isolado e recortado, sem atravessar o cabeçalho ou as ferramentas do mestre.
+- **Posicionamento preciso:** clique/arraste e pinça usam as dimensões reais de `getBoundingClientRect()` do tabuleiro transformado, mantendo exatidão após zoom, pan e redimensionamento da tela.
+- **Vinculação automática:** ao atribuir uma ficha a um jogador, o servidor cria um token de personagem numa célula livre e revelada do cenário publicado, quando ainda não existe um token daquela ficha com controle associado. O código recupera campanhas antigas ao abrir a mesa. Não cria tokens dentro de salas ocultas.
+- **Controle manual:** selecione qualquer token de personagem na mesa do mestre e defina qual jogador vai controlá-lo. A mesa remove tokens automáticos substituídos e mantém proteção para outros jogadores.
+- **Ficha do jogador:** em **Mesa ao vivo → Jogadores e efeitos**, escolha a ficha pelo nome no seletor do jogador. Ao atualizar, o mapa do jogador deve exibir o token, com movimentação apenas pela sessão autenticada dele.
+- **Limites:** se todas as células estiverem ocultas ou o mapa alcançar 250 tokens, será necessário revelar uma área ou liberar espaço antes de gerar tokens automaticamente. O mestre deve publicar o cenário para que os jogadores o recebam.
+
+---
+
 # RPG Mesa 0.32 — Iniciativa e Mesa ao Vivo unificada
 
 ### Um único fluxo para mestrar

@@ -265,6 +265,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
         }
         p.put("characterId",charId).put("status","ativo").remove("proposedSheet");
       }
+      ensurePlayerTokens(c);
       persist();
     }
   }
@@ -492,6 +493,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       if(!active.isEmpty()&&!mapIds.contains(active))throw new IllegalArgumentException("Cenário ativo não encontrado");
       c.put("sceneAssets",new JSONArray(assets.toString()))
        .put("scenarios",new JSONArray(maps.toString())).put("activeScenarioId",active);
+      ensurePlayerTokens(c);
       persist();
     }
   }
@@ -558,9 +560,95 @@ public final class LocalCampaignServer extends NanoHTTPD {
     for(int i=0;i<all.length();i++)if(active.equals(all.getJSONObject(i).optString("id")))return all.getJSONObject(i);
     return null;
   }
-  public JSONObject playerScene(String cid,JSONObject player)throws JSONException{
+  /**
+   * Um personagem atribuido tem automaticamente um token controlavel no mapa ativo.
+   * Nunca cria tokens em salas ocultas; respeita a posicao de tokens ja existentes.
+   * Executado na atribuicao, publicacao e durante migracao de campanhas antigas.
+   */
+  private boolean ensurePlayerTokens(JSONObject c)throws JSONException {
+    JSONObject map=activeScene(c);
+    if(map==null)return false;
+    JSONArray tokens=map.optJSONArray("tokens"),players=c.optJSONArray("players");
+    if(tokens==null||players==null)return false;
+    boolean changed=false;
+    // Limpa controle obsoleto de fichas que foram desatribuidas ou trocadas.
+    for(int i=0;i<tokens.length();i++){
+      JSONObject t=tokens.getJSONObject(i);
+      String owner=t.optString("ownerPlayerId","");
+      if(owner.isEmpty())continue;
+      JSONObject player=null;
+      for(int p=0;p<players.length();p++){
+        JSONObject candidate=players.getJSONObject(p);
+        if(owner.equals(candidate.optString("id"))){player=candidate;break;}
+      }
+      if(player==null||player.optString("characterId","").isEmpty()||
+        !player.optString("characterId","").equals(t.optString("characterId",""))){
+        t.put("ownerPlayerId","").put("characterId","");changed=true;
+      }
+    }
+    int width=map.optInt("width",0),height=map.optInt("height",0);
+    for(int i=0;i<players.length();i++){
+      JSONObject player=players.getJSONObject(i);
+      String pid=player.optString("id",""),charId=player.optString("characterId","");
+      if(charId.isEmpty())continue;
+      boolean exists=false;
+      for(int j=0;j<tokens.length();j++){
+        JSONObject t=tokens.getJSONObject(j);
+        if(pid.equals(t.optString("ownerPlayerId"))&&charId.equals(t.optString("characterId"))){
+          exists=true;break;
+        }
+      }
+      if(exists)continue;
+      // Preferir token de ficha já criado no editor, se ainda não tiver dono.
+      JSONObject reused=null;
+      for(int j=0;j<tokens.length();j++){
+        JSONObject t=tokens.getJSONObject(j);
+        if("character".equals(t.optString("kind"))&&charId.equals(t.optString("characterId"))
+            &&t.optString("ownerPlayerId","").isEmpty()){reused=t;break;}
+      }
+      JSONObject character=null;
+      JSONArray chars=c.getJSONArray("characters");
+      for(int j=0;j<chars.length();j++){
+        JSONObject ch=chars.getJSONObject(j);
+        if(charId.equals(ch.optString("id"))){character=ch;break;}
+      }
+      if(character==null)continue;
+      if(reused!=null){
+        reused.put("ownerPlayerId",pid).put("characterId",charId).put("hidden",false);
+        changed=true;continue;
+      }
+      int xx=-1,yy=-1;
+      // Célula livre e revelada, mais próxima do centro do grid.
+      double best=Double.POSITIVE_INFINITY;
+      for(int y=0;y<height;y++)for(int x=0;x<width;x++){
+        if(covered(map,x,y))continue;
+        boolean occupied=false;
+        for(int j=0;j<tokens.length();j++){
+          JSONObject t=tokens.getJSONObject(j);
+          if(t.optInt("x",-1)==x&&t.optInt("y",-1)==y){occupied=true;break;}
+        }
+        if(occupied)continue;
+        double score=Math.pow(x-(width-1)/2.0,2)+Math.pow(y-(height-1)/2.0,2);
+        if(score<best){best=score;xx=x;yy=y;}
+      }
+      if(xx<0||tokens.length()>=250)continue; // Não ultrapassar limites nem revelar salas ocultas.
+      JSONObject sheet=character.optJSONObject("sheet");
+      String name=sheet==null?"Personagem":sheet.optString("name","Personagem");
+      if(name.trim().isEmpty())name=player.optString("nickname","Personagem");
+      tokens.put(new JSONObject().put("id",UUID.randomUUID().toString().replace("-",""))
+        .put("kind","character").put("name",name.substring(0,Math.min(name.length(),70)))
+        .put("x",xx).put("y",yy).put("assetId","")
+        .put("ownerPlayerId",pid).put("characterId",charId).put("hidden",false));
+      changed=true;
+    }
+    return changed;
+  }
+
+  public JSONObject playerScene(String cid,JSONObject player)throws Exception{
     synchronized(lock){
-      JSONObject c=campaign(cid),original=activeScene(c),response=new JSONObject()
+      JSONObject c=campaign(cid);
+      if(ensurePlayerTokens(c))persist();
+      JSONObject original=activeScene(c),response=new JSONObject()
         .put("revision",revision.get()).put("scene",JSONObject.NULL);
       if(original==null){
         response.put("character",playerInfo(cid,player).opt("character"));
@@ -784,9 +872,11 @@ public final class LocalCampaignServer extends NanoHTTPD {
       return result;
     }
   }
-  public JSONObject masterTable(String cid)throws JSONException{
+  public JSONObject masterTable(String cid)throws Exception{
     synchronized(lock){
-      JSONObject c=campaign(cid),result=getScenarios(cid);
+      JSONObject c=campaign(cid);
+      if(ensurePlayerTokens(c))persist();
+      JSONObject result=getScenarios(cid);
       JSONObject scene=activeScene(c);
       result.put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName"))
         .put("campaignName",c.optString("name")).put("revision",revision.get())
@@ -816,6 +906,27 @@ public final class LocalCampaignServer extends NanoHTTPD {
       }else if(action.equals("hide")){
         if(!(input.opt("hidden") instanceof Boolean))throw new IllegalArgumentException("Visibilidade inválida");
         token.put("hidden",input.getBoolean("hidden"));
+      }else if(action.equals("bind")){
+        if(!"character".equals(token.optString("kind")))throw new IllegalArgumentException("Apenas personagens podem ser controlados por jogadores");
+        String pid=input.optString("playerId","");
+        if(pid.isEmpty()){
+          token.put("ownerPlayerId","").put("characterId","");
+        }else{
+          JSONObject owner=entry(c.getJSONArray("players"),sceneId(input,"playerId"),"Jogador");
+          String charId=owner.optString("characterId","");
+          if(charId.isEmpty()||"null".equals(charId))throw new IllegalArgumentException("Atribua primeiro uma ficha ao jogador");
+          if(covered(map,token.optInt("x"),token.optInt("y")))
+            throw new IllegalArgumentException("O token está em uma sala oculta. Mova-o para uma célula revelada antes de vincular");
+          JSONArray all=map.getJSONArray("tokens");
+          for(int i=all.length()-1;i>=0;i--){
+            JSONObject other=all.getJSONObject(i);
+            if(other==token||!pid.equals(other.optString("ownerPlayerId")))continue;
+            // Os tokens automáticos sem imagem podem ser substituídos pelos tokens personalizados.
+            if(other.optString("assetId","").isEmpty()&&"character".equals(other.optString("kind")))all.remove(i);
+            else other.put("ownerPlayerId","").put("characterId","");
+          }
+          token.put("ownerPlayerId",pid).put("characterId",charId).put("hidden",false);
+        }
       }else throw new IllegalArgumentException("Ação do token inválida");
       persist();
     }

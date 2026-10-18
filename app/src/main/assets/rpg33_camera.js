@@ -22,9 +22,16 @@ function create(){
   x=cx-(cx-x)*ratio;y=cy-(cy-y)*ratio;scale=next;redraw();
  }
  function screenToWorld(clientX,clientY){
-  if(!view)return {x:0,y:0};
-  const r=view.getBoundingClientRect();
-  return {x:(clientX-r.left-x)/scale,y:(clientY-r.top-y)/scale};
+  if(!view||!board)return {x:NaN,y:NaN};
+  // O retangulo REAL do board ja inclui zoom, pan e transforms dos ancestrais.
+  // Com isso o centro da celula tocada corresponde exatamente ao token movido,
+  // inclusive com escala do Android, barras superiores e diferentes densidades.
+  const r=board.getBoundingClientRect?.();
+  const d=dimensions();
+  if(r&&r.width>0&&r.height>0)
+    return {x:(clientX-r.left)*d.w/r.width,y:(clientY-r.top)*d.h/r.height};
+  const v=view.getBoundingClientRect();
+  return {x:(clientX-v.left-x)/scale,y:(clientY-v.top-y)/scale};
  }
  function cellAt(e,cell,cols,rows){
   const p=screenToWorld(e.clientX,e.clientY);
