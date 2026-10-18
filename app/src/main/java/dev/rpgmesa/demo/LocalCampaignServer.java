@@ -906,6 +906,27 @@ public final class LocalCampaignServer extends NanoHTTPD {
       }else if(action.equals("hide")){
         if(!(input.opt("hidden") instanceof Boolean))throw new IllegalArgumentException("Visibilidade inválida");
         token.put("hidden",input.getBoolean("hidden"));
+      }else if(action.equals("bind")){
+        if(!"character".equals(token.optString("kind")))throw new IllegalArgumentException("Apenas personagens podem ser controlados por jogadores");
+        String pid=input.optString("playerId","");
+        if(pid.isEmpty()){
+          token.put("ownerPlayerId","").put("characterId","");
+        }else{
+          JSONObject owner=entry(c.getJSONArray("players"),sceneId(input,"playerId"),"Jogador");
+          String charId=owner.optString("characterId","");
+          if(charId.isEmpty()||"null".equals(charId))throw new IllegalArgumentException("Atribua primeiro uma ficha ao jogador");
+          if(covered(map,token.optInt("x"),token.optInt("y")))
+            throw new IllegalArgumentException("O token está em uma sala oculta. Mova-o para uma célula revelada antes de vincular");
+          JSONArray all=map.getJSONArray("tokens");
+          for(int i=all.length()-1;i>=0;i--){
+            JSONObject other=all.getJSONObject(i);
+            if(other==token||!pid.equals(other.optString("ownerPlayerId")))continue;
+            // Os tokens automáticos sem imagem podem ser substituídos pelos tokens personalizados.
+            if(other.optString("assetId","").isEmpty()&&"character".equals(other.optString("kind")))all.remove(i);
+            else other.put("ownerPlayerId","").put("characterId","");
+          }
+          token.put("ownerPlayerId",pid).put("characterId",charId).put("hidden",false);
+        }
       }else throw new IllegalArgumentException("Ação do token inválida");
       persist();
     }
