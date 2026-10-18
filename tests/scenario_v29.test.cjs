@@ -16,7 +16,7 @@ assert.match(app,/RPG29_EDITOR\.open/);
 assert.match(gm,/scene-editor\.js/);
 assert.match(player,/id="scene-link"/);
 assert.match(gurps,/id="scene-link"/);
-assert.match(scene,/tokenId:selected,x,y/);
+assert.match(fs.readFileSync(p.join(root,'rpg31_player_table.js'),'utf8'),/tokenId:selected,x,y/);
 assert.match(scene,/\.fog/);
 assert.match(j,/playerScene\(String cid,JSONObject player\)/);
 assert.match(j,/movePlayerToken\(String cid,JSONObject player,JSONObject input\)/);

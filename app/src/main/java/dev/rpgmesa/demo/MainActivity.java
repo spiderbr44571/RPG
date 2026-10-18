@@ -311,7 +311,7 @@ public final class MainActivity extends Activity {
              throw new IllegalArgumentException("Use http://192.168.x.x:8765");
           if(uri.getUserInfo()!=null||uri.getQuery()!=null||uri.getFragment()!=null)
              throw new IllegalArgumentException("Endereço não permitido");
-          if(route==null||!route.matches("/api/admin/campaigns(/[a-z0-9]{1,32}(/[a-z]+(/[a-z0-9]{1,32})?)?)?"))
+          if(route==null||!route.matches("/api/admin/campaigns(/[a-z0-9]{1,32}(/[a-z-]+(/[a-z0-9]{1,32})?)?)?"))
              throw new IllegalArgumentException("Rota não autorizada");
           String verb=method==null?"":method.toUpperCase(java.util.Locale.ROOT);
           if(!("GET".equals(verb)||"POST".equals(verb)||"PUT".equals(verb)))

@@ -314,7 +314,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
   }
   private Response redirectPlayer(JSONObject c,JSONObject p) throws JSONException{
     Response r=newFixedLengthResponse(Response.Status.REDIRECT,"text/plain","");
-    r.addHeader("Location","/play/"+c.getString("id"));
+    r.addHeader("Location","/scene/"+c.getString("id"));
     r.addHeader("Set-Cookie","rpg_guest="+p.getString("secret")+"; HttpOnly; SameSite=Strict; Path=/; Max-Age=31536000");
     r.addHeader("Referrer-Policy","no-referrer");
     r.addHeader("Cache-Control","no-store");
@@ -422,6 +422,26 @@ public final class LocalCampaignServer extends NanoHTTPD {
           String kind=token.optString("kind","");
           if(!java.util.Arrays.asList("character","creature","item","object").contains(kind))
             throw new IllegalArgumentException("Tipo de token inválido");
+          if("creature".equals(kind)){
+            // Token de criatura criado antes da v0.31: completar recursos ausentes sem apagar o mapa.
+            if(!token.has("maxHp"))token.put("maxHp",Math.max(1,Math.min(100000,token.optInt("hp",1))));
+            if(!token.has("hp"))token.put("hp",token.optInt("maxHp",1));
+            if(!token.has("defense"))token.put("defense",0);
+            int mhp=gridNumber(token,"maxHp",1,100000);
+            gridNumber(token,"hp",0,mhp);
+            gridNumber(token,"defense",0,1000);
+            String cs=token.optString("systemId","");if(cs.length()>60)throw new IllegalArgumentException("Sistema invalido");
+            String source=token.optString("source","");if(source.length()>150)throw new IllegalArgumentException("Fonte invalida");
+            String notes=token.optString("notes","");if(notes.length()>2000)throw new IllegalArgumentException("Notas muito longas");
+            JSONArray attacks=token.optJSONArray("attacks");
+            if(attacks!=null){if(attacks.length()>25)throw new IllegalArgumentException("Muitos ataques");
+              for(int k=0;k<attacks.length();k++){
+                JSONObject a=attacks.getJSONObject(k);field(a,"name",70);
+                if(a.optString("test").length()>60||a.optString("damage").length()>60)
+                  throw new IllegalArgumentException("Rolagem da criatura invalida");
+              }
+            }
+          }
           String pid=optionalSceneId(token,"ownerPlayerId"),ch=optionalSceneId(token,"characterId");
           if(!pid.isEmpty()){
             JSONObject p=entry(c.getJSONArray("players"),pid,"Jogador");
@@ -506,7 +526,11 @@ public final class LocalCampaignServer extends NanoHTTPD {
     synchronized(lock){
       JSONObject c=campaign(cid),original=activeScene(c),response=new JSONObject()
         .put("revision",revision.get()).put("scene",JSONObject.NULL);
-      if(original==null)return response;
+      if(original==null){
+        response.put("character",playerInfo(cid,player).opt("character"));
+        response.put("rolls",visibleRolls(c,false)).put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName",""));
+        return response;
+      }
       JSONObject scene=new JSONObject().put("id",original.getString("id")).put("name",original.getString("name"))
         .put("width",original.getInt("width")).put("height",original.getInt("height"))
         .put("theme",original.optString("theme","stone"));
@@ -533,6 +557,9 @@ public final class LocalCampaignServer extends NanoHTTPD {
         JSONObject visible=new JSONObject().put("id",t.getString("id")).put("name",t.getString("name"))
           .put("kind",t.getString("kind")).put("x",x).put("y",y).put("movable",own)
           .put("assetId",t.optString("assetId",""));
+        if("creature".equals(t.optString("kind"))){
+          visible.put("hp",t.optInt("hp",0)).put("maxHp",t.optInt("maxHp",0));
+        }
         visibleTokens.put(visible);
         if(!t.optString("assetId","").isEmpty())allowedAssetIds.add(t.getString("assetId"));
       }
@@ -547,7 +574,10 @@ public final class LocalCampaignServer extends NanoHTTPD {
         }
       }
       scene.put("rooms",visibleRooms).put("fog",fog).put("tokens",visibleTokens);
-      response.put("scene",scene).put("assets",filteredAssets);
+      response.put("scene",scene).put("assets",filteredAssets)
+        .put("rolls",visibleRolls(c,false)).put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName",""));
+      // A ficha integral do jogador e entregue apenas ao proprio titular autenticado.
+      response.put("character",playerInfo(cid,player).opt("character"));
       return response;
     }
   }
@@ -575,6 +605,97 @@ public final class LocalCampaignServer extends NanoHTTPD {
     }
   }
 
+
+  private JSONArray visibleRolls(JSONObject campaign,boolean isMaster)throws JSONException{
+    JSONArray all=campaign.optJSONArray("tableRolls"),result=new JSONArray();
+    if(all==null)return result;
+    for(int i=Math.max(0,all.length()-40);i<all.length();i++){
+      JSONObject r=all.getJSONObject(i);
+      if(isMaster||"public".equals(r.optString("visibility")))result.put(new JSONObject(r.toString()));
+    }
+    return result;
+  }
+  /** Rolagem no servidor: o cliente nao escolhe faces, resultado ou visibilidade do dado alheio. */
+  public JSONObject tableRoll(String cid,JSONObject actor,JSONObject input,boolean gm)throws Exception{
+    synchronized(lock){
+      JSONObject c=campaign(cid);String formula=field(input,"formula",36).toLowerCase(Locale.ROOT).replace(" ","");
+      java.util.regex.Matcher matcher=java.util.regex.Pattern.compile("([1-9]|[12][0-9]|30)d(4|6|8|10|12|20|100)([+-][0-9]{1,3})?").matcher(formula);
+      if(!matcher.matches())throw new IllegalArgumentException("Use dados como 1d20+5, 3d20 ou 2d6+2.");
+      int count=Integer.parseInt(matcher.group(1)),faces=Integer.parseInt(matcher.group(2));
+      int bonus=matcher.group(3)==null?0:Integer.parseInt(matcher.group(3));
+      if(Math.abs(bonus)>100)throw new IllegalArgumentException("Modificador fora do limite");
+      long now=System.currentTimeMillis();
+      if(!gm){
+        if(now-actor.optLong("lastTableRoll",0)<1200)throw new IllegalArgumentException("Espere antes da próxima rolagem");
+        actor.put("lastTableRoll",now);
+      }
+      String label=input.optString("label","Rolagem");
+      if(label.length()>70)label=label.substring(0,70);
+      if(label.isEmpty())label="Rolagem";
+      JSONArray values=new JSONArray();int sum=bonus;
+      for(int i=0;i<count;i++){int value=random.nextInt(faces)+1;sum+=value;values.put(value);}
+      String privacy=gm&&"master".equals(input.optString("visibility"))?"master":"public";
+      String name=gm?"Mestre":actor.optString("nickname","Jogador");
+      JSONObject result=new JSONObject().put("id",UUID.randomUUID().toString().replace("-",""))
+        .put("by",name).put("label",label).put("formula",formula).put("faces",values)
+        .put("bonus",bonus).put("total",sum).put("visibility",privacy).put("at",now);
+      if("public".equals(privacy)){
+        JSONArray logs=c.optJSONArray("tableRolls");if(logs==null){logs=new JSONArray();c.put("tableRolls",logs);}
+        logs.put(result);while(logs.length()>50)logs.remove(0);
+      }
+      persist();
+      return result;
+    }
+  }
+  public JSONObject masterTable(String cid)throws JSONException{
+    synchronized(lock){
+      JSONObject c=campaign(cid),result=getScenarios(cid);
+      JSONObject scene=activeScene(c);
+      result.put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName"))
+        .put("campaignName",c.optString("name")).put("revision",revision.get())
+        .put("rolls",visibleRolls(c,true))
+        .put("players",new JSONArray(c.getJSONArray("players").toString()))
+        .put("characters",new JSONArray(c.getJSONArray("characters").toString()));
+      JSONArray ps=result.getJSONArray("players");
+      for(int i=0;i<ps.length();i++){ps.getJSONObject(i).remove("secret");ps.getJSONObject(i).remove("proposedSheet");}
+      return result;
+    }
+  }
+  public void masterTokenChange(String cid,JSONObject input)throws Exception{
+    synchronized(lock){
+      JSONObject c=campaign(cid),map=activeScene(c);
+      if(map==null)throw new IllegalArgumentException("Nenhum cenário publicado");
+      JSONObject token=entry(map.getJSONArray("tokens"),sceneId(input,"tokenId"),"Token");
+      String action=input.optString("action","");
+      if(action.equals("health")){
+        if(!"creature".equals(token.optString("kind")))throw new IllegalArgumentException("PV de criatura somente");
+        int max=token.optInt("maxHp",0);
+        if(max<1)throw new IllegalArgumentException("Criatura sem PV cadastrado");
+        int delta=gridNumber(input,"delta",-100000,100000);
+        token.put("hp",Math.max(0,Math.min(max,token.optInt("hp",max)+delta)));
+      }else if(action.equals("move")){
+        token.put("x",gridNumber(input,"x",0,map.getInt("width")-1));
+        token.put("y",gridNumber(input,"y",0,map.getInt("height")-1));
+      }else if(action.equals("hide")){
+        if(!(input.opt("hidden") instanceof Boolean))throw new IllegalArgumentException("Visibilidade inválida");
+        token.put("hidden",input.getBoolean("hidden"));
+      }else throw new IllegalArgumentException("Ação do token inválida");
+      persist();
+    }
+  }
+  public void masterEffectGroup(String cid,JSONObject input)throws Exception{
+    JSONArray ids=input.optJSONArray("characterIds");
+    if(ids==null||ids.length()<1||ids.length()>40)throw new IllegalArgumentException("Selecione jogadores");
+    // Validate every target before mutating any character.
+    synchronized(lock){
+      JSONObject c=campaign(cid);
+      for(int i=0;i<ids.length();i++){
+        String id=ids.getString(i);entry(c.getJSONArray("characters"),id,"Ficha");
+      }
+      for(int i=0;i<ids.length();i++)effect(cid,ids.getString(i),input);
+    }
+  }
+
   private JSONObject playerInfo(String cid,JSONObject p) throws JSONException{
     synchronized(lock){
       JSONObject c=campaign(cid),v=new JSONObject().put("campaign",c.getString("name"))
@@ -588,7 +709,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       if(ch==null)v.put("character",JSONObject.NULL);
       else {
         JSONObject original=ch.getJSONObject("sheet"),pub=new JSONObject();
-        for(String k:new String[]{"name","class","nex","attrs","skills","resources","photo","sheetTheme","rituaisConhecidos","origem","trilha","systemId","effects","origin","trail","inventory","items","history","description","customRolls","powers","defense","notes","edition","mod","currentHP","currentFP","pointBudget","advantages","disadvantages","quirks","techniques","weapons","spells","languages","cultures","background","concept","techLevel","portrait","settings","parrySkill","blockSkill"})
+        for(String k:new String[]{"name","class","nex","attrs","skills","resources","photo","sheetTheme","rituaisConhecidos","origem","trilha","systemId","effects","origin","trail","inventory","items","history","description","customRolls","powers","defense","notes","edition","mod","currentHP","currentFP","hitPointsMax","hitPointsCurrent","hitPointsTemp","spellSlots","klass","ancestry","level","armorClass","features","attacks","conditions","saveProficiencies","skillProficiencies","expertise","spellcastingAbility","hitDiceUsed","inspiration","speed","pointBudget","advantages","disadvantages","quirks","techniques","weapons","spells","languages","cultures","background","concept","techLevel","portrait","settings","parrySkill","blockSkill"})
           if(original.has(k))pub.put(k,original.get(k));
         if(pub.optJSONObject("attrs")!=null && !"gurps".equals(original.optString("systemId")))
           pub.put("attrs",sanitizeAttributes(pub.getJSONObject("attrs")));
@@ -771,6 +892,22 @@ public final class LocalCampaignServer extends NanoHTTPD {
     Response r=newFixedLengthResponse(Response.Status.OK,"text/css; charset=utf-8",new String(buf,StandardCharsets.UTF_8));
     r.addHeader("Cache-Control","no-store");r.addHeader("X-Content-Type-Options","nosniff");return r;
   }
+  private Response publishedStyle(String asset)throws IOException{
+    byte[] bytes;
+    try(InputStream in=context.getAssets().open(asset);ByteArrayOutputStream out=new ByteArrayOutputStream()){
+      byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1)out.write(b,0,n);bytes=out.toByteArray();
+    }
+    return newFixedLengthResponse(Response.Status.OK,"text/css; charset=utf-8",new String(bytes,StandardCharsets.UTF_8));
+  }
+  private Response publishedScript(String asset)throws IOException{
+    byte[] bytes;
+    try(InputStream in=context.getAssets().open(asset);ByteArrayOutputStream out=new ByteArrayOutputStream()){
+      byte[] buffer=new byte[8192];int len;while((len=in.read(buffer))!=-1)out.write(buffer,0,len);
+      bytes=out.toByteArray();
+    }
+    Response r=newFixedLengthResponse(Response.Status.OK,"application/javascript; charset=utf-8",new String(bytes,StandardCharsets.UTF_8));
+    r.addHeader("Cache-Control","private, max-age=120");return r;
+  }
   @Override public Response serve(IHTTPSession s) {
     try {
       String path=s.getUri();String[] p=path.split("/");String method=s.getMethod().name();
@@ -783,6 +920,10 @@ public final class LocalCampaignServer extends NanoHTTPD {
         if(path.equals("/")||path.equals("/master"))return html("lan_master.html");
         if(path.equals("/scene-editor.js"))return sceneEditorScript();
         if(path.equals("/scene-editor.css"))return sceneEditorStyle();
+        if(path.equals("/scene-bestiary.js"))return publishedScript("rpg19_order_creatures.js");
+        if(path.equals("/table-player.js"))return publishedScript("rpg31_player_table.js");
+        if(path.equals("/table-master.js"))return publishedScript("rpg31_master_table.js");
+        if(path.equals("/table-master.css"))return publishedStyle("rpg31_live.css");
         if(p.length==3&&p[1].equals("scene")){
           if(checkPlayer(p[2],cookie(s,"rpg_guest"))==null)return json(403,"error","Sessão não autorizada");
           return html("lan_scene.html");
@@ -812,6 +953,10 @@ public final class LocalCampaignServer extends NanoHTTPD {
           JSONObject pl=checkPlayer(p[3],cookie(s,"rpg_guest"));
           if(pl==null)return json(403,"error","Sessão inválida");
           return response(200,playerScene(p[3],pl));
+        }
+        if(p.length==6&&p[1].equals("api")&&p[2].equals("admin")&&p[3].equals("campaigns")&&p[5].equals("table")){
+          if(!master(s))return json(403,"error","Acesso do mestre necessário");
+          return response(200,masterTable(p[4]));
         }
         if(p.length==6&&p[1].equals("api")&&p[2].equals("admin")&&p[3].equals("campaigns")&&p[5].equals("scenarios")){
           if(!master(s))return json(403,"error","Acesso do mestre necessário");
@@ -903,6 +1048,11 @@ public final class LocalCampaignServer extends NanoHTTPD {
         try{return response(200,movePlayerToken(p[3],pl,b));}
         catch(SecurityException denied){return json(403,"error","Você só pode mover seu personagem");}
       }
+      if(p.length==5&&p[1].equals("api")&&p[2].equals("play")&&p[4].equals("table-roll")&&method.equals("POST")){
+        JSONObject pl=checkPlayer(p[3],cookie(s,"rpg_guest"));
+        if(pl==null)return json(403,"error","Sessão inválida");
+        return response(200,tableRoll(p[3],pl,b,false));
+      }
       if(p.length==5&&p[1].equals("api")&&p[2].equals("play")&&method.equals("POST")){
         String cid=p[3];JSONObject player=checkPlayer(cid,cookie(s,"rpg_guest"));
         if(player==null)return json(403,"error","Jogador não autorizado");
@@ -927,6 +1077,14 @@ public final class LocalCampaignServer extends NanoHTTPD {
         }
         if(p.length==6&&p[5].equals("advance")&&method.equals("POST")){
           advance(cid,b.getString("kind"));return json(200,"ok","true");
+        }
+        if(p.length==6&&p[5].equals("table-roll")&&method.equals("POST"))
+          return response(200,tableRoll(cid,null,b,true));
+        if(p.length==6&&p[5].equals("token")&&method.equals("POST")){
+          masterTokenChange(cid,b);return json(200,"ok","true");
+        }
+        if(p.length==6&&p[5].equals("effects-group")&&method.equals("POST")){
+          masterEffectGroup(cid,b);return json(200,"ok","true");
         }
         if(p.length==6&&p[5].equals("effects")&&method.equals("POST")){
           effect(cid,b.getString("characterId"),b);return json(200,"ok","true");
