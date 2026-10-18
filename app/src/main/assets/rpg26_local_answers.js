@@ -40,7 +40,7 @@
       if(bodyTerms.has(t))score+=5;
       else if(inBody)score+=2;
     }
-    const matched=effective.filter(t=>title.includes(t)||body.includes(t)).length;
+    const matched=effective.filter(t=>title.includes(t)||body.includes(t)||(t.length>=5&&(title.includes(stems(t))||body.includes(stems(t))))).length;
     if(!matched)continue;
     if(qNorm.length>8&&body.includes(qNorm))score+=24;
     if(qNorm.length>8&&title.includes(qNorm))score+=33;
