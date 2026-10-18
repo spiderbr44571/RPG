@@ -947,12 +947,20 @@ public final class LocalCampaignServer extends NanoHTTPD {
     String b=files.get("postData");if(b==null||b.length()>MAX_BYTES)throw new IllegalArgumentException("Payload inválido");
     return new JSONObject(b);
   }
+  // Evita qualquer conversao implicita de charset em browsers de PC ou WebView.
+  // Envia os bytes UTF-8 originais inclusive para acentos e titulos.
+  private Response utf8(Response.Status status,String mime,byte[] bytes){
+    Response r=newFixedLengthResponse(status,mime,new ByteArrayInputStream(bytes),bytes.length);
+    r.addHeader("Content-Language","pt-BR");
+    r.addHeader("X-Content-Type-Options","nosniff");
+    return r;
+  }
   private Response response(int status,JSONObject data){
     Response.Status st=status==200?Response.Status.OK:status==201?Response.Status.CREATED:
       status==400?Response.Status.BAD_REQUEST:status==401?Response.Status.UNAUTHORIZED:
       status==403?Response.Status.FORBIDDEN:status==404?Response.Status.NOT_FOUND:
       Response.Status.INTERNAL_ERROR;
-    Response r=newFixedLengthResponse(st,"application/json; charset=utf-8",data.toString());
+    Response r=utf8(st,"application/json; charset=UTF-8",data.toString().getBytes(StandardCharsets.UTF_8));
     r.addHeader("Cache-Control","no-store");r.addHeader("X-Content-Type-Options","nosniff");
     r.addHeader("Referrer-Policy","no-referrer");r.addHeader("X-Frame-Options","DENY");
     return r;
@@ -963,7 +971,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
     try(InputStream in=context.getAssets().open(asset);ByteArrayOutputStream out=new ByteArrayOutputStream()){
       byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1)out.write(b,0,n);buf=out.toByteArray();
     }
-    Response r=newFixedLengthResponse(Response.Status.OK,"text/html; charset=utf-8",new String(buf,StandardCharsets.UTF_8));
+    Response r=utf8(Response.Status.OK,"text/html; charset=UTF-8",buf);
     r.addHeader("Cache-Control","no-store");r.addHeader("Referrer-Policy","no-referrer");
     r.addHeader("X-Frame-Options","DENY");r.addHeader("X-Content-Type-Options","nosniff");
     r.addHeader("Content-Security-Policy","default-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'");
@@ -974,7 +982,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
     try(InputStream in=context.getAssets().open("rpg29_scene_editor.js");ByteArrayOutputStream out=new ByteArrayOutputStream()){
       byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1)out.write(b,0,n);buf=out.toByteArray();
     }
-    Response r=newFixedLengthResponse(Response.Status.OK,"application/javascript; charset=utf-8",new String(buf,StandardCharsets.UTF_8));
+    Response r=utf8(Response.Status.OK,"application/javascript; charset=UTF-8",buf);
     r.addHeader("Cache-Control","no-store");r.addHeader("X-Content-Type-Options","nosniff");return r;
   }
   private Response sceneEditorStyle()throws IOException{
@@ -982,7 +990,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
     try(InputStream in=context.getAssets().open("rpg30_studio.css");ByteArrayOutputStream out=new ByteArrayOutputStream()){
       byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1)out.write(b,0,n);buf=out.toByteArray();
     }
-    Response r=newFixedLengthResponse(Response.Status.OK,"text/css; charset=utf-8",new String(buf,StandardCharsets.UTF_8));
+    Response r=utf8(Response.Status.OK,"text/css; charset=UTF-8",buf);
     r.addHeader("Cache-Control","no-store");r.addHeader("X-Content-Type-Options","nosniff");return r;
   }
   private Response publishedStyle(String asset)throws IOException{
@@ -990,7 +998,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
     try(InputStream in=context.getAssets().open(asset);ByteArrayOutputStream out=new ByteArrayOutputStream()){
       byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1)out.write(b,0,n);bytes=out.toByteArray();
     }
-    return newFixedLengthResponse(Response.Status.OK,"text/css; charset=utf-8",new String(bytes,StandardCharsets.UTF_8));
+    return utf8(Response.Status.OK,"text/css; charset=UTF-8",bytes);
   }
   private Response publishedScript(String asset)throws IOException{
     byte[] bytes;
@@ -998,7 +1006,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       byte[] buffer=new byte[8192];int len;while((len=in.read(buffer))!=-1)out.write(buffer,0,len);
       bytes=out.toByteArray();
     }
-    Response r=newFixedLengthResponse(Response.Status.OK,"application/javascript; charset=utf-8",new String(bytes,StandardCharsets.UTF_8));
+    Response r=utf8(Response.Status.OK,"application/javascript; charset=UTF-8",bytes);
     r.addHeader("Cache-Control","private, max-age=120");return r;
   }
   @Override public Response serve(IHTTPSession s) {
