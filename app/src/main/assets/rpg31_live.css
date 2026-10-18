@@ -1,16 +1,16 @@
 .r31-live.editing{display:none!important}
 .r31-live{position:fixed!important;inset:0!important;z-index:28000!important;display:grid!important;grid-template-rows:48px minmax(0,1fr) 27px!important;width:100vw!important;height:100dvh!important;background:#0c0b15!important;color:#f4e9f1!important;font:12px system-ui!important}
 .r31-live *{box-sizing:border-box;min-width:0}.r31-live button,.r31-live input,.r31-live select{background:#25202d;color:#f3e7f1;border:1px solid #615067;border-radius:8px;min-height:34px;padding:7px;font:inherit}
-.r31-live button{cursor:pointer}.r31-live button.primary{background:#dcb1d2;color:#211021;font-weight:750}.r31-live header{display:flex;align-items:center;gap:6px;padding:5px 10px;background:#181421;border-bottom:1px solid #664d6b}
-.r31-live header h2{font:500 19px Georgia;margin:0;flex:1}.r31-live .body{display:grid;grid-template-columns:minmax(0,1fr) 244px;min-height:0}
-.r31-live .scroll{overflow:auto;min-height:0;background:radial-gradient(#50405d 1px,transparent 1px) 0 0/25px 25px,#0d0d14}
-.r31-live .board{position:relative;background-color:#35303f;background-image:linear-gradient(#ffffff27 1px,transparent 1px),linear-gradient(90deg,#ffffff27 1px,transparent 1px)}
+.r31-live button{cursor:pointer}.r31-live button.primary{background:#dcb1d2;color:#211021;font-weight:750}.r31-live header{position:relative;z-index:3;display:flex;align-items:center;gap:6px;padding:5px 10px;background:#181421;border-bottom:1px solid #664d6b}
+.r31-live header h2{font:500 19px Georgia;margin:0;flex:1}.r31-live .body{position:relative;overflow:hidden;isolation:isolate;display:grid;grid-template-columns:minmax(0,1fr) 244px;min-height:0;min-width:0}
+.r31-live .scroll{position:relative!important;isolation:isolate!important;overflow:hidden!important;min-height:0;min-width:0;max-height:100%;clip-path:inset(0);touch-action:none;background:radial-gradient(#50405d 1px,transparent 1px) 0 0/25px 25px,#0d0d14}
+.r31-live .board{position:absolute!important;left:0!important;top:0!important;background-color:#35303f;background-image:linear-gradient(#ffffff27 1px,transparent 1px),linear-gradient(90deg,#ffffff27 1px,transparent 1px)}
 .r31-live .token{position:absolute;border:2px solid #f1c8dc;border-radius:50%;display:grid;place-items:center;background:#130f1be5;cursor:pointer}.r31-live .token.active{border-color:#8cffc8;box-shadow:0 0 0 3px #8cffc855}
 .r31-live .token img{width:90%;height:90%;object-fit:contain;border-radius:50%}.r31-live .token small{position:absolute;top:100%;font-size:9px;white-space:nowrap;background:#0b0a15c9;padding:2px 4px}
 .r31-live .room{position:absolute;pointer-events:none;border:2px dashed #f7bba6aa}.r31-live .room.hidden{background:repeating-linear-gradient(45deg,#0809169c 0 10px,#36283da8 10px 20px)}
-.r31-live aside{overflow:auto;background:#171420;border-left:1px solid #554760}.r31-live section{border-bottom:1px solid #554760;padding:9px;display:grid;gap:6px}
+.r31-live aside{position:relative;z-index:2;overflow:auto;min-height:0;max-height:100%;background:#171420;border-left:1px solid #554760}.r31-live section{border-bottom:1px solid #554760;padding:9px;display:grid;gap:6px}
 .r31-live section h3{font:500 17px Georgia;margin:0;color:#f5d3e5}.r31-live .actions{display:flex;flex-wrap:wrap;gap:5px}.r31-live .actions button{flex:1}
 .r31-live .info{background:#231d2c;border:1px solid #514359;border-radius:8px;padding:6px;overflow-wrap:anywhere}.r31-live .info small{display:block;color:#bdb1c5}.r31-live .check{display:flex;gap:8px;align-items:center;padding:4px}.r31-live .bar{height:5px;display:block;background:#a74d74;border-radius:4px}.r31-live .track{height:5px;background:#0b0910;border-radius:4px;overflow:hidden}
-.r31-live footer{padding:5px 9px;background:#171321;border-top:1px solid #604c69;color:#e8bdd5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r31-live footer{position:relative;z-index:3;padding:5px 9px;background:#171321;border-top:1px solid #604c69;color:#e8bdd5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(max-width:700px){.r31-live .body{grid-template-columns:minmax(0,1fr) 178px}.r31-live header h2{font-size:14px}.r31-live header button{padding:4px;font-size:10px}}
 @media(max-width:530px) and (orientation:portrait){.r31-live .body{grid-template-columns:minmax(0,1fr)}.r31-live aside{position:absolute;top:48px;bottom:27px;right:0;width:min(245px,69vw);z-index:2;box-shadow:-12px 0 30px #000c}.r31-live aside.folded{display:none}}
