@@ -1,17 +1,17 @@
 /* RPG Mesa v0.26 — consulta só por pesquisa local e trechos verificáveis. */
 (()=>{'use strict';
  const $=(s,r=document)=>r.querySelector(s);
- const app=window.RPG_DEMO,op=window.OP13,core=window.RPG20_SEARCH,extract=window.RPG26_LOCAL,area=$('#screen-ai');
- if(!area||!op?.pack||!core||!extract)return;
+ const app=window.RPG_DEMO,op=window.OP13,core=window.RPG20_SEARCH,extract=window.RPG26_LOCAL,templates=window.RPG27_TEMPLATES,area=$('#screen-ai');
+ if(!area||!op?.pack||!core||!extract||!templates)return;
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const systems=()=>window.RPG15_SYSTEMS?.systems||[];
  const base=core.makeOrderDocs(op).concat(core.makeRulesDocs(window.RPG18_DND_ENGINE,window.GURPS4_ENGINE));
  const dbName='RPG-Mesa-Private-Search';
- let activeSystem='all',activeEdition='all',indexed=[],latest=[],latestAnswer=null;
+ let activeSystem='all',activeEdition='all',indexed=[],latest=[],latestAnswer=null,formattedAnswer=null;
  area.innerHTML=[
- '<div class="r26-top"><div><div class="eyebrow">CONSULTA À BIBLIOTECA · SEM IA</div><h1 class="page-h">Pergunte <i>aos livros.</i></h1><p class="page-sub">Pesquisa local com resposta resumida, fonte e página. Sem servidor, sem API e sem modelo de IA.</p></div><span id="r26-status" class="r26-status">● Pronto para pesquisar</span></div>',
+ '<div class="r26-top"><div><div class="eyebrow">CONSULTA À BIBLIOTECA · SEM IA</div><h1 class="page-h">Pergunte <i>aos livros.</i></h1><p class="page-sub">Respostas organizadas em explicação, condições, valores e fontes, extraídas dos textos cadastrados.</p></div><span id="r26-status" class="r26-status">● Pronto para pesquisar</span></div>',
  '<div class="r26-scope"><label>Sistema <select id="r26-system"><option value="all">Todos os sistemas</option></select></label><label>Edição <select id="r26-edition"><option value="all">Todas as edições</option><option value="1.3">Ordem v1.3</option><option value="5e-2014">D&D 5e (2014)</option><option value="2024">D&D 2024</option><option value="3.5">D&D 3.5</option><option value="4e">4ª edição</option></select></label></div>',
- '<div class="r26-layout"><main class="r26-panel"><h2>Buscar respostas nas regras</h2><p>Faça uma pergunta normalmente. O aplicativo localiza passagens dos livros indexados e apresenta os trechos mais relevantes, sem inventar regras.</p>',
+ '<div class="r26-layout"><main class="r26-panel"><h2>Buscar respostas nas regras</h2><p>Escreva sua dúvida. O aplicativo organiza os trechos encontrados por assunto e informa livro e página, sem criar valores ou regras não cadastrados.</p>',
  '<form id="r26-form" class="r26-form"><input id="r26-query" maxlength="450" autocomplete="off" placeholder="Ex.: Como funciona o descanso em Ordem Paranormal?" aria-label="Pergunta para pesquisar nos livros" required><button type="submit">Pesquisar ↗</button></form>',
  '<div class="r26-quick"><button type="button" data-r26-quick="Como funciona o descanso em Ordem Paranormal?">Descanso</button><button type="button" data-r26-quick="Como funcionam testes e proficiência no D&D 5e?">Testes D&D</button><button type="button" data-r26-quick="Como funciona um teste 3d6 no GURPS?">GURPS 3d6</button></div>',
  '<div id="r26-answer" class="r26-answer" aria-live="polite"><div class="r26-empty">Faça uma pesquisa para ver a resposta resumida e suas fontes.</div></div></main>',
@@ -68,22 +68,48 @@
   latestAnswer=result;latest=result.hits||[];
   return result;
  }
+ function sourceTag(doc){
+  const slot=formattedAnswer?.sources?.indexOf(doc)??-1;
+  const name=esc(doc.systemName||sysName(doc.systemId));
+  const book=esc(doc.book||'Fonte cadastrada');
+  const page=esc(pageLabel(doc));
+  const link=slot>=0&&(doc.sourceBookId||doc.url)?
+   ' <button class="r27-link" data-r27-source="'+slot+'" type="button" title="Abrir livro">Abrir livro ↗</button>':'';
+  return '<span class="r26-source">'+name+' · '+book+' · '+page+link+'</span>';
+ }
  function render(result){
   const el=$('#r26-answer'),side=$('#r26-sources');
   if(result.state==='empty'){el.innerHTML='<div class="r26-empty">Digite uma pergunta.</div>';return}
-  let out='<h3>'+esc(result.title)+'</h3>';
-  if(result.explanation)out+='<p class="r26-note">'+esc(result.explanation)+'</p>';
-  if(result.points?.length){
-   out+=result.points.map((v,i)=>'<article class="r26-fact"><p>'+esc(v.text)+'</p><small class="r26-source">'+esc(v.source.systemName||sysName(v.source.systemId))+' · '+esc(v.source.book)+' · '+esc(pageLabel(v.source))+
-    ((v.source.url||v.source.sourceBookId)?' · <a href="#" data-r26-open="'+i+'">Abrir livro ↗</a>':'')+'</small></article>').join('');
+  formattedAnswer=templates.format($('#r26-query').value,result,{systemId:activeSystem,edition:activeEdition});
+  let out='<h3>'+esc(formattedAnswer.state==='formatted'?formattedAnswer.title:result.title)+'</h3>';
+  if(formattedAnswer.state==='formatted'){
+   out+='<p class="r26-note">Resposta organizada automaticamente a partir de trechos encontrados. Confira a regra completa no livro.</p>';
+   if(formattedAnswer.lead){
+    out+='<article class="r27-lead"><strong>Em resumo</strong><p>'+esc(formattedAnswer.lead.text)+'</p>'+
+      sourceTag(formattedAnswer.lead.source)+'</article>';
+   }
+   for(const section of formattedAnswer.sections){
+    out+='<section class="r27-section"><h4>'+esc(section.title)+'</h4>'+
+      section.items.map(entry=>'<article class="r26-fact"><p>'+esc(entry.text)+'</p>'+sourceTag(entry.source)+'</article>').join('')+'</section>';
+   }
+   if(formattedAnswer.values.length){
+    out+='<section class="r27-section"><h4>Valores encontrados</h4><div class="r27-table-wrap"><table class="r27-values"><thead><tr><th>Situação</th><th>Valor / efeito</th></tr></thead><tbody>'+
+      formattedAnswer.values.map(row=>'<tr><td>'+esc(row.label)+'</td><td>'+esc(row.value)+'</td></tr>').join('')+
+      '</tbody></table></div>'+sourceTag(formattedAnswer.values[0].source)+'</section>';
+   }
    out+='<div class="r26-result-actions"><button id="r26-more" type="button">Ver trechos relacionados</button></div>';
-  }else out+='<div class="r26-empty">Sem texto consultável, o aplicativo não cria uma resposta. Importe o índice desse livro.</div>';
+  }else{
+   if(result.explanation)out+='<p class="r26-note">'+esc(result.explanation)+'</p>';
+   out+='<div class="r26-empty">Sem uma passagem verificável, o aplicativo não cria respostas. Importe um índice do livro para consultar seu conteúdo.</div>';
+  }
   if(result.catalog?.length){
-   out+='<h3 style="margin-top:18px">Livros relacionados</h3>'+result.catalog.map((d,i)=>'<article class="r26-related"><strong>'+esc(d.title)+'</strong><small>'+esc(d.systemName)+' · '+esc(d.edition||'edição não identificada')+'</small>'+
+   out+='<h3 class="r27-related-title">Livros relacionados</h3>'+
+    result.catalog.map((d,i)=>'<article class="r26-related"><strong>'+esc(d.title)+'</strong><small>'+esc(d.systemName)+' · '+esc(d.edition||'edição não identificada')+'</small>'+
      (d.url?'<a href="#" data-r26-related="'+i+'">Abrir no Drive ↗</a>':'')+'</article>').join('');
   }
   el.innerHTML=out;
-  side.innerHTML=latest.length?latest.slice(0,12).map((d,i)=>'<button type="button" class="r26-src" data-r26-src="'+i+'"><strong>'+esc(d.title)+'</strong><small>'+esc(sysName(d.systemId))+' · '+esc(d.book)+' · '+esc(pageLabel(d))+'</small></button>').join(''):'<p class="r26-muted">Sem páginas indexadas correspondentes.</p>';
+  side.innerHTML=latest.length?latest.slice(0,12).map((d,i)=>'<button type="button" class="r26-src" data-r26-src="'+i+'"><strong>'+esc(d.title)+'</strong><small>'+esc(sysName(d.systemId))+' · '+esc(d.book)+' · '+esc(pageLabel(d))+'</small></button>').join(''):
+   '<p class="r26-muted">Sem páginas indexadas correspondentes.</p>';
  }
  function perform(question){
   const q=String(question||'').trim().slice(0,450);
@@ -101,6 +127,8 @@
  area.addEventListener('click',e=>{
   const quick=e.target.closest('[data-r26-quick]');if(quick){perform(quick.dataset.r26Quick);return}
   const book=e.target.closest('[data-r26-open]');if(book){e.preventDefault();openSource(latestAnswer?.points?.[Number(book.dataset.r26Open)]?.source||{});return}
+  const formatted=e.target.closest('[data-r27-source]');
+  if(formatted){const doc=formattedAnswer?.sources?.[Number(formatted.dataset.r27Source)];if(doc)openSource(doc);return}
   const related=e.target.closest('[data-r26-related]');if(related){e.preventDefault();openSource(latestAnswer?.catalog?.[Number(related.dataset.r26Related)]||{});return}
   const reference=e.target.closest('[data-r26-src]');if(reference){openSource(latest[Number(reference.dataset.r26Src)]||{});return}
   if(e.target.id==='r26-more'){
