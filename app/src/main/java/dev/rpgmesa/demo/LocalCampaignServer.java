@@ -528,7 +528,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
         .put("revision",revision.get()).put("scene",JSONObject.NULL);
       if(original==null){
         response.put("character",playerInfo(cid,player).opt("character"));
-        response.put("rolls",visibleRolls(c,false)).put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName",""));
+        response.put("rolls",visibleRolls(c,false)).put("initiative",new JSONObject().put("round",1).put("activeId","").put("entries",new JSONArray())).put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName",""));
         return response;
       }
       JSONObject scene=new JSONObject().put("id",original.getString("id")).put("name",original.getString("name"))
@@ -574,6 +574,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
         }
       }
       scene.put("rooms",visibleRooms).put("fog",fog).put("tokens",visibleTokens);
+      response.put("initiative",initiativeForPlayer(c,visibleTokens));
       response.put("scene",scene).put("assets",filteredAssets)
         .put("rolls",visibleRolls(c,false)).put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName",""));
       // A ficha integral do jogador e entregue apenas ao proprio titular autenticado.
@@ -605,6 +606,98 @@ public final class LocalCampaignServer extends NanoHTTPD {
     }
   }
 
+
+
+  // Iniciativa pertence a cada campanha. Apenas o mestre modifica a ordem e o turno.
+  private JSONObject initiativeData(JSONObject c)throws JSONException {
+    JSONObject initiative=c.optJSONObject("initiative");
+    if(initiative==null){
+      initiative=new JSONObject().put("entries",new JSONArray()).put("activeId","").put("round",1);
+      c.put("initiative",initiative);
+    }
+    return initiative;
+  }
+  private JSONObject initiativeForPlayer(JSONObject c,JSONArray visibleTokens)throws JSONException {
+    JSONObject source=initiativeData(c),filtered=new JSONObject().put("round",source.optInt("round",1));
+    JSONArray order=new JSONArray(),all=source.optJSONArray("entries");
+    java.util.HashSet<String> visibleIds=new java.util.HashSet<>();
+    for(int i=0;i<visibleTokens.length();i++)visibleIds.add(visibleTokens.getJSONObject(i).getString("id"));
+    if(all!=null)for(int i=0;i<all.length();i++){
+      JSONObject e=all.getJSONObject(i);
+      if(visibleIds.contains(e.optString("tokenId")))order.put(new JSONObject(e.toString()));
+    }
+    String active=source.optString("activeId","");
+    filtered.put("activeId",visibleIds.contains(active)?active:"").put("entries",order);
+    return filtered;
+  }
+  public JSONObject initiativeAction(String cid,JSONObject body)throws Exception {
+    synchronized(lock){
+      JSONObject c=campaign(cid),map=activeScene(c);
+      if(map==null)throw new IllegalArgumentException("Publique primeiro um mapa");
+      JSONObject state=initiativeData(c);
+      JSONArray entries=state.optJSONArray("entries");
+      if(entries==null){entries=new JSONArray();state.put("entries",entries);}
+      String action=body.optString("action","");
+      if("reset".equals(action)){
+        state.put("entries",new JSONArray()).put("round",1).put("activeId","");
+      }else if("next".equals(action)){
+        if(entries.length()==0)throw new IllegalArgumentException("Adicione participantes à iniciativa");
+        int index=-1;
+        for(int i=0;i<entries.length();i++)if(entries.getJSONObject(i).optString("tokenId").equals(state.optString("activeId")))index=i;
+        int next=(index+1)%entries.length();
+        if(next==0&&index>=0)state.put("round",state.optInt("round",1)+1);
+        state.put("activeId",entries.getJSONObject(next).getString("tokenId"));
+        advance(cid,"turn"); // Atualiza duracao dos efeitos e turno da campanha.
+      }else if("roll".equals(action)||"set".equals(action)){
+        String tokenId=sceneId(body,"tokenId");
+        JSONObject token=entry(map.getJSONArray("tokens"),tokenId,"Token do cenário");
+        int total;JSONArray faces=new JSONArray();String formula="";
+        if("roll".equals(action)){
+          formula=field(body,"formula",36).toLowerCase(Locale.ROOT).replace(" ","");
+          java.util.regex.Matcher match=java.util.regex.Pattern.compile("([1-9]|[12][0-9]|30)d(4|6|8|10|12|20|100)([+-][0-9]{1,3})?").matcher(formula);
+          if(!match.matches())throw new IllegalArgumentException("Use 1d20, 3d20+5 etc.");
+          int count=Integer.parseInt(match.group(1)),die=Integer.parseInt(match.group(2));
+          int bonus=match.group(3)==null?0:Integer.parseInt(match.group(3));
+          if(Math.abs(bonus)>100)throw new IllegalArgumentException("Modificador excedido");
+          total=bonus;
+          for(int i=0;i<count;i++){int dieResult=random.nextInt(die)+1;total+=dieResult;faces.put(dieResult);}
+        }else{
+          Object value=body.opt("score");
+          if(!(value instanceof Number))throw new IllegalArgumentException("Informe uma iniciativa numerica");
+          total=body.getInt("score");
+          if(total< -1000||total>1000)throw new IllegalArgumentException("Iniciativa fora do limite");
+        }
+        JSONArray updated=new JSONArray();
+        for(int i=0;i<entries.length();i++){
+          JSONObject e=entries.getJSONObject(i);
+          if(!tokenId.equals(e.optString("tokenId")))updated.put(e);
+        }
+        updated.put(new JSONObject().put("tokenId",tokenId).put("name",token.optString("name"))
+          .put("score",total).put("faces",faces).put("formula",formula));
+        java.util.ArrayList<JSONObject> sortable=new java.util.ArrayList<>();
+        for(int i=0;i<updated.length();i++)sortable.add(updated.getJSONObject(i));
+        sortable.sort((a,b)->{
+          int v=Integer.compare(b.optInt("score"),a.optInt("score"));
+          return v==0?a.optString("name").compareToIgnoreCase(b.optString("name")):v;
+        });
+        JSONArray sorted=new JSONArray();
+        for(JSONObject item:sortable)sorted.put(item);
+        state.put("entries",sorted);
+        if(state.optString("activeId","").isEmpty())state.put("activeId",sorted.getJSONObject(0).getString("tokenId"));
+      }else if("remove".equals(action)){
+        String tokenId=sceneId(body,"tokenId");
+        JSONArray retained=new JSONArray();
+        for(int i=0;i<entries.length();i++){
+          JSONObject e=entries.getJSONObject(i);
+          if(!tokenId.equals(e.optString("tokenId")))retained.put(e);
+        }
+        state.put("entries",retained);
+        if(tokenId.equals(state.optString("activeId")))state.put("activeId",retained.length()>0?retained.getJSONObject(0).getString("tokenId"):"");
+      }else throw new IllegalArgumentException("Acao de iniciativa invalida");
+      persist();
+      return new JSONObject(state.toString());
+    }
+  }
 
   private JSONArray visibleRolls(JSONObject campaign,boolean isMaster)throws JSONException{
     JSONArray all=campaign.optJSONArray("tableRolls"),result=new JSONArray();
@@ -653,7 +746,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       JSONObject scene=activeScene(c);
       result.put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName"))
         .put("campaignName",c.optString("name")).put("revision",revision.get())
-        .put("rolls",visibleRolls(c,true))
+        .put("rolls",visibleRolls(c,true)).put("initiative",new JSONObject(initiativeData(c).toString()))
         .put("players",new JSONArray(c.getJSONArray("players").toString()))
         .put("characters",new JSONArray(c.getJSONArray("characters").toString()));
       JSONArray ps=result.getJSONArray("players");
@@ -1078,6 +1171,8 @@ public final class LocalCampaignServer extends NanoHTTPD {
         if(p.length==6&&p[5].equals("advance")&&method.equals("POST")){
           advance(cid,b.getString("kind"));return json(200,"ok","true");
         }
+        if(p.length==6&&p[5].equals("initiative")&&method.equals("POST"))
+          return response(200,initiativeAction(cid,b));
         if(p.length==6&&p[5].equals("table-roll")&&method.equals("POST"))
           return response(200,tableRoll(cid,null,b,true));
         if(p.length==6&&p[5].equals("token")&&method.equals("POST")){
