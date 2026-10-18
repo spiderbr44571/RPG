@@ -1,0 +1,44 @@
+/* Consulta à Biblioteca v0.26 — dark fantasy, search-only, mobile responsive. */
+#screen-ai .r26-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+#screen-ai .r26-status{border:1px solid var(--line);background:var(--accent-soft);color:var(--accent);border-radius:40px;padding:9px 12px;font-size:11px}
+#screen-ai .r26-scope{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:17px 0}
+#screen-ai .r26-scope label,#screen-ai .r26-index-select{display:grid;gap:5px;font-size:11px;color:var(--muted)}
+#screen-ai .r26-scope select,#screen-ai .r26-index-select select{width:100%;border:1px solid var(--line);background:var(--panel2);color:var(--fg);padding:12px;border-radius:9px;min-width:0}
+#screen-ai .r26-layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,.75fr);gap:15px;align-items:start}
+#screen-ai .r26-panel,#screen-ai .r26-aside-box{min-width:0;border:1px solid var(--line);border-radius:15px;background:var(--panel);padding:17px}
+#screen-ai .r26-panel h2,#screen-ai .r26-aside-box h3{font:600 24px 'Cormorant Garamond',Georgia,serif;margin:0 0 5px}
+#screen-ai .r26-panel>p,#screen-ai .r26-aside-box p{font-size:11px;line-height:1.65;color:var(--muted)}
+#screen-ai .r26-form{display:flex;gap:8px;margin:17px 0}
+#screen-ai .r26-form input{flex:1;min-width:0;padding:13px 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--fg);font-size:12px}
+#screen-ai button,#screen-ai .r26-file{cursor:pointer}
+#screen-ai .r26-form button,#screen-ai .r26-new,#screen-ai .r26-file{border:1px solid var(--accent);border-radius:9px;background:var(--accent-soft);color:var(--accent);font:600 11px system-ui,sans-serif;padding:12px}
+#screen-ai .r26-form button{white-space:nowrap;padding:12px 17px;background:var(--accent);color:#1a1520}
+#screen-ai .r26-quick{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+#screen-ai .r26-quick button{font-size:10px;border-radius:17px;padding:7px 10px;border:1px solid var(--line);background:var(--panel2);color:var(--muted)}
+#screen-ai .r26-answer{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+#screen-ai .r26-answer>h3{font:600 23px 'Cormorant Garamond',Georgia,serif;margin:0 0 10px;color:var(--fg)}
+#screen-ai .r26-note{font-size:11px;color:var(--muted);line-height:1.5}
+#screen-ai .r26-fact{margin:9px 0;padding:13px 14px;border-left:2px solid var(--accent);background:var(--panel2);border-radius:7px}
+#screen-ai .r26-fact p{font-size:12px;line-height:1.65;margin:0 0 6px;color:var(--fg)}
+#screen-ai .r26-source{color:var(--accent);font-size:10px;line-height:1.5}
+#screen-ai .r26-source a{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+#screen-ai .r26-aside{display:grid;gap:13px}
+#screen-ai .r26-aside-box h3{font-size:20px}
+#screen-ai .r26-src{display:block;width:100%;text-align:left;padding:10px 0;border:0;border-bottom:1px solid var(--line);background:none;color:var(--fg)}
+#screen-ai .r26-src strong{font-size:11px;display:block}
+#screen-ai .r26-src small{font-size:10px;color:var(--muted);display:block}
+#screen-ai .r26-file{display:block;text-align:center;margin:11px 0}
+#screen-ai .r26-file input{display:none}
+#screen-ai .r26-book{display:flex;gap:10px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding:8px 0;font-size:11px}
+#screen-ai .r26-book small{display:block;color:var(--muted)}
+#screen-ai .r26-book button{border:0;color:var(--muted);background:transparent;font-size:15px;padding:5px}
+#screen-ai .r26-related{padding:11px;margin:8px 0;background:var(--panel2);border:1px solid var(--line);border-radius:9px}
+#screen-ai .r26-related strong{display:block;font-size:11px}
+#screen-ai .r26-related small{display:block;font-size:10px;color:var(--muted)}
+#screen-ai .r26-related a{color:var(--accent);font-size:10px}
+#screen-ai .r26-empty{font-size:12px;line-height:1.7;padding:16px;border:1px dashed var(--line);border-radius:9px;color:var(--muted)}
+#screen-ai .r26-muted{color:var(--muted);font-size:10px;line-height:1.5}
+#screen-ai .r26-result-actions{display:flex;justify-content:end;gap:8px;margin-top:10px}
+#screen-ai .r26-result-actions button{border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--fg);padding:8px 12px;font-size:11px}
+@media(max-width:780px){#screen-ai .r26-layout{grid-template-columns:1fr}}
+@media(max-width:520px){#screen-ai .r26-scope{grid-template-columns:1fr}#screen-ai .r26-panel,#screen-ai .r26-aside-box{padding:12px}#screen-ai .r26-form input{font-size:11px}#screen-ai .r26-form button{padding:10px}}
