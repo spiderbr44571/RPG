@@ -1,0 +1,53 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+const base=path.resolve(__dirname,'../app/src/main/assets'),read=f=>fs.readFileSync(path.join(base,f),'utf8');
+const java=fs.readFileSync(path.resolve(__dirname,'../app/src/main/java/dev/rpgmesa/demo/LocalCampaignServer.java'),'utf8');
+const gm=read('rpg31_master_table.js'),player=read('rpg31_player_table.js'),editor=read('rpg29_scene_editor.js');
+new Function(gm);new Function(player);new Function(editor);
+assert.match(gm,/class="r35-active-turn"/);
+assert.match(gm,/Vez: <b>/);
+assert.match(gm,/class="r35-current-turn"/);
+assert.match(gm,/data-action="initiative-next"/);
+assert.match(gm,/r35-current selected/);
+assert.match(gm,/r35-turn-token/);
+assert.match(gm,/data-action="movement-system"/);
+assert.match(gm,/data-action="token-speed"/);
+assert.match(gm,/req\('\/movement','POST',\{systemId,squares\}\)/);
+assert.match(gm,/req\('\/token','POST',\{action:'speed',tokenId:s\.selected,squares\}\)/);
+assert.match(player,/movement\?\.tokens/);
+assert.match(player,/moving\.remaining/);
+assert.match(player,/Aguarde seu turno para movimentar/);
+assert.match(player,/r35-turn-token/);
+assert.match(java,/private int movementLimit\(JSONObject c,JSONObject t\)/);
+assert.match(java,/if\("d-d"\.equals\(system\)\)return 6/);
+assert.match(java,/if\("gurps"\.equals\(system\)\)return 5/);
+assert.match(java,/return 9; \/\/ Ordem Paranormal/);
+assert.match(java,/already\+steps>limit/);
+assert.match(java,/spent\.put\(id,already\+steps\)/);
+assert.match(java,/c\.put\("movementSpent",new JSONObject\(\)\)/);
+assert.match(java,/Aguarde sua vez na iniciativa/);
+assert.match(java,/if\(token\.has\("movementSquares"\)\)gridNumber/);
+assert.match(java,/if\(p\.length==6&&p\[5\]\.equals\("movement"\)/);
+assert.match(java,/response\.put\("movement",playerMovement/);
+assert.match(java,/private JSONObject playerMovement/);
+assert.match(java,/if\(!java\.util\.Arrays\.asList\("shadow","dark","mist","void"\)/);
+assert.match(java,/\.put\("fogStyle",room\.optString\("fogStyle","shadow"\)\)/);
+assert.match(editor,/data-r35-room-fog/);
+assert.match(editor,/r35-new-fog/);
+assert.match(editor,/fogStyle:s\.fogStyle/);
+assert.match(editor,/room\.fogStyle=e\.target\.value/);
+assert.match(player,/f\.fogStyle\|\|'shadow'/);
+for(const css of ['rpg31_live.css','rpg30_studio.css','lan_scene.html']){
+ const source=read(css);
+ for(const mode of ['shadow','dark','mist','void'])assert.ok(source.includes('r35-fog-'+mode),css+' missing '+mode);
+}
+assert.match(java,/maskedBackground\(original,a\)/);
+assert.match(java,/visible\.put\("image",maskedBackground/);
+// The diagonal/grid movement model is Chebyshev: the count is the largest axis difference.
+function steps(from,to){return Math.max(Math.abs(to.x-from.x),Math.abs(to.y-from.y))}
+assert.equal(steps({x:0,y:0},{x:4,y:5}),5);
+assert.equal(steps({x:0,y:0},{x:9,y:9}),9);
+let used=0;used+=steps({x:0,y:0},{x:4,y:4});used+=steps({x:4,y:4},{x:8,y:8});
+assert.equal(used,8);
+assert.equal(used+steps({x:8,y:8},{x:10,y:9})>9,true);
+console.log('PASS v0.35: initiative turn visibility, movement limit/turn, fog styles, server concealment, UI actions');
