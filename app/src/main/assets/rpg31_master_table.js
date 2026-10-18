@@ -80,7 +80,14 @@ function open(host,options){
  '</section><section><h3>Jogadores e efeitos</h3>'+
       (d.players||[]).map(p=>{
         const c=(d.characters||[]).find(c=>c.id===p.characterId);
-        return '<label class="info check"><input type="checkbox" data-player="'+esc(p.characterId||'')+'" '+(c?'':'disabled')+'><span>'+esc(c?.sheet?.name||p.nickname)+bars(c)+'</span></label>';
+        const own=map?.tokens?.find(t=>t.ownerPlayerId===p.id&&t.characterId===p.characterId&&!t.hidden);
+        const linkStatus=(!c?'Sem ficha':!own?'Token não associado/visível':'Token vinculado') ;
+        return '<div class="info"><label class="check"><input type="checkbox" data-player="'+esc(p.characterId||'')+'" '+(c?'':'disabled')+'>'+
+          '<span>'+esc(p.nickname)+' - '+esc(c?.sheet?.name||'Sem ficha')+bars(c)+'</span></label>'+
+          '<small>'+linkStatus+'</small><select data-r34-assign="'+esc(p.id)+'" aria-label="Ficha de '+esc(p.nickname)+'">'+
+          '<option value="">Escolher ficha do jogador...</option>'+
+          (d.characters||[]).map(ch=>'<option value="'+esc(ch.id)+'" '+(ch.id===p.characterId?'selected':'')+'>'+
+            esc(ch.sheet?.name||'Personagem')+'</option>').join('')+'</select></div>';
       }).join('')+
       '<input id="r31-effect" placeholder="Nome do efeito" maxlength="80">'+
       '<select id="r31-duration"><option value="scene">Cena</option><option value="turn">Turnos</option><option value="permanent">Permanente</option></select>'+
@@ -123,6 +130,17 @@ function open(host,options){
    }
   }catch(e){feedback(e.message)}finally{s.busy=false}
  }
+ s.el.addEventListener('change',async e=>{
+  const field=e.target.closest('[data-r34-assign]');
+  if(!field)return;
+  const playerId=field.dataset.r34Assign,characterId=field.value||null;
+  field.disabled=true;
+  try{
+   await req('/assign','POST',{playerId,characterId});
+   feedback(characterId?'Ficha vinculada; token criado ou associado automaticamente.':'Ficha desvinculada.');
+   s.revision=-1;await refresh();
+  }catch(error){feedback(error.message);field.disabled=false}
+ });
  s.el.addEventListener('click',async e=>{
   const token=e.target.closest('[data-token]');if(token){s.selected=token.dataset.token;selection();s.el.querySelectorAll('[data-token]').forEach(t=>t.classList.toggle('active',t===token));return}
   const hp=e.target.closest('[data-hp]'),att=e.target.closest('[data-attack]'),removeInit=e.target.closest('[data-init-remove]'),button=e.target.closest('[data-action]');
