@@ -7,6 +7,7 @@
 'use strict';
 const $=s=>document.querySelector(s),safe=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let key='',selected=null,record=null,scenarioEditing=false;
+document.addEventListener('rpg29:closed',()=>{scenarioEditing=false;detail().catch(()=>{})});
 async function api(path,method='GET',body){let r=await fetch(path,{method,headers:{'Authorization':'Bearer '+key,'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body),cache:'no-store'});let j=await r.json();if(!r.ok)throw Error(j.error||'Falha');return j}
 const msg=t=>$('#feedback').textContent=t;
 async function list(){let {campaigns}=await api('/api/admin/campaigns');$('#campaigns').innerHTML=campaigns.map(c=>'<button data-camp="'+safe(c.id)+'">'+safe(c.name)+'</button>').join('');if(selected)await detail();}
