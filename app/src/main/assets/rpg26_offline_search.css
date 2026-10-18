@@ -42,3 +42,20 @@
 #screen-ai .r26-result-actions button{border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--fg);padding:8px 12px;font-size:11px}
 @media(max-width:780px){#screen-ai .r26-layout{grid-template-columns:1fr}}
 @media(max-width:520px){#screen-ai .r26-scope{grid-template-columns:1fr}#screen-ai .r26-panel,#screen-ai .r26-aside-box{padding:12px}#screen-ai .r26-form input{font-size:11px}#screen-ai .r26-form button{padding:10px}}
+
+
+/* v0.27 — evidence-backed answer presentation */
+#screen-ai .r27-lead{background:var(--panel2);border:1px solid var(--accent);border-radius:12px;padding:15px;margin:14px 0}
+#screen-ai .r27-lead>strong{color:var(--accent);font:600 17px 'Cormorant Garamond',Georgia,serif}
+#screen-ai .r27-lead>p{color:var(--fg);font-size:13px;line-height:1.75;margin:8px 0 12px}
+#screen-ai .r27-section{margin:18px 0}
+#screen-ai .r27-section>h4{font:600 22px 'Cormorant Garamond',Georgia,serif;margin:12px 0 8px;padding-bottom:7px;border-bottom:1px solid var(--line)}
+#screen-ai .r27-section .r26-fact{margin:8px 0;border-left:2px solid var(--accent);border-radius:8px}
+#screen-ai .r27-related-title{margin-top:22px!important}
+#screen-ai .r27-link{display:inline;border:0;background:transparent;color:var(--accent);font-size:10px;text-decoration:underline;text-underline-offset:3px;padding:2px 5px}
+#screen-ai .r27-table-wrap{max-width:100%;overflow-x:auto;border:1px solid var(--line);border-radius:11px;margin:10px 0}
+#screen-ai table.r27-values{width:100%;border-collapse:collapse;font-size:12px;line-height:1.5}
+#screen-ai .r27-values th{text-align:left;background:var(--accent-soft);color:var(--accent);font-weight:700;padding:11px;border-bottom:1px solid var(--line)}
+#screen-ai .r27-values td{padding:10px;border-bottom:1px solid var(--line);color:var(--fg);vertical-align:top}
+#screen-ai .r27-values td:first-child{font-weight:600;width:40%}
+#screen-ai .r27-values tr:last-child td{border-bottom:none}
