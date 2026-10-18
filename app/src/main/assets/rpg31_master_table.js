@@ -55,14 +55,28 @@ function open(host,options){
       esc(p.nickname||'Jogador')+' - '+esc((s.data.characters||[]).find(c=>c.id===p.characterId)?.sheet?.name||'Ficha')+'</option>').join('')+
     '</select></label>';
   }
+  if(t.kind==='character'||t.kind==='creature'){
+    const ch=(s.data.characters||[]).find(ch=>ch.id===t.characterId);
+    const sys=ch?.sheet?.systemId||t.systemId||'ordem-paranormal';
+    const defaults={'ordem-paranormal':9,'d-d':6,'gurps':5};
+    const limit=t.movementSquares??(s.data.movementRules?.[sys]??defaults[sys]??9);
+    const spent=s.data.movementSpent?.[t.id]||0;
+    html+='<p>Movimento: <strong>'+Math.max(0,limit-spent)+'/'+limit+' quadrados restantes</strong></p>'+
+      '<label>Deslocamento individual<input type="number" min="0" max="60" id="r35-token-speed" value="'+limit+'"></label>'+
+      '<button data-action="token-speed">Definir deslocamento</button>';
+  }
   html+='<small>Toque no mapa para reposicionar o token selecionado.</small>';
   el.innerHTML=html;
  }
  function render(){
   const d=s.data;if(!d)return;const map=(d.scenarios||[]).find(c=>c.id===d.activeScenarioId);
+  const activeId=d.initiative?.activeId||'';
+  const activeToken=map?.tokens?.find(t=>t.id===activeId);
+  const activeName=activeToken?.name||(d.initiative?.entries||[]).find(t=>t.tokenId===activeId)?.name||'Iniciativa não iniciada';
   s.scene=map;
   s.el.innerHTML='<header><strong>✧ MESTRE</strong><h2>'+esc(map?.name||'Sem cenário publicado')+'</h2>'+
-    '<small>Rodada '+(d.turn||1)+'</small><button data-action="panel">Painel</button>'+
+    '<span class="r35-active-turn" aria-live="polite">Vez: <b>'+esc(activeName)+'</b> · Rodada '+(d.initiative?.round||1)+'</span>'+
+    '<button data-action="panel">Painel</button>'+
     '<button data-action="zoom-out" title="Afastar">-</button><button data-action="zoom-in" title="Aproximar">+</button>'+
     '<button data-action="fit" title="Enquadrar mapa">Enquadrar</button>'+
     '<button data-action="edit">Editar mapa</button><button data-action="turn">+ Rodada</button><button data-action="close">Sair</button></header>'+
@@ -77,9 +91,10 @@ function open(host,options){
    '<input id="r32-initiative-formula" value="1d20" placeholder="1d20+5">'+
    '<div class="actions"><button data-action="initiative-roll" class="primary">Rolar iniciativa</button><button data-action="initiative-set">Definir valor</button></div>'+
    '<div class="actions"><button data-action="initiative-next">Próximo turno</button><button data-action="initiative-clear">Reiniciar</button></div>'+
-   '<small>Rodada '+(d.initiative?.round||1)+'</small>'+
+   '<div class="r35-current-turn"><strong>AGORA: '+esc(activeName)+'</strong>'+
+    '<small>Rodada '+(d.initiative?.round||1)+'</small></div>'+
    (d.initiative?.entries||[]).map((item,index)=>
-    '<div class="info '+(item.tokenId===d.initiative.activeId?'selected':'')+'">'+
+    '<div class="info r35-initiative-entry '+(item.tokenId===d.initiative.activeId?'r35-current selected':'')+'">'+
      '<b>'+(index+1)+'. '+esc(item.name)+' - '+item.score+'</b>'+
      (item.faces?.length?'<small>'+esc(item.formula)+' : ['+esc(item.faces.join(', '))+']</small>':'')+
      '<button data-init-remove="'+esc(item.tokenId)+'" title="Remover da iniciativa">Remover</button></div>').join('')+
@@ -99,6 +114,14 @@ function open(host,options){
       '<select id="r31-duration"><option value="scene">Cena</option><option value="turn">Turnos</option><option value="permanent">Permanente</option></select>'+
       '<input id="r31-rem" type="number" min="1" max="999" value="3">'+
       '<button data-action="effect" class="primary">Aplicar nos selecionados</button></section>'+
+    '<section><h3>Movimento por sistema</h3>'+
+    '<label>Sistema<select id="r35-movement-system">'+
+      [['ordem-paranormal','Ordem Paranormal'],['d-d','D&D 5e'],['gurps','GURPS']].map(([id,label])=>
+       '<option value="'+id+'">'+label+'</option>').join('')+'</select></label>'+
+    '<label>Limite padrão (quadrados por turno)<input id="r35-system-speed" type="number" min="0" max="60" value="'+
+      (d.movementRules?.['ordem-paranormal']??9)+'"></label>'+
+    '<button data-action="movement-system">Salvar limite</button>'+
+    '<small>Em diagonal, cada célula conta como um quadrado. Ajustes individuais têm prioridade.</small></section>'+
     '<section id="r31-details"><h3>Alvo</h3></section></aside></div>'+
     '<footer id="r31-status">Mestre: visualiza todos os tokens e ambientes.</footer>';
   if(!map)return;
@@ -106,9 +129,9 @@ function open(host,options){
   board.style.setProperty('--tile',s.cell+'px');board.style.backgroundSize=bg?s.cell+'px '+s.cell+'px,'+s.cell+'px '+s.cell+'px,100% 100%':s.cell+'px '+s.cell+'px';
   board.style.width=(map.width*s.cell)+'px';board.style.height=(map.height*s.cell)+'px';
   board.style.backgroundImage=bg?'linear-gradient(#ffffff38 1px,transparent 1px),linear-gradient(90deg,#ffffff38 1px,transparent 1px),url('+bg+')':'';
-  board.innerHTML=(map.rooms||[]).map(r=>'<div class="room '+(r.hidden?'hidden':'')+'" style="left:'+(r.x*s.cell)+'px;top:'+(r.y*s.cell)+'px;width:'+(r.w*s.cell)+'px;height:'+(r.h*s.cell)+'px;border-radius:'+(r.shape==='circle'?'50%':'0')+'"></div>').join('')+
+  board.innerHTML=(map.rooms||[]).map(r=>'<div class="room '+(r.hidden?'hidden':'')+' r35-fog-'+esc(r.fogStyle||'shadow')+'" style="left:'+(r.x*s.cell)+'px;top:'+(r.y*s.cell)+'px;width:'+(r.w*s.cell)+'px;height:'+(r.h*s.cell)+'px;border-radius:'+(r.shape==='circle'?'50%':'0')+'"></div>').join('')+
    (map.tokens||[]).map(t=>{const a=assets.get(t.assetId);
-    return '<div data-token="'+esc(t.id)+'" class="token '+(s.selected===t.id?'active':'')+'" style="left:'+(t.x*s.cell)+'px;top:'+(t.y*s.cell)+'px;width:'+s.cell+'px;height:'+s.cell+'px">'+
+    return '<div data-token="'+esc(t.id)+'" class="token '+(s.selected===t.id?'active':'')+(t.id===activeId?' r35-turn-token':'')+'" style="left:'+(t.x*s.cell)+'px;top:'+(t.y*s.cell)+'px;width:'+s.cell+'px;height:'+s.cell+'px">'+
     (a?.image?'<img alt="" src="'+a.image+'">':'<span>'+esc(readable(t.name).slice(0,2).toUpperCase()||'TK')+'</span>')+'<small>'+esc(t.name||'Token')+'</small></div>';
    }).join('');
   const sceneChanged=s.cameraScene!==map.id;
@@ -126,17 +149,27 @@ function open(host,options){
      const form=$('#r31-formula',s.el)?.value||'1d20',initForm=$('#r32-initiative-formula',s.el)?.value||'1d20';
      const selectedIds=[...s.el.querySelectorAll('[data-player]:checked')].map(el=>el.dataset.player);
      const effectName=$('#r31-effect',s.el)?.value||'';
+     const movementSystem=$('#r35-movement-system',s.el)?.value||'ordem-paranormal';
 
      const x=0,y=0;
       s.revision=d.revision;s.data=d;render();
      const rollInput=$('#r31-formula',s.el),initInput=$('#r32-initiative-formula',s.el),effectInput=$('#r31-effect',s.el);
      if(rollInput)rollInput.value=form;if(initInput)initInput.value=initForm;if(effectInput)effectInput.value=effectName;
      for(const item of s.el.querySelectorAll('[data-player]'))item.checked=selectedIds.includes(item.dataset.player);
+     const selector=$('#r35-movement-system',s.el);
+     if(selector){selector.value=movementSystem;const defaults={'ordem-paranormal':9,'d-d':6,'gurps':5};
+       $('#r35-system-speed',s.el).value=d.movementRules?.[movementSystem]??defaults[movementSystem]??9;}
      // Pan/zoom sao mantidos no objeto da camera entre sincronizacoes.
    }
   }catch(e){feedback(e.message)}finally{s.busy=false}
  }
  s.el.addEventListener('change',async e=>{
+  if(e.target.id==='r35-movement-system'){
+    const system=e.target.value,defaults={'ordem-paranormal':9,'d-d':6,'gurps':5};
+    const input=$('#r35-system-speed',s.el);
+    if(input)input.value=s.data?.movementRules?.[system]??defaults[system]??9;
+    return;
+  }
   const binder=e.target.closest('[data-r34-token-bind]');
   if(binder){
    binder.disabled=true;
@@ -173,6 +206,22 @@ function open(host,options){
    if(button){
     const action=button.dataset.action;
     if(action==='close'){close();return}
+    if(action==='movement-system'){
+      const systemId=$('#r35-movement-system',s.el).value;
+      const squares=Number($('#r35-system-speed',s.el).value);
+      if(!Number.isInteger(squares)||squares<0||squares>60){feedback('Use de 0 a 60 quadrados');return}
+      await req('/movement','POST',{systemId,squares});
+      feedback('Limite de '+squares+' quadrados para '+systemId+' salvo.');
+      s.revision=-1;await refresh();return;
+    }
+    if(action==='token-speed'){
+      if(!s.selected){feedback('Selecione um token');return}
+      const squares=Number($('#r35-token-speed',s.el)?.value);
+      if(!Number.isInteger(squares)||squares<0||squares>60){feedback('Use de 0 a 60 quadrados');return}
+      await req('/token','POST',{action:'speed',tokenId:s.selected,squares});
+      feedback('Deslocamento do token definido: '+squares+' quadrados.');
+      s.revision=-1;await refresh();return;
+    }
     if(action==='zoom-in'){s.camera?.zoom(1.2);return}
     if(action==='zoom-out'){s.camera?.zoom(1/1.2);return}
     if(action==='fit'){s.camera?.fit();return}
