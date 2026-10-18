@@ -1,0 +1,52 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="referrer" content="no-referrer"><title>RPG Mesa · Cenário</title><style>
+:root{color-scheme:dark;--bg:#0a0d15;--panel:#181821;--accent:#d4a8c8;--fg:#f1e9ef;--muted:#a9a1b2}*{box-sizing:border-box}body{background:radial-gradient(circle at 90% 0,#4420444d,transparent 45%),var(--bg);color:var(--fg);font:14px/1.5 system-ui;margin:0;padding:12px}main{max-width:1180px;margin:auto}header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}h1{font:normal 30px Georgia,serif;margin:6px 0;color:#f2c8df}small,p{color:var(--muted)}button,a{background:#24212e;border:1px solid #62566c;border-radius:9px;color:var(--fg);padding:10px;text-decoration:none;font:inherit;cursor:pointer;min-height:42px}button:disabled{opacity:.4}.row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:12px 0}.box{padding:13px;border-radius:16px;border:1px solid #67556d;background:var(--panel);margin:12px 0}.scroll{max-height:72vh;max-width:100%;overflow:auto;border-radius:13px;overscroll-behavior:contain;background:#0e101b;border:1px solid #65536e}.board{position:relative;background-color:#343039;background-image:linear-gradient(#ffffff32 1px,transparent 1px),linear-gradient(90deg,#ffffff32 1px,transparent 1px);background-size:var(--cell) var(--cell);user-select:none;touch-action:pan-x pan-y}.board[data-theme=forest]{background-color:#314b36}.board[data-theme=cavern]{background-color:#282537}.board[data-theme=paper]{background-color:#67533c}.room{position:absolute;border:1px dashed #ffe9c1a1;background:#fcce8b19;pointer-events:none;font-size:10px;padding:3px;color:#ffe1ad}.token{position:absolute;display:grid;place-items:center;border:2px solid #f6dbb0;border-radius:50%;background:#15121e;cursor:default}.token img{height:87%;width:87%;object-fit:cover;border-radius:50%}.token .glyph{font-size:calc(var(--cell) * .48);line-height:1}.token.own{border-color:#7dffbb;cursor:pointer;box-shadow:0 0 0 2px #57b98955}.token.selected{box-shadow:0 0 0 4px #89ffc6aa}.token small{position:absolute;top:95%;color:#fff;background:#100f19e8;padding:1px 4px;border-radius:4px;white-space:nowrap;font-size:10px}.fog{position:absolute;background:repeating-linear-gradient(45deg,#090914 0 10px,#151322 10px 20px);border:1px solid #363144;pointer-events:none;z-index:8}.fog::after{content:"NÉVOA";color:#6d657b;font:11px system-ui;position:absolute;top:8px;left:8px;letter-spacing:.12em}.message{color:var(--accent)}.status{color:#c5b6c2}#scene-title{font-size:17px;font-weight:600}#scene{display:none}.muted{color:var(--muted)}@media(min-width:900px){body{padding:20px}}
+</style></head><body><main><header><div><small>RPG MESA · SALA DO JOGADOR</small><h1>Cenário compartilhado</h1></div><a id="back" href="/">← Minha ficha</a></header>
+<div class="box"><div class="row"><strong id="scene-title">Carregando cenário...</strong><span class="status" id="connection"></span></div><p>Selecione seu token destacado em verde e toque em uma célula para movê-lo. As salas bloqueadas pela névoa só podem ser reveladas pelo mestre.</p><div class="row"><button id="zoom-out" type="button">− Zoom</button><strong id="zoom">42 px</strong><button id="zoom-in" type="button">+ Zoom</button><span class="message" id="message" role="status"></span></div><div class="scroll" id="scroll"><div class="board" id="board"></div></div></div><p class="muted">A sessão é atualizada automaticamente na rede local do anfitrião. O mestre mantém controle dos outros tokens.</p></main><script>
+'use strict';
+const id=location.pathname.split('/')[2],url='/api/play/'+id+'/scenario';
+document.getElementById('back').href='/play/'+id;
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=s=>document.querySelector(s);
+let revision=-1,scene=null,assets=[],cell=42,selected='',fetching=false;
+const feedback=s=>$('#message').textContent=s;
+async function api(path,method='GET',data){
+ const r=await fetch(path,{method,credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:data===undefined?undefined:JSON.stringify(data)});
+ let j=await r.json();if(!r.ok)throw Error(j.error||'Falha na rede');return j;
+}
+function draw(){
+ if(!scene){$('#scene-title').textContent='Aguardando o mestre publicar um cenário';$('#scroll').style.display='none';return}
+ $('#scroll').style.display='block';$('#scene-title').textContent=scene.name;
+ const board=$('#board');board.style.setProperty('--cell',cell+'px');board.style.width=(scene.width*cell)+'px';board.style.height=(scene.height*cell)+'px';board.dataset.theme=scene.theme;
+ const assetsById=new Map(assets.map(a=>[a.id,a]));
+ const background=assetsById.get(scene.backgroundAssetId)?.image;
+ board.style.backgroundImage=background?'linear-gradient(#ffffff45 1px,transparent 1px),linear-gradient(90deg,#ffffff45 1px,transparent 1px),url('+background+')':'';
+ board.style.backgroundSize=background?cell+'px '+cell+'px,'+cell+'px '+cell+'px,100% 100%':'';
+ let html=scene.rooms.map(r=>'<div class="room" style="left:'+(r.x*cell)+'px;top:'+(r.y*cell)+'px;width:'+(r.w*cell)+'px;height:'+(r.h*cell)+'px">'+esc(r.name)+'</div>').join('');
+ html+=scene.tokens.map(t=>{
+   const a=assetsById.get(t.assetId);
+   return '<div class="token '+(t.movable?'own':'')+' '+(t.id===selected?'selected':'')+'" data-token="'+esc(t.id)+'" data-movable="'+!!t.movable+'" title="'+esc(t.name)+'" style="left:'+(t.x*cell+1)+'px;top:'+(t.y*cell+1)+'px;width:'+(cell-2)+'px;height:'+(cell-2)+'px">'+(a?.image?'<img alt="" src="'+a.image+'">':'<span class="glyph">'+esc(a?.emoji||'✧')+'</span>')+'<small>'+esc(t.name)+'</small></div>';
+ }).join('');
+ // Overlay must be last: rooms behind fog are not visible; server strips their objects.
+ html+=scene.fog.map(f=>'<div class="fog" style="left:'+(f.x*cell)+'px;top:'+(f.y*cell)+'px;width:'+(f.w*cell)+'px;height:'+(f.h*cell)+'px"></div>').join('');
+ board.innerHTML=html;$('#zoom').textContent=cell+' px';
+ if(!scene.tokens.some(t=>t.id===selected&&t.movable))selected=scene.tokens.find(t=>t.movable)?.id||'';
+}
+async function refresh(){
+ if(fetching||document.hidden)return;fetching=true;
+ try{let data=await api(url);$('#connection').textContent='● Conectado';if(data.revision!==revision){
+  revision=data.revision;scene=data.scene;assets=data.assets||[];draw();
+ }}catch(e){$('#connection').textContent='Sem conexão';feedback(e.message)}finally{fetching=false}
+}
+$('#board').addEventListener('click',async e=>{
+ const target=e.target.closest('[data-token]');
+ if(target?.dataset.movable==='true'){selected=target.dataset.token;draw();feedback('Token selecionado: toque no destino');return}
+ if(!scene||!selected)return;
+ const r=$('#board').getBoundingClientRect(),x=Math.floor((e.clientX-r.left)/cell),y=Math.floor((e.clientY-r.top)/cell);
+ if(x<0||y<0||x>=scene.width||y>=scene.height)return;
+ try{await api(url+'/move','POST',{tokenId:selected,x,y});feedback('Movimento registrado');revision=-1;await refresh()}
+ catch(err){feedback(err.message)}
+});
+$('#zoom-in').onclick=()=>{cell=Math.min(70,cell+14);draw()};
+$('#zoom-out').onclick=()=>{cell=Math.max(28,cell-14);draw()};
+setInterval(refresh,1800);refresh();
+</script></body></html>
