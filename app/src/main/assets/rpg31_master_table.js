@@ -59,7 +59,7 @@ function open(host,options){
     const ch=(s.data.characters||[]).find(ch=>ch.id===t.characterId);
     const sys=ch?.sheet?.systemId||t.systemId||'ordem-paranormal';
     const defaults={'ordem-paranormal':9,'d-d':6,'gurps':5};
-    const limit=t.movementSquares??(s.data.movementRules?.[sys]??defaults[sys]??9);
+    const limit=s.data.movementLimits?.[t.id]??t.movementSquares??(s.data.movementRules?.[sys]??defaults[sys]??9);
     const spent=s.data.movementSpent?.[t.id]||0;
     html+='<p>Movimento: <strong>'+Math.max(0,limit-spent)+'/'+limit+' quadrados restantes</strong></p>'+
       '<label>Deslocamento individual<input type="number" min="0" max="60" id="r35-token-speed" value="'+limit+'"></label>'+
@@ -80,7 +80,7 @@ function open(host,options){
     '<button data-action="zoom-out" title="Afastar">-</button><button data-action="zoom-in" title="Aproximar">+</button>'+
     '<button data-action="fit" title="Enquadrar mapa">Enquadrar</button>'+
     '<button data-action="edit">Editar mapa</button><button data-action="turn">+ Rodada</button><button data-action="close">Sair</button></header>'+
-    '<div class="body"><div id="r31-scroll" class="scroll"><div id="r31-board" class="board"></div></div>'+
+    '<div class="body"><div id="r31-scroll" class="scroll"><div class="r35-turn-overlay">Vez atual: <strong>'+esc(activeName)+'</strong><small>Rodada '+(d.initiative?.round||1)+'</small></div><div id="r31-board" class="board"></div></div>'+
     '<aside id="r31-aside" class="'+(s.folded?'folded':'')+'"><section><h3>⚄ Rolagens</h3>'+
       '<input id="r31-formula" value="1d20" placeholder="1d20+5" aria-label="Notação do dado">'+
       '<div class="actions"><button data-action="roll-public" class="primary">Todos veem</button><button data-action="roll-private">Só mestre</button></div>'+
