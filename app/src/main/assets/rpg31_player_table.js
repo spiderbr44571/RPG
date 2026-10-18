@@ -11,6 +11,16 @@ async function api(path,method='GET',payload){
 }
 function resourceList(s){
  if(!s)return [];
+ if(s.systemId==='d-d'){
+   const resources=[{k:'PV',cur:Number(s.hitPointsCurrent??0),max:Number(s.hitPointsMax??1)}];
+   for(const [level,slots] of Object.entries(s.spellSlots||{})){
+     if(slots&&typeof slots==='object'){
+       const mx=Number(slots.max??slots.total??0),cur=Number(slots.current??slots.available??0);
+       if(mx>0)resources.push({k:'Magia '+level,cur,max:mx});
+     }
+   }
+   return resources;
+ }
  if(s.systemId==='gurps')return [
   {k:'HP',cur:Number(s.currentHP??s.attrs?.ST??0),max:Math.max(1,Number(s.attrs?.ST||1)+Number(s.mod?.hp||0))},
   {k:'FP',cur:Number(s.currentFP??s.attrs?.HT??0),max:Math.max(1,Number(s.attrs?.HT||1)+Number(s.mod?.fp||0))}
