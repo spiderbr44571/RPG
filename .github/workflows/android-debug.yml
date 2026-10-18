@@ -108,12 +108,14 @@ jobs:
           assert len(set((x['nome'],x['categoriaItem']) for x in items['gerais']))==52
           assert all('categoriaBase' in x and 'valorCategoriaPendente' not in x for x in items['gerais'])
           assert len(items['modificacoes'])>=23
-          assert 'window.RPG11=' in html
+          assert 'rpg26_offline_search_ui.js' in html
           assert 'window.RPG101=' in html
           scripts=re.findall(r'<script>(.*?)</script>',html,re.S)
-          assert scripts and 'window.RPG11=' in scripts[-1]
-          pathlib.Path('/tmp/rpg11-embedded.js').write_text(scripts[-1],encoding='utf-8')
-          print('VALIDAÇÃO OK: dados existentes e chat v0.10.2')
+          assert scripts
+          search=pathlib.Path('app/src/main/assets/rpg26_offline_search_ui.js').read_text()
+          assert 'window.RPG11=' in search
+          pathlib.Path('/tmp/rpg11-embedded.js').write_text(search,encoding='utf-8')
+          print('VALIDAÇÃO OK: dados e pesquisa local v0.26')
           PY
           node --check /tmp/rpg11-embedded.js
           python - <<'PY'
