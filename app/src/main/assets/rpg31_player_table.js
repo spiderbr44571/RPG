@@ -1,9 +1,12 @@
 /* RPG Mesa 0.31: interface do jogador. A API aplica visibilidade e posse do token. */
 (function(root){
 'use strict';
-const $=x=>document.querySelector(x),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=x=>document.querySelector(x);
+const readable=x=>String(x??'').replace(/cen\uFFFD+rio/gi,'cenário')
+  .replace(/Her\uFFFD+i/gi,'Herói').replace(/\uFFFD+/g,'').trim();
+const esc=x=>readable(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const cid=location.pathname.split('/')[2],url='/api/play/'+cid,sceneUrl=url+'/scenario';
-let state=null,revision=-1,cell=48,selected='',busy=false,tab='',noticeTimeout;
+let state=null,revision=-1,cell=48,selected='',busy=false,tab='',noticeTimeout,camera=window.RPG33_CAMERA?.create(),cameraScene='';
 const msg=t=>{const n=$('#notice');n.hidden=false;n.textContent=t;clearTimeout(noticeTimeout);noticeTimeout=setTimeout(()=>n.hidden=true,3900)};
 async function api(path,method='GET',payload){
  const r=await fetch(path,{method,credentials:'same-origin',headers:{'Content-Type':'application/json'},cache:'no-store',body:payload===undefined?undefined:JSON.stringify(payload)});
@@ -30,7 +33,7 @@ function resourceList(s){
 }
 function portrait(s){return [s?.photo,s?.portrait].find(v=>typeof v==='string'&&/^data:image\/(png|jpeg|webp);base64,/.test(v)&&v.length<210000)||''}
 function resources(s){
- $('#hero-name').textContent=s?.name||'Aguardando ficha';
+ $('#hero-name').textContent=readable(s?.name)||'Aguardando ficha';
  $('#hero-subtitle').textContent=s?[s.systemId||'Sistema',s.class||s.trilha||''].filter(Boolean).join(' · '):'Aguardando o mestre';
  const image=portrait(s);$('#avatar').innerHTML=image?'<img src="'+image+'" alt="Personagem">':esc((s?.name||'PC').slice(0,2).toUpperCase());
  $('#resources').innerHTML=resourceList(s).slice(0,7).map((r,i)=>{
@@ -63,7 +66,7 @@ function content(v){
 function sheet(){
  const s=state?.character||{},groups=sections(s),keys=Object.keys(groups);
  if(!keys.includes(tab))tab=keys[0];
- $('#sheet-title').textContent=s.name||'Ficha pendente';
+ $('#sheet-title').textContent=readable(s.name)||'Ficha pendente';
  $('#sheet-tabs').innerHTML=keys.map(k=>'<button data-tab="'+esc(k)+'" class="'+(k===tab?'active':'')+'">'+esc(k)+'</button>').join('');
  $('#sheet-data').innerHTML=content(groups[tab]);
 }
@@ -80,7 +83,7 @@ function render(){
  const s=state?.scene;resources(state?.character);sheet();initiative();
  $('#scene-turn').textContent=(state?.sceneName||'')+' · '+(state?.turn||1);
  if(!s){$('#empty').hidden=false;$('#board').innerHTML='';return}
- $('#empty').hidden=true;$('#scene-title').textContent=s.name;
+ $('#empty').hidden=true;$('#scene-title').textContent=readable(s.name)||'Cenário';
  const board=$('#board'),assets=new Map((state.assets||[]).map(a=>[a.id,a]));
  const bg=assets.get(s.backgroundAssetId)?.image;
  board.style.setProperty('--cell',cell+'px');board.style.width=(s.width*cell)+'px';board.style.height=(s.height*cell)+'px';
@@ -93,6 +96,8 @@ function render(){
  }).join('');
  h+=(s.fog||[]).map(f=>'<div class="fog" style="left:'+(f.x*cell)+'px;top:'+(f.y*cell)+'px;width:'+(f.w*cell)+'px;height:'+(f.h*cell)+'px;border-radius:'+(f.shape==='circle'?'50%':'0')+'"></div>').join('');
  board.innerHTML=h;
+ const sceneChanged=cameraScene!==s.id;cameraScene=s.id;
+ camera?.attach($('#scroll'),board,s.width*cell,s.height*cell,sceneChanged);
  if(!s.tokens.some(t=>t.id===selected&&t.movable))selected=s.tokens.find(t=>t.movable)?.id||'';
  $('#feed').innerHTML=(state.rolls||[]).slice(-3).reverse().map(r=>
   '<div class="roll"><strong>'+esc(r.by)+'</strong> - '+esc(r.label)+'<div><b>'+r.total+'</b><small class="dicefaces">'+
@@ -102,10 +107,10 @@ async function refresh(){
  if(busy||document.hidden)return;busy=true;
  try{
   const next=await api(sceneUrl);
-  if(next.revision!==revision){const first=revision<0;state=next;revision=next.revision;render();if(first)center()}
+  if(next.revision!==revision){state=next;revision=next.revision;render()}
  }catch(e){msg(e.message)}finally{busy=false}
 }
-function center(){const s=$('#scroll'),b=$('#board');s.scrollLeft=Math.max(0,(b.clientWidth-s.clientWidth)/2);s.scrollTop=Math.max(0,(b.clientHeight-s.clientHeight)/2)}
+function center(){camera?.fit()}
 async function dice(){
  try{const formula=$('#formula').value.trim();
   const mode=$('#dice-mode').value;
@@ -116,16 +121,16 @@ async function dice(){
 }
 function mount(){
  $('#legacy-sheet').href='/play/'+cid;
- $('#board').addEventListener('click',async e=>{
+ $('#scroll').addEventListener('click',async e=>{
   const target=e.target.closest('[data-id]');
   if(target){if(target.dataset.movable==='true'){selected=target.dataset.id;msg('Seu token selecionado. Toque no destino.')}return}
   const s=state?.scene;if(!s||!selected)return;
-  const rect=$('#board').getBoundingClientRect(),x=Math.floor((e.clientX-rect.left)/cell),y=Math.floor((e.clientY-rect.top)/cell);
-  if(x<0||y<0||x>=s.width||y>=s.height)return;
+  const point=camera?.cellAt(e,cell,s.width,s.height);
+  if(!point)return;const {x,y}=point;
   try{await api(sceneUrl+'/move','POST',{tokenId:selected,x,y});revision=-1;await refresh()}catch(err){msg(err.message)}
  });
- $('#zoom-in').onclick=()=>{cell=Math.min(84,Math.round(cell*1.25));render()};
- $('#zoom-out').onclick=()=>{cell=Math.max(26,Math.round(cell*.8));render()};
+ $('#zoom-in').onclick=()=>camera?.zoom(1.2);
+ $('#zoom-out').onclick=()=>camera?.zoom(1/1.2);
  $('#zoom-fit').onclick=center;
  for(const [button,modal] of [['#hud-sheet','#sheet-modal'],['#open-sheet','#sheet-modal'],['#hud-dice','#dice-modal'],['#open-dice','#dice-modal']]){
   $(button).onclick=()=>{$(modal).classList.add('open');if(modal==='#sheet-modal')sheet()};
