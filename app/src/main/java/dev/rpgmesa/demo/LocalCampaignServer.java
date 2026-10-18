@@ -314,7 +314,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
   }
   private Response redirectPlayer(JSONObject c,JSONObject p) throws JSONException{
     Response r=newFixedLengthResponse(Response.Status.REDIRECT,"text/plain","");
-    r.addHeader("Location","/play/"+c.getString("id"));
+    r.addHeader("Location","/scene/"+c.getString("id"));
     r.addHeader("Set-Cookie","rpg_guest="+p.getString("secret")+"; HttpOnly; SameSite=Strict; Path=/; Max-Age=31536000");
     r.addHeader("Referrer-Policy","no-referrer");
     r.addHeader("Cache-Control","no-store");
@@ -522,7 +522,11 @@ public final class LocalCampaignServer extends NanoHTTPD {
     synchronized(lock){
       JSONObject c=campaign(cid),original=activeScene(c),response=new JSONObject()
         .put("revision",revision.get()).put("scene",JSONObject.NULL);
-      if(original==null)return response;
+      if(original==null){
+        response.put("character",playerInfo(cid,player).opt("character"));
+        response.put("rolls",visibleRolls(c,false)).put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName",""));
+        return response;
+      }
       JSONObject scene=new JSONObject().put("id",original.getString("id")).put("name",original.getString("name"))
         .put("width",original.getInt("width")).put("height",original.getInt("height"))
         .put("theme",original.optString("theme","stone"));
@@ -884,6 +888,13 @@ public final class LocalCampaignServer extends NanoHTTPD {
     Response r=newFixedLengthResponse(Response.Status.OK,"text/css; charset=utf-8",new String(buf,StandardCharsets.UTF_8));
     r.addHeader("Cache-Control","no-store");r.addHeader("X-Content-Type-Options","nosniff");return r;
   }
+  private Response publishedStyle(String asset)throws IOException{
+    byte[] bytes;
+    try(InputStream in=context.getAssets().open(asset);ByteArrayOutputStream out=new ByteArrayOutputStream()){
+      byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1)out.write(b,0,n);bytes=out.toByteArray();
+    }
+    return newFixedLengthResponse(Response.Status.OK,"text/css; charset=utf-8",new String(bytes,StandardCharsets.UTF_8));
+  }
   private Response publishedScript(String asset)throws IOException{
     byte[] bytes;
     try(InputStream in=context.getAssets().open(asset);ByteArrayOutputStream out=new ByteArrayOutputStream()){
@@ -906,6 +917,9 @@ public final class LocalCampaignServer extends NanoHTTPD {
         if(path.equals("/scene-editor.js"))return sceneEditorScript();
         if(path.equals("/scene-editor.css"))return sceneEditorStyle();
         if(path.equals("/scene-bestiary.js"))return publishedScript("rpg19_order_creatures.js");
+        if(path.equals("/table-player.js"))return publishedScript("rpg31_player_table.js");
+        if(path.equals("/table-master.js"))return publishedScript("rpg31_master_table.js");
+        if(path.equals("/table-master.css"))return publishedStyle("rpg31_live.css");
         if(p.length==3&&p[1].equals("scene")){
           if(checkPlayer(p[2],cookie(s,"rpg_guest"))==null)return json(403,"error","Sessão não autorizada");
           return html("lan_scene.html");
