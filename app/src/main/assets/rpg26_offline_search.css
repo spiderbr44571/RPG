@@ -59,3 +59,7 @@
 #screen-ai .r27-values td{padding:10px;border-bottom:1px solid var(--line);color:var(--fg);vertical-align:top}
 #screen-ai .r27-values td:first-child{font-weight:600;width:40%}
 #screen-ai .r27-values tr:last-child td{border-bottom:none}
+
+/* v0.28 — conceitos reconhecidos na consulta contextual */
+#screen-ai .r28-context{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin:10px 0 16px;font-size:11px;color:var(--muted)}
+#screen-ai .r28-context small{font-size:10px;line-height:1.4;padding:5px 9px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--line);border-radius:20px}
