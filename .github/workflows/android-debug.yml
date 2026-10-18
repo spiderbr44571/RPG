@@ -131,7 +131,7 @@ jobs:
           import re
           root=Path('app/src/main/assets')
           html=(root/'demo-offline.html').read_text(encoding='utf-8')
-          for filename in ['lan_join.html','lan_player.html','lan_master.html','lan_gurps.html']:
+          for filename in ['lan_join.html','lan_player.html','lan_master.html','lan_gurps.html','lan_scene.html']:
               raw=(root/filename).read_text(encoding='utf-8')
               scripts=re.findall(r'<script>(.*?)</script>',raw,re.S)
               assert len(scripts)==1,filename
