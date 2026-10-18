@@ -27,10 +27,11 @@ assert.ok(rest.values.some(x=>/descanso normal/i.test(x.label)),'normal rest tab
 assert.ok(rest.values.some(x=>/descanso (precário|precario)/i.test(x.label)),'poor rest table');
 assert.ok(rest.values.some(x=>/descanso confortável/i.test(x.label)),'comfortable rest table');
 assert.ok(rest.values.some(x=>/descanso luxuoso/i.test(x.label)),'luxury rest table');
-for(const item of [...[rest.lead],...rest.sections.flatMap(x=>x.items),...rest.values]){
+for(const item of [rest.lead,...rest.sections.flatMap(x=>x.items)]){
  assert.ok(item.source&&item.source.book);
- assert.ok(item.source.text.includes(item.text.replace(/…$/,''))||item.source.text.replace(/\s+/g,' ').includes(item.text.replace(/…$/,'')), 'displayed excerpts must come from source');
+ assert.ok(item.source.text.replace(/\s+/g,' ').includes(item.text.replace(/…$/,'')), 'displayed excerpts must come from source');
 }
+for(const row of rest.values){assert.ok(row.source.text.includes(row.label+': '+row.value),'table cannot invent a value')} 
 const dnd=[{
  systemId:'d-d',systemName:'D&D',edition:'5e-2014',book:'SRD 5.1',
  title:'Testes e proficiência',text:'Para fazer um teste, role 1d20 e adicione o modificador do atributo. Se o personagem for proficiente, adicione o bônus de proficiência. O bônus varia conforme o nível. A dificuldade depende do mestre.',page:18,kind:'index'
