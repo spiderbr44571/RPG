@@ -1,3 +1,17 @@
+# RPG Mesa v0.29 — Cenários de mesa e grid (LAN)
+
+A v0.29 inclui um **editor de cenários** e o mapa interativo da campanha: mapas em grade, biblioteca de assets (personagens, criaturas, itens, objetos e temas de terreno), importação de imagens pessoais JPG/PNG/WebP compactadas, tokens vinculados ao jogador, salas ocultáveis e publicação para participantes da sessão local.
+
+**Mestre (APK ou painel /master):** inicie o servidor Android em **Mestragem**, conecte-se e escolha uma campanha. Toque em **✧ Cenários**, crie a sala, selecione os assets, toque/arraste para distribuir tokens e desenhe salas com a ferramenta **Sala**. Use **Revelar/Ocultar** em cada sala, **Publicar** para definir a cena compartilhada e **Salvar na campanha** para persistir. Para permitir que um jogador mova o token dele, primeiro atribua uma ficha ao jogador na campanha, depois selecione um token do tipo Personagem e vincule o jogador no campo Controle.
+
+**Jogadores (navegador da rede local):** entrem pelo convite pessoal, abram a ficha e escolham **▦ Cenário**. Apenas o token vinculado à ficha deles tem autorização para ser movimentado. Os conteúdos de salas ocultas e tokens secretos são filtrados no servidor; a névoa impede clicar e atravessar células ocultas. Alterações aparecem via sincronização periódica (aproximadamente 2 segundos). Ao sair, volte à ficha pelo botão superior.
+
+**Limitações da primeira versão:** não há importador de mapas vetoriais, iluminação dinâmica, cálculo automático de alcance/deslocamento por regras de cada sistema ou conexão com o catálogo completo de bestiários. O movimento no grid é livre dentro das áreas reveladas; custos por rodada ainda serão uma etapa futura. Imagens enviadas ficam privadas no banco do servidor da campanha, limitado a aproximadamente 3,8 MB para impedir corrupção de arquivos. Rede LAN privada confiável apenas; não exponha a porta 8765 à internet.
+
+**Correção adicional:** reforço de renderização/contraste do dado de navegação em todos os temas Android.
+
+---
+
 # RPG Mesa 0.28 — Pesquisa contextual offline
 
 A aba **Consulta** utiliza um motor de pesquisa 100% local (`rpg28_context_search.js`), sem IA, chaves API, servidor ou rede.
