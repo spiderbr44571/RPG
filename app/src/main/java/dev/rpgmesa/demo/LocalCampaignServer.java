@@ -659,8 +659,10 @@ public final class LocalCampaignServer extends NanoHTTPD {
           int count=Integer.parseInt(match.group(1)),die=Integer.parseInt(match.group(2));
           int bonus=match.group(3)==null?0:Integer.parseInt(match.group(3));
           if(Math.abs(bonus)>100)throw new IllegalArgumentException("Modificador excedido");
-          total=bonus;
-          for(int i=0;i<count;i++){int dieResult=random.nextInt(die)+1;total+=dieResult;faces.put(dieResult);}
+          total=bonus;int best=0,all=0;
+          for(int i=0;i<count;i++){int dieResult=random.nextInt(die)+1;all+=dieResult;best=Math.max(best,dieResult);faces.put(dieResult);}
+          boolean high=(die==20&&count>1&&!"sum".equals(body.optString("mode","highest")));
+          total+=(high?best:all);
         }else{
           Object value=body.opt("score");
           if(!(value instanceof Number))throw new IllegalArgumentException("Informe uma iniciativa numerica");
@@ -725,13 +727,19 @@ public final class LocalCampaignServer extends NanoHTTPD {
       String label=input.optString("label","Rolagem");
       if(label.length()>70)label=label.substring(0,70);
       if(label.isEmpty())label="Rolagem";
-      JSONArray values=new JSONArray();int sum=bonus;
-      for(int i=0;i<count;i++){int value=random.nextInt(faces)+1;sum+=value;values.put(value);}
+      JSONArray values=new JSONArray();int sum=bonus,highest=0,faceSum=0;
+      for(int i=0;i<count;i++){
+        int value=random.nextInt(faces)+1;faceSum+=value;highest=Math.max(highest,value);values.put(value);
+      }
+      String mode=input.optString("mode",count>1&&faces==20?"highest":"sum");
+      if(!mode.equals("sum")&&!mode.equals("highest"))throw new IllegalArgumentException("Modo de rolagem inválido");
+      if(mode.equals("highest")&&faces!=20)throw new IllegalArgumentException("Maior resultado só para d20");
+      sum+=mode.equals("highest")?highest:faceSum;
       String privacy=gm&&"master".equals(input.optString("visibility"))?"master":"public";
       String name=gm?"Mestre":actor.optString("nickname","Jogador");
       JSONObject result=new JSONObject().put("id",UUID.randomUUID().toString().replace("-",""))
         .put("by",name).put("label",label).put("formula",formula).put("faces",values)
-        .put("bonus",bonus).put("total",sum).put("visibility",privacy).put("at",now);
+        .put("bonus",bonus).put("total",sum).put("mode",mode).put("diceSum",faceSum+bonus).put("visibility",privacy).put("at",now);
       if("public".equals(privacy)){
         JSONArray logs=c.optJSONArray("tableRolls");if(logs==null){logs=new JSONArray();c.put("tableRolls",logs);}
         logs.put(result);while(logs.length()>50)logs.remove(0);
