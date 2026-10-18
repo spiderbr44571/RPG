@@ -30,7 +30,7 @@ section,.panel{background:var(--surface);border:1px solid var(--line);border-rad
 .d20.roll{animation:fall .7s ease-out}@media(max-width:480px){main{padding:10px 9px 100px}section,.panel{padding:12px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hero img{height:75px;width:68px}.item{align-items:flex-start}.item .actions{justify-content:end}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
 </style></head><body data-theme="base"><main>
-<header><div><div class="eyebrow">RPG MESA · MINHA CAMPANHA</div><h1 id="campaign">Carregando...</h1><small id="connected">Conectando ao mestre...</small></div><button id="appearance-btn">⚙ Tema</button></header>
+<header><div><div class="eyebrow">RPG MESA · MINHA CAMPANHA</div><h1 id="campaign">Carregando...</h1><small id="connected">Conectando ao mestre...</small></div><div class="row"><a id="scene-link" href="#" style="border:1px solid var(--accent);padding:10px;border-radius:10px;color:var(--accent);text-decoration:none">▦ Cenário</a><button id="appearance-btn">⚙ Tema</button></div></header>
 <div id="rounds" class="rounds" aria-live="polite"><div><small>Cena</small><strong id="scene">—</strong></div><div><small>Rodada</small><strong id="turn">—</strong></div></div>
 <div id="hero" class="panel">Aguardando ficha...</div>
 <nav id="tabs" class="tabs" role="tablist" aria-label="Seções da ficha"><button data-tab="attributes" aria-selected="true">Atributos</button><button data-tab="skills">Perícias</button><button data-tab="inventory">Inventário</button><button data-tab="abilities">Habilidades / Rituais</button><button data-tab="story">História</button><button data-tab="canvas">Canvas pessoal</button><button data-tab="settings">Personalização</button></nav>
@@ -45,6 +45,7 @@ const SKILLS=[{"name":"Acrobacia","attr":"Agilidade","trained":false},{"name":"A
 const $=s=>document.querySelector(s),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const cid=location.pathname.split('/')[2],memoKey='rpg-player-look:'+cid;
 let state=null,signature='',tab='attributes',canvasNodes=[],editBusy=false,networkBusy=false,ownLink='',drawTime=0;
+document.getElementById('scene-link').href='/scene/'+location.pathname.split('/')[2];
 let prefs;try{prefs=JSON.parse(localStorage.getItem(memoKey))||{}}catch{prefs={}}
 const message=x=>$('#sheet-status').textContent=x;
 function appearance(){let name=['base','sangue','conhecimento','energia','morte','medo'].includes(prefs.theme)?prefs.theme:'base';
