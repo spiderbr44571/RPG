@@ -327,6 +327,194 @@ public final class LocalCampaignServer extends NanoHTTPD {
     }
     return null;
   }
+
+  // CENARIOS 0.29: biblioteca e mapas separados do canvas privado.
+  // Toda mutacao persiste no telefone anfitriao, sob chave administrativa.
+  private static int gridNumber(JSONObject obj,String key,int min,int max){
+    Object value=obj.opt(key);
+    if(!(value instanceof Number))throw new IllegalArgumentException("Coordenada inválida: "+key);
+    double number=((Number)value).doubleValue();
+    if(!Double.isFinite(number)||Math.rint(number)!=number||number<min||number>max)
+      throw new IllegalArgumentException("Valor fora da grade: "+key);
+    return (int)number;
+  }
+  private static String sceneId(JSONObject obj,String key){
+    String v=obj.optString(key,"");
+    if(!v.matches("[A-Za-z0-9_-]{1,48}"))throw new IllegalArgumentException("Identificador inválido: "+key);
+    return v;
+  }
+  private static String optionalSceneId(JSONObject obj,String key){
+    String v=obj.optString(key,"");
+    if(!v.isEmpty()&&!v.matches("[A-Za-z0-9_-]{1,48}"))throw new IllegalArgumentException("Identificador inválido");
+    return v;
+  }
+  private static String optionalImage(JSONObject obj){
+    String data=obj.optString("image","");
+    if(!data.isEmpty()&&(data.length()>240000||!data.matches("data:image/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+")))
+      throw new IllegalArgumentException("Imagem inválida. Use PNG, JPEG ou WebP compactado.");
+    return data;
+  }
+  private static JSONArray scenarioArray(JSONObject c){
+    JSONArray v=c.optJSONArray("scenarios");return v==null?new JSONArray():v;
+  }
+  public JSONObject getScenarios(String cid) throws JSONException{
+    synchronized(lock){
+      JSONObject c=campaign(cid);
+      return new JSONObject().put("scenarios",new JSONArray(scenarioArray(c).toString()))
+        .put("assets",new JSONArray((c.optJSONArray("sceneAssets")==null?new JSONArray():c.getJSONArray("sceneAssets")).toString()))
+        .put("activeScenarioId",c.optString("activeScenarioId",""));
+    }
+  }
+  public void saveScenarios(String cid,JSONObject input) throws Exception{
+    synchronized(lock){
+      JSONObject c=campaign(cid);
+      JSONArray maps=input.optJSONArray("scenarios"),assets=input.optJSONArray("assets");
+      if(maps==null||assets==null||maps.length()>16||assets.length()>110||input.toString().length()>1550000)
+        throw new IllegalArgumentException("Biblioteca ou cenários excedem o limite");
+      java.util.HashSet<String> assetIds=new java.util.HashSet<>(),mapIds=new java.util.HashSet<>();
+      for(int i=0;i<assets.length();i++){
+        JSONObject asset=assets.getJSONObject(i);String id=sceneId(asset,"id");
+        if(!assetIds.add(id))throw new IllegalArgumentException("Asset duplicado");
+        field(asset,"name",70);
+        String kind=asset.optString("kind");
+        if(!java.util.Arrays.asList("map","character","creature","item","object").contains(kind))
+          throw new IllegalArgumentException("Tipo de asset inválido");
+        if(asset.optString("emoji","").length()>8)throw new IllegalArgumentException("Ícone muito longo");
+        optionalImage(asset);
+      }
+      for(int i=0;i<maps.length();i++){
+        JSONObject map=maps.getJSONObject(i);String id=sceneId(map,"id");
+        if(!mapIds.add(id))throw new IllegalArgumentException("Cenário duplicado");
+        field(map,"name",80);
+        int width=gridNumber(map,"width",6,60),height=gridNumber(map,"height",6,60);
+        String theme=map.optString("theme","stone");
+        if(!java.util.Arrays.asList("stone","forest","cavern","paper").contains(theme))
+          throw new IllegalArgumentException("Tema de cenário inválido");
+        String background=optionalSceneId(map,"backgroundAssetId");
+        if(!background.isEmpty()&&!assetIds.contains(background))
+          throw new IllegalArgumentException("Imagem de mapa não encontrada");
+        JSONArray rooms=map.optJSONArray("rooms"),tokens=map.optJSONArray("tokens");
+        if(rooms==null||tokens==null||rooms.length()>75||tokens.length()>250)
+          throw new IllegalArgumentException("Quantidade de salas ou tokens inválida");
+        java.util.HashSet<String> rids=new java.util.HashSet<>(),tids=new java.util.HashSet<>();
+        for(int j=0;j<rooms.length();j++){
+          JSONObject room=rooms.getJSONObject(j);
+          if(!rids.add(sceneId(room,"id")))throw new IllegalArgumentException("Sala duplicada");
+          field(room,"name",70);
+          int x=gridNumber(room,"x",0,width-1),y=gridNumber(room,"y",0,height-1);
+          int w=gridNumber(room,"w",1,width),h=gridNumber(room,"h",1,height);
+          if(x+w>width||y+h>height)throw new IllegalArgumentException("Sala fora do cenário");
+          if(!(room.opt("hidden") instanceof Boolean))throw new IllegalArgumentException("Visibilidade inválida");
+        }
+        for(int j=0;j<tokens.length();j++){
+          JSONObject token=tokens.getJSONObject(j);
+          if(!tids.add(sceneId(token,"id")))throw new IllegalArgumentException("Token duplicado");
+          field(token,"name",70);
+          gridNumber(token,"x",0,width-1);gridNumber(token,"y",0,height-1);
+          String asset=optionalSceneId(token,"assetId");
+          if(!asset.isEmpty()&&!assetIds.contains(asset))throw new IllegalArgumentException("Asset de token ausente");
+          String kind=token.optString("kind","");
+          if(!java.util.Arrays.asList("character","creature","item","object").contains(kind))
+            throw new IllegalArgumentException("Tipo de token inválido");
+          String pid=optionalSceneId(token,"ownerPlayerId"),ch=optionalSceneId(token,"characterId");
+          if(!pid.isEmpty()){
+            JSONObject p=entry(c.getJSONArray("players"),pid,"Jogador");
+            if(ch.isEmpty()||!ch.equals(p.optString("characterId")))
+              throw new IllegalArgumentException("Token deve pertencer à ficha atribuída ao jogador");
+          }
+          if(token.has("hidden")&&!(token.opt("hidden") instanceof Boolean))
+            throw new IllegalArgumentException("Visibilidade inválida");
+        }
+      }
+      String active=optionalSceneId(input,"activeScenarioId");
+      if(!active.isEmpty()&&!mapIds.contains(active))throw new IllegalArgumentException("Cenário ativo não encontrado");
+      c.put("sceneAssets",new JSONArray(assets.toString()))
+       .put("scenarios",new JSONArray(maps.toString())).put("activeScenarioId",active);
+      persist();
+    }
+  }
+  private static boolean covered(JSONObject map,int x,int y) throws JSONException{
+    JSONArray rooms=map.optJSONArray("rooms");if(rooms==null)return false;
+    for(int i=0;i<rooms.length();i++){
+      JSONObject r=rooms.getJSONObject(i);
+      if(r.optBoolean("hidden",false)&&x>=r.optInt("x")&&x<r.optInt("x")+r.optInt("w")
+        &&y>=r.optInt("y")&&y<r.optInt("y")+r.optInt("h"))return true;
+    }
+    return false;
+  }
+  private JSONObject activeScene(JSONObject c)throws JSONException{
+    String active=c.optString("activeScenarioId","");
+    JSONArray all=scenarioArray(c);
+    for(int i=0;i<all.length();i++)if(active.equals(all.getJSONObject(i).optString("id")))return all.getJSONObject(i);
+    return null;
+  }
+  public JSONObject playerScene(String cid,JSONObject player)throws JSONException{
+    synchronized(lock){
+      JSONObject c=campaign(cid),original=activeScene(c),response=new JSONObject()
+        .put("revision",revision.get()).put("scene",JSONObject.NULL);
+      if(original==null)return response;
+      JSONObject scene=new JSONObject().put("id",original.getString("id")).put("name",original.getString("name"))
+        .put("width",original.getInt("width")).put("height",original.getInt("height"))
+        .put("theme",original.optString("theme","stone"));
+      JSONArray fog=new JSONArray(),visibleRooms=new JSONArray(),visibleTokens=new JSONArray();
+      JSONArray rooms=original.getJSONArray("rooms");
+      for(int i=0;i<rooms.length();i++){
+        JSONObject room=rooms.getJSONObject(i);
+        if(room.optBoolean("hidden",false)){
+          fog.put(new JSONObject().put("x",room.getInt("x")).put("y",room.getInt("y"))
+            .put("w",room.getInt("w")).put("h",room.getInt("h")));
+        }else visibleRooms.put(new JSONObject().put("name",room.getString("name"))
+          .put("x",room.getInt("x")).put("y",room.getInt("y")).put("w",room.getInt("w")).put("h",room.getInt("h")));
+      }
+      java.util.HashSet<String> allowedAssetIds=new java.util.HashSet<>();
+      String background=original.optString("backgroundAssetId","");
+      if(!background.isEmpty()){allowedAssetIds.add(background);scene.put("backgroundAssetId",background);}
+      JSONArray tokens=original.getJSONArray("tokens");
+      for(int i=0;i<tokens.length();i++){
+        JSONObject t=tokens.getJSONObject(i);int x=t.getInt("x"),y=t.getInt("y");
+        if(t.optBoolean("hidden",false)||covered(original,x,y))continue;
+        boolean own=t.optString("ownerPlayerId").equals(player.optString("id"))&&
+          !player.optString("characterId","").isEmpty()&&t.optString("characterId").equals(player.optString("characterId"));
+        JSONObject visible=new JSONObject().put("id",t.getString("id")).put("name",t.getString("name"))
+          .put("kind",t.getString("kind")).put("x",x).put("y",y).put("movable",own)
+          .put("assetId",t.optString("assetId",""));
+        visibleTokens.put(visible);
+        if(!t.optString("assetId","").isEmpty())allowedAssetIds.add(t.getString("assetId"));
+      }
+      JSONArray filteredAssets=new JSONArray(),allAssets=c.optJSONArray("sceneAssets");
+      if(allAssets!=null)for(int i=0;i<allAssets.length();i++){
+        JSONObject a=allAssets.getJSONObject(i);
+        if(allowedAssetIds.contains(a.optString("id")))filteredAssets.put(new JSONObject(a.toString()));
+      }
+      scene.put("rooms",visibleRooms).put("fog",fog).put("tokens",visibleTokens);
+      response.put("scene",scene).put("assets",filteredAssets);
+      return response;
+    }
+  }
+  public JSONObject movePlayerToken(String cid,JSONObject player,JSONObject input)throws Exception{
+    synchronized(lock){
+      JSONObject c=campaign(cid),map=activeScene(c);
+      if(map==null)throw new IllegalArgumentException("Nenhum cenário ativo");
+      String id=sceneId(input,"tokenId");
+      int x=gridNumber(input,"x",0,map.getInt("width")-1),y=gridNumber(input,"y",0,map.getInt("height")-1);
+      JSONObject t=entry(map.getJSONArray("tokens"),id,"Token");
+      String charId=player.optString("characterId","");
+      if(charId.isEmpty()||!t.optString("ownerPlayerId").equals(player.optString("id"))||
+        !t.optString("characterId").equals(charId)||t.optBoolean("hidden",false))
+        throw new SecurityException("Este token não pertence ao jogador");
+      int oldX=t.getInt("x"),oldY=t.getInt("y");
+      int steps=Math.max(Math.abs(x-oldX),Math.abs(y-oldY));
+      // Não permitir atravessar salas ocultas, nem por movimentação diagonal.
+      for(int step=0;step<=steps;step++){
+        double p=steps==0?0:((double)step/steps);
+        int sx=(int)Math.round(oldX+(x-oldX)*p),sy=(int)Math.round(oldY+(y-oldY)*p);
+        if(covered(map,sx,sy))throw new IllegalArgumentException("Área ainda não revelada pelo mestre");
+      }
+      t.put("x",x).put("y",y);persist();
+      return new JSONObject().put("ok",true).put("x",x).put("y",y).put("revision",revision.get());
+    }
+  }
+
   private JSONObject playerInfo(String cid,JSONObject p) throws JSONException{
     synchronized(lock){
       JSONObject c=campaign(cid),v=new JSONObject().put("campaign",c.getString("name"))
@@ -517,6 +705,10 @@ public final class LocalCampaignServer extends NanoHTTPD {
       }
       if(method.equals("GET")){
         if(path.equals("/")||path.equals("/master"))return html("lan_master.html");
+        if(p.length==3&&p[1].equals("scene")){
+          if(checkPlayer(p[2],cookie(s,"rpg_guest"))==null)return json(403,"error","Sessão não autorizada");
+          return html("lan_scene.html");
+        }
         if(p.length==5&&p[1].equals("resume")){
           JSONObject c=campaign(p[2]),pl=checkPlayer(p[2],p[4]);
           if(pl==null || !equalsSecret(playerTag(pl),p[3]))
@@ -537,6 +729,15 @@ public final class LocalCampaignServer extends NanoHTTPD {
           if(ref.isEmpty())return html("lan_player.html");
           JSONObject assigned=playerSheet(p[2],player);
           return "gurps".equals(assigned.optString("systemId"))?html("lan_gurps.html"):html("lan_player.html");
+        }
+        if(p.length==5&&p[1].equals("api")&&p[2].equals("play")&&p[4].equals("scenario")){
+          JSONObject pl=checkPlayer(p[3],cookie(s,"rpg_guest"));
+          if(pl==null)return json(403,"error","Sessão inválida");
+          return response(200,playerScene(p[3],pl));
+        }
+        if(p.length==6&&p[1].equals("api")&&p[2].equals("admin")&&p[3].equals("campaigns")&&p[5].equals("scenarios")){
+          if(!master(s))return json(403,"error","Acesso do mestre necessário");
+          return response(200,getScenarios(p[4]));
         }
         if(p.length==5&&p[1].equals("api")&&p[2].equals("play")&&p[4].equals("canvas")){
           JSONObject pl=checkPlayer(p[3],cookie(s,"rpg_guest"));
@@ -618,6 +819,12 @@ public final class LocalCampaignServer extends NanoHTTPD {
           return response(200,new JSONObject().put("current",next));
         }
       }
+      if(p.length==6&&p[1].equals("api")&&p[2].equals("play")&&p[4].equals("scenario")&&p[5].equals("move")&&method.equals("POST")){
+        JSONObject pl=checkPlayer(p[3],cookie(s,"rpg_guest"));
+        if(pl==null)return json(403,"error","Sessão inválida");
+        try{return response(200,movePlayerToken(p[3],pl,b));}
+        catch(SecurityException denied){return json(403,"error","Você só pode mover seu personagem");}
+      }
       if(p.length==5&&p[1].equals("api")&&p[2].equals("play")&&method.equals("POST")){
         String cid=p[3];JSONObject player=checkPlayer(cid,cookie(s,"rpg_guest"));
         if(player==null)return json(403,"error","Jogador não autorizado");
@@ -645,6 +852,9 @@ public final class LocalCampaignServer extends NanoHTTPD {
         }
         if(p.length==6&&p[5].equals("effects")&&method.equals("POST")){
           effect(cid,b.getString("characterId"),b);return json(200,"ok","true");
+        }
+        if(p.length==6&&p[5].equals("scenarios")&&method.equals("POST")){
+          saveScenarios(cid,b);return json(200,"ok","true");
         }
         if(p.length==6&&p[5].equals("canvas")&&(method.equals("PUT")||method.equals("POST"))){
           canvas(cid,b.getJSONArray("nodes"));return json(200,"ok","true");
