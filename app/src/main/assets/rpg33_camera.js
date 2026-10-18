@@ -45,6 +45,8 @@ function create(){
   const onDown=e=>{
     // Deixa controles de interface externos funcionarem normalmente.
     if(e.button!==undefined&&e.button!==0)return;
+    // Cliques em tokens continuam eventos normais; arraste inicia no piso.
+    if(e.target.closest('[data-token],[data-id]'))return;
     pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
     view.setPointerCapture?.(e.pointerId);
     if(pointers.size===1){gesture={sx:e.clientX,sy:e.clientY,startX:x,startY:y,moved:false}}
