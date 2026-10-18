@@ -26,7 +26,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
   private final JSONObject root;
   private final String hostIp;
   private final Object lock = new Object();
-  private static final int MAX_BYTES = 500000;
+  private static final int MAX_BYTES = 1750000;
   private final AtomicInteger revision = new AtomicInteger(0);
 
   public LocalCampaignServer(Context context, int port) throws Exception {
@@ -100,7 +100,9 @@ public final class LocalCampaignServer extends NanoHTTPD {
     synchronized(lock){
       File tmp = new File(database.getParentFile(),database.getName()+".tmp");
       try(FileOutputStream out = new FileOutputStream(tmp)){
-        out.write(root.toString().getBytes(StandardCharsets.UTF_8));
+        byte[] data=root.toString().getBytes(StandardCharsets.UTF_8);
+        if(data.length>3800000)throw new IOException("Limite de armazenamento de campanhas excedido");
+        out.write(data);
         out.getFD().sync();
       }
       if(!tmp.renameTo(database)){
@@ -692,8 +694,16 @@ public final class LocalCampaignServer extends NanoHTTPD {
     Response r=newFixedLengthResponse(Response.Status.OK,"text/html; charset=utf-8",new String(buf,StandardCharsets.UTF_8));
     r.addHeader("Cache-Control","no-store");r.addHeader("Referrer-Policy","no-referrer");
     r.addHeader("X-Frame-Options","DENY");r.addHeader("X-Content-Type-Options","nosniff");
-    r.addHeader("Content-Security-Policy","default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'");
+    r.addHeader("Content-Security-Policy","default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'");
     return r;
+  }
+  private Response sceneEditorScript()throws IOException{
+    byte[] buf;
+    try(InputStream in=context.getAssets().open("rpg29_scene_editor.js");ByteArrayOutputStream out=new ByteArrayOutputStream()){
+      byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1)out.write(b,0,n);buf=out.toByteArray();
+    }
+    Response r=newFixedLengthResponse(Response.Status.OK,"application/javascript; charset=utf-8",new String(buf,StandardCharsets.UTF_8));
+    r.addHeader("Cache-Control","no-store");r.addHeader("X-Content-Type-Options","nosniff");return r;
   }
   @Override public Response serve(IHTTPSession s) {
     try {
@@ -705,6 +715,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       }
       if(method.equals("GET")){
         if(path.equals("/")||path.equals("/master"))return html("lan_master.html");
+        if(path.equals("/scene-editor.js"))return sceneEditorScript();
         if(p.length==3&&p[1].equals("scene")){
           if(checkPlayer(p[2],cookie(s,"rpg_guest"))==null)return json(403,"error","Sessão não autorizada");
           return html("lan_scene.html");
