@@ -22,7 +22,7 @@ assert.ok(/visible\.put\("image",maskedBackground/.test(server),'no raw map leak
 assert.ok(/sceneEditorStyle\(\)/.test(server),'stylesheet served in master mode');
 assert.ok(/t\.optString\("ownerPlayerId"\)\.equals\(player\.optString\("id"\)\)/.test(server),'player-scoped ownership');
 assert.ok(/r\.optBoolean\("hidden",false\)&&regionContains/.test(server),'fog blocks movement');
-assert.ok(/f\.shape==='circle'/.test(player),'player circle overlay');
+assert.ok(/f\.shape==='circle'/.test(fs.readFileSync(path.join(base,'rpg31_player_table.js'),'utf8')),'player circle overlay');
 assert.ok(/class SceneDisplayBridge/.test(native),'Android orientation');
 assert.ok(/RpgSceneDisplay/.test(native),'native bridge');
 assert.ok(/configChanges="orientation\|screenSize\|keyboardHidden"/.test(manifest),'rotation must not recreate activity');
