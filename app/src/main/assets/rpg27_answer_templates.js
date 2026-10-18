@@ -81,9 +81,9 @@
   }
   pool.sort((a,b)=>b.score-a.score);
   // Ensure a clear introductory explanation when supported by a real passage.
-  const initial=pool.find(x=>x.section==='explanation') ||
-    pool.find(x=>x.section==='conditions'&&!/^\b(?:nao|so)\b/i.test(x.text)) ||
-    pool[0]||null;
+  // A abertura responde ao topico central: prioriza frases das duas fontes melhor ranqueadas.
+  const focus=pool.filter(x=>hits.slice(0,2).includes(x.source));
+  const initial=focus.sort((a,b)=>b.score-a.score)[0]||pool[0]||null;
   const lead=initial?{...initial,text:shorten(initial.text,320)}:null;
   const used=new Set(lead?[norm(lead.text)]:[]);
   const grouped={explanation:[],conditions:[],values:[]};
