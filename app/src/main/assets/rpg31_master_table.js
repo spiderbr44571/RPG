@@ -136,7 +136,7 @@ function open(host,options){
     if(action==='edit'){
       if(!root.RPG29_EDITOR){feedback('Editor indisponível');return}
       s.editing=true;s.el.classList.add('editing');
-      const onReturn=()=>{s.editing=false;s.el.classList.remove('editing');s.revision=-1;refresh()};
+      const onReturn=()=>{s.editing=false;s.el.classList.remove('editing');try{root.RpgSceneDisplay?.setLandscape(true)}catch(_){}s.revision=-1;refresh()};
       s.el.addEventListener('rpg29:closed',onReturn,{once:true});
       try{await root.RPG29_EDITOR.open(s.el,{request:options.request,route:options.route,
         players:s.data?.players||[],characters:s.data?.characters||[]})}
