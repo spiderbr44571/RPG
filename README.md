@@ -1,3 +1,17 @@
+# RPG Mesa 0.31 — Mesa compartilhada em tempo real (LAN)
+
+**Mestragem → ◈ Mesa ao vivo** abre o grid publicado, mantendo acesso a todos os jogadores e criaturas. O mestre pode mover tokens, abrir fichas de criaturas (PV, defesa, ataques e notas cadastradas), ajustar PV, selecionar fichas de jogadores para efeitos, avançar rodadas, abrir o estúdio para editar o cenário e rolar dados para todos ou apenas para si. Notações não automatizadas devem ser consultadas no livro: a interface não inventa resultados de regras.
+
+**Estúdio de cenários** passa a oferecer uma lista de criaturas indexadas por sistema (Ordem Paranormal: 48 registros; D&D 5e: SRD e personalizados) e fichas atribuídas à campanha. Outros sistemas mostram criaturas se cadastradas no bestiário do APK. Escolha o sistema, procure a criatura, selecione e toque no grid. Dados e imagens previamente importados são reutilizados quando compatíveis; a instância possui PV próprios para o encontro.
+
+**Jogadores** recebem a mesa como tela inicial do link de convite, visualizando apenas o mapa e os tokens liberados pelo mestre. O HUD persistente na parte inferior apresenta retrato, nome e recursos do sistema: PV/PE/SAN em Ordem, HP/FP em GURPS e PV em D&D (com espaços mágicos quando cadastrados). As informações da ficha ficam em abas sobre o grid, e o botão Dados publica uma rolagem calculada pelo servidor para todos os jogadores. A ficha tradicional continua acessível pelo link no painel da ficha. A orientação paisagem pode ser solicitada no navegador do jogador, dependendo das permissões do aparelho.
+
+**Privacidade e permissões:** rolagem privada só é devolvida ao mestre; jogadores não podem editar criaturas ou controlar tokens alheios. Atributos privados de monstros ocultos não são entregues aos jogadores, e áreas secretas continuam sendo filtradas pela API. O servidor do celular funciona exclusivamente na rede local; não o publique na Internet.
+
+**Limitações atuais:** atualização por polling aproximadamente a cada 2 s (não há WebSocket), algumas criaturas só possuem estatísticas essenciais e requerem consulta ao livro para habilidades específicas, e movimentação não aplica automaticamente custo de deslocamento. O mestre edita o mapa pelo estúdio integrado, retornando ao vivo em seguida.
+
+---
+
 # RPG Mesa v0.30 — Estúdio de cenários em paisagem
 
 A ferramenta **Mestragem → ✧ Cenários** agora abre um estúdio visual em tela cheia no Android. Enquanto o estúdio estiver aberto, o app solicita orientação paisagem; **✕ Sair** (ou Voltar) devolve à interface normal. Se houver alterações não salvas, é pedida confirmação antes de sair.
