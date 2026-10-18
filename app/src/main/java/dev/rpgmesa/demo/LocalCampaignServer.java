@@ -961,6 +961,15 @@ public final class LocalCampaignServer extends NanoHTTPD {
       if(ensurePlayerTokens(c))persist();
       JSONObject result=getScenarios(cid);
       JSONObject scene=activeScene(c);
+      JSONObject limits=new JSONObject();
+      if(scene!=null){
+        JSONArray ts=scene.getJSONArray("tokens");
+        for(int i=0;i<ts.length();i++){
+          JSONObject t=ts.getJSONObject(i);
+          limits.put(t.getString("id"),movementLimit(c,t));
+        }
+      }
+      result.put("movementLimits",limits);
       result.put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName"))
         .put("campaignName",c.optString("name")).put("revision",revision.get())
         .put("rolls",visibleRolls(c,true)).put("initiative",new JSONObject(initiativeData(c).toString()))
