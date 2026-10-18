@@ -48,6 +48,9 @@ public final class LocalCampaignServer extends NanoHTTPD {
       persist();
     }
     if (!root.has("secret") || !root.has("campaigns")) throw new IOException("Banco da campanha inválido");
+    // Reconstroi labels nativos conhecidos, sem sobrescrever nomes personalizados.
+    JSONArray savedCampaigns=root.getJSONArray("campaigns");
+    for(int i=0;i<savedCampaigns.length();i++)repairLegacyLabels(savedCampaigns.getJSONObject(i));
   }
   public String hostIp(){ return hostIp; }
   public int currentPort(){return getListeningPort()>0?getListeningPort():8765;}
@@ -120,6 +123,39 @@ public final class LocalCampaignServer extends NanoHTTPD {
     for(int k=0;k<v.length();k++)if(Character.isISOControl(v.charAt(k)))throw new IllegalArgumentException("Texto inválido");
     return v;
   }
+
+  private static String restoreKnownLegacyText(String value){
+    if(value==null)return "";
+    // Historico: NanoHTTPD trocou cada byte UTF-8 alto por U+FFFD.
+    // Recupera apenas rotulos padrao previsiveis; nomes proprios nunca sao adivinhados.
+    String fixed=value
+      .replaceAll("(?iu)cen\uFFFD{1,3}rio","cenário")
+      .replaceAll("(?iu)Her\uFFFD{1,3}i","Herói")
+      .replaceAll("(?iu)Ru\uFFFD{1,3}nas","Ruínas")
+      .replaceAll("(?iu)Mag\uFFFD{1,3}o","Mago")
+      .replaceAll("(?iu)M\uFFFD{1,3}stico","Místico")
+      .replaceAll("(?iu)C\uFFFD{1,3}rculo","Círculo")
+      .replaceAll("(?iu)Criatu\uFFFD{1,3}ra","Criatura");
+    return fixed;
+  }
+  private static void repairLegacyLabels(JSONObject campaign)throws JSONException{
+    JSONArray scenes=campaign.optJSONArray("scenarios"),assets=campaign.optJSONArray("sceneAssets");
+    if(scenes!=null)for(int i=0;i<scenes.length();i++){
+      JSONObject scene=scenes.optJSONObject(i);if(scene==null)continue;
+      scene.put("name",restoreKnownLegacyText(scene.optString("name")));
+      JSONArray tokens=scene.optJSONArray("tokens");
+      if(tokens!=null)for(int j=0;j<tokens.length();j++){
+        JSONObject token=tokens.optJSONObject(j);if(token==null)continue;
+        token.put("name",restoreKnownLegacyText(token.optString("name")));
+      }
+    }
+    if(assets!=null)for(int i=0;i<assets.length();i++){
+      JSONObject a=assets.optJSONObject(i);if(a==null)continue;
+      a.put("name",restoreKnownLegacyText(a.optString("name")));
+      if(a.optString("emoji","").indexOf('\uFFFD')>=0)a.put("emoji","*");
+    }
+  }
+
   public JSONObject createCampaign(String name) throws Exception {
     synchronized(lock){
       JSONObject j=new JSONObject().put("name",name);
@@ -951,9 +987,24 @@ public final class LocalCampaignServer extends NanoHTTPD {
     if(!ct.toLowerCase(Locale.ROOT).startsWith("application/json"))throw new IllegalArgumentException("Use application/json");
     long size=Long.parseLong(s.getHeaders().getOrDefault("content-length","0"));
     if(size<1||size>MAX_BYTES)throw new IllegalArgumentException("Payload fora do limite");
-    Map<String,String> files=new HashMap<>();s.parseBody(files);
-    String b=files.get("postData");if(b==null||b.length()>MAX_BYTES)throw new IllegalArgumentException("Payload inválido");
-    return new JSONObject(b);
+    // NanoHTTPD.parseBody() pode converter postData com charset incorreto.
+    // O corpo JSON precisa ser decodificado diretamente dos bytes UTF-8 do socket.
+    InputStream input=s.getInputStream();
+    ByteArrayOutputStream output=new ByteArrayOutputStream((int)Math.min(size,65536));
+    byte[] buffer=new byte[8192];
+    int remaining=(int)size;
+    while(remaining>0){
+      int got=input.read(buffer,0,Math.min(buffer.length,remaining));
+      if(got<0)throw new IOException("Requisição incompleta");
+      if(got==0)continue;
+      output.write(buffer,0,got);
+      remaining-=got;
+    }
+    java.nio.charset.CharsetDecoder decoder=StandardCharsets.UTF_8.newDecoder()
+      .onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
+      .onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT);
+    String json=decoder.decode(java.nio.ByteBuffer.wrap(output.toByteArray())).toString();
+    return new JSONObject(json);
   }
   // Evita qualquer conversao implicita de charset em browsers de PC ou WebView.
   // Envia os bytes UTF-8 originais inclusive para acentos e titulos.
@@ -1030,6 +1081,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
         if(path.equals("/scene-editor.js"))return sceneEditorScript();
         if(path.equals("/scene-editor.css"))return sceneEditorStyle();
         if(path.equals("/scene-bestiary.js"))return publishedScript("rpg19_order_creatures.js");
+        if(path.equals("/table-camera.js"))return publishedScript("rpg33_camera.js");
         if(path.equals("/table-player.js"))return publishedScript("rpg31_player_table.js");
         if(path.equals("/table-master.js"))return publishedScript("rpg31_master_table.js");
         if(path.equals("/table-master.css"))return publishedStyle("rpg31_live.css");
