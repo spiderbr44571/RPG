@@ -1,4 +1,5 @@
-rr31-live{position:fixed!important;inset:0!important;z-index:28000!important;display:grid!important;grid-template-rows:48px minmax(0,1fr) 27px!important;width:100vw!important;height:100dvh!important;background:#0c0b15!important;color:#f4e9f1!important;font:12px system-ui!important}
+.r31-live.editing{display:none!important}
+.r31-live{position:fixed!important;inset:0!important;z-index:28000!important;display:grid!important;grid-template-rows:48px minmax(0,1fr) 27px!important;width:100vw!important;height:100dvh!important;background:#0c0b15!important;color:#f4e9f1!important;font:12px system-ui!important}
 .r31-live *{box-sizing:border-box;min-width:0}.r31-live button,.r31-live input,.r31-live select{background:#25202d;color:#f3e7f1;border:1px solid #615067;border-radius:8px;min-height:34px;padding:7px;font:inherit}
 .r31-live button{cursor:pointer}.r31-live button.primary{background:#dcb1d2;color:#211021;font-weight:750}.r31-live header{display:flex;align-items:center;gap:6px;padding:5px 10px;background:#181421;border-bottom:1px solid #664d6b}
 .r31-live header h2{font:500 19px Georgia;margin:0;flex:1}.r31-live .body{display:grid;grid-template-columns:minmax(0,1fr) 244px;min-height:0}
