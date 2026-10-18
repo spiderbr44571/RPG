@@ -229,7 +229,7 @@ function open(host,opts){
   if(s.tool==='token'){
    const a=getAsset(s.picked);if(!a||a.kind==='map'){signal('Selecione um token na biblioteca.');return}
    if(m.tokens.length>=250){signal('Limite de tokens atingido.');return}
-   const chosen=s.creatureSelection?.assetId===a.id?s.creatureSelection:{};
+   const chosen=s.creatureSelection?.assetId===a.id?s.creatureSelection:a.kind==='creature'?{maxHp:1,hp:1,defense:0,attacks:[],systemId:s.creatureSystem}:{};
    const t={id:uid(),name:a.name,kind:a.kind,assetId:a.id,ownerPlayerId:'',characterId:'',hidden:false,...chosen,...cells(p,m)};
    m.tokens.push(t);s.token=t.id;change();render(false);
   }
