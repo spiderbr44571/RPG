@@ -28,7 +28,7 @@ function open(host,opts){
  if(current)close();
  if(current)return Promise.resolve();
  const s={root:document.createElement('section'),host,opts,scenes:[],assets:[],active:'',selected:'',picked:'char-hero',
-  category:'all',importKind:'map',creatureSystem:'ordem-paranormal',creatureSearch:'',creatureSelection:null,tool:'pan',token:'',showGrid:true,aside:true,dirty:false,
+  category:'all',importKind:'map',fogStyle:'shadow',creatureSystem:'ordem-paranormal',creatureSearch:'',creatureSelection:null,tool:'pan',token:'',showGrid:true,aside:true,dirty:false,
   scale:1,x:25,y:25,view:null,world:null,gesture:null,pointers:new Map(),pinch:null,priorOverflow:document.body.style.overflow};
  current=s;host.hidden=false;s.root.className='r30-studio';s.root.setAttribute('role','dialog');s.root.setAttribute('aria-label','Estúdio de cenários');
  document.body.appendChild(s.root);document.body.style.overflow='hidden';
@@ -102,7 +102,7 @@ function open(host,opts){
   let html='',bg=getAsset(m.backgroundAssetId);
   if(bg?.image)html+='<img class="r30-bg" alt="" src="'+esc(bg.image)+'">';
   if(s.showGrid)html+='<div class="r30-grid"></div>';
-  html+=m.rooms.map(r=>'<div class="r30-room '+(r.shape==='circle'?'circle ':'')+(r.hidden?'hidden':'')+'" style="left:'+(r.x*48)+'px;top:'+(r.y*48)+'px;width:'+(r.w*48)+'px;height:'+(r.h*48)+'px">'+esc(r.name)+'</div>').join('');
+  html+=m.rooms.map(r=>'<div class="r30-room r35-fog-'+esc(r.fogStyle||'shadow')+' '+(r.shape==='circle'?'circle ':'')+(r.hidden?'hidden':'')+'" style="left:'+(r.x*48)+'px;top:'+(r.y*48)+'px;width:'+(r.w*48)+'px;height:'+(r.h*48)+'px">'+esc(r.name)+'</div>').join('');
   html+=m.tokens.map(t=>'<div class="r30-token '+(t.id===s.token?'selected':'')+'" data-r30-token="'+esc(t.id)+'" style="left:'+(t.x*48+1)+'px;top:'+(t.y*48+1)+'px">'+tile(getAsset(t.assetId))+'<small>'+esc(t.name)+'</small></div>').join('');
   html+='<div id="r30-preview" class="r30-preview" hidden></div>';
   s.world.innerHTML=html;updateTransform();
@@ -125,8 +125,16 @@ function open(host,opts){
      (t.kind==='character'?(opts.players||[]).filter(p=>p.characterId).map(p=>'<option value="'+esc(p.id)+'" '+(p.id===t.ownerPlayerId?'selected':'')+'>'+esc(p.nickname)+'</option>').join(''):'')+'</select></label>'+
      '<label><input data-r30-change="hidden" type="checkbox" '+(t.hidden?'checked':'')+'> Token oculto</label><button data-r30="delete-token" class="danger">Excluir token</button>';
   }else html+='<p>Selecione um token para renomeá-lo, ocultá-lo ou vincular uma ficha.</p>';
-  html+='<h3>Áreas / salas ('+m.rooms.length+')</h3>';
-  html+=m.rooms.map(r=>'<div class="r30-line"><button data-r30-room="'+esc(r.id)+'">'+(r.hidden?'◼ Revelar':'◉ Ocultar')+' '+esc(r.name)+'</button><button data-r30-delroom="'+esc(r.id)+'" class="danger">×</button></div>').join('');
+  html+='<h3>Áreas / salas ('+m.rooms.length+')</h3>'+
+   '<label>Estilo das novas áreas<select id="r35-new-fog">'+
+   [['shadow','Sombras listradas'],['dark','Escuridão'],['mist','Névoa densa'],['void','Escuro total']].map(([id,label])=>
+    '<option value="'+id+'" '+(s.fogStyle===id?'selected':'')+'>'+label+'</option>').join('')+
+   '</select></label>';
+  html+=m.rooms.map(r=>'<div class="r30-line"><button data-r30-room="'+esc(r.id)+'">'+(r.hidden?'◼ Revelar':'◉ Ocultar')+' '+esc(r.name)+'</button>'+
+   '<select aria-label="Efeito de ocultação da sala '+esc(r.name)+'" data-r35-room-fog="'+esc(r.id)+'">'+
+   [['shadow','Sombras'],['dark','Escuridão'],['mist','Névoa'],['void','Escuro total']].map(([id,label])=>
+    '<option value="'+id+'" '+((r.fogStyle||'shadow')===id?'selected':'')+'>'+label+'</option>').join('')+
+   '</select><button data-r30-delroom="'+esc(r.id)+'" class="danger">×</button></div>').join('');
   if(!m.rooms.length)html+='<p>Selecione Retângulo ou Círculo e arraste para marcar uma área.</p>';
   target.innerHTML=html;
  }
@@ -209,7 +217,7 @@ function open(host,opts){
   if(g.kind==='shape'){
    if(m.rooms.length>=75){signal('Máximo de 75 áreas.');map();return}
    const area=dimensions(g.start,p,m),name=(g.shape==='circle'?'Círculo ':'Sala ')+(m.rooms.length+1);
-   m.rooms.push({id:uid(),name,shape:g.shape,hidden:true,...area});change();render(false);signal(name+' criado, oculto aos jogadores.');
+   m.rooms.push({id:uid(),name,shape:g.shape,fogStyle:s.fogStyle,hidden:true,...area});change();render(false);signal(name+' criado, oculto aos jogadores.');
   }else if(g.kind==='token'){
    const t=m.tokens.find(x=>x.id===g.id);if(t){Object.assign(t,cells(p,m));s.token=t.id;change();render(false)}
   }
@@ -273,6 +281,9 @@ function open(host,opts){
   if(e.target.id==='r30-category'){s.category=e.target.value;library()}
   if(e.target.id==='r31-system'){s.creatureSystem=e.target.value;creatureChoices()}
   if(e.target.id==='r31-search'){s.creatureSearch=e.target.value;creatureChoices()}
+  if(e.target.id==='r35-new-fog')s.fogStyle=e.target.value;
+  if(e.target.dataset.r35RoomFog){const room=m?.rooms.find(r=>r.id===e.target.dataset.r35RoomFog);
+    if(room){room.fogStyle=e.target.value;change();map()}}
   if(e.target.id==='r30-import-kind')s.importKind=e.target.value;
   if(e.target.id==='r30-gridcheck'){s.showGrid=e.target.checked;map()}
   if(e.target.id==='r30-file')upload(e.target.files?.[0]);
