@@ -87,6 +87,7 @@ jobs:
           node --check app/src/main/assets/rpg31_player_table.js
           node --check app/src/main/assets/rpg31_master_table.js
           node tests/scenario_v31.test.cjs
+          node tests/scenario_v32.test.cjs
           node --check app/src/main/assets/rpg28_context_search.js
           node tests/contextual_offline_search.test.cjs
           python3 -m py_compile scripts/indexar_pdf.py
