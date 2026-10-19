@@ -69,9 +69,13 @@ function renderHome(){
 function refreshDashboard(){if(qs('#screen-home')?.classList.contains('active'))renderHome()}
 function tidyInterface(){
  document.title='Mastermind — seu RPG, suas regras';
- const custom=window.RPG_DEMO?.S?.appName;
- const display=custom&&!['PROJETO RPG','RPG Mesa','Projeto RPG'].includes(custom)?custom:'Mastermind';
- if(window.RPG_DEMO?.S&&!custom)window.RPG_DEMO.S.appName='Mastermind';
+ const settings=window.RPG_DEMO?.S;
+ const custom=settings?.appName||'';
+ const oldDefault=['PROJETO RPG','RPG Mesa','Projeto RPG',''];
+ const display=oldDefault.includes(custom)?'Mastermind':custom;
+ if(settings&&oldDefault.includes(custom))settings.appName='Mastermind';
+ const appNameInput=qs('#app-name-input');
+ if(appNameInput&&oldDefault.includes(custom))appNameInput.value='Mastermind';
  const brand=qs('.brand .app-name');if(brand)brand.textContent=display;
  const subtitle=qs('.brand small');if(subtitle)subtitle.textContent='WORKSPACE / MASTERMIND';
  const top=qs('.topbar .preview-pill');top?.remove();
@@ -130,6 +134,9 @@ function mount(){
  renderHome();
  bindNavigation();
  document.addEventListener('rpg:character-selected',refreshDashboard);
+ document.addEventListener('click',event=>{
+  if(event.target.closest('.nav-btn[data-screen="home"]'))queueMicrotask(refreshDashboard);
+ });
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshDashboard()});
  window.addEventListener('pageshow',refreshDashboard);
  window.MastermindShell={refreshDashboard,mountVersion:'0.38.0',getStored};
