@@ -30,5 +30,5 @@ const a=beasts.find(x=>x.name==='Aberração de Carne'),b=beasts.find(x=>x.name=
 assert.ok(a&&b,'two distinct source records');
 assert.notEqual(a.id,b.id);assert.notEqual(a.hp,b.hp);
 const build=fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8');
-assert.match(build,/versionCode 41/);
+assert.ok(Number(build.match(/versionCode ([0-9]+)/)?.[1])>=41,'v0.41 backwards compatibility with newer releases');
 console.log('PASS Mastermind v0.41: Android image picker in visible DOM, equal primary buttons, full catalog selection and no fixed creature injection');
