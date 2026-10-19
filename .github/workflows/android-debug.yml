@@ -95,6 +95,8 @@ jobs:
           node tests/scenario_v36.test.cjs
           node --check app/src/main/assets/rpg37_rules.js
           node tests/scenario_v37.test.cjs
+          node --check app/src/main/assets/mastermind38_shell.js
+          node tests/mastermind_v38.test.cjs
           node --check app/src/main/assets/rpg28_context_search.js
           node tests/contextual_offline_search.test.cjs
           python3 -m py_compile scripts/indexar_pdf.py
