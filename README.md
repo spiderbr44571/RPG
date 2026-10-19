@@ -1,3 +1,13 @@
+# Mastermind v0.42 — Canvas por campanha, ligações coloridas e mídia local
+
+- **Biblioteca de Canvas:** crie, nomeie, duplique, selecione e exclua quadros independentes com nome de campanha. Cada Canvas preserva separadamente suas anotações, imagens, criaturas, ligações e enquadramento (zoom/pan). A primeira execução migra o Canvas local da v0.41 sem apagar o snapshot anterior.
+- **Relações coloridas:** modo Conectar itens; escolha uma cor livre ou predefinida e toque em dois elementos (cartões de texto, imagens, criaturas, vídeos ou áudios). Links podem ser removidos individualmente e são salvos por Canvas. O posicionamento das linhas acompanha os elementos ao arrastar.
+- **Vídeos/áudios:** anexos locais via seletor nativo, com arquivos originais armazenados em IndexedDB, sem acrescentar blobs de vídeo/áudio ao localStorage. Suporta mídias aceitas pelo WebView do dispositivo (MP4/H.264 e MP3 costumam ser mais compatíveis). Limite por arquivo: 75 MB de vídeo, 25 MB de áudio, sujeito à quota do dispositivo. O Canvas salva apenas identificadores; mídia armazenada em um celular não é transferida automaticamente para outros aparelhos. Não há sincronização de áudio/vídeo na rede.
+- **Mestragem:** seletor da biblioteca e minimapa contextual no painel do mestre para visualizar cartões/criaturas e conexões da campanha, com atalho para abrir o Canvas completo. Esse painel é local ao aplicativo e não envia automaticamente o conteúdo multimídia aos jogadores. Os controles de cena e turno continuam na Mestragem, mas foram retirados da tela do Canvas.
+- **Compatibilidade:** não altera o identificador Android nem os temas/fontes existentes. Mantém o bestiário corrigido da v0.41 e os dados locais. Recomendado fazer backup dos dados antes de atualizar.
+
+---
+
 # Mastermind v0.41 — imagem no Canvas e bestiário corrigido
 
 **Canvas:** o botão "Adicionar imagem" agora é botão primário original do cabeçalho, idêntico em tamanho e estilo ao "Novo cartão". O seletor de arquivos fica em nó próprio visível ao WebView Android (não dentro do cabeçalho legado ocultado), e abre diretamente a galeria/arquivos em um toque, com feedback após selecionar PNG, JPG ou WebP. O processamento comprime a imagem localmente e permite mover, dimensionar e salvar seus cartões, mantendo o Canvas anterior.
