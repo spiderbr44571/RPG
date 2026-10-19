@@ -286,7 +286,11 @@ public final class LocalCampaignServer extends NanoHTTPD {
     synchronized(lock){
       JSONObject c=campaign(cid);
       if(kind.equals("turn"))c.put("turn",c.getInt("turn")+1);
-      else if(kind.equals("scene")){c.put("scene",c.getInt("scene")+1);c.put("turn",1);c.put("sceneName","Cena "+c.getInt("scene"));}
+      else if(kind.equals("scene")){
+        c.put("scene",c.getInt("scene")+1);c.put("turn",1);c.put("sceneName","Cena "+c.getInt("scene"));
+        // Uma nova cena tem sua propria ordem de iniciativa.
+        c.put("initiative",new JSONObject().put("entries",new JSONArray()).put("activeId","").put("round",1));
+      }
       else throw new IllegalArgumentException("Evento desconhecido");
       c.put("movementSpent",new JSONObject());
       JSONArray characters=c.getJSONArray("characters");
@@ -316,8 +320,19 @@ public final class LocalCampaignServer extends NanoHTTPD {
       int rem=body.optInt("remaining",0);
       if(unit.equals("turn")&&(rem<1||rem>999))throw new IllegalArgumentException("Turnos inválidos");
       JSONArray effects=s.optJSONArray("effects");if(effects==null){effects=new JSONArray();s.put("effects",effects);}
+      // Modificadores opcionais da Mestragem antiga, agora com validação do servidor.
+      String stat=body.optString("stat","");
+      if(!stat.isEmpty()&&!java.util.Arrays.asList("defesa","ataque","pericias").contains(stat))
+        throw new IllegalArgumentException("Característica inválida");
+      int amount=0;
+      if(!stat.isEmpty()){
+        if(!(body.opt("amount") instanceof Number))throw new IllegalArgumentException("Modificador numérico obrigatório");
+        amount=body.getInt("amount");
+        if(amount< -20||amount>20)throw new IllegalArgumentException("Modificador fora de -20 a 20");
+      }
       effects.put(new JSONObject().put("id",UUID.randomUUID().toString().replace("-","")).put("name",field(body,"name",80))
        .put("unit",unit).put("remaining",unit.equals("turn")?rem:JSONObject.NULL)
+       .put("stat",stat).put("amount",amount)
        .put("notes",body.optString("notes","").substring(0,Math.min(500,body.optString("notes","").length()))));
       persist();
     }
