@@ -91,12 +91,12 @@ function compress(image){
 }
 let busy=false;
 async function addFiles(files){
- if(busy)return;
+ if(busy){toast('Aguarde o processamento da imagem anterior.');return}
  busy=true;
  try{
   for(const file of files){
    if(app.S.nodes.length>=500){toast('Limite de 500 cartões atingido.');break}
-   if(!MIME.has(file.type)||file.size>MAX_IMAGE||!file.size){
+   if(!(MIME.has(file.type)||(!file.type&&/\.(?:png|jpe?g|webp)$/i.test(file.name)))||file.size>MAX_IMAGE||!file.size){
     toast('Use PNG, JPG ou WebP de até 10 MB.');continue;
    }
    try{
@@ -116,16 +116,25 @@ async function addFiles(files){
   }
  }finally{busy=false}
 }
-const addNode=document.getElementById('add-node');
-const addImage=document.createElement('button');
-addImage.id='mm40-add-image';addImage.type='button';addImage.className='btn-dark btn-small';
-addImage.textContent='▣ Adicionar imagem';
-const picker=document.createElement('input');
-picker.id='mm40-image-picker';picker.type='file';picker.hidden=true;picker.accept='image/jpeg,image/png,image/webp';picker.multiple=true;
-if(addNode){addNode.insertAdjacentElement('afterend',addImage);addNode.insertAdjacentElement('afterend',picker)}
-else document.getElementById('screen-canvas')?.append(addImage,picker);
-addImage.addEventListener('click',()=>picker.click());
-picker.addEventListener('change',()=>{const files=[...picker.files];picker.value='';addFiles(files)});
+// O botão principal existe no HTML desde o primeiro quadro e é movido com o cabeçalho pela UI.
+const addImage=document.getElementById('add-image');
+const picker=document.getElementById('canvas-image-input');
+if(!addImage||!picker){
+ console.error('Mastermind Canvas: botão ou seletor de imagem ausente');
+ return;
+}
+const selectImage=()=>{
+ // Abrir durante o gesto do usuário; necessário para WebView Android.
+ try{picker.click()}
+ catch(error){toast('Não foi possível abrir a galeria. Tente novamente.')}
+};
+addImage.addEventListener('click',selectImage);
+picker.addEventListener('change',()=>{
+ const files=Array.from(picker.files||[]);
+ picker.value='';
+ if(files.length){toast('Preparando imagem...');void addFiles(files);}
+});
+// O input já existe no documento; não criá-lo dinamicamente nem escondê-lo com hidden.
 viewport.addEventListener('dragover',event=>{
  if(event.dataTransfer?.types?.includes('Files')){event.preventDefault();event.dataTransfer.dropEffect='copy'}
 });

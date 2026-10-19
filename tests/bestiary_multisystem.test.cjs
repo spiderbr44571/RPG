@@ -16,10 +16,12 @@ for(const b of rows){
 assert.ok(rows.some(x=>x.attacks&&x.attacks.length>1),'multi-action profiles');
 const html=fs.readFileSync(base+'demo-offline.html','utf8');
 assert.ok(html.includes('rpg19_order_creatures.js'));
-assert.ok(html.indexOf('rpg19_order_creatures.js')<html.indexOf('rpg18_bestiary.js'));
+assert.ok(html.indexOf('<script src="rpg19_order_creatures.js"></script>')<html.indexOf('<script src="rpg18_bestiary.js"></script>'),'script load order');
 assert.ok(html.includes('spawnCatalog(record)'),'canvas with profile bridge');
 assert.ok(html.includes('encounter_catalog_roll'),'dice mechanism for order');
-assert.ok(html.includes('if(window.RPG18_BESTIARY?.handlesCanvas)return'),'legacy canvas button override');
+assert.ok(!html.includes("const oldAdd=$('#canvas-add-creature')"),'hardcoded legacy spawn removed');
+assert.ok(!html.includes("demoCatalog.innerHTML='<option value=\"aberracao\""),'single-creature picker removed');
+assert.ok(!html.includes("beasts[Number(select.value)]"),'legacy indexed picker removed');
 const ui=fs.readFileSync(base+'rpg18_bestiary.js','utf8');
 for(const expected of ['rpg-v07-bestiary-custom','rpg-v07-bestiary-edit','rpg-v06-monster-images','rpg18-bestiary-by-system-v1','data-canvas','rpg19-image-search-result','rpg19-image-saved','rpg07-pdf-lightbox','RPGv3?.spawnCatalog'])assert.ok(ui.includes(expected),expected);
 assert.ok(ui.includes('r19-grid'),'all systems use cards');
