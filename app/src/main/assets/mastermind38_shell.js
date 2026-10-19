@@ -83,13 +83,13 @@ function tidyInterface(){
  const status=qs('.sidebar-bottom .connected strong');if(status)status.textContent='Biblioteca e fichas locais';
  const statusDetail=qs('.sidebar-bottom .connected small');if(statusDetail)statusDetail.textContent='Online apenas quando solicitado';
  const themeBanner=qs('#v10-lab');
- const settings=qs('#screen-settings');
- if(themeBanner&&settings){
+ const settingsScreen=qs('#screen-settings');
+ if(themeBanner&&settingsScreen){
   const host=document.createElement('div');
   host.className='mm-theme-host';
   host.setAttribute('aria-label','Temas paranormais e customizações existentes');
-  const layout=qs('.settings-layout',settings);
-  if(layout)settings.insertBefore(host,layout);else settings.appendChild(host);
+  const layout=qs('.settings-layout',settingsScreen);
+  if(layout)settingsScreen.insertBefore(host,layout);else settingsScreen.appendChild(host);
   host.appendChild(themeBanner);
  }
  const settingName=qs('#screen-settings label[for="app-name-input"]');
