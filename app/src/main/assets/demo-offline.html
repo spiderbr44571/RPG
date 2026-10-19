@@ -859,7 +859,7 @@ function executeRitual(id){
  if(effect.tipo==='buff'){newChar.effects.push({id:'ritual-'+Date.now(),name:r.nome,stat:effect.stat,amount:val,duration:'scene',turns:0});}
  else if(effect.tipo==='atributo'){notify('Aprimorar Físico exige selecionar atributo e alvo. Custo foi registrado; aplique modificador com o mestre.');}
  else if(effect.tipo==='pvTemporario'){newChar.notes=[...(newChar.notes||[]),{tipo:'recurso_temporario',titulo:r.nome,valor:val,restricao:effect.restricao}];}
- else if(effect.tipo==='dano'){const d=rollDice(effect.formula);$('#rpg05-effect-feedback').textContent=`${r.nome}: rolou ${d} de dano bruto. Aplique no alvo somente após resistência/RD.`}
+ else if(effect.tipo==='dano'){const d=rollDice(effect.formula);notify(`${r.nome}: rolou ${d} de dano bruto. Aplique no alvo somente após resistência/RD.`)}
  else if(effect.tipo==='dadosAtaque'){newChar.notes=[...(newChar.notes||[]),{tipo:'penalidade_dados',titulo:r.nome,valor:-1,duracao:'cena'}]}
  sys.changeCharacter(newChar);persistCurrent();renderCatalogs();notify(`${r.nome}: ${r.custoBasePE} PE gastos · ${effect.tipo==='buff'?'modificador ativo':'efeito requer confirmação do mestre'}`);
 }
