@@ -1,0 +1,14 @@
+/* Mastermind v0.44: progresso por NEX, treinamento e retrato individual. */
+.mm44-skill-counts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:10px}
+.mm44-skill-counts>div{border:1px solid var(--line);border-radius:12px;background:var(--panel2);padding:13px;display:grid;gap:5px}
+.mm44-skill-counts small{font-size:11px;color:var(--muted)}
+.mm44-skill-counts strong{font:700 25px 'Space Grotesk',sans-serif;color:var(--accent)}
+.mm44-skill-counts span{font-size:10px;color:var(--muted)}
+#r37-skills-budget p{font-size:11px;margin:7px 0;line-height:1.5}
+.mm44-ritual-summary{display:grid;gap:5px;margin:10px 0 13px;border:1px solid var(--line);border-radius:11px;background:var(--panel2);padding:12px 15px}
+.mm44-ritual-summary strong{font-size:17px;color:var(--accent)}
+.mm44-ritual-summary small{color:var(--muted);line-height:1.5}
+#rpg06-spell-add:disabled{cursor:not-allowed;opacity:.45}
+.r09-photo-remove{display:block;margin:3px 0 7px;background:var(--panel2);color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:10px}
+.r09-photo-remove:hover{color:var(--fg);border-color:var(--accent)}
+@media(max-width:560px){.mm44-skill-counts{grid-template-columns:1fr}}

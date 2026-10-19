@@ -9,27 +9,67 @@ const categoryLimits={
 };
 function skillBudget(character,pack){
  const cls=pack?.classes?.[character?.class]||null;
- if(!cls)return {known:false,remaining:null,warning:'Regras de perícias não cadastradas para este sistema.'};
- const intelligence=Math.max(0,Number(character.attrs?.Intelecto)||0);
+ if(!cls)return {known:false,remaining:null,warning:'Regras de pericias nao cadastradas para este sistema.'};
+ const intelligence=Math.max(0,Math.floor(Number(character.attrs?.Intelecto)||0));
  const base=Number.parseInt(cls.periciasLivres,10);
- if(!Number.isFinite(base))return {known:false,remaining:null,warning:'Cálculo de perícias não cadastrado para esta classe.'};
- const chosen=new Set(Object.keys(character.skills||{}).filter(k=>Number(character.skills[k])>0));
+ if(!Number.isFinite(base))return {known:false,remaining:null,warning:'Calculo de pericias nao cadastrado para esta classe.'};
  const origin=pack.origens?.find(o=>o.nome===character.origin);
- const freeOrigin=new Set(origin?.pericias||[]);
+ const originSkills=new Set(origin?.pericias||[]);
+ const chosen=new Set(Object.keys(character.skills||{}).filter(k=>Number(character.skills[k])>0));
  const mandatory=cls.periciasObrigatorias||[];
- let missing=[];
- const mandatoryChosen=new Set();
+ const missing=[],mandatoryChosen=new Set();
  for(const group of mandatory){
-  const options=group.split(/\s+ou\s+/i).map(x=>x.trim());
-  const found=options.find(n=>chosen.has(n)||freeOrigin.has(n));
-  if(found)mandatoryChosen.add(found);
-  else missing.push(options.join(' ou '));
+  const options=String(group).split(/\s+ou\s+/i).map(x=>x.trim());
+  const found=options.find(n=>chosen.has(n)||originSkills.has(n));
+  if(found)mandatoryChosen.add(found);else missing.push(options.join(' ou '));
  }
- const chosenFree=[...chosen].filter(n=>!freeOrigin.has(n)&&!mandatoryChosen.has(n));
+ const chosenFree=[...chosen].filter(n=>!originSkills.has(n)&&!mandatoryChosen.has(n));
  const total=base+intelligence;
- return {known:true,total,used:chosenFree.length,remaining:Math.max(0,total-chosenFree.length),
-   excess:Math.max(0,chosenFree.length-total),missing,origin:[...freeOrigin],mandatory:[...mandatoryChosen],
-   warning:missing.length?'Obrigatórias pendentes: '+missing.join('; '):''};
+ // Treinamentos extras da classe sao independentes de aumentos de grau.
+ // Grau 2 so e permitido no NEX 35%, grau 3 no NEX 70%.
+ const nex=Math.max(5,Number(character.nex)||5);
+ const gradeCap=nex>=70?3:nex>=35?2:1;
+ const upgradeStages=[35,70].filter(n=>nex>=n);
+ const upgradesTotal=upgradeStages.length*(2+intelligence);
+ let upgradesUsed=0;
+ const invalidGrades=[];
+ const skillNames=new Set([...Object.keys(character.skills||{}),...originSkills]);
+ for(const name of skillNames){
+  const given=originSkills.has(name)?1:0;
+  const grade=Math.max(given,Math.floor(Number(character.skills?.[name])||0));
+  if(grade>gradeCap)invalidGrades.push(name);
+  upgradesUsed+=Math.max(0,grade-1);
+ }
+ return {known:true,total,used:chosenFree.length,
+  remaining:Math.max(0,total-chosenFree.length),
+  excess:Math.max(0,chosenFree.length-total),
+  selections:{total,used:chosenFree.length,remaining:Math.max(0,total-chosenFree.length),excess:Math.max(0,chosenFree.length-total)},
+  upgrades:{total:upgradesTotal,used:upgradesUsed,remaining:Math.max(0,upgradesTotal-upgradesUsed),
+   excess:Math.max(0,upgradesUsed-upgradesTotal),gradeCap,stages:upgradeStages},
+  invalidGrades,missing,origin:[...originSkills],mandatory:[...mandatoryChosen],
+  warning:missing.length?'Obrigatorias pendentes: '+missing.join('; '):''};
+}
+// Progressao de rituais configurada para esta mesa: uma escolha por patamar
+// de NEX e tres escolhas extras por circulo liberado (variante da mesa).
+function ritualBudget(character,rituals=[]){
+ const nex=Math.max(5,Number(character?.nex)||5);
+ const occultist=character?.class==='Ocultista';
+ const milestones=[5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,99];
+ const circles=[{circle:1,nex:5},{circle:2,nex:25},{circle:3,nex:55},{circle:4,nex:85}];
+ const unlocked=circles.filter(c=>nex>=c.nex);
+ const total=occultist?milestones.filter(n=>n<=nex).length+unlocked.length*3:0;
+ const selected=Array.isArray(character?.rituaisConhecidos)?character.rituaisConhecidos:[];
+ const byId=new Map(rituals.map(r=>[String(r.id),r]));
+ const illegal=selected.flatMap(id=>{
+  const r=byId.get(String(id));
+  if(!r)return [{id,reason:'Ritual nao encontrado no catalogo'}];
+  const req=circles.find(c=>c.circle===Number(r.circulo));
+  return req&&nex>=req.nex?[]:[{id,reason:'Circulo '+r.circulo+' requer NEX '+(req?.nex||'?')+'%'}];
+ });
+ return {known:true,occultist,nex,total,used:selected.length,
+  remaining:Math.max(0,total-selected.length),excess:Math.max(0,selected.length-total),
+  unlockedCircles:unlocked.map(x=>x.circle),maxCircle:unlocked.at(-1)?.circle||1,
+  illegal,unlockAt:Object.fromEntries(circles.map(c=>[c.circle,c.nex]))};
 }
 function inventoryBudget(character,items){
  const force=Math.max(0,Number(character.attrs?.Força)||0);
@@ -52,5 +92,5 @@ function inventoryBudget(character,items){
  return {rank,used,capacity,overloaded:used>capacity,immobile:used>capacity*2,
   counts,caps,overLimits,overCategory,canCarry:used<=capacity,known:true};
 }
-root.RPG37_RULES={skillBudget,inventoryBudget,categoryLimits};
+root.RPG37_RULES={skillBudget,ritualBudget,inventoryBudget,categoryLimits};
 })(typeof window!=='undefined'?window:globalThis);

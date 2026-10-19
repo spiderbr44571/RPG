@@ -1,3 +1,12 @@
+# Mastermind v0.44 — fotos individuais, perícias e rituais por NEX
+
+- **Retrato por ficha:** novas fichas começam sem foto e não copiam a imagem de outro personagem. O upload fica ligado ao ID da ficha no momento da seleção (mesmo que o jogador troque de personagem antes de terminar). A ficha pode remover seu retrato individualmente. Retratos duplicados em arquivos antigos são preservados para evitar perda involuntária; remova-os na ficha correspondente caso tenham sido herdados.
+- **Perícias em Ordem Paranormal:** mostra separadamente vagas para **perícias adicionais** e **upgrades de treinamento**. Seleções treinadas a +5 usam vagas de perícias; elevar o grau de +5 para +10 ou +10 para +15 usa pontos de upgrade, sem gastar uma nova seleção. Os ganhos de upgrade são calculados nos marcos de NEX **35% e 70%** (2 + Intelecto por marco). O máximo é Treinado antes de 35%, Veterano até 69%, Expert a partir de 70%. Origens e obrigatórias são preservadas.
+- **Rituais:** progressão adaptada à regra da mesa solicitada: **1 escolha por patamar de NEX de Ocultista + 3 a cada círculo liberado**. 1º círculo em NEX 5%, 2º no 25%, 3º no 55% e 4º no 85%. O seletor desabilita opções de círculo indisponível, a ação recusa escolhas acima do limite e o contador mostra saldo. Essa quantidade de +3 por círculo é uma regra específica da mesa e não deve ser confundida com a progressão publicada no livro.
+- **Compatibilidade:** não altera o identificador Android, personagens anteriores, dados do Canvas, mídia ou preferências. Registros preexistentes acima de novos limites não são apagados: recebem alerta e podem ser corrigidos pelo usuário.
+
+---
+
 # Mastermind v0.43 — excluir ligações diretamente no Canvas
 
 - **Toque/clique na linha colorida:** abre um menu flutuante com nome dos dois pontos ligados e a ação **Excluir ligação**. A linha recebe uma zona transparente de toque de 23 px, funcionando também no Android. Selecionar a ligação não move o fundo do Canvas.
