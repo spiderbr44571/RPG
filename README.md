@@ -1,3 +1,17 @@
+# Mastermind v0.39 — interface redesenhada e ficha real no painel inicial
+
+**Painel inicial conectado à ficha real:** o cartão “Continuar de onde parou” consulta o controlador ativo de personagens, não exemplos ou uma segunda ficha. Ele mostra nome, retrato salvo no formato PNG/JPEG/WebP, classe, trilha, NEX, PV/PE/SAN e seus máximos calculados no motor de Ordem Paranormal. O botão **Abrir esta ficha** passa o identificador do personagem ao controlador e abre a ficha exata. A lista de fichas também possui atalhos individuais, respeitando a seleção salva.
+
+**Correções no armazenamento:** novos personagens são persistidos imediatamente após a criação; cada troca salva a ficha anterior, confirma a nova, persiste o ID e notifica a página inicial. Não modifica os dados existentes nem o identificador do APK Android.
+
+**Mudança visual completa:** nova tela de abertura com painel de sessão, apresentação do personagem real, ferramentas em cartões, painel de personagens e navegação mais clara. Estilos aplicados também à Mestragem, personagens, pesquisa, biblioteca, canvas e bestiário, reutilizando ações e módulos funcionais. No celular, barra inferior com atalhos de Início, Personagens, Mesa, Biblioteca, Canvas e menu “Mais” para consulta, bestiário e Configurações.
+
+**Aparência existente preservada:** roda RGB, fontes, temas paranormais, escala e modo claro/escuro permanecem em Configurações, reutilizando os próprios componentes. A folha v0.39 deriva todas as cores principais das variáveis existentes (`--accent`, `--panel`, `--fg`, `--muted`), sem redefinir preferências.
+
+**Nota:** a imagem do personagem é carregada apenas dos dados locais já aprovados e inseridos pelo usuário. Não existem retratos fictícios pré-carregados.
+
+---
+
 # Mastermind 0.38 — interface unificada e carregamento sem telas antigas
 
 **Nome oficial:** Mastermind. O nome visível e o título Android são atualizados, mantendo o mesmo `applicationId`, armazenamento local, chaves de preferências e compatibilidade com atualizações anteriores. A logo permanece provisória; nenhum ícone definitivo foi introduzido.
