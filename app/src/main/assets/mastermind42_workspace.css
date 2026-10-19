@@ -24,6 +24,28 @@
  position:absolute;left:-15000px;top:-15000px;width:30000px;height:30000px;
  overflow:visible;pointer-events:none;z-index:1
 }
+
+/* Excluir conexoes diretamente pelo tracado; alvo grande para dedos no Android. */
+#mm42-edges .mm43-link-visible{pointer-events:none;transition:stroke-width .12s,opacity .12s}
+#mm42-edges .mm43-link-visible.mm43-selected{stroke-width:6;opacity:1;filter:drop-shadow(0 0 5px currentColor)}
+#mm42-edges .mm43-link-hit{pointer-events:stroke;cursor:pointer;touch-action:manipulation;stroke-linecap:round}
+#mm42-edges .mm43-link-hit:focus-visible{outline:none;stroke:rgba(255,255,255,.13)}
+#mm43-link-menu[hidden]{display:none!important}
+#mm43-link-menu{position:absolute;z-index:12;width:min(270px,calc(100% - 20px));max-width:calc(100% - 20px);
+ background:var(--panel);border:1px solid var(--accent);border-radius:13px;
+ box-shadow:0 12px 38px #0009;backdrop-filter:blur(9px);padding:11px;touch-action:manipulation}
+.mm43-edge-label{display:flex;gap:9px;align-items:center;min-width:0;margin-bottom:10px}
+.mm43-edge-label strong{font-size:11px;line-height:1.4;overflow-wrap:anywhere;color:var(--fg)}
+#mm43-edge-color{display:block;flex-shrink:0;width:13px;height:13px;border-radius:50%}
+.mm43-edge-buttons{display:flex;gap:8px}
+.mm43-edge-buttons button{flex:1;min-height:39px;padding:8px;background:var(--panel2);border:1px solid var(--line);
+ border-radius:9px;color:var(--fg);font-size:11px}
+#mm43-edge-delete{background:#b9474730;color:#ffaaaa;border-color:#b9474770;font-weight:700}
+#mm43-link-directory{width:100%;border-top:1px solid var(--line);margin-top:9px;padding-top:9px}
+#mm43-link-directory summary{cursor:pointer;user-select:none;display:list-item;
+ padding:8px 4px;color:var(--muted);font-size:11px}
+#mm43-link-directory[open] #mm42-link-list{padding-top:6px}
+
 #node-layer,#encounter-layer{position:relative;z-index:2}
 .mm42-link-panel{padding:14px;border:1px solid var(--line);border-radius:15px;background:var(--panel);margin-bottom:14px}
 .mm42-link-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px}
