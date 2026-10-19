@@ -34,5 +34,5 @@ assert.match(css,/#mm42-edges \.mm43-link-hit\{pointer-events:stroke/);
 assert.match(css,/#mm43-link-menu\[hidden\]/);
 assert.match(css,/#mm43-link-directory summary/);
 const build=fs.readFileSync(path.join(__dirname,'../app/build.gradle'),'utf8');
-assert.match(build,/versionCode 43/);
+assert.ok(Number(build.match(/versionCode ([0-9]+)/)?.[1])>=43,'v0.43 works on later Android versions');
 console.log('PASS v0.43: clickable lines, accessible touch areas, popup delete, rollback and collapsed connection directory');
