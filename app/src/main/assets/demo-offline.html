@@ -712,7 +712,7 @@ $('#op-pericias').addEventListener('change',e=>{const b=e.target.closest('[data-
  const grade=clamp(b.value,0,3),previous=Number(state.skills[b.dataset.train]||0);
  const next={...state,skills:{...state.skills,[b.dataset.train]:grade}};
  const budget=window.RPG37_RULES?.skillBudget(next,pack);
- if(grade>previous&&budget?.known&&budget.excess>0){
+ if(previous===0&&grade>0&&budget?.known&&budget.excess>0){
    b.value=String(previous);$('#op-rolagem').textContent='Limite de perícias livres alcançado. Desmarque outra perícia para continuar.';return;
  }
  snapshot();state.skills[b.dataset.train]=grade;render()});
@@ -1563,4 +1563,12 @@ html body #r09-dice .r09-die-num{fill:#201522!important;font:900 29px system-ui,
 .rpg06-known{gap:10px;flex-wrap:wrap}
 .r36-ritual-actions .rpg05-btn{min-height:34px}
 #screen-sheet .rpg05-sheet-op{display:block}
-</style><style id="r37-sheet-css">#r37-skills-budget{padding:12px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);font-size:12px;line-height:1.6;margin:8px 0 14px}#r37-skills-budget.r37-warning{border-color:#e7aa63;color:var(--fg)}#op-poderes{margin-bottom:15px}</style></body></html>
+</style><style id="r37-sheet-css">#r37-skills-budget{padding:12px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);font-size:12px;line-height:1.6;margin:8px 0 14px}#r37-skills-budget.r37-warning{border-color:#e7aa63;color:var(--fg)}#op-poderes{margin-bottom:15px}
+.r37-inventory-summary{border:1px solid var(--line);background:var(--panel2);border-radius:11px;padding:12px 14px;margin:14px 0;color:var(--fg);display:grid;gap:6px}
+.r37-inventory-summary strong{font-size:15px}.r37-inventory-summary small{color:var(--muted)}
+.r37-category-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.r37-category-grid span{font:600 12px system-ui;padding:9px;border-radius:7px;border:1px solid var(--line)}
+.r37-inventory-warning{border-radius:9px;border:1px solid #d29b66;background:#3a2a23;color:#f2d2ac;padding:12px;margin:0;line-height:1.6}
+.r37-inventory-ok{color:#91dabb;font-size:12px;margin:0}
+.r37-over{border-color:#e5aa77!important;color:#e8b88c}
+@media(max-width:450px){.r37-category-grid{grid-template-columns:1fr}}</style></body></html>
