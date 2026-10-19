@@ -196,6 +196,7 @@ html[data-paranormal="medo"] .v10-result:before{border-radius:45% 5% 45% 5%}
 @keyframes v10-pulse{to{transform:scale(1.09)}}@keyframes v10-ash{to{opacity:.66;transform:translateY(-6px);filter:blur(1px)}}
 
 </style><link rel="stylesheet" href="rpg15_catalog.css"><script src="rpg37_rules.js"></script><link rel="stylesheet" href="mastermind38_shell.css">
+<link rel="stylesheet" href="mastermind39_ui.css">
 </head>
 <body>
 <div id="mm-loading" role="status" aria-label="Preparando o Mastermind"><div><div class="mm-boot-mark" aria-hidden="true">M</div>Mastermind<small>Preparando seu espaço...</small></div></div>
@@ -792,23 +793,38 @@ function persistCurrent(){if(window.__rpgRemoteSheetEditing)return;
 }
 let selectionRendering=false;
 function renderCharSelect(updateValue=true){const sel=$('#rpg05-char-select'),previous=sel.value;sel.innerHTML=characters.map(c=>`<option value="${escapeHTML(c.id)}">${escapeHTML(c.name)}</option>`).join('');sel.value=selectedChar;}
-function activateCharacter(id){const record=characters.find(c=>c.id===id);if(!record)return;
- // Alterar o modelo antes de publicar o id selecionado; nunca sobrescrever outra ficha.
- if(!sys.changeCharacter(record.character)){notify('Não foi possível carregar esta ficha.');return}
- selectedChar=id;save('rpg-v05-selected-char',id);
+function activateCharacter(id){
+ const record=characters.find(c=>c.id===id);if(!record)return false;
+ if(!sys.changeCharacter(record.character)){notify('Não foi possível carregar esta ficha.');return false}
+ selectedChar=id;save('rpg-v05-selected-char',id);save(charsKey,characters);
  renderCharSelect();renderItems();renderCatalogs();
  document.dispatchEvent(new CustomEvent('rpg:character-selected',{detail:{id}}));
+ return true;
 }
 $('#rpg05-char-select').addEventListener('change',e=>{
  const destination=e.target.value; // capturar antes de persistir a ficha anterior
  if(!characters.some(c=>c.id===destination))return;
  persistCurrent();activateCharacter(destination);
 });
-$('#rpg05-new-char').onclick=()=>{persistCurrent();const id='a-'+Date.now()+'-'+Math.floor(Math.random()*1000),fresh={...sys.state,name:'Novo agente',class:'Combatente',origin:'Acadêmico',trail:'Aniquilador',nex:5,attrs:{Agilidade:1,Força:1,Intelecto:1,Presença:1,Vigor:1},resources:{PV:20,PE:3,SAN:12},skills:{},powers:[],rituaisConhecidos:[],effects:[],scene:1,turn:1};characters.push({id,name:fresh.name,character:fresh});activateCharacter(id);notify('Nova ficha criada no sistema Ordem Paranormal')};
+$('#rpg05-new-char').onclick=()=>{persistCurrent();const id='a-'+Date.now()+'-'+Math.floor(Math.random()*1000),fresh={...sys.state,name:'Novo agente',class:'Combatente',origin:'Acadêmico',trail:'Aniquilador',nex:5,attrs:{Agilidade:1,Força:1,Intelecto:1,Presença:1,Vigor:1},resources:{PV:20,PE:3,SAN:12},skills:{},powers:[],rituaisConhecidos:[],effects:[],scene:1,turn:1};characters.push({id,name:fresh.name,character:fresh});save(charsKey,characters);activateCharacter(id);notify('Nova ficha criada no sistema Ordem Paranormal')};
 $('#rpg05-del-char').onclick=()=>{if(characters.length<2){notify('Mantenha ao menos uma ficha. Você pode começar um agente novo.');return}if(!confirm('Excluir esta ficha do dispositivo?'))return;characters=characters.filter(x=>x.id!==selectedChar);activateCharacter(characters[0].id);save(charsKey,characters)};
 const saveOld=window.setInterval; // Sincroniza alterações da ficha sem interferir nos cálculos determinísticos.
 $('#op-view-ficha').addEventListener('change',()=>setTimeout(()=>{persistCurrent();renderCatalogs()},0));
 $('#op-view-ficha').addEventListener('click',()=>setTimeout(persistCurrent,0));
+window.MastermindCharacters={
+ list(){return characters.map(c=>({id:c.id,name:c.name,character:{...c.character,attrs:{...(c.character?.attrs||{})},resources:{...(c.character?.resources||{})}}}))},
+ selectedId(){return selectedChar},
+ selected(){const current=characters.find(c=>c.id===selectedChar);return current?{...current,character:sys.state}:null},
+ open(id){
+  if(!characters.some(c=>c.id===id))return false;
+  if(id!==selectedChar){persistCurrent();if(!activateCharacter(id))return false}
+  demo.navigate('sheet');
+  // Abertura precisa focar a ficha real, nunca o modelo fictício antigo.
+  $('#rpg05-sheet-op')?.scrollIntoView?.({block:'nearest',behavior:'auto'});
+  return true;
+ },
+ persist:persistCurrent
+};
 activateCharacter(selectedChar);
 
 // Livro: os metadados são persistentes, PDF Android é gerenciado por Storage Access Framework.
@@ -1561,4 +1577,4 @@ html body #r09-dice .r09-die-num{fill:#201522!important;font:900 29px system-ui,
 .r37-inventory-warning{border-radius:9px;border:1px solid #d29b66;background:#3a2a23;color:#f2d2ac;padding:12px;margin:0;line-height:1.6}
 .r37-inventory-ok{color:#91dabb;font-size:12px;margin:0}
 .r37-over{border-color:#e5aa77!important;color:#e8b88c}
-@media(max-width:450px){.r37-category-grid{grid-template-columns:1fr}}</style><script src="mastermind38_shell.js"></script></body></html>
+@media(max-width:450px){.r37-category-grid{grid-template-columns:1fr}}</style><script src="mastermind39_ui.js"></script></body></html>
