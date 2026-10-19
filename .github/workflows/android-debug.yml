@@ -101,6 +101,7 @@ jobs:
           node tests/mastermind_v39.test.cjs
           node --check app/src/main/assets/mastermind40_canvas_images.js
           node tests/mastermind_v40.test.cjs
+          node tests/mastermind_v41.test.cjs
           node --check app/src/main/assets/rpg28_context_search.js
           node tests/contextual_offline_search.test.cjs
           python3 -m py_compile scripts/indexar_pdf.py
