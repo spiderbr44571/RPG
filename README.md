@@ -1,3 +1,13 @@
+# Mastermind v0.43 — excluir ligações diretamente no Canvas
+
+- **Toque/clique na linha colorida:** abre um menu flutuante com nome dos dois pontos ligados e a ação **Excluir ligação**. A linha recebe uma zona transparente de toque de 23 px, funcionando também no Android. Selecionar a ligação não move o fundo do Canvas.
+- **Edição acessível:** links podem ser selecionados com teclado por Enter/Espaço; botão Cancelar ou um toque fora fecha o menu.
+- **Menos poluição visual:** a lista completa de ligações fica recolhida por padrão em **Ver lista de ligações (N)**; só é montada quando expandida, útil para campanhas grandes.
+- **Segurança dos dados:** a exclusão afeta apenas o link escolhido do Canvas ativo. Se o salvamento falhar, a exclusão é desfeita para evitar perda acidental.
+- **Compatibilidade:** mantém múltiplos Canvas, ligações por cor, áudios, vídeos, imagens e criaturas, preservando as personalizações e o identificador Android da v0.42.
+
+---
+
 # Mastermind v0.42 — Canvas por campanha, ligações coloridas e mídia local
 
 - **Biblioteca de Canvas:** crie, nomeie, duplique, selecione e exclua quadros independentes com nome de campanha. Cada Canvas preserva separadamente suas anotações, imagens, criaturas, ligações e enquadramento (zoom/pan). A primeira execução migra o Canvas local da v0.41 sem apagar o snapshot anterior.
