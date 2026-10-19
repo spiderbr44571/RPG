@@ -1078,20 +1078,48 @@ const beasts=entries.split('\n').map(row=>{const [name,elemento,p,pv,defesa,test
 const knownKey='rpg-v06-spells',character=()=>$('#rpg05-char-select')?.value||'default';
 const getKnown=()=>{const saved=sys.state.rituaisConhecidos;if(Array.isArray(saved))return saved;const o=storage.get(knownKey,{});return Array.isArray(o[character()])?o[character()]:[]};
 const saveKnown=ids=>{const o=storage.get(knownKey,{});o[character()]=ids;storage.set(knownKey,o);const next={...sys.state,rituaisConhecidos:ids};sys.changeCharacter(next);$('#op-view-ficha').dispatchEvent(new Event('change',{bubbles:true}));renderKnown()};
-const milestones=[5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,99],unlock={1:5,2:25,3:55,4:85};
-function warnings(list){const state=sys.state,nex=Number(state.nex)||5,oc=state.class==='Ocultista',max=oc?3+Math.max(0,milestones.filter(n=>n<=nex).length-1):Number(state.attrs?.Intelecto)||0;
-const result=[];
-if(oc&&list.length<max)result.push(`Há ${max-list.length} aprendizado(s) ainda não registrado(s) pela progressão padrão (${max} até NEX ${nex}%).`);
-if(list.length>max)result.push(`São ${list.length} rituais registrados; progressão básica prevê ${max}. Verificar poderes, trilhas ou regras da casa.`);
-if(!oc)result.push('Outras classes precisam obter rituais por poderes ou outras fontes. Este editor não bloqueia escolhas.');
-for(const id of list){const r=pack.rituais.find(q=>q.id===id);if(r&&nex<unlock[r.circulo])result.push(`${r.nome} · ${r.elemento}: círculo ${r.circulo} geralmente só é liberado no NEX ${unlock[r.circulo]}% de Ocultista.`)}
-if(oc&&[25,55,85].includes(nex))result.push('O círculo novo não concede três aprendizados adicionais na regra padrão do livro. É possível usar essa escolha como regra da casa.');
-return [...new Set(result)];}
-const area=document.createElement('div');area.className='rpg05-band';area.id='rpg06-spells';area.innerHTML=`<h3>✧ Grimório pessoal · Rituais conhecidos</h3><p class="rpg05-note">Livro v1.3, pp. 32 e 119: 3 rituais iniciais no NEX 5% e mais 1 a cada avanço de NEX. Círculos novos liberam opções; +3 por círculo é uma regra da casa. Nenhuma escolha é proibida pelo aplicativo.</p><div class="rpg05-controls"><select class="rpg05-input" id="rpg06-spell-picker" aria-label="Ritual para aprender"></select><button class="rpg05-btn primary" id="rpg06-spell-add">+ Aprender ritual</button></div><div id="rpg06-spell-list" aria-live="polite"></div>`;
+const ritualBudget=(list=getKnown())=>window.RPG37_RULES.ritualBudget({...sys.state,rituaisConhecidos:list},pack.rituais);
+function warnings(list){
+ const b=ritualBudget(list),result=[];
+ if(!b.occultist)result.push('Esta classe requer uma fonte adicional de aprendizado de rituais; a progressao automatica e de Ocultista.');
+ if(b.excess)result.push('Rituais acima do limite: '+b.excess+'. Ajuste a ficha ou o NEX.');
+ for(const item of b.illegal)result.push(item.reason);
+ return [...new Set(result)];
+}
+const area=document.createElement('div');area.className='rpg05-band';area.id='rpg06-spells';area.innerHTML=`<h3>✧ Grimório pessoal · Rituais conhecidos</h3><p class="rpg05-note">Progressão desta mesa: 1 ritual por patamar de NEX de Ocultista + 3 opções a cada círculo liberado. Círculos superiores são bloqueados (2º no 25%, 3º no 55%, 4º no 85%).</p><div class="rpg05-controls"><select class="rpg05-input" id="rpg06-spell-picker" aria-label="Ritual para aprender"></select><button class="rpg05-btn primary" id="rpg06-spell-add">+ Aprender ritual</button></div><div id="rpg06-spell-list" aria-live="polite"></div>`;
 $('#rpg05-inventory').before(area);
-$('#rpg06-spell-picker').innerHTML=pack.rituais.map(s=>`<option value="${esc(s.id)}">${esc(s.nome)} · ${esc(s.elemento)} · ${s.circulo}º</option>`).join('');
-function renderKnown(){const list=getKnown(),warn=warnings(list);const target=$('#rpg06-spell-list');target.innerHTML=`<p class="rpg05-note">${list.length} ritual(is) registrado(s) nesta ficha · ${esc(sys.state.class)} NEX ${sys.state.nex}%</p>`+(warn.length?`<div class="rpg06-alert">${warn.map(s=>`<p>⚠ ${esc(s)}</p>`).join('')}</div>`:'<p class="rpg06-ok">✓ Sem divergências detectadas.</p>')+(list.length?list.map(id=>{const r=pack.rituais.find(x=>x.id===id);return r?`<div class="rpg06-known"><div><strong>${esc(r.nome)}</strong><small>${esc(r.elemento)} · ${r.circulo}º círculo · Livro p.${r.paginaLivro}</small></div><div class="r36-ritual-actions"><button class="rpg05-btn" data-r36-rule="${Number(r.paginaLivro)||0}">Ver regra</button>${r.automacao==='semi-automatica'?`<button class="rpg05-btn primary" data-r36-use="${esc(id)}">Usar</button>`:''}<button class="rpg05-btn" data-remove-ritual="${esc(id)}">Remover</button></div></div>`:''}).join(''):'<p class="rpg05-note">Seu personagem ainda não aprendeu rituais.</p>')}
-$('#rpg06-spell-add').onclick=()=>{const id=$('#rpg06-spell-picker').value;if(getKnown().includes(id)){app.notify('Esse ritual já está na ficha.');return}saveKnown([...getKnown(),id]);app.notify('Ritual registrado no personagem.')};
+function refreshRitualPicker(){
+ const b=ritualBudget(),picker=$('#rpg06-spell-picker'),previous=picker.value;
+ picker.innerHTML=pack.rituais.map(s=>'<option value="'+esc(s.id)+'" '+
+ (Number(s.circulo)>b.maxCircle?'disabled':'')+'>'+
+ esc(s.nome)+' · '+esc(s.elemento)+' · '+s.circulo+'º'+
+ (Number(s.circulo)>b.maxCircle?' (libera NEX '+(b.unlockAt[s.circulo]||'?')+'%)':'')+
+ '</option>').join('');
+ if([...picker.options].some(o=>o.value===previous&&!o.disabled))picker.value=previous;
+}
+
+function renderKnown(){
+ const list=getKnown(),b=ritualBudget(list),warn=warnings(list);
+ refreshRitualPicker();
+ $('#rpg06-spell-add').disabled=!b.occultist||b.remaining===0;
+ const target=$('#rpg06-spell-list');
+ target.innerHTML='<div class="mm44-ritual-summary">'+
+ '<strong>'+b.remaining+' / '+b.total+' escolhas restantes</strong>'+
+ '<small>Rituais conhecidos: '+b.used+' · Círculo máximo: '+b.maxCircle+'º · NEX '+b.nex+'%</small></div>'+
+ (warn.length?'<div class="rpg06-alert">'+warn.map(s=>'<p>⚠ '+esc(s)+'</p>').join('')+'</div>':'<p class="rpg06-ok">✓ Círculos e progressão dentro do limite.</p>')
++(list.length?list.map(id=>{const r=pack.rituais.find(x=>x.id===id);return r?`<div class="rpg06-known"><div><strong>${esc(r.nome)}</strong><small>${esc(r.elemento)} · ${r.circulo}º círculo · Livro p.${r.paginaLivro}</small></div><div class="r36-ritual-actions"><button class="rpg05-btn" data-r36-rule="${Number(r.paginaLivro)||0}">Ver regra</button>${r.automacao==='semi-automatica'?`<button class="rpg05-btn primary" data-r36-use="${esc(id)}">Usar</button>`:''}<button class="rpg05-btn" data-remove-ritual="${esc(id)}">Remover</button></div></div>`:''}).join(''):'<p class="rpg05-note">Seu personagem ainda não aprendeu rituais.</p>')}
+$('#rpg06-spell-add').onclick=()=>{
+ const id=$('#rpg06-spell-picker').value,r=pack.rituais.find(x=>x.id===id);
+ const current=getKnown(),b=ritualBudget(current);
+ if(!r){app.notify('Selecione um ritual válido.');return}
+ if(current.includes(id)){app.notify('Esse ritual já está na ficha.');return}
+ if(!b.occultist){app.notify('Esta classe não possui aprendizado automático de rituais.');return}
+ if(Number(r.circulo)>b.maxCircle){
+  app.notify('Ritual de '+r.circulo+'º círculo requer NEX '+(b.unlockAt[r.circulo]||'?')+'%.');return;
+ }
+ if(b.remaining<=0){app.notify('Limite de rituais atingido neste NEX.');return}
+ saveKnown([...current,id]);app.notify('Ritual aprendido pela progressão de NEX.');
+};
 $('#rpg06-spell-list').onclick=e=>{
  const remove=e.target.closest('[data-remove-ritual]');
  if(remove){saveKnown(getKnown().filter(id=>id!==remove.dataset.removeRitual));return}
@@ -1109,7 +1137,8 @@ $('#rpg06-spell-list').onclick=e=>{
    const reader=$('#rpg05-library-reader');if(reader)reader.hidden=false;
  }
 };
-$('#rpg05-char-select')?.addEventListener('change',()=>setTimeout(renderKnown,0));$('#op-view-ficha').addEventListener('change',()=>setTimeout(renderKnown,50));renderKnown();
+$('#rpg05-char-select')?.addEventListener('change',()=>setTimeout(renderKnown,0));
+document.addEventListener('rpg:character-selected',()=>setTimeout(renderKnown,0));$('#op-view-ficha').addEventListener('change',()=>setTimeout(renderKnown,50));renderKnown();
 // Troca os modelos únicos por catálogo de criaturas: dados no canvas são locais.
 // O seletor é preenchido por rpg18_bestiary.js usando os IDs estáveis de cada criatura.
 function addBeast(b){const vp=$('#canvas-viewport').getBoundingClientRect();const x=(vp.width/2-app.S.panX)/app.S.zoom,y=(vp.height/2-app.S.panY)/app.S.zoom;
