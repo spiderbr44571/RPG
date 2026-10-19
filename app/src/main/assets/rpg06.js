@@ -71,9 +71,27 @@ return [...new Set(result)];}
 const area=document.createElement('div');area.className='rpg05-band';area.id='rpg06-spells';area.innerHTML=`<h3>✧ Grimório pessoal · Rituais conhecidos</h3><p class="rpg05-note">Livro v1.3, pp. 32 e 119: 3 rituais iniciais no NEX 5% e mais 1 a cada avanço de NEX. Círculos novos liberam opções; +3 por círculo é uma regra da casa. Nenhuma escolha é proibida pelo aplicativo.</p><div class="rpg05-controls"><select class="rpg05-input" id="rpg06-spell-picker" aria-label="Ritual para aprender"></select><button class="rpg05-btn primary" id="rpg06-spell-add">+ Aprender ritual</button></div><div id="rpg06-spell-list" aria-live="polite"></div>`;
 $('#rpg05-inventory').before(area);
 $('#rpg06-spell-picker').innerHTML=pack.rituais.map(s=>`<option value="${esc(s.id)}">${esc(s.nome)} · ${esc(s.elemento)} · ${s.circulo}º</option>`).join('');
-function renderKnown(){const list=getKnown(),warn=warnings(list);const target=$('#rpg06-spell-list');target.innerHTML=`<p class="rpg05-note">${list.length} ritual(is) registrado(s) nesta ficha · ${esc(sys.state.class)} NEX ${sys.state.nex}%</p>`+(warn.length?`<div class="rpg06-alert">${warn.map(s=>`<p>⚠ ${esc(s)}</p>`).join('')}</div>`:'<p class="rpg06-ok">✓ Sem divergências detectadas.</p>')+(list.length?list.map(id=>{const r=pack.rituais.find(x=>x.id===id);return r?`<div class="rpg06-known"><div><strong>${esc(r.nome)}</strong><small>${esc(r.elemento)} · ${r.circulo}º círculo · Livro p.${r.paginaLivro}</small></div><button class="rpg05-btn" data-remove-ritual="${esc(id)}">Remover</button></div>`:''}).join(''):'<p class="rpg05-note">Seu personagem ainda não aprendeu rituais.</p>')}
+function renderKnown(){const list=getKnown(),warn=warnings(list);const target=$('#rpg06-spell-list');target.innerHTML=`<p class="rpg05-note">${list.length} ritual(is) registrado(s) nesta ficha · ${esc(sys.state.class)} NEX ${sys.state.nex}%</p>`+(warn.length?`<div class="rpg06-alert">${warn.map(s=>`<p>⚠ ${esc(s)}</p>`).join('')}</div>`:'<p class="rpg06-ok">✓ Sem divergências detectadas.</p>')+(list.length?list.map(id=>{const r=pack.rituais.find(x=>x.id===id);return r?`<div class="rpg06-known"><div><strong>${esc(r.nome)}</strong><small>${esc(r.elemento)} · ${r.circulo}º círculo · Livro p.${r.paginaLivro}</small></div><div class="r36-ritual-actions"><button class="rpg05-btn" data-r36-rule="${Number(r.paginaLivro)||0}">Ver regra</button>${r.automacao==='semi-automatica'? `<button class="rpg05-btn primary" data-r36-use="${esc(id)}">Usar</button>`:''}<button class="rpg05-btn" data-remove-ritual="${esc(id)}">Remover</button></div></div>`:''}).join(''):'<p class="rpg05-note">Seu personagem ainda não aprendeu rituais.</p>')}
 $('#rpg06-spell-add').onclick=()=>{const id=$('#rpg06-spell-picker').value;if(getKnown().includes(id)){app.notify('Esse ritual já está na ficha.');return}saveKnown([...getKnown(),id]);app.notify('Ritual registrado no personagem.')};
-$('#rpg06-spell-list').onclick=e=>{const b=e.target.closest('[data-remove-ritual]');if(b)saveKnown(getKnown().filter(id=>id!==b.dataset.removeRitual))};
+$('#rpg06-spell-list').onclick=e=>{
+ const remove=e.target.closest('[data-remove-ritual]');
+ if(remove){saveKnown(getKnown().filter(id=>id!==remove.dataset.removeRitual));return}
+ const use=e.target.closest('[data-r36-use]');
+ if(use){
+   if(!getKnown().includes(use.dataset.r36Use)){app.notify('Ritual ainda não aprendido.');return}
+   const ritual=pack.rituais.find(r=>r.id===use.dataset.r36Use);
+   if(!ritual||ritual.automacao!=='semi-automatica'){app.notify('Esse ritual exige consulta à regra.');return}
+   window.RPG05?.executeRitual?.(ritual.id);renderKnown();return;
+ }
+ const rule=e.target.closest('[data-r36-rule]');
+ if(rule){
+   const page=Number(rule.dataset.r36Rule);
+   if(!Number.isInteger(page)||page<1)return;
+   app.navigate('library');
+   const input=$('#op-book-page');if(input)input.value=page;
+   const reader=$('#rpg05-library-reader');if(reader)reader.hidden=false;
+ }
+};
 $('#rpg05-char-select')?.addEventListener('change',()=>setTimeout(renderKnown,0));$('#op-view-ficha').addEventListener('change',()=>setTimeout(renderKnown,50));renderKnown();
 // Troca os modelos únicos por catálogo de criaturas: dados no canvas são locais.
 const select=$('#canvas-creature-select');select.innerHTML=beasts.map((b,i)=>`<option value="${i}">${esc(b.name)} · ${esc(b.elemento)}</option>`).join('');
@@ -202,3 +220,6 @@ const visual=document.createElement('style');visual.textContent='.rpg07-home-her
 
 window.RPG06={beasts,known:getKnown,warnings,renderKnown,openBook:opened};
 })();
+
+// v0.36: alinhar ações dos rituais aprendidos dentro da ficha, sem modal duplicado.
+(()=>{if(document.querySelector('#r36-ritual-style'))return;const css=document.createElement('style');css.id='r36-ritual-style';css.textContent='.r36-ritual-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.rpg06-known{gap:10px;flex-wrap:wrap}.r36-ritual-actions .rpg05-btn{min-height:34px}';document.head.append(css)})();

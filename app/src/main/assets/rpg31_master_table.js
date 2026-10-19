@@ -79,7 +79,7 @@ function open(host,options){
     '<button data-action="panel">Painel</button>'+
     '<button data-action="zoom-out" title="Afastar">-</button><button data-action="zoom-in" title="Aproximar">+</button>'+
     '<button data-action="fit" title="Enquadrar mapa">Enquadrar</button>'+
-    '<button data-action="edit">Editar mapa</button><button data-action="turn">+ Rodada</button><button data-action="close">Sair</button></header>'+
+    '<button data-action="edit">Editar mapa</button><button data-action="turn">+ Turno</button><button data-action="close">Sair</button></header>'+
     '<div class="body"><div id="r31-scroll" class="scroll"><div class="r35-turn-overlay">Vez atual: <strong>'+esc(activeName)+'</strong><small>Rodada '+(d.initiative?.round||1)+'</small></div><div id="r31-board" class="board"></div></div>'+
     '<aside id="r31-aside" class="'+(s.folded?'folded':'')+'"><section><h3>⚄ Rolagens</h3>'+
       '<input id="r31-formula" value="1d20" placeholder="1d20+5" aria-label="Notação do dado">'+
@@ -91,6 +91,7 @@ function open(host,options){
    '<input id="r32-initiative-formula" value="1d20" placeholder="1d20+5">'+
    '<div class="actions"><button data-action="initiative-roll" class="primary">Rolar iniciativa</button><button data-action="initiative-set">Definir valor</button></div>'+
    '<div class="actions"><button data-action="initiative-next">Próximo turno</button><button data-action="initiative-clear">Reiniciar</button></div>'+
+   '<button data-action="scene">Encerrar cena</button>'+
    '<div class="r35-current-turn"><strong>AGORA: '+esc(activeName)+'</strong>'+
     '<small>Rodada '+(d.initiative?.round||1)+'</small></div>'+
    (d.initiative?.entries||[]).map((item,index)=>
@@ -111,6 +112,8 @@ function open(host,options){
             esc(ch.sheet?.name||'Personagem')+'</option>').join('')+'</select></div>';
       }).join('')+
       '<input id="r31-effect" placeholder="Nome do efeito" maxlength="80">'+
+      '<label>Modificador (opcional)<select id="r36-effect-stat"><option value="">Condição sem modificador</option><option value="defesa">Defesa</option><option value="ataque">Ataque</option><option value="pericias">Perícias</option></select></label>'+
+      '<label>Valor do modificador<input id="r36-effect-amount" type="number" min="-20" max="20" value="0"></label>'+
       '<select id="r31-duration"><option value="scene">Cena</option><option value="turn">Turnos</option><option value="permanent">Permanente</option></select>'+
       '<input id="r31-rem" type="number" min="1" max="999" value="3">'+
       '<button data-action="effect" class="primary">Aplicar nos selecionados</button></section>'+
@@ -149,12 +152,18 @@ function open(host,options){
      const form=$('#r31-formula',s.el)?.value||'1d20',initForm=$('#r32-initiative-formula',s.el)?.value||'1d20';
      const selectedIds=[...s.el.querySelectorAll('[data-player]:checked')].map(el=>el.dataset.player);
      const effectName=$('#r31-effect',s.el)?.value||'';
+     const effectStat=$('#r36-effect-stat',s.el)?.value||'',effectAmount=$('#r36-effect-amount',s.el)?.value||'0';
+     const effectUnit=$('#r31-duration',s.el)?.value||'scene',effectRemaining=$('#r31-rem',s.el)?.value||'3';
      const movementSystem=$('#r35-movement-system',s.el)?.value||'ordem-paranormal';
 
      const x=0,y=0;
       s.revision=d.revision;s.data=d;render();
      const rollInput=$('#r31-formula',s.el),initInput=$('#r32-initiative-formula',s.el),effectInput=$('#r31-effect',s.el);
      if(rollInput)rollInput.value=form;if(initInput)initInput.value=initForm;if(effectInput)effectInput.value=effectName;
+     if($('#r36-effect-stat',s.el))$('#r36-effect-stat',s.el).value=effectStat;
+     if($('#r36-effect-amount',s.el))$('#r36-effect-amount',s.el).value=effectAmount;
+     if($('#r31-duration',s.el))$('#r31-duration',s.el).value=effectUnit;
+     if($('#r31-rem',s.el))$('#r31-rem',s.el).value=effectRemaining;
      for(const item of s.el.querySelectorAll('[data-player]'))item.checked=selectedIds.includes(item.dataset.player);
      const selector=$('#r35-movement-system',s.el);
      if(selector){selector.value=movementSystem;const defaults={'ordem-paranormal':9,'d-d':6,'gurps':5};
@@ -237,6 +246,11 @@ function open(host,options){
       return;
     }
     if(action==='turn'){await req('/advance','POST',{kind:'turn'});s.revision=-1;await refresh();return}
+    if(action==='scene'){
+      if(!confirm('Encerrar a cena? A iniciativa e os efeitos de cena serão encerrados.'))return;
+      await req('/advance','POST',{kind:'scene'});
+      s.selected='';feedback('Cena encerrada. Iniciativa reiniciada.');s.revision=-1;await refresh();return;
+    }
     if(action.startsWith('initiative-')){
       if(action==='initiative-clear'&&!confirm('Limpar toda a ordem de iniciativa?'))return;
       const body={action:action==='initiative-roll'?'roll':action==='initiative-set'?'set':action==='initiative-next'?'next':'reset'};
@@ -264,8 +278,12 @@ function open(host,options){
     if(action==='effect'){
       const ids=[...s.el.querySelectorAll('[data-player]:checked')].map(x=>x.dataset.player).filter(Boolean);
       const name=$('#r31-effect',s.el).value.trim(),unit=$('#r31-duration',s.el).value,remaining=Number($('#r31-rem',s.el).value);
+      const stat=$('#r36-effect-stat',s.el).value,amount=Number($('#r36-effect-amount',s.el).value);
       if(!ids.length||!name){feedback('Selecione personagens e um efeito');return}
-      await req('/effects-group','POST',{characterIds:ids,name,unit,remaining});feedback('Efeito aplicado');s.revision=-1;await refresh();return;
+      if(stat&&(!Number.isInteger(amount)||amount< -20||amount>20)){feedback('O modificador deve estar entre -20 e 20');return}
+      await req('/effects-group','POST',{characterIds:ids,name,unit,remaining,stat,amount:stat?amount:0});
+      feedback('Efeito aplicado. O modificador foi registrado na ficha para consulta durante os testes.');
+      s.revision=-1;await refresh();return;
     }
    }
    const clicked=e.target.closest('#r31-scroll');

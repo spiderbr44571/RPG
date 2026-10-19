@@ -1,3 +1,17 @@
+# RPG Mesa v0.36 — simplificação das fichas e da mestragem
+
+**Ficha única.** Removido o grande painel espelhado “Ficha Viva • Base” da ficha de Ordem Paranormal. A ficha editável abaixo continua sendo a referência para atributos, perícias, PV/SAN/PE, inventário, habilidades, retrato, história e rituais. A ferramenta de dados permanece acessível.
+
+**Rituais na própria ficha.** O “Grimório pessoal / Rituais conhecidos” mostra apenas poderes aprendidos, com **Ver regra** e **Usar** exclusivamente para rituais com executor validado. O custo em PE e os efeitos assistidos existentes foram preservados; os demais são consultivos. Rituais que não foram aprendidos não podem ser acionados pelo executor. A pesquisa offline da Biblioteca continua disponível para consultar outras habilidades.
+
+**Mestragem única.** Foi removido o antigo “Controle de cenas — Mestragem offline”, que possuía relógio paralelo não sincronizado com a campanha. O painel de Mestragem mantém as ferramentas de hospedagem, campanhas, jogadores e **Mesa ao Vivo**. Nesta mesa, **Encerrar cena** controla o encerramento real no servidor, atualiza cena, encerra efeitos temporários da cena e reinicia a iniciativa. Modificadores temporários de ataque/defesa/perícias são registrados junto aos efeitos do personagem, com valor entre −20 e +20, para consulta no motor de regras; somente testes cujo executor tiver suporte usam esses valores automaticamente.
+
+**Temas.** Escolher um personagem deixa de trocar o tema global do app. A escolha de aparência continua separada e voluntária na tela de temas. O controle “Trocar elemento” da ficha espelhada foi removido. Campos e dados dos personagens existentes permanecem preservados.
+
+**Compatibilidade.** O contador local antigo não controla mais campanhas; o histórico do usuário não é apagado por esta migração. Integrações do mestre e jogadores seguem funcionando na rede local, inclusive iniciativa, fog of war, movimento e dados.
+
+---
+
 # RPG Mesa v0.35 — iniciativa clara, deslocamento e nevoas
 
 **Mesa ao vivo — mestre:** o personagem/criatura da vez fica visível no topo do painel, sobre o mapa e marcado na lista de iniciativa. O token recebe contorno verde. O botão **Próximo turno** seleciona o próximo participante e reinicia o deslocamento gasto.

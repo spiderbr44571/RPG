@@ -92,6 +92,7 @@ jobs:
           node tests/scenario_v33.test.cjs
           node tests/scenario_v34.test.cjs
           node tests/scenario_v35.test.cjs
+          node tests/scenario_v36.test.cjs
           node --check app/src/main/assets/rpg28_context_search.js
           node tests/contextual_offline_search.test.cjs
           python3 -m py_compile scripts/indexar_pdf.py
