@@ -106,3 +106,31 @@
 }
 @media(max-width:380px){.mm-tools{grid-template-columns:1fr}.mm-tool{min-height:99px}}
 @media(prefers-reduced-motion:reduce){.mm-tool,.mm-link{transition:none!important}}
+
+/* Uma linguagem visual comum para as telas existentes. Herda 100% das preferências do usuário. */
+#screen-sheet .rpg05-band,#screen-library .rpg05-band,#screen-master #r11-campaigns,
+#screen-bestiary .rpg18-panel,#screen-canvas .surface-flat{
+ border-color:var(--line);border-radius:15px;
+}
+#screen-sheet .page-row,#screen-library .page-row,#screen-canvas .page-row,
+#screen-master .page-row,#screen-settings .page-row{margin-bottom:19px}
+#screen-sheet .page-sub,#screen-library .page-sub,#screen-master .page-sub,
+#screen-canvas .page-sub{max-width:700px;line-height:1.7}
+#screen-sheet input:not([type=checkbox]):not([type=radio]),
+#screen-sheet select,#screen-master input:not([type=checkbox]),
+#screen-master select,#screen-library input:not([type=checkbox]),#screen-settings input{
+ accent-color:var(--accent)
+}
+#screen-sheet button,#screen-master button,#screen-library button,
+#screen-bestiary button,#screen-canvas button{touch-action:manipulation}
+#screen-settings .settings-layout{gap:16px}
+#screen-settings .setting-card{border-radius:15px;border-color:var(--line)}
+.mm-tool .mm-tool-icon svg{display:block}
+.mm-tool p,.mm-status .mm-caption{overflow-wrap:anywhere}
+@media(max-width:690px){
+ .screen{padding:20px 13px 56px}
+ .sidebar{max-width:100vw;overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:none}
+ .sidebar::-webkit-scrollbar{display:none}
+ .sidebar .nav-btn{flex:0 0 auto}
+ .rpg05-band,#screen-sheet .op-panel{max-width:100%;min-width:0}
+}
