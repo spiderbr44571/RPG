@@ -1393,18 +1393,23 @@ overlay.addEventListener('click',e=>{const b=e.target.closest('[data-r09-tool]')
 const sheet=$('#screen-sheet'),charSelect=$('#rpg05-char-select');
 if(sheet&&charSelect){const profile=document.createElement('div');profile.id='r09-profile';profile.className='r09-profile';
  const heading=$('#rpg05-sheet-op');heading?.parentNode?.insertBefore(profile,heading);
- function renderProfile(){const c=sys.state,photo=typeof c.photo==='string'&&c.photo.startsWith('data:image/')?c.photo:null;
+ function renderProfile(){const c=sys.state,photo=typeof c.photo==='string'&&/^data:image\/(png|jpeg|webp);base64,/.test(c.photo)?c.photo:null;
+  profile.dataset.currentId=window.MastermindCharacters?.selectedId?.()||'';
+  profile.dataset.currentName=c.name||'';
+  profile.dataset.currentPhoto=photo?photo.length+':'+photo.slice(-24):'';
   const theme=['theme-sigilo','theme-cris','theme-dossie'].includes(c.sheetTheme)?c.sheetTheme:'theme-sigilo';
   profile.className='r09-profile '+theme;sheet.setAttribute('data-r09-theme',theme);
   profile.innerHTML=`<div><div class="r09-portrait">${photo?`<img src="${photo}" alt="Retrato personalizado do agente">`:'✧'}</div><label class="r09-photo-button" for="r09-upload-photo">+ Escolher retrato</label><input id="r09-upload-photo" type="file" accept="image/png,image/jpeg,image/webp" hidden></div><div><small style="letter-spacing:.12em">ARQUIVO DO AGENTE</small><h3>${esc(c.name||'Novo agente')}</h3><label>Tema da ficha</label><select id="r09-sheet-theme"><option value="theme-sigilo" ${theme==='theme-sigilo'?'selected':''}>Sigilo Rubro</option><option value="theme-cris" ${theme==='theme-cris'?'selected':''}>Painel Tecnológico (inspirado em CRIS)</option><option value="theme-dossie" ${theme==='theme-dossie'?'selected':''}>Dossiê Clássico</option></select><p class="r09-profile-hint">Retrato e tema ficam salvos nesta ficha e podem ser exportados em JSON.</p></div>`;
  }
- function updateChar(patch){const changed=sys.changeCharacter({...sys.state,...patch});if(changed){$('#op-view-ficha')?.dispatchEvent(new Event('change',{bubbles:true}));renderProfile()}else app.notify('Falha ao salvar ficha')}
+ function updateChar(patch,id=window.MastermindCharacters?.selectedId?.()){const changed=id?window.MastermindCharacters?.update?.(id,patch):sys.changeCharacter({...sys.state,...patch});if(changed){if(id===window.MastermindCharacters?.selectedId?.())renderProfile()}else app.notify('Falha ao salvar ficha')}
  profile.addEventListener('change',e=>{if(e.target.id==='r09-sheet-theme'){updateChar({sheetTheme:e.target.value});return}
   if(e.target.id!=='r09-upload-photo')return;const file=e.target.files?.[0];if(!file)return;if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>10*1024*1024){app.notify('Use imagem PNG/JPG/WebP de até 10 MB.');return}
-  const fr=new FileReader();fr.onload=()=>{const img=new Image();img.onload=()=>{const cvs=document.createElement('canvas');const size=420;cvs.width=size;cvs.height=size;const ctx=cvs.getContext('2d');ctx.fillStyle='#15101b';ctx.fillRect(0,0,size,size);const sc=Math.max(size/img.width,size/img.height),w=img.width*sc,h=img.height*sc;ctx.drawImage(img,(size-w)/2,(size-h)/2,w,h);updateChar({photo:cvs.toDataURL('image/jpeg',.78)})};img.onerror=()=>app.notify('Imagem inválida');img.src=fr.result};fr.readAsDataURL(file);
+  const targetCharacterId=window.MastermindCharacters?.selectedId?.();
+  const fr=new FileReader();fr.onload=()=>{const img=new Image();img.onload=()=>{const cvs=document.createElement('canvas');const size=420;cvs.width=size;cvs.height=size;const ctx=cvs.getContext('2d');ctx.fillStyle='#15101b';ctx.fillRect(0,0,size,size);const sc=Math.max(size/img.width,size/img.height),w=img.width*sc,h=img.height*sc;ctx.drawImage(img,(size-w)/2,(size-h)/2,w,h);updateChar({photo:cvs.toDataURL('image/jpeg',.78)},targetCharacterId)};img.onerror=()=>app.notify('Imagem inválida');img.src=fr.result};fr.readAsDataURL(file);
  });
  charSelect.addEventListener('change',()=>setTimeout(renderProfile,0));
- const mo=new MutationObserver(()=>{const c=sys.state;if(profile.dataset.currentName!==(c.name||'')){profile.dataset.currentName=c.name||'';renderProfile()}});mo.observe($('#op-view-ficha'),{attributes:true,subtree:true,childList:true});
+ document.addEventListener('rpg:character-selected',()=>setTimeout(renderProfile,0));
+ const mo=new MutationObserver(()=>{const c=sys.state,id=window.MastermindCharacters?.selectedId?.()||'';const pic=typeof c.photo==='string'&&c.photo.startsWith('data:image/')?c.photo:'';const sig=pic?pic.length+':'+pic.slice(-24):'';if(profile.dataset.currentId!==id||profile.dataset.currentName!==(c.name||'')||profile.dataset.currentPhoto!==sig)renderProfile()});mo.observe($('#op-view-ficha'),{attributes:true,subtree:true,childList:true});
  renderProfile();
 }
 // The first page of a PDF is rendered by the native Android PdfRenderer, not via online services.
