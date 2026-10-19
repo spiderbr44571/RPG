@@ -49,6 +49,6 @@ assert.match(css,/\.mm42-master-panel/);
 assert.match(css,/\.mm42-media-host audio/);
 assert.match(css,/\.mm42-board-bar/);
 const build=fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8');
-assert.match(build,/versionCode 42/);
+assert.ok(Number(build.match(/versionCode ([0-9]+)/)?.[1])>=42,'v0.42 compatibility with later releases');
 assert.match(build,/applicationId 'dev\.rpgmesa\.demo'/);
 console.log('PASS v0.42: independent campaign canvases, legacy migration, colored links, media IDB, GM overview and Android UI');

@@ -74,7 +74,7 @@ function switchBoard(id){
  if(!saveBoard())return false;
  releaseMedia();
  index.activeId=id;metaSave();restoreBoard(id);
- linkMode=false;linkStart=null;refreshUI();
+ linkMode=false;linkStart=null;dismissEdgeMenu();refreshUI();
  return true;
 }
 function addBoard(){
@@ -88,7 +88,7 @@ function addBoard(){
  try{localStorage.setItem(boardKey(id),JSON.stringify({version:1,nodes:[],monsters:[],links:[],view:{panX:0,panY:0,zoom:1}}))}
  catch(e){notify('Nao foi possivel criar o Canvas: armazenamento cheio.');return}
  index.boards.push(meta);index.activeId=id;
- metaSave();releaseMedia();restoreBoard(id);linkMode=false;linkStart=null;refreshUI();
+ metaSave();releaseMedia();restoreBoard(id);linkMode=false;linkStart=null;dismissEdgeMenu();refreshUI();
  notify('Novo Canvas criado para '+meta.campaign+'.');
 }
 function duplicateBoard(){
@@ -118,7 +118,7 @@ function deleteBoard(){
  index.boards=index.boards.filter(b=>b.id!==oldId);
  index.activeId=next.id;metaSave();
  localStorage.removeItem(boardKey(oldId));
- releaseMedia();restoreBoard(next.id);linkMode=false;linkStart=null;refreshUI();
+ releaseMedia();restoreBoard(next.id);linkMode=false;linkStart=null;dismissEdgeMenu();refreshUI();
 }
 function openDB(){
  return new Promise((resolve,reject)=>{
@@ -249,6 +249,68 @@ const lineSvg=document.createElementNS('http://www.w3.org/2000/svg','svg');
 lineSvg.id='mm42-edges';lineSvg.setAttribute('viewBox','-15000 -15000 30000 30000');
 lineSvg.setAttribute('aria-label','Conexoes coloridas do Canvas');
 $('#canvas-lines').after(lineSvg);
+// Menu flutuante no viewport (nao e escalado com o Canvas).
+const edgeMenu=document.createElement('div');
+edgeMenu.id='mm43-link-menu';edgeMenu.hidden=true;edgeMenu.setAttribute('role','group');
+edgeMenu.setAttribute('aria-label','Acoes da ligacao selecionada');
+edgeMenu.innerHTML='<div class="mm43-edge-label"><i id="mm43-edge-color"></i><strong id="mm43-edge-name"></strong></div>'+
+ '<div class="mm43-edge-buttons"><button type="button" id="mm43-edge-delete">Excluir ligacao</button>'+
+ '<button type="button" id="mm43-edge-cancel">Cancelar</button></div>';
+const edgeViewport=$('#canvas-viewport');edgeViewport.append(edgeMenu);
+let selectedEdgeId=null;
+function dismissEdgeMenu(){
+ selectedEdgeId=null;edgeMenu.hidden=true;
+ for(const p of lineSvg.querySelectorAll('.mm43-selected'))p.classList.remove('mm43-selected');
+}
+function showEdgeMenu(id,clientX,clientY){
+ const edge=active?.links?.find(l=>l.id===id);
+ if(!edge)return dismissEdgeMenu();
+ selectedEdgeId=id;
+ $('#mm43-edge-name').textContent=labelTarget(edge.a)+' ↔ '+labelTarget(edge.b);
+ $('#mm43-edge-color').style.background=goodColor(edge.color);
+ edgeMenu.hidden=false;
+ const rect=edgeViewport.getBoundingClientRect();
+ const maxX=Math.max(10,rect.width-edgeMenu.offsetWidth-10);
+ const maxY=Math.max(10,rect.height-edgeMenu.offsetHeight-10);
+ edgeMenu.style.left=Math.min(maxX,Math.max(10,clientX-rect.left+8))+'px';
+ edgeMenu.style.top=Math.min(maxY,Math.max(10,clientY-rect.top-edgeMenu.offsetHeight-12))+'px';
+ for(const p of lineSvg.querySelectorAll('.mm43-link-visible')){
+  p.classList.toggle('mm43-selected',p.dataset.edgeId===id);
+ }
+}
+function deleteEdge(id){
+ if(!id||!active?.links?.some(l=>l.id===id))return;
+ const previous=active.links;
+ active.links=previous.filter(l=>l.id!==id);
+ if(!saveBoard()){active.links=previous;return}
+ dismissEdgeMenu();scheduleLinks();renderLinkList();refreshMaster();
+ notify('Ligacao removida do Canvas.');
+}
+edgeMenu.addEventListener('pointerdown',event=>event.stopPropagation());
+edgeMenu.addEventListener('click',event=>event.stopPropagation());
+$('#mm43-edge-delete').addEventListener('click',()=>deleteEdge(selectedEdgeId));
+$('#mm43-edge-cancel').addEventListener('click',dismissEdgeMenu);
+edgeViewport.addEventListener('pointerdown',event=>{
+ if(!edgeMenu.hidden&&!event.target.closest('#mm43-link-menu,.mm43-link-hit'))dismissEdgeMenu();
+},true);
+lineSvg.addEventListener('pointerdown',event=>{
+ if(event.target.closest('.mm43-link-hit'))event.stopPropagation();
+},true);
+lineSvg.addEventListener('click',event=>{
+ const hit=event.target.closest('.mm43-link-hit');
+ if(!hit)return;
+ event.preventDefault();event.stopPropagation();
+ showEdgeMenu(hit.dataset.edgeId,event.clientX,event.clientY);
+});
+lineSvg.addEventListener('keydown',event=>{
+ if(!['Enter',' '].includes(event.key))return;
+ const hit=event.target.closest('.mm43-link-hit');
+ if(!hit)return;
+ event.preventDefault();event.stopPropagation();
+ const rect=hit.getBoundingClientRect();
+ showEdgeMenu(hit.dataset.edgeId,rect.left+rect.width/2,rect.top+rect.height/2);
+});
+
 function renderLines(){
  const ns='http://www.w3.org/2000/svg';
  const out=document.createDocumentFragment();
@@ -263,7 +325,23 @@ function renderLines(){
   path.setAttribute('fill','none');
   path.setAttribute('stroke-linecap','round');
   path.setAttribute('opacity','.92');
-  out.append(path);
+  path.classList.add('mm43-link-visible');
+  path.dataset.edgeId=edge.id;
+  if(edge.id===selectedEdgeId)path.classList.add('mm43-selected');
+  // Area de toque transparente, independente da espessura visual da linha.
+  const hit=document.createElementNS(ns,'path');
+  hit.setAttribute('d',path.getAttribute('d'));
+  hit.setAttribute('stroke','transparent');
+  hit.setAttribute('stroke-width','23');
+  hit.setAttribute('vector-effect','non-scaling-stroke');
+  hit.setAttribute('fill','none');
+  hit.setAttribute('pointer-events','stroke');
+  hit.setAttribute('role','button');
+  hit.setAttribute('tabindex','0');
+  hit.setAttribute('aria-label','Selecionar ligacao entre '+labelTarget(edge.a)+' e '+labelTarget(edge.b));
+  hit.dataset.edgeId=edge.id;
+  hit.classList.add('mm43-link-hit');
+  out.append(path,hit);
  }
  lineSvg.replaceChildren(out);
 }
@@ -303,6 +381,9 @@ for(const layer of ['#node-layer','#encounter-layer']){
 function setLinkStatus(t){const el=$('#mm42-link-status');if(el)el.textContent=t}
 function renderLinkList(){
  const list=$('#mm42-link-list');if(!list)return;
+ const count=$('#mm43-link-count');if(count)count.textContent=String(active.links.length);
+ const directory=$('#mm43-link-directory');
+ if(directory&&!directory.open){list.replaceChildren();return}
  list.innerHTML=active.links.length?active.links.map(l=>
  '<div class="mm42-link-item"><span class="mm42-link-dot" style="background:'+goodColor(l.color)+'"></span>'+
  '<span>'+escape(labelTarget(l.a))+' ↔ '+escape(labelTarget(l.b))+'</span>'+
@@ -381,7 +462,7 @@ linkBar.innerHTML='<div class="mm42-link-top"><div><strong>Ligações do Canvas<
  '<div class="mm42-link-controls"><label>Cor <input type="color" id="mm42-color" value="'+selectedColor+'"></label>'+
  '<button type="button" id="mm42-link-toggle">Conectar itens</button></div></div>'+
  '<div id="mm42-presets">'+colors.map(c=>'<button type="button" data-mm42-color="'+c+'" style="background:'+c+'" aria-label="Cor '+c+'"></button>').join('')+'</div>'+
- '<div id="mm42-link-list"></div>';
+ '<details id="mm43-link-directory"><summary>Ver lista de ligacoes (<span id="mm43-link-count">0</span>)</summary><div id="mm42-link-list"></div></details>';
 $('#canvas-viewport').before(linkBar);
 const master=document.querySelector('#screen-master');
 if(master){
@@ -407,15 +488,16 @@ $('#mm42-presets').addEventListener('click',e=>{
  const sw=e.target.closest('[data-mm42-color]');if(sw){selectedColor=goodColor(sw.dataset.mm42Color);$('#mm42-color').value=selectedColor}
 });
 $('#mm42-link-toggle').addEventListener('click',()=>{
- linkMode=!linkMode;linkStart=null;
+ linkMode=!linkMode;linkStart=null;dismissEdgeMenu();
  $('#mm42-link-toggle').classList.toggle('active',linkMode);
  $('#mm42-link-toggle').textContent=linkMode?'Concluir ligacoes':'Conectar itens';
  setLinkStatus(linkMode?'Toque em dois itens, em sequencia, para ligar.':'Modo de conexao desativado.');
 });
+$('#mm43-link-directory').addEventListener('toggle',renderLinkList);
 $('#mm42-link-list').addEventListener('click',e=>{
  const btn=e.target.closest('[data-unlink]');
- if(!btn)return;active.links=active.links.filter(l=>l.id!==btn.dataset.unlink);
- saveBoard();renderLinkList();scheduleLinks();refreshMaster();
+ if(!btn)return;
+ deleteEdge(btn.dataset.unlink);
 });
 window.addEventListener('pagehide',()=>{saveBoard();releaseMedia()});
 bootIndex();refreshUI();
