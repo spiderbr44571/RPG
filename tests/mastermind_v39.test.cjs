@@ -22,7 +22,7 @@ assert.match(js,/c\.trail/);
 assert.match(js,/NEX /);
 assert.match(js,/resources/);
 assert.match(js,/photo/);
-assert.match(js,/mm39-PV/);
+assert.match(js,/meter\(key,label,data\)/);
 assert.match(js,/header\.appendChild\(button\)/);
 assert.match(js,/host\.appendChild\(banner\)/);
 assert.match(js,/settingsScreen/);
