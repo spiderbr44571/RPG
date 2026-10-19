@@ -382,6 +382,8 @@ function setLinkStatus(t){const el=$('#mm42-link-status');if(el)el.textContent=t
 function renderLinkList(){
  const list=$('#mm42-link-list');if(!list)return;
  const count=$('#mm43-link-count');if(count)count.textContent=String(active.links.length);
+ const directory=$('#mm43-link-directory');
+ if(directory&&!directory.open){list.replaceChildren();return}
  list.innerHTML=active.links.length?active.links.map(l=>
  '<div class="mm42-link-item"><span class="mm42-link-dot" style="background:'+goodColor(l.color)+'"></span>'+
  '<span>'+escape(labelTarget(l.a))+' ↔ '+escape(labelTarget(l.b))+'</span>'+
@@ -491,6 +493,7 @@ $('#mm42-link-toggle').addEventListener('click',()=>{
  $('#mm42-link-toggle').textContent=linkMode?'Concluir ligacoes':'Conectar itens';
  setLinkStatus(linkMode?'Toque em dois itens, em sequencia, para ligar.':'Modo de conexao desativado.');
 });
+$('#mm43-link-directory').addEventListener('toggle',renderLinkList);
 $('#mm42-link-list').addEventListener('click',e=>{
  const btn=e.target.closest('[data-unlink]');
  if(!btn)return;
