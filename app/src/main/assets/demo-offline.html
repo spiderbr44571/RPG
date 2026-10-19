@@ -785,11 +785,28 @@ let characters=mem(charsKey,[]);
 if(!Array.isArray(characters))characters=[];
 if(!characters.length)characters=[{id:'a-'+Date.now(),name:'Novo agente',character:sys.state}];
 let selectedChar=mem('rpg-v05-selected-char',characters[0].id);if(!characters.some(c=>c.id===selectedChar))selectedChar=characters[0].id;
-function persistCurrent(){if(window.__rpgRemoteSheetEditing)return;const c=characters.find(c=>c.id===selectedChar);if(c){c.character=sys.state;c.name=sys.state.name||'Novo agente';save(charsKey,characters);renderCharSelect(false)}}
+function persistCurrent(){if(window.__rpgRemoteSheetEditing)return;
+ const c=characters.find(c=>c.id===selectedChar);
+ if(c){c.character=sys.state;c.name=sys.state.name||'Novo agente';save(charsKey,characters);
+  // Não reconstruir o select durante 'change': ele perderia a nova seleção.
+  const option=[...$('#rpg05-char-select').options].find(o=>o.value===selectedChar);
+  if(option)option.textContent=c.name;
+ }
+}
 let selectionRendering=false;
 function renderCharSelect(updateValue=true){const sel=$('#rpg05-char-select'),previous=sel.value;sel.innerHTML=characters.map(c=>`<option value="${escapeHTML(c.id)}">${escapeHTML(c.name)}</option>`).join('');sel.value=selectedChar;}
-function activateCharacter(id){const record=characters.find(c=>c.id===id);if(!record)return;selectedChar=id;save('rpg-v05-selected-char',id);sys.changeCharacter(record.character);renderCharSelect();renderItems();renderCatalogs();}
-$('#rpg05-char-select').addEventListener('change',e=>{persistCurrent();activateCharacter(e.target.value)});
+function activateCharacter(id){const record=characters.find(c=>c.id===id);if(!record)return;
+ // Alterar o modelo antes de publicar o id selecionado; nunca sobrescrever outra ficha.
+ if(!sys.changeCharacter(record.character)){notify('Não foi possível carregar esta ficha.');return}
+ selectedChar=id;save('rpg-v05-selected-char',id);
+ renderCharSelect();renderItems();renderCatalogs();
+ document.dispatchEvent(new CustomEvent('rpg:character-selected',{detail:{id}}));
+}
+$('#rpg05-char-select').addEventListener('change',e=>{
+ const destination=e.target.value; // capturar antes de persistir a ficha anterior
+ if(!characters.some(c=>c.id===destination))return;
+ persistCurrent();activateCharacter(destination);
+});
 $('#rpg05-new-char').onclick=()=>{persistCurrent();const id='a-'+Date.now()+'-'+Math.floor(Math.random()*1000),fresh={...sys.state,name:'Novo agente',class:'Combatente',origin:'Acadêmico',trail:'Aniquilador',nex:5,attrs:{Agilidade:1,Força:1,Intelecto:1,Presença:1,Vigor:1},resources:{PV:20,PE:3,SAN:12},skills:{},powers:[],rituaisConhecidos:[],effects:[],scene:1,turn:1};characters.push({id,name:fresh.name,character:fresh});activateCharacter(id);notify('Nova ficha criada no sistema Ordem Paranormal')};
 $('#rpg05-del-char').onclick=()=>{if(characters.length<2){notify('Mantenha ao menos uma ficha. Você pode começar um agente novo.');return}if(!confirm('Excluir esta ficha do dispositivo?'))return;characters=characters.filter(x=>x.id!==selectedChar);activateCharacter(characters[0].id);save(charsKey,characters)};
 const saveOld=window.setInterval; // Sincroniza alterações da ficha sem interferir nos cálculos determinísticos.
@@ -833,12 +850,37 @@ function keepItems(list){if(window.__rpgRemoteSheetEditing){window.__rpgRemoteIt
 function totalCategory(it){return Number(it.categoriaBase||0)+(it.modificacoes||[]).length+((it.maldicoes||[]).length?2+(it.maldicoes.length-1):0)}
 const levels=['0','I','II','III','IV','V','VI','VII','VIII','IX'];
 function describeItem(it){const mods=(it.modificacoes||[]).join(', '),curse=(it.maldicoes||[]).map(x=>x.nome+' ('+x.elemento+')').join(', ');return `Categoria ${levels[totalCategory(it)]||totalCategory(it)} · ${it.categoriaItem.replaceAll('_',' ')} · ${it.espacos??'?'} espaços${mods?' · Modif.: '+mods:''}${curse?' · Maldições: '+curse:''}`}
-const itemPanel=document.createElement('div');itemPanel.className='rpg05-band';itemPanel.id='rpg05-inventory';itemPanel.innerHTML=`<h3>Inventário do agente</h3><p class="rpg05-note">O inventário recebe armas, equipamentos comuns, itens paranormais e itens amaldiçoados. Modificações são mundanas; maldições, sobrenaturais. A primeira maldição soma II na categoria e as seguintes somam I (p.144).</p><div class="rpg05-controls"><select id="rpg05-item-catalog" class="rpg05-input"></select><button class="rpg05-btn primary" id="rpg05-add-item">+ Adicionar</button><button class="rpg05-btn" id="rpg05-custom-item">Criar item</button></div><div id="rpg05-inventory-list"></div>`;
+const itemPanel=document.createElement('div');itemPanel.className='rpg05-band';itemPanel.id='rpg05-inventory';itemPanel.innerHTML=`<h3>Inventário do agente</h3><p class="rpg05-note">O inventário recebe armas, equipamentos comuns, itens paranormais e itens amaldiçoados. Modificações são mundanas; maldições, sobrenaturais. A primeira maldição soma II na categoria e as seguintes somam I (p.144).</p><div class="rpg05-controls"><select id="rpg05-item-catalog" class="rpg05-input"></select><button class="rpg05-btn primary" id="rpg05-add-item">+ Adicionar</button><button class="rpg05-btn" id="rpg05-custom-item">Criar item</button></div><div id="r37-inventory-summary" class="r37-inventory-summary" aria-live="polite"></div><div id="rpg05-inventory-list"></div>`;
 $('#rpg05-sheet-op').append(itemPanel);
 function fillCatalog(){const all=[...e.armas,...e.gerais];$('#rpg05-item-catalog').innerHTML=all.map((it,i)=>`<option value="${i}">${escapeHTML(it.nome)} · ${escapeHTML(it.categoriaItem)}</option>`).join('')}
 fillCatalog();
-function renderItems(){const container=$('#rpg05-inventory-list');if(!container)return;const l=items();container.innerHTML=l.length?l.map((it,i)=>`<div class="rpg05-inventory-row"><div><strong>${escapeHTML(it.nome)}</strong><p class="rpg05-note" style="margin:3px 0">${escapeHTML(describeItem(it))}</p></div><div class="rpg05-controls"><button data-edit-item="${i}" class="rpg05-btn">Configurar</button><button data-remove-item="${i}" class="rpg05-btn">Remover</button></div></div>`).join(''):'<div class="rpg05-empty">Inventário vazio. Adicione uma arma, ferramenta ou item paranormal.</div>'}
+function renderItems(){
+ const container=$('#rpg05-inventory-list');if(!container)return;const l=items();
+ const summary=$('#r37-inventory-summary'),budget=window.RPG37_RULES?.inventoryBudget(sys.state,l);
+ if(summary&&budget){
+  const warnings=[];
+  if(budget.overloaded)warnings.push(`Carga excedida em ${(budget.used-budget.capacity).toLocaleString('pt-BR')} espaço(s).`);
+  if(budget.immobile)warnings.push('Mais que o dobro da carga: consulte as restrições de deslocamento.');
+  for(const item of budget.overLimits)warnings.push(`Categoria ${levels[item.category]}: ${item.used}/${item.max} — acima do limite.`);
+  for(const item of budget.overCategory)warnings.push(`${item.name}: categoria ${item.category} acima de IV.`);
+  summary.classList.toggle('r37-warning',warnings.length>0);
+  summary.innerHTML='<strong>Carga: '+budget.used.toLocaleString('pt-BR')+'/'+budget.capacity.toLocaleString('pt-BR')+
+    ' espaços</strong><small>Patente: '+escapeHTML(budget.rank)+' · Categoria 0 sem limite de patente</small>'+
+    '<div class="r37-category-grid">'+[1,2,3,4].map(cat=>
+      '<span class="'+(budget.counts[cat]>budget.caps[cat-1]?'r37-over':'')+'">Categoria '+levels[cat]+': '+
+      budget.counts[cat]+'/'+budget.caps[cat-1]+'</span>').join('')+'</div>'+
+    (warnings.length?'<p class="r37-inventory-warning" role="alert">'+warnings.map(escapeHTML).join(' ')+'</p>':
+      '<p class="r37-inventory-ok">Dentro dos limites registrados.</p>');
+ }
+ container.innerHTML=l.length?l.map((it,i)=>`<div class="rpg05-inventory-row"><div><strong>${escapeHTML(it.nome)}</strong><p class="rpg05-note" style="margin:3px 0">${escapeHTML(describeItem(it))}</p></div><div class="rpg05-controls"><button data-edit-item="${i}" class="rpg05-btn">Configurar</button><button data-remove-item="${i}" class="rpg05-btn">Remover</button></div></div>`).join(''):'<div class="rpg05-empty">Inventário vazio. Adicione um equipamento para começar.</div>';
+}
 window.RPG05_inventory={render:renderItems,setItems:list=>{if(!Array.isArray(list))throw Error('Inventario invalido');keepItems(list);renderItems();}};
+ // Atualiza os limites quando patente, Força ou personagem são alterados.
+ $('#op-patente')?.addEventListener('change',()=>setTimeout(renderItems,0));
+ $('#rpg05-char-select')?.addEventListener('change',()=>setTimeout(renderItems,0));
+ $('#op-atributos')&&new MutationObserver(()=>{if($('#rpg05-inventory-list'))renderItems()})
+  .observe($('#op-atributos'),{childList:true,subtree:true});
+ document.addEventListener('rpg:character-selected',()=>setTimeout(renderItems,0));
 $('#rpg05-add-item').onclick=()=>{const all=[...e.armas,...e.gerais];const obj=all[Number($('#rpg05-item-catalog').value)];if(!obj)return;keepItems([...items(),{...structuredClone(obj),modificacoes:[],maldicoes:[],uid:Date.now()+'-'+Math.random()}]);renderItems()};
 $('#rpg05-custom-item').onclick=()=>editDialog({heading:'Criar item personalizado',fields:[{id:'nome',label:'Nome',value:''},{id:'categoriaItem',label:'Categoria (arma, ferramenta, item_paranormal...)',value:'equipamento'},{id:'categoriaBase',label:'Categoria base (0–4)',type:'number',value:'0'},{id:'espacos',label:'Espaços',type:'number',value:'1'}],onSave:obj=>{if(!obj.nome.trim())return;keepItems([...items(),{nome:obj.nome.trim().slice(0,70),categoriaItem:obj.categoriaItem.trim().slice(0,35),categoriaBase:safeInt(obj.categoriaBase,0,4),espacos:safeInt(obj.espacos,0,20),modificacoes:[],maldicoes:[],uid:Date.now()+'-'+Math.random()}]);renderItems()}});
 $('#rpg05-inventory-list').onclick=ev=>{const rm=ev.target.closest('[data-remove-item]'),ed=ev.target.closest('[data-edit-item]');if(rm){const arr=items();arr.splice(Number(rm.dataset.removeItem),1);keepItems(arr);renderItems();return}if(ed)editInventory(Number(ed.dataset.editItem))};
