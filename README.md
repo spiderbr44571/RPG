@@ -1,3 +1,11 @@
+# Mastermind v0.40 — imagens no Canvas infinito
+
+O botão **Adicionar imagem** aceita PNG, JPG e WebP (arquivo original até 10 MB) em dispositivos Android e desktop, além de arrastar e soltar arquivos no Canvas no computador. As imagens são redimensionadas e comprimidas localmente, sem necessidade de servidor ou IA, e surgem como cartões de tipo **IMAGEM**, que podem ser movidos, redimensionados, duplicados, editados e removidos. O Canvas continua com zoom/pan por toque ou mouse e mantém cartões anteriores e os controles de criatura. A identidade visual e a personalização do Mastermind permanecem intactas.
+
+O conteúdo comprimido das imagens fica salvo no mesmo snapshot local de anotações e pode acompanhar o snapshot manual enviado à campanha, respeitando os limites do armazenamento local e do servidor. Se a capacidade acabar, o aplicativo avisa e não insere o novo cartão. Não há ainda biblioteca de imagens independente nem sincronização contínua automática das imagens.
+
+---
+
 # Mastermind v0.39 — interface redesenhada e ficha real no painel inicial
 
 **Painel inicial conectado à ficha real:** o cartão “Continuar de onde parou” consulta o controlador ativo de personagens, não exemplos ou uma segunda ficha. Ele mostra nome, retrato salvo no formato PNG/JPEG/WebP, classe, trilha, NEX, PV/PE/SAN e seus máximos calculados no motor de Ordem Paranormal. O botão **Abrir esta ficha** passa o identificador do personagem ao controlador e abre a ficha exata. A lista de fichas também possui atalhos individuais, respeitando a seleção salva.
