@@ -666,12 +666,19 @@ function render(){const c=resources();
  // Efeitos continuam no motor determinístico e na Mesa ao Vivo; não há controles duplicados na ficha.
  const budget=window.RPG37_RULES?.skillBudget(state,pack);
  const info=$('#r37-skills-budget');
- if(info){const text=budget?.known?
- `Perícias livres: ${budget.remaining} restantes de ${budget.total} · ${budget.used} selecionadas`:
- 'Limite de perícias ainda não cadastrado para este sistema.';
- info.textContent=text+(budget?.excess?` · ${budget.excess} acima do limite`:'')+(budget?.missing?.length?` · Obrigatórias pendentes: ${budget.missing.join(', ')}`:'')+
- (budget?.origin?.length?` · Origem: ${budget.origin.join(', ')}`:'');
- info.classList.toggle('r37-warning',Boolean(budget?.excess||budget?.missing?.length));}
+ if(info){
+  if(budget?.known){
+   const b=budget.selections,u=budget.upgrades;
+   info.innerHTML='<div class="mm44-skill-counts">'+
+    '<div><small>Perícias adicionais</small><strong>'+b.remaining+' / '+b.total+'</strong><span>Selecionadas: '+b.used+'</span></div>'+
+    '<div><small>Upgrades disponíveis</small><strong>'+u.remaining+' / '+u.total+'</strong><span>Usados: '+u.used+' · Máximo atual: +'+(u.gradeCap*5)+'</span></div></div>'+
+    (budget.missing.length?'<p>Obrigatórias pendentes: '+budget.missing.map(esc).join(', ')+'</p>':'')+
+    (budget.invalidGrades.length?'<p>Grau inválido para este NEX: '+budget.invalidGrades.map(esc).join(', ')+'</p>':'')+
+    (b.excess||u.excess?'<p>Limite excedido. Remova escolhas/upgrades anteriores.</p>':'')+
+    (budget.origin.length?'<p>Perícias de origem: '+budget.origin.map(esc).join(', ')+'</p>':'');
+   info.classList.toggle('r37-warning',Boolean(b.excess||u.excess||budget.invalidGrades.length||budget.missing.length));
+  }else info.textContent='Limites de perícias indisponíveis para este sistema.';
+ }
  renderPowers();save();}
 function renderPowers(){const opts=[{n:'Ataque Especial',class:'Combatente',min:5,cost:2,tag:'roll'},{n:'Combate Defensivo',class:'Combatente',min:15,cost:0,tag:'defense',req:'Intelecto 2+'},{n:'Sentido Tático',class:'Combatente',min:15,cost:2,tag:'defense',req:'Intelecto 2+'},{n:'Reflexos Defensivos',class:'Combatente',min:15,cost:0,tag:'passive',req:'Agilidade 2+'},{n:'Perito',class:'Especialista',min:5,cost:2,tag:'roll'},{n:'Eclético',class:'Especialista',min:5,cost:2,tag:'roll'},{n:'Paramédico',class:'Especialista',min:10,cost:2,tag:'heal',trail:'Médico de Campo'},{n:'Escolhido pelo Outro Lado',class:'Ocultista',min:5,cost:0,tag:'info'},{n:'Ritual Potente',class:'Ocultista',min:15,cost:0,tag:'passive',req:'Intelecto 2+'}];
  const eligible=opts.filter(x=>x.class===state.class&&(x.trail?state.trail===x.trail:true));
@@ -705,14 +712,24 @@ $('#op-nome').addEventListener('change',e=>{state.name=e.target.value.slice(0,80
 $('#op-atributos').addEventListener('click',e=>{const b=e.target.closest('[data-attr]');if(!b)return;const n=b.dataset.attr,step=Number(b.dataset.step),max=state.nex>=20?5:3,arr=Object.values(state.attrs),oneZero=arr.includes(0);if(step<0&&state.attrs[n]===1&&oneZero)return;const total=arr.reduce((s,v)=>s+v-1,0),allowed=4+[20,50,80,95].filter(x=>x<=state.nex).length;const proposed=state.attrs[n]+step;if(proposed<0||proposed>max||(step>0&&total>=allowed))return;snapshot();state.attrs[n]=proposed;render()});
 $('#op-recursos').addEventListener('click',e=>{const b=e.target.closest('[data-resource]');if(!b)return;snapshot();let k=b.dataset.resource;state.resources[k]=clamp(state.resources[k]+Number(b.dataset.step),0,calc()[k]);render()});
 $('#op-pericias').addEventListener('click',e=>{const b=e.target.closest('[data-skill]');if(b)skillRoll(b.dataset.skill)});
-$('#op-pericias').addEventListener('change',e=>{const b=e.target.closest('[data-train]');if(!b)return;
- const grade=clamp(b.value,0,3),previous=Number(state.skills[b.dataset.train]||0);
- const next={...state,skills:{...state.skills,[b.dataset.train]:grade}};
+$('#op-pericias').addEventListener('change',e=>{
+ const b=e.target.closest('[data-train]');if(!b)return;
+ const name=b.dataset.train,grade=clamp(b.value,0,3);
+ const originSkill=origin().pericias.includes(name);
+ const previous=Number(state.skills[name]??(originSkill?1:0));
+ const next={...state,skills:{...state.skills,[name]:grade}};
  const budget=window.RPG37_RULES?.skillBudget(next,pack);
- if(previous===0&&grade>0&&budget?.known&&budget.excess>0){
-   b.value=String(previous);$('#op-rolagem').textContent='Limite de perícias livres alcançado. Desmarque outra perícia para continuar.';return;
- }
- snapshot();state.skills[b.dataset.train]=grade;render()});
+ let warning='';
+ if(originSkill&&grade<1)warning='Perícia da origem não pode ser removida.';
+ else if(budget?.known&&budget.invalidGrades.includes(name))
+  warning='Este grau de treinamento ainda não está liberado pelo NEX. Veterano: 35%; Expert: 70%.';
+ else if(budget?.known&&budget.selections.excess>0)
+  warning='Sem perícias adicionais disponíveis. Remova outra seleção.';
+ else if(budget?.known&&budget.upgrades.excess>0)
+  warning='Sem upgrades disponíveis. Aumente o NEX ou reduza outro treinamento.';
+ if(warning){b.value=String(previous);$('#op-rolagem').textContent=warning;return}
+ snapshot();state.skills[name]=grade;render();
+});
 $('#op-poderes').addEventListener('change',e=>{const b=e.target.closest('[data-power]');if(!b)return;snapshot();state.powers=b.checked?[...new Set([...state.powers,b.dataset.power])]:state.powers.filter(x=>x!==b.dataset.power);render()});
 $('#op-poderes').addEventListener('click',e=>{const b=e.target.closest('[data-activate]');if(b)activate(b.dataset.activate)});
 // v0.37: controles de efeitos, turnos e desfazer removidos da ficha.
@@ -806,7 +823,7 @@ $('#rpg05-char-select').addEventListener('change',e=>{
  if(!characters.some(c=>c.id===destination))return;
  persistCurrent();activateCharacter(destination);
 });
-$('#rpg05-new-char').onclick=()=>{persistCurrent();const id='a-'+Date.now()+'-'+Math.floor(Math.random()*1000),fresh={...sys.state,name:'Novo agente',class:'Combatente',origin:'Acadêmico',trail:'Aniquilador',nex:5,attrs:{Agilidade:1,Força:1,Intelecto:1,Presença:1,Vigor:1},resources:{PV:20,PE:3,SAN:12},skills:{},powers:[],rituaisConhecidos:[],effects:[],scene:1,turn:1};characters.push({id,name:fresh.name,character:fresh});save(charsKey,characters);activateCharacter(id);notify('Nova ficha criada no sistema Ordem Paranormal')};
+$('#rpg05-new-char').onclick=()=>{persistCurrent();const id='a-'+Date.now()+'-'+Math.floor(Math.random()*1000),fresh={...sys.state,name:'Novo agente',photo:'',sheetTheme:'theme-sigilo',description:'',history:'',class:'Combatente',origin:'Acadêmico',trail:'Aniquilador',nex:5,attrs:{Agilidade:1,Força:1,Intelecto:1,Presença:1,Vigor:1},resources:{PV:20,PE:3,SAN:12},skills:{},powers:[],rituaisConhecidos:[],effects:[],scene:1,turn:1};characters.push({id,name:fresh.name,character:fresh});save(charsKey,characters);activateCharacter(id);notify('Nova ficha criada no sistema Ordem Paranormal')};
 $('#rpg05-del-char').onclick=()=>{if(characters.length<2){notify('Mantenha ao menos uma ficha. Você pode começar um agente novo.');return}if(!confirm('Excluir esta ficha do dispositivo?'))return;characters=characters.filter(x=>x.id!==selectedChar);activateCharacter(characters[0].id);save(charsKey,characters)};
 const saveOld=window.setInterval; // Sincroniza alterações da ficha sem interferir nos cálculos determinísticos.
 $('#op-view-ficha').addEventListener('change',()=>setTimeout(()=>{persistCurrent();renderCatalogs()},0));
@@ -823,7 +840,24 @@ window.MastermindCharacters={
   $('#rpg05-sheet-op')?.scrollIntoView?.({block:'nearest',behavior:'auto'});
   return true;
  },
- persist:persistCurrent
+ persist:persistCurrent,
+ // Atualiza a ficha identificada, sem transferir retrato para a ficha atualmente aberta.
+ update(id,patch){
+  if(!id||!patch||typeof patch!=='object')return false;
+  const record=characters.find(c=>c.id===id);
+  if(!record)return false;
+  const next={...record.character,...patch};
+  if(id===selectedChar){
+   if(!sys.changeCharacter({...sys.state,...patch}))return false;
+   record.character=sys.state;
+   record.name=record.character.name||record.name;
+   save(charsKey,characters);
+   $('#op-view-ficha')?.dispatchEvent(new Event('change',{bubbles:true}));
+   return true;
+  }
+  record.character=next;save(charsKey,characters);
+  return true;
+ }
 };
 activateCharacter(selectedChar);
 
