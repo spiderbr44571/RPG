@@ -1,3 +1,17 @@
+# RPG Mesa v0.37 — ficha individual, perícias e inventário
+
+**Controle do mestre:** removidos da ficha os botões de turno, encerramento de cena e editor de efeitos temporários. A ficha mantém habilidades próprias, suas ações e exportação/importação; efeitos gerados por poderes continuam no motor de regras, mas são gerenciados na Mesa ao Vivo.
+
+**Troca de ficha:** o seletor de personagens não é mais reconstruído durante o salvamento do personagem anterior. A nova seleção é capturada antes de persistir o anterior, então os campos e itens carregam conforme o ID selecionado.
+
+**Perícias:** contador com escolhas livres por classe de Ordem Paranormal (Combatente 1+Intelecto, Especialista 7+Intelecto, Ocultista 3+Intelecto). Mostra treinamentos obrigatórios pendentes da classe, habilidades da origem concedidas e escolhas restantes. Ele evita novas escolhas livres acima do orçamento, sem mexer automaticamente em níveis de treinamento anteriores. Para sistemas sem fórmula cadastrada, informa que falta configurar a regra em vez de adivinhar.
+
+**Inventário:** usa espaços (não quilogramas) e a regra de carga do livro de Ordem Paranormal: 5 espaços por ponto de Força, ou 2 se Força 0, permitindo bônus `extraCarrySpaces` definido pelo sistema/ficha. A categoria final agrega modificações e maldições. A patente define a quantidade de itens de categoria I/II/III/IV, usando a tabela 3.1; categoria 0 não consome limite de patente. Valores de espaços e limites ficam visíveis e exibem avisos de sobrecarga e excesso por categoria. **Itens não são removidos nem bloqueados** quando excedem esses limites.
+
+A interface da ficha continua armazenada localmente, com fichas diferentes possuindo inventários e rituais independentes.
+
+---
+
 # RPG Mesa v0.36 — simplificação das fichas e da mestragem
 
 **Ficha única.** Removido o grande painel espelhado “Ficha Viva • Base” da ficha de Ordem Paranormal. A ficha editável abaixo continua sendo a referência para atributos, perícias, PV/SAN/PE, inventário, habilidades, retrato, história e rituais. A ferramenta de dados permanece acessível.
