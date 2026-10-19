@@ -79,7 +79,7 @@ function open(host,options){
     '<button data-action="panel">Painel</button>'+
     '<button data-action="zoom-out" title="Afastar">-</button><button data-action="zoom-in" title="Aproximar">+</button>'+
     '<button data-action="fit" title="Enquadrar mapa">Enquadrar</button>'+
-    '<button data-action="edit">Editar mapa</button><button data-action="turn">+ Turno</button><button data-action="scene">Encerrar cena</button><button data-action="close">Sair</button></header>'+
+    '<button data-action="edit">Editar mapa</button><button data-action="turn">+ Turno</button><button data-action="close">Sair</button></header>'+
     '<div class="body"><div id="r31-scroll" class="scroll"><div class="r35-turn-overlay">Vez atual: <strong>'+esc(activeName)+'</strong><small>Rodada '+(d.initiative?.round||1)+'</small></div><div id="r31-board" class="board"></div></div>'+
     '<aside id="r31-aside" class="'+(s.folded?'folded':'')+'"><section><h3>⚄ Rolagens</h3>'+
       '<input id="r31-formula" value="1d20" placeholder="1d20+5" aria-label="Notação do dado">'+
@@ -91,6 +91,7 @@ function open(host,options){
    '<input id="r32-initiative-formula" value="1d20" placeholder="1d20+5">'+
    '<div class="actions"><button data-action="initiative-roll" class="primary">Rolar iniciativa</button><button data-action="initiative-set">Definir valor</button></div>'+
    '<div class="actions"><button data-action="initiative-next">Próximo turno</button><button data-action="initiative-clear">Reiniciar</button></div>'+
+   '<button data-action="scene">Encerrar cena</button>'+
    '<div class="r35-current-turn"><strong>AGORA: '+esc(activeName)+'</strong>'+
     '<small>Rodada '+(d.initiative?.round||1)+'</small></div>'+
    (d.initiative?.entries||[]).map((item,index)=>
