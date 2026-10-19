@@ -114,7 +114,9 @@ function setupNavigation(){
  const nav=sidebar.querySelector('nav[aria-label="Menu principal"]');
  const settings=sidebar.querySelector('nav[aria-label="Configurações"]');
  for(const el of [...sidebar.querySelectorAll('.nav-btn')]){
-  const label=el.querySelector('.mm-nav-label')||el.querySelector('.mm39-nav-text');
+  let label=el.querySelector('.mm-nav-label')||el.querySelector('.mm39-nav-text');
+  if(!label){const text=[...el.childNodes].find(node=>node.nodeType===3&&node.textContent.trim());
+    if(text){label=document.createElement('span');label.className='mm-nav-label';text.replaceWith(label)}}
   if(label)label.textContent=({home:'Início',library:'Biblioteca',sheet:'Personagens',ai:'Pesquisar regras',canvas:'Canvas',master:'Mesa ao Vivo',bestiary:'Bestiário',settings:'Configurações'})[el.dataset.screen]||el.textContent.trim();
  }
  sidebar.querySelector('.brand small')?.replaceChildren(document.createTextNode('SUA MESA · SEU MUNDO'));
@@ -171,6 +173,15 @@ function refineModules(){
  const brands=$$('.brand .app-name');for(const b of brands){if(b.textContent.trim()==='PROJETO RPG')b.textContent='Mastermind'}
 }
 function boot(){
+ // A personalização original possui listeners já conectados; apenas mover o nó DOM.
+ const banner=$('#v10-lab'),settingsScreen=$('#screen-settings');
+ if(banner&&settingsScreen){
+  const host=document.createElement('section');host.className='mm-theme-host';
+  host.setAttribute('aria-label','Temas paranormais existentes');
+  const layout=settingsScreen.querySelector('.settings-layout');
+  if(layout)settingsScreen.insertBefore(host,layout);else settingsScreen.appendChild(host);
+  host.appendChild(banner);
+ }
  setupNavigation();refineModules();renderHome();
  document.addEventListener('click',event=>{
   const char=event.target.closest('[data-mm39-character]');
