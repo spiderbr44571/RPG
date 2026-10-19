@@ -1354,13 +1354,12 @@ function updateSigil(){const el=$('.v10-sigil svg');if(el)el.innerHTML=`<g class
 
 function getStored(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}}
 function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
-const characterId=()=>$('#rpg05-char-select')?.value||'main';
-const perCharacter=getStored('v10-character-elements',{});
-let chosen=perCharacter[characterId()]||getStored('v10-global-element','base');if(!elements[chosen])chosen='base';
+// Tema visual e escolha de personagem são preferências independentes.
+let chosen=getStored('v10-global-element','base');if(!elements[chosen])chosen='base';
 let intensity=getStored('v10-intensity','max');if(!['off','low','max'].includes(intensity))intensity='max';
 function chosenElement(){return elements[chosen]||elements.base}
 function markSelected(){ $$('[data-v10-theme]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v10Theme===chosen)));$$('[data-v10-current]').forEach(t=>t.textContent=chosenElement().label);$('#v10-story')&&( $('#v10-story').textContent=chosenElement().intro );$('#v10-tag')&&($('#v10-tag').textContent=chosenElement().tag);$('#v10-prefs-theme')&&($('#v10-prefs-theme').value=chosen);$('#v10-intensity')&&($('#v10-intensity').value=intensity)}
-function choose(value,persist=true){if(!elements[value])return;chosen=value;document.documentElement.dataset.paranormal=value;if(persist){save('v10-global-element',chosen);perCharacter[characterId()]=chosen;save('v10-character-elements',perCharacter)}markSelected();updateSigil();drawCharacter();}
+function choose(value,persist=true){if(!elements[value])return;chosen=value;document.documentElement.dataset.paranormal=value;if(persist)save('v10-global-element',chosen);markSelected();updateSigil();}
 document.documentElement.dataset.paranormal=chosen;
 document.documentElement.dataset.v10Intensity=intensity;
 const home=$('#screen-home'),settings=$('#screen-settings'),sheet=$('#screen-sheet'),master=$('#screen-master');
@@ -1369,17 +1368,8 @@ home?.querySelector('.rpg07-home-hero')?.remove();
 const banner=document.createElement('section');banner.className='v10-lab v101-theme-select';banner.id='v10-lab';banner.setAttribute('aria-label','Laboratório interativo dos temas paranormais');
 banner.innerHTML=`<div class="v101-theme-heading"><div><div class="v10-kicker">APARÊNCIA DA MESA</div><h2>Temas paranormais</h2><p>Escolha um elemento. A ficha, as ferramentas, as rolagens e os efeitos acompanham seu estilo.</p></div><span class="v101-active-chip"><i></i><span data-v10-current>Sangue</span></span></div><div class="v10-themes">${Object.entries(elements).map(([key,v])=>`<button class="v10-theme-button" type="button" data-v10-theme="${key}" style="--pick:${v.color}" aria-label="Aplicar tema ${v.label}" aria-pressed="false"><svg viewBox="0 0 24 24">${icon(v.icon)}</svg><span class="v10-tname">${v.label}</span></button>`).join('')}</div>`;
 home.prepend(banner);
-// Actual RPG system character sheet visual layer: data is taken from OP13, not mocked.
-const profile=document.createElement('section');profile.className='v10-character';profile.id='v10-character';
-const fixedColors={PV:'#ff647f',SAN:'#bd7aff',PE:'#61c4ff'};
-function drawCharacter(){
- const c=sys.state,cal=sys.calc();if(!c||!cal)return;
- const title=c.name||'Agente sem nome',attr=c.attrs||{},res=c.resources||{};
- const photo=c.photo&&/^data:image\/(jpeg|png|webp);base64,/.test(c.photo)?`<img alt="Retrato do personagem" src="${c.photo}">`:escape(title.trim().slice(0,1).toUpperCase());
- const stats=[['FOR','Força'],['AGI','Agilidade'],['INT','Intelecto'],['PRE','Presença'],['VIG','Vigor']];
- profile.innerHTML=`<div class="v10-c-top"><div class="v10-c-portrait">${photo}</div><div class="v10-c-meta"><span class="v10-c-eyebrow">FICHA VIVA • ${escape(chosenElement().label.toUpperCase())}</span><h2 class="v10-c-name">${escape(title)}</h2><div class="v10-c-class">${escape(c.class||'Classe não definida')} · ${escape(c.trail||'Trilha não definida')}</div><span class="v10-c-pill">NEX ${Number(c.nex)||5}% · ${escape(c.rank||'Patente não definida')}</span></div></div><div class="v10-c-tabs">${['Atributos','Perícias','Combate','Rituais','Itens'].map((x,i)=>`<button type="button" data-v10-sheet-tab="${i}" class="${i===0?'active':''}">${x}</button>`).join('')}</div><div class="v10-c-stats">${stats.map(([code,key])=>`<div class="v10-stat"><small>${code}</small><strong>${Number(attr[key])||0}</strong></div>`).join('')}</div><div class="v10-c-bars">${[['PV','Vida'],['SAN','Sanidade'],['PE','PE']].map(([key,label])=>{const max=Math.max(0,Math.round(cal[key]||0)),cur=Math.max(0,Math.min(max,Math.round(res[key]??max))),pct=max>0?Math.min(100,cur/max*100):0;return `<div class="v10-c-bar"><span>${label}</span><div class="v10-meter"><i style="width:${pct}%;background:${fixedColors[key]};color:${fixedColors[key]}"></i></div><strong>${cur}/${max}</strong></div>`}).join('')}</div><div class="v10-c-footer"><button type="button" data-v10-roll>✧ Rolar d20</button><button type="button" data-v10-jump="#rpg06-ritual-box">✦ Rituais aprendidos</button><button type="button" data-v10-theme-next>◈ Trocar elemento</button><button type="button" data-v10-jump="#r09-profile">✎ Retrato / detalhes</button></div>`;
-}
-if(sheet){const anchor=$('#r09-profile')||sheet.querySelector('.page-row');anchor?.parentNode?.insertBefore(profile,anchor);drawCharacter()}
+// v0.36: a ficha editável de Ordem Paranormal é a fonte única de dados.
+// A antiga "Ficha Viva" duplicava recursos e atributos; foi removida.
 // Shared roller module: the same component is available in the character sheet and in Master tools.
 function diceComponent(where){
  const component=document.createElement('section');component.className='v101-dice-tool';component.setAttribute('aria-label','Ferramenta de rolagens');
@@ -1388,7 +1378,7 @@ function diceComponent(where){
  component.querySelector('form').addEventListener('submit',e=>{e.preventDefault();rollNotation(component.querySelector('input').value,where==='master'?'Mestre':'Personagem')});
  return component;
 }
-if(sheet){const at=sheet.querySelector('.v10-character');at?.insertAdjacentElement('afterend',diceComponent('sheet'))}
+if(sheet){const at=sheet.querySelector('#r09-profile')||sheet.querySelector('.page-row');at?.insertAdjacentElement('afterend',diceComponent('sheet'))}
 if(master){const top=master.querySelector('.page-row');top?.insertAdjacentElement('afterend',diceComponent('master'))}
 // The menu has a roll shortcut but no implicit roll on open.
 const dicePanel=document.createElement('section');dicePanel.className='v101-dice-dialog';dicePanel.id='v101-dice-dialog';dicePanel.hidden=true;dicePanel.setAttribute('role','dialog');dicePanel.setAttribute('aria-label','Rolagens livres');dicePanel.innerHTML=`<div class="v101-dice-dialog-content"><button type="button" class="v101-dice-close" aria-label="Fechar rolagens">×</button><div class="v10-kicker">DADOS DA MESA</div><h2>Faça sua rolagem</h2><div id="v101-dialog-slot"></div><h3>Últimos resultados</h3><div id="v101-recent-rolls"></div></div>`;document.body.append(dicePanel);
@@ -1447,22 +1437,17 @@ function rollNotation(expr,label){
 function dice(){const n=roller.roll();window.dispatchEvent(new CustomEvent('rpg:roll',{detail:{faces:[n],sides:20,bonus:0,total:n,label:'Rolagem de d20'}}));return n}
 function drawRecentRolls(){const box=document.querySelector('#v101-recent-rolls');if(!box)return;box.innerHTML=previousRolls.length?previousRolls.slice(0,4).map(x=>`<div><span>${escape(x.label)}</span><strong>${x.notation} → ${x.total}</strong></div>`).join(''):'<p>As rolagens aparecerão aqui. Abrir o menu não lança dados.</p>'}
 window.addEventListener('rpg:roll',e=>showRoll(e.detail||{}));
-function go(id){app.navigate(id);if(id==='sheet')setTimeout(drawCharacter,50)}
+function go(id){app.navigate(id)}
 document.addEventListener('click',e=>{
  const theme=e.target.closest('[data-v10-theme]');if(theme){choose(theme.dataset.v10Theme);return}
  const to=e.target.closest('[data-v10-go]');if(to){go(to.dataset.v10Go);return}
  if(e.target.closest('[data-v10-roll]')){dice();return}
- if(e.target.closest('[data-v10-theme-next]')){const names=Object.keys(elements);choose(names[(names.indexOf(chosen)+1)%names.length]);return}
  const jump=e.target.closest('[data-v10-jump]');if(jump){const element=$(jump.dataset.v10Jump);if(element)element.scrollIntoView({behavior:'smooth',block:'center'});else app.notify('Abra a seção da ficha correspondente para continuar.');return}
- const tab=e.target.closest('[data-v10-sheet-tab]');if(tab){$$('[data-v10-sheet-tab]',profile).forEach(b=>b.classList.toggle('active',b===tab));const map=['#op-atributos','#op-pericias','#op-view-ficha','#rpg06-ritual-box','#rpg05-inventory'];const target=$(map[Number(tab.dataset.v10SheetTab)]);if(target)target.scrollIntoView({behavior:'smooth',block:'start'});else app.notify('Use os painéis da ficha abaixo para editar esta área.')}
+
 });
 $('#v10-prefs-theme')?.addEventListener('change',e=>choose(e.target.value));
 $('#v10-intensity')?.addEventListener('change',e=>{intensity=e.target.value;document.documentElement.dataset.v10Intensity=intensity;save('v10-intensity',intensity)});
 
-$('#rpg05-char-select')?.addEventListener('change',()=>{setTimeout(()=>{const saved=perCharacter[characterId()];if(saved)choose(saved,false);else choose(getStored('v10-global-element','sangue'),false);drawCharacter()},40)});
-$('#op-view-ficha')?.addEventListener('change',()=>setTimeout(drawCharacter,60));
-// Observe the pre-existing UI's rerenders; avoid polling and avoid mutation recursion.
-if($('#op-view-ficha'))new MutationObserver(()=>{if(document.visibilityState==='visible'&&$('#screen-sheet')?.classList.contains('active'))requestAnimationFrame(drawCharacter)}).observe($('#op-atributos')||$('#op-view-ficha'),{childList:true,subtree:true});
 markSelected();updateSigil();
 // Theme-sensitive particle visualizer rendered behind REAL app screens.
 const canvas=document.createElement('canvas');canvas.id='v10-ambient';document.body.prepend(canvas);const cx=canvas.getContext('2d',{alpha:true});
