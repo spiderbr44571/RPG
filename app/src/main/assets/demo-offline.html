@@ -842,16 +842,15 @@ function editInventory(index){const it=items()[index];if(!it)return;
  const conflicting=[['Sangue','Conhecimento'],['Morte','Energia']];if(conflicting.some(pair=>pair.every(el=>ob.maldicoes.some(m=>m.elemento===el)))){notify('Maldições de elementos opressores não podem coexistir no mesmo item.');return}
  keepItems(l);renderItems();closeDialog()};}
 
-// Catálogos por classificação e execução conservadora de efeitos já conferidos.
-const catalogPanel=document.createElement('div');catalogPanel.className='rpg05-band';catalogPanel.innerHTML=`<h3>Habilidades, poderes e rituais</h3><p class="rpg05-note">Categorias distintas: habilidades (classe/trilha), poderes paranormais (Transcender), rituais (círculo e elemento). Só os efeitos validados possuem executor; os demais ficam consultivos com referência à página.</p><div class="rpg05-controls"><select id="rpg05-kind" class="rpg05-input"><option value="rituais">Rituais</option><option value="paranormal">Poderes paranormais</option><option value="classe">Habilidades de classe/trilha</option></select><select id="rpg05-filter" class="rpg05-input"><option value="all">Todos</option></select><input id="rpg05-search" class="rpg05-input" placeholder="Pesquisar..."/></div><div id="rpg05-result" class="rpg05-list rpg05-catalog-scroll"></div><p class="rpg05-note" id="rpg05-effect-feedback"></p>`;
-$('#rpg05-sheet-op').append(catalogPanel);
-const classSkills={'Combatente':['Ataque Especial','Poder de Combatente','Aumento de Atributo','Grau de Treinamento','Versatilidade'],'Especialista':['Eclético','Perito','Poder de Especialista','Engenhosidade','Grau de Treinamento','Versatilidade'],'Ocultista':['Escolhido pelo Outro Lado','Poder de Ocultista','Ritual Potente','Grau de Treinamento','Versatilidade']};
-function entries(){const type=$('#rpg05-kind').value;if(type==='rituais')return catalog.rituais;if(type==='paranormal')return catalog.poderesParanormais;return(classSkills[sys.state.class]||[]).map(nome=>({nome,categoria:'habilidade_de_classe',paginaLivro:sys.state.class==='Combatente'?24:sys.state.class==='Especialista'?28:32,automacao:'consulta'}))}
-function refillFilters(){const k=$('#rpg05-kind').value,select=$('#rpg05-filter');const opts=k==='rituais'?['all','Conhecimento','Energia','Morte','Sangue','Medo']:k==='paranormal'?['all','Conhecimento','Energia','Morte','Sangue','Geral']:['all'];select.innerHTML=opts.map(x=>`<option value="${x}">${x==='all'?'Todos':x}</option>`).join('')}
-function renderCatalogs(){if(!$('#rpg05-kind'))return;const filt=$('#rpg05-filter').value||'all',q=$('#rpg05-search').value.trim().toLocaleLowerCase('pt-BR');const found=entries().filter(x=>(filt==='all'||x.elemento===filt)&&x.nome.toLocaleLowerCase('pt-BR').includes(q));$('#rpg05-result').innerHTML=found.map(x=>`<div class="rpg05-item"><strong>${escapeHTML(x.nome)}</strong><div class="rpg05-pills"><span class="rpg05-pill">${escapeHTML(x.categoria.replaceAll('_',' '))}</span>${x.circulo?`<span class="rpg05-pill">${x.circulo}º círculo · ${escapeHTML(x.elemento)}</span>`:`<span class="rpg05-pill">${escapeHTML(x.elemento||sys.state.class)}</span>`}<span class="rpg05-pill ${x.automacao==='semi-automatica'?'good':'warn'}">${x.automacao==='semi-automatica'?'Efeito assistido':'Consulta'}</span></div><small>Livro p.${x.paginaLivro}${x.custoBasePE?' · custo base '+x.custoBasePE+' PE':''}</small><div class="rpg05-controls"><button class="rpg05-btn" data-ritual-page="${x.paginaLivro}">Ver regra</button>${x.automacao==='semi-automatica'?`<button class="rpg05-btn primary" data-execute-ritual="${escapeHTML(x.id)}">Usar</button>`:''}</div></div>`).join('')||'<div class="rpg05-empty">Nenhuma entrada encontrada.</div>'}
-$('#rpg05-kind').onchange=()=>{refillFilters();renderCatalogs()};$('#rpg05-filter').onchange=renderCatalogs;$('#rpg05-search').oninput=renderCatalogs;refillFilters();renderCatalogs();
-$('#rpg05-result').onclick=evt=>{const r=evt.target.closest('[data-ritual-page]'),e=evt.target.closest('[data-execute-ritual]');if(r){demo.navigate('library');$('#rpg05-library-reader').hidden=false;$('#op-book-page').value=r.dataset.ritualPage;$('#rpg05-library-reader').scrollIntoView({block:'start'});return;}if(e)executeRitual(e.dataset.executeRitual)};
-function executeRitual(id){const r=catalog.rituais.find(x=>x.id===id);if(!r||r.automacao!=='semi-automatica')return;const level={1:5,2:25,3:55,4:85}[r.circulo];const me=sys.state;if(me.class==='Ocultista'&&me.nex<level){notify(`Exige acesso ao ${r.circulo}º círculo no NEX ${level}%.`);return}if(me.resources.PE<r.custoBasePE){notify('PE insuficiente.');return}if(!confirm('Confirmar ritual '+r.nome+'? O alvo, a ação e eventuais resistências devem ser validados pelo mestre.'))return;
+// v0.36: o catálogo consultivo não duplica a ficha e a pesquisa offline.
+// Preservar a automação validada e disponibilizá-la somente para rituais aprendidos.
+function renderCatalogs(){} // compatibilidade com fluxos antigos de atualização da ficha
+function executeRitual(id){
+ const r=catalog.rituais.find(x=>x.id===id);
+ if(!r||r.automacao!=='semi-automatica')return;
+ if(!Array.isArray(sys.state.rituaisConhecidos)||!sys.state.rituaisConhecidos.includes(id)){
+  notify('Aprenda este ritual na ficha antes de utilizá-lo.');return;
+ }const level={1:5,2:25,3:55,4:85}[r.circulo];const me=sys.state;if(me.class==='Ocultista'&&me.nex<level){notify(`Exige acesso ao ${r.circulo}º círculo no NEX ${level}%.`);return}if(me.resources.PE<r.custoBasePE){notify('PE insuficiente.');return}if(!confirm('Confirmar ritual '+r.nome+'? O alvo, a ação e eventuais resistências devem ser validados pelo mestre.'))return;
  const effect=r.efeito,newChar=structuredClone(me),val=effect.valor||0;
  newChar.resources.PE=Math.max(0,newChar.resources.PE-r.custoBasePE);
  if(effect.tipo==='buff'){newChar.effects.push({id:'ritual-'+Date.now(),name:r.nome,stat:effect.stat,amount:val,duration:'scene',turns:0});}
@@ -862,6 +861,7 @@ function executeRitual(id){const r=catalog.rituais.find(x=>x.id===id);if(!r||r.a
  sys.changeCharacter(newChar);persistCurrent();renderCatalogs();notify(`${r.nome}: ${r.custoBasePE} PE gastos · ${effect.tipo==='buff'?'modificador ativo':'efeito requer confirmação do mestre'}`);
 }
 function rollDice(formula){const m=/^(\d+)d(\d+)([+-]\d+)?$/.exec(formula);if(!m)return 0;const n=Number(m[1]),d=Number(m[2]),b=Number(m[3]||0);let val=b;for(let i=0;i<Math.min(n,80);i++){let arr=new Uint32Array(1);crypto.getRandomValues(arr);val+=1+arr[0]%d;}return val}
+
 
 // Bestiário inicial: uma ficha oficial mecânica verificada; nada de criaturas inventadas.
 const demoCatalog=$('#canvas-creature-select');demoCatalog.innerHTML='<option value="aberracao">Aberração de Carne (p.182)</option>';
@@ -896,7 +896,7 @@ const observer=new MutationObserver(()=>{if($$('#node-layer [data-node]:not([dat
 observer.observe($('#node-layer'),{childList:true,subtree:true});attachControls();
 $('#add-node').onclick=()=>{if(demo.S.nodes.length>=500)return;const id=Date.now()+Math.random(),x=(180-demo.S.panX)/demo.S.zoom,y=(130-demo.S.panY)/demo.S.zoom;demo.S.nodes.push({id,title:'Nova anotação',type:'ANOTAÇÃO',text:'',left:x,top:y,theme:''});demo.renderCanvas();window.RPGv2?.saveCanvas?.();notify('Novo cartão criado. Toque no lápis para editar.');};
 // Preserva layout / rodas de cor / zoom touch e modo offline.
-window.RPG05={catalog,openPdf,renderItems,renderCatalogs,bookState};
+window.RPG05={catalog,openPdf,renderItems,renderCatalogs,bookState,executeRitual};
 })();
 </script><script>(()=>{'use strict';
 const $=s=>document.querySelector(s);
@@ -910,23 +910,9 @@ function render(){const q=$('#rpg05-query').value.toLocaleLowerCase('pt-BR').tri
 $('#rpg05-query').addEventListener('input',render);render();
 $('#rpg05-answers').onclick=e=>{const b=e.target.closest('[data-rule-book]');if(!b)return;app.navigate('library');$('#op-book-page').value=b.dataset.ruleBook;$('#rpg05-library-reader').hidden=false};
 
-// Mestragem offline passa a operar a ficha do sistema em vez do personagem fictício da versão antiga.
-const m=$('#screen-master');m.innerHTML=`<div class="eyebrow">ORDEM PARANORMAL · MESTRAGEM OFFLINE</div><h1 class="page-h">Controle de <i>cenas.</i></h1><p class="page-sub">O mestre avança turnos e cenas manualmente. Bônus da ficha e condições temporárias acompanham o contador.</p><div class="rpg05-band"><div class="rpg05-heading"><span class="rpg05-pill" id="rpg05-master-clock">CENA 1 · TURNO 1</span><span class="rpg05-pill" id="rpg05-master-person">Novo agente</span></div><div class="rpg05-controls"><button class="rpg05-btn primary" id="rpg05-master-turn">Próximo turno</button><button class="rpg05-btn" id="rpg05-master-scene">Encerrar cena</button><button class="rpg05-btn" id="rpg05-master-open">Ver ficha</button><button class="rpg05-btn" id="rpg05-master-canvas">Abrir canvas</button></div><div id="rpg05-master-effects" class="rpg05-list"></div></div><div class="rpg05-band"><h3>Aplicar bônus ou penalidade</h3><div class="rpg05-three"><label>Nome do efeito<input id="rpg05-mfx-name" class="rpg05-input" maxlength="56" placeholder="Ex.: proteção temporária"></label><label>Característica<select id="rpg05-mfx-stat" class="rpg05-input"><option value="defesa">Defesa</option><option value="ataque">Ataque</option><option value="pericias">Perícias</option></select></label><label>Modificador<input id="rpg05-mfx-val" class="rpg05-input" type="number" min="-20" max="20" value="2"></label><label>Duração em turnos<input id="rpg05-mfx-turns" class="rpg05-input" type="number" min="1" max="99" value="2"></label></div><button class="rpg05-btn primary" id="rpg05-mfx-apply">Aplicar na ficha selecionada</button></div><p class="rpg05-note">Modo offline. A sincronização do sistema Ordem 1.3 para jogadores em outros aparelhos ainda precisa de implementação específica e autorização de acesso.</p>`;
-function draw(){const st=op.state;$('#rpg05-master-clock').textContent='CENA '+st.scene+' · TURNO '+st.turn;$('#rpg05-master-person').textContent=st.name+' · NEX '+st.nex+'%';$('#rpg05-master-effects').innerHTML=st.effects.length?st.effects.map(x=>`<div class="rpg05-item"><strong>${esc(x.name)}</strong><small>${esc(x.stat)} ${x.amount>=0?'+':''}${x.amount} · ${x.duration==='scene'?'até fim da cena':x.turns+' turno(s)'}</small></div>`).join(''):'<p class="rpg05-note">Nenhum efeito temporário ativo.</p>';}
-function redrawCanvasClock(){const st=op.state;if($('#canvas-scene'))$('#canvas-scene').textContent=String(st.scene).padStart(2,'0');if($('#canvas-turn'))$('#canvas-turn').textContent=String(st.turn).padStart(2,'0')}
-$('#rpg05-master-turn').onclick=()=>{op.nextTurn();window.RPGv3?.onTurn();draw();redrawCanvasClock()};
-$('#rpg05-master-scene').onclick=()=>{op.nextScene();draw();redrawCanvasClock()};
-$('#rpg05-master-open').onclick=()=>app.navigate('sheet');
-$('#rpg05-master-canvas').onclick=()=>{app.navigate('canvas');redrawCanvasClock()};
-$('#rpg05-mfx-apply').onclick=()=>{const name=$('#rpg05-mfx-name').value.trim();if(!name){app.notify('Informe o nome do efeito');return}$('#op-effect-name').value=name;$('#op-effect-stat').value=$('#rpg05-mfx-stat').value;$('#op-effect-value').value=$('#rpg05-mfx-val').value;$('#op-effect-turns').value=$('#rpg05-mfx-turns').value;$('#op-effect-add').click();$('#rpg05-mfx-name').value='';draw()};
-$('.nav-btn[data-screen="master"]')?.addEventListener('click',draw);
-$('.nav-btn[data-screen="canvas"]')?.addEventListener('click',()=>setTimeout(redrawCanvasClock,50));
-$('#canvas-advance-turn')?.addEventListener('click',()=>setTimeout(redrawCanvasClock,50));
-$('#op-nextturn')?.addEventListener('click',()=>setTimeout(()=>{draw();redrawCanvasClock()},30));
-$('#op-nextscene')?.addEventListener('click',()=>setTimeout(()=>{draw();redrawCanvasClock()},30));
-const canvasTag=$('#screen-canvas .canvas-toolbar .tag');if(canvasTag)canvasTag.textContent='Ordem Paranormal · Canvas da campanha';
-const toolbar=$('#screen-canvas .combat-feedback');if(toolbar)toolbar.textContent='Encontro de Ordem Paranormal. Adicione a criatura revisada ou uma personalizada.';
-draw();redrawCanvasClock();
+// v0.36: somente Mestragem Online; rpg11_campaigns.js monta o painel e a Mesa ao Vivo.
+const m=$('#screen-master');
+m.replaceChildren();
 })();
 </script><script>(()=>{'use strict';
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
