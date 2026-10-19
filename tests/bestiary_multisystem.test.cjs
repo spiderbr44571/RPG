@@ -16,7 +16,7 @@ for(const b of rows){
 assert.ok(rows.some(x=>x.attacks&&x.attacks.length>1),'multi-action profiles');
 const html=fs.readFileSync(base+'demo-offline.html','utf8');
 assert.ok(html.includes('rpg19_order_creatures.js'));
-assert.ok(html.indexOf('rpg19_order_creatures.js')<html.indexOf('rpg18_bestiary.js'));
+assert.ok(html.indexOf('<script src="rpg19_order_creatures.js"></script>')<html.indexOf('<script src="rpg18_bestiary.js"></script>'),'script load order');
 assert.ok(html.includes('spawnCatalog(record)'),'canvas with profile bridge');
 assert.ok(html.includes('encounter_catalog_roll'),'dice mechanism for order');
 assert.ok(!html.includes("const oldAdd=$('#canvas-add-creature')"),'hardcoded legacy spawn removed');
