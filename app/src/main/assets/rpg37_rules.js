@@ -49,6 +49,28 @@ function skillBudget(character,pack){
   invalidGrades,missing,origin:[...originSkills],mandatory:[...mandatoryChosen],
   warning:missing.length?'Obrigatorias pendentes: '+missing.join('; '):''};
 }
+// Progressao de rituais configurada para esta mesa: uma escolha por patamar
+// de NEX e tres escolhas extras por circulo liberado (variante da mesa).
+function ritualBudget(character,rituals=[]){
+ const nex=Math.max(5,Number(character?.nex)||5);
+ const occultist=character?.class==='Ocultista';
+ const milestones=[5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,99];
+ const circles=[{circle:1,nex:5},{circle:2,nex:25},{circle:3,nex:55},{circle:4,nex:85}];
+ const unlocked=circles.filter(c=>nex>=c.nex);
+ const total=occultist?milestones.filter(n=>n<=nex).length+unlocked.length*3:0;
+ const selected=Array.isArray(character?.rituaisConhecidos)?character.rituaisConhecidos:[];
+ const byId=new Map(rituals.map(r=>[String(r.id),r]));
+ const illegal=selected.flatMap(id=>{
+  const r=byId.get(String(id));
+  if(!r)return [{id,reason:'Ritual nao encontrado no catalogo'}];
+  const req=circles.find(c=>c.circle===Number(r.circulo));
+  return req&&nex>=req.nex?[]:[{id,reason:'Circulo '+r.circulo+' requer NEX '+(req?.nex||'?')+'%'}];
+ });
+ return {known:true,occultist,nex,total,used:selected.length,
+  remaining:Math.max(0,total-selected.length),excess:Math.max(0,selected.length-total),
+  unlockedCircles:unlocked.map(x=>x.circle),maxCircle:unlocked.at(-1)?.circle||1,
+  illegal,unlockAt:Object.fromEntries(circles.map(c=>[c.circle,c.nex]))};
+}
 function inventoryBudget(character,items){
  const force=Math.max(0,Number(character.attrs?.Força)||0);
  const bonus=Number.isFinite(Number(character.extraCarrySpaces))?Math.max(0,Number(character.extraCarrySpaces)):0;
@@ -70,5 +92,5 @@ function inventoryBudget(character,items){
  return {rank,used,capacity,overloaded:used>capacity,immobile:used>capacity*2,
   counts,caps,overLimits,overCategory,canCarry:used<=capacity,known:true};
 }
-root.RPG37_RULES={skillBudget,inventoryBudget,categoryLimits};
+root.RPG37_RULES={skillBudget,ritualBudget,inventoryBudget,categoryLimits};
 })(typeof window!=='undefined'?window:globalThis);
