@@ -155,6 +155,8 @@ function refineModules(){
     header.innerHTML='<div><span class="mm39-eyebrow">MASTERMIND / '+esc(title.toUpperCase())+'</span>'+
     '<h1>'+esc(title)+'</h1><p>'+esc(caption)+'</p></div>';
     screen.insertBefore(header,row);
+    // Botões funcionais das telas antigas não podem sumir com o cabeçalho duplicado.
+    for(const button of [...row.children].filter(node=>node.tagName==='BUTTON'))header.appendChild(button);
   }
  }
  const top=$('.topbar');if(top){
