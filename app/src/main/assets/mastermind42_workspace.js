@@ -17,7 +17,7 @@ let raf=0;
 
 function metaSave(){try{localStorage.setItem(key,JSON.stringify(index));return true}catch(e){notify('Sem espaco para salvar a lista de Canvas.');return false}}
 function boardKey(id){return prefix+id}
-function currentMonsters(){return v2.connected?[]:clone(v3.monsters||[])}
+function currentMonsters(){return v2.connected?clone(readBoard(active.id).monsters):clone(v3.monsters||[])}
 function boardSnapshot(){
  return {version:1,nodes:clone(app.S.nodes||[]),monsters:currentMonsters(),
   links:clone(active?.links||[]),view:{panX:app.S.panX,panY:app.S.panY,zoom:app.S.zoom}};
@@ -290,6 +290,12 @@ world.addEventListener('click',e=>{
  if(e.detail===0)pickTarget(getTarget(e));
 },true);
 const watcher=new MutationObserver(scheduleLinks);
+let monsterSaveTimer=null;
+new MutationObserver(()=>{
+ if(v2.connected)return;
+ clearTimeout(monsterSaveTimer);
+ monsterSaveTimer=setTimeout(()=>{if(active&&index)saveBoard()},180);
+}).observe($('#encounter-layer'),{childList:true,subtree:false});
 for(const layer of ['#node-layer','#encounter-layer']){
  const el=$(layer);
  if(el)watcher.observe(el,{childList:true,subtree:true,attributes:true,attributeFilter:['style']});
@@ -303,6 +309,25 @@ function renderLinkList(){
  '<button type="button" data-unlink="'+escape(l.id)+'" aria-label="Remover conexao">×</button></div>').join(''):
  '<small>Nenhuma conexao ainda. Selecione uma cor e use Conectar itens.</small>';
 }
+function previewMap(){
+ const objects=[...app.S.nodes.map(n=>({id:'node:'+n.id,x:Number(n.left)+120,y:Number(n.top)+65,
+  label:n.title||'Cartao',kind:'node'})),
+  ...v3.monsters.map(m=>({id:'creature:'+m.id,x:Number(m.x)+110,y:Number(m.y)+65,
+  label:m.name||'Criatura',kind:'creature'}))].filter(n=>Number.isFinite(n.x)&&Number.isFinite(n.y)).slice(0,60);
+ if(!objects.length)return '<div class="mm42-mini-empty">Canvas vazio. Abra o quadro e adicione pistas, midias ou criaturas.</div>';
+ const minX=Math.min(...objects.map(o=>o.x)),maxX=Math.max(...objects.map(o=>o.x));
+ const minY=Math.min(...objects.map(o=>o.y)),maxY=Math.max(...objects.map(o=>o.y));
+ const spanX=Math.max(380,maxX-minX),spanY=Math.max(180,maxY-minY),width=640,height=225;
+ const scale=Math.min((width-75)/spanX,(height-55)/spanY,1.5);
+ const map=new Map(objects.map(o=>[o.id,{...o,px:38+(o.x-minX)*scale,py:25+(o.y-minY)*scale}]));
+ const paths=active.links.map(e=>{const a=map.get(e.a),b=map.get(e.b);if(!a||!b)return '';
+  return '<path d="M'+a.px+' '+a.py+' L'+b.px+' '+b.py+'" stroke="'+goodColor(e.color)+'" stroke-width="3" opacity=".9"/>'}).join('');
+ const pins=objects.map(o=>{const p=map.get(o.id),label=escape(o.label.slice(0,16));
+  return '<g transform="translate('+p.px+' '+p.py+')">'+
+   '<circle r="8" fill="'+(o.kind==='creature'?'#e1848a':'#b99b72')+'" stroke="#17151d" stroke-width="2"/>'+
+   '<text x="11" y="3" fill="currentColor" font-size="10">'+label+'</text></g>'}).join('');
+ return '<svg class="mm42-mini-map" viewBox="0 0 640 225" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Mapa resumido das conexoes do Canvas">'+paths+pins+'</svg>';
+}
 function refreshMaster(){
  const sel=$('#mm42-master-select'),details=$('#mm42-master-detail');
  if(!sel||!details||!index)return;
@@ -315,6 +340,7 @@ function refreshMaster(){
  const colored=links.slice(0,12).map(l=>'<i style="background:'+goodColor(l.color)+'"></i>').join('');
  details.innerHTML='<strong>'+escape(activeName().name)+'</strong>'+
  '<p>'+nodes.length+' cartoes/imagens/midias · '+monsters.length+' criaturas · '+links.length+' conexoes</p>'+
+ '<div class="mm42-master-preview">'+previewMap()+'</div>'+ 
  '<div class="mm42-master-chips">'+entries.join('')+creatures.join('')+'</div>'+
  '<div class="mm42-master-colors">'+colored+'</div>';
 }
