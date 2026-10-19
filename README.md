@@ -1,3 +1,13 @@
+# Mastermind v0.41 — imagem no Canvas e bestiário corrigido
+
+**Canvas:** o botão "Adicionar imagem" agora é botão primário original do cabeçalho, idêntico em tamanho e estilo ao "Novo cartão". O seletor de arquivos fica em nó próprio visível ao WebView Android (não dentro do cabeçalho legado ocultado), e abre diretamente a galeria/arquivos em um toque, com feedback após selecionar PNG, JPG ou WebP. O processamento comprime a imagem localmente e permite mover, dimensionar e salvar seus cartões, mantendo o Canvas anterior.
+
+**Bestiário:** eliminado o antigo listener de captura que inseria uma Aberração de Carne fixa e o seletor temporário da demonstração. Apenas o catálogo multissistema determina o ID e os dados de cada criatura. Fichas oficiais como Kerberos usam nome, HP, defesa, ataques e origem da entrada correspondente; as fichas existentes continuam preservadas.
+
+**Instalação:** versão Android 0.41.0 usa o mesmo applicationId e armazenamento, com versionCode incrementado para atualização sobre v0.40. APK de depuração (debug) e testes automáticos; recomenda-se backup dos personagens e do Canvas antes de atualizar.
+
+---
+
 # Mastermind v0.40 — imagens no Canvas infinito
 
 O botão **Adicionar imagem** aceita PNG, JPG e WebP (arquivo original até 10 MB) em dispositivos Android e desktop, além de arrastar e soltar arquivos no Canvas no computador. As imagens são redimensionadas e comprimidas localmente, sem necessidade de servidor ou IA, e surgem como cartões de tipo **IMAGEM**, que podem ser movidos, redimensionados, duplicados, editados e removidos. O Canvas continua com zoom/pan por toque ou mouse e mantém cartões anteriores e os controles de criatura. A identidade visual e a personalização do Mastermind permanecem intactas.
