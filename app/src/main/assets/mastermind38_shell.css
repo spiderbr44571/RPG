@@ -1,0 +1,108 @@
+/* Mastermind v0.38 — reorganização estrutural, sem substituir paletas, fontes ou temas do usuário. */
+:root:not(.mm-ready) .app{visibility:hidden!important;opacity:0!important}
+:root.mm-ready .app{visibility:visible;opacity:1}
+#mm-loading{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;
+ background:var(--bg,#0b0d12);color:var(--fg,#f5edf4);font:600 18px Georgia,serif;letter-spacing:.03em;
+ pointer-events:none}
+#mm-loading .mm-boot-mark{width:52px;height:52px;border:1px solid var(--accent,#c7a87b);border-radius:15px;
+ display:grid;place-items:center;margin:auto auto 14px;color:var(--accent,#c7a87b);font:700 28px Georgia,serif}
+#mm-loading small{display:block;text-align:center;color:var(--muted,#aaa);font:12px system-ui,sans-serif;letter-spacing:.18em;margin-top:6px}
+:root.mm-ready #mm-loading{display:none}
+.app{min-height:0}
+.sidebar{z-index:30;border-right:1px solid var(--line-soft);backdrop-filter:blur(12px)}
+.sidebar .brand{gap:12px;margin-bottom:6px}
+.sidebar .brand-glyph{box-shadow:0 0 24px var(--accent-soft);border-color:var(--accent);flex:none}
+.sidebar .app-name{font-size:17px;letter-spacing:.04em}
+.sidebar .brand small{letter-spacing:.09em}
+.sidebar .nav-btn{min-height:42px;transition:background .2s,border-color .2s,transform .2s;color:var(--muted)}
+.sidebar .nav-btn:focus-visible,.mm-link:focus-visible,.mm-menu:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sidebar .nav-btn.active{box-shadow:inset 3px 0 var(--accent)}
+.sidebar-bottom .profile{display:none}
+.topbar{gap:14px}
+.topbar .preview-pill{display:none!important}
+.mm-top-mark{display:inline-flex;align-items:center;gap:7px;font:700 13px system-ui;color:var(--accent);
+ letter-spacing:.03em}
+.mm-top-mark svg{width:16px;height:16px}
+.mm-menu{border:1px solid var(--line);background:var(--panel2);color:var(--fg);border-radius:9px;
+ width:38px;height:36px;align-items:center;justify-content:center;cursor:pointer;display:none}
+.mm-menu svg{height:18px;width:18px;fill:none;stroke:currentColor;stroke-width:2}
+.mm-workspace{width:100%;max-width:1480px;margin:0 auto;padding-bottom:20px}
+.mm-kicker{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.mm-workspace h1{font-family:var(--rpg-heading,'Cormorant Garamond',Georgia,serif);font-size:clamp(34px,4vw,60px);
+ line-height:1.05;margin:12px 0;color:var(--fg);font-weight:600}
+.mm-workspace .mm-muted{color:var(--muted);font-size:13px;line-height:1.65;max-width:670px}
+.mm-intro{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(260px,.75fr);gap:16px;margin:12px 0 20px}
+.mm-feature{position:relative;min-height:235px;border:1px solid var(--line);border-radius:18px;padding:25px;
+ background:radial-gradient(ellipse at 100% 0,var(--accent-soft),transparent 55%),var(--panel);
+ overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;gap:18px}
+.mm-feature:after{content:"✧";font:240px Georgia;position:absolute;right:-18px;top:-80px;color:var(--accent);
+ opacity:.085;pointer-events:none}
+.mm-feature>*{position:relative;z-index:1}
+.mm-feature h1{max-width:600px}
+.mm-buttons{display:flex;gap:8px;flex-wrap:wrap}
+.mm-link{min-height:42px;display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:10px;
+ border:1px solid var(--line);padding:11px 16px;background:var(--panel2);color:var(--fg);cursor:pointer;
+ font:600 12px system-ui;transition:transform .2s,border-color .2s}
+.mm-link:hover{border-color:var(--accent);transform:translateY(-1px)}
+.mm-link.primary{background:var(--accent);color:var(--accent-foreground,#17131c);border-color:var(--accent)}
+.mm-status{padding:20px;border:1px solid var(--line);border-radius:18px;background:var(--panel);display:flex;
+ flex-direction:column;justify-content:space-between;gap:15px}
+.mm-status h2{margin:0;font:600 25px var(--rpg-heading,Georgia,serif);color:var(--fg)}
+.mm-status .mm-avatar{height:58px;width:58px;display:grid;place-items:center;border-radius:15px;
+ background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent);font:700 28px Georgia,serif}
+.mm-status .mm-caption{font-size:11px;color:var(--muted)}
+.mm-title-row{display:flex;justify-content:space-between;align-items:center;gap:15px;margin:24px 0 14px}
+.mm-title-row h2{margin:0;font:600 26px var(--rpg-heading,Georgia,serif);color:var(--fg)}
+.mm-tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.mm-tool{padding:18px;border:1px solid var(--line);background:var(--panel);border-radius:15px;min-height:142px;
+ display:flex;flex-direction:column;align-items:flex-start;text-align:left;justify-content:space-between;gap:12px;
+ color:var(--fg);cursor:pointer;transition:border-color .2s,transform .2s,box-shadow .2s}
+.mm-tool:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 9px 32px #0003}
+.mm-tool .mm-tool-icon{display:grid;place-items:center;width:37px;height:37px;border-radius:11px;
+ color:var(--accent);background:var(--accent-soft)}
+.mm-tool svg{width:19px;height:19px;stroke:currentColor;stroke-width:1.8;fill:none}
+.mm-tool strong{font-size:13px;color:var(--fg)}
+.mm-tool p{margin:5px 0 0;font-size:11px;color:var(--muted);line-height:1.55}
+.mm-detail{padding:14px 16px;border:1px solid var(--line);border-radius:12px;color:var(--muted);font-size:11px;
+ background:var(--panel2);margin-top:17px;line-height:1.6}
+.mm-theme-host{margin:18px 0 28px}
+.mm-theme-host .v10-lab{margin:0}
+.mm-legacy-sample{display:none!important}
+#screen-sheet>.sheet-layout{display:none!important}
+#screen-ai .ai-layout>.source-panel:has(.source-doc){display:none!important}
+:root.mm-collapsed .app{grid-template-columns:78px minmax(0,1fr)}
+:root.mm-collapsed .sidebar{padding-left:8px;padding-right:8px}
+:root.mm-collapsed .sidebar .brand{justify-content:center;padding:8px 0}
+:root.mm-collapsed .sidebar .brand>div:last-child,
+:root.mm-collapsed .sidebar .nav-label,
+:root.mm-collapsed .sidebar .sidebar-bottom,
+:root.mm-collapsed .sidebar .nav-btn .mm-nav-label,
+:root.mm-collapsed .sidebar .nav-btn .badge-count{display:none!important}
+:root.mm-collapsed .sidebar .nav-btn{justify-content:center;padding:12px 8px}
+@media(min-width:691px){
+ .mm-menu{display:inline-flex}
+}
+@media(max-width:1100px){.mm-tools{grid-template-columns:repeat(2,minmax(0,1fr))}.mm-intro{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:690px){
+ :root.mm-collapsed .app{display:flex;flex-direction:column}
+ .sidebar{backdrop-filter:blur(18px);padding:6px 4px calc(7px + env(safe-area-inset-bottom))}
+ .sidebar .nav-btn{min-width:63px;min-height:50px;padding:7px 6px}
+ .sidebar .nav-btn.active{box-shadow:inset 0 -2px var(--accent)}
+ .sidebar nav{display:contents}
+ .sidebar .brand,.sidebar .sidebar-bottom,.sidebar .nav-label{display:none}
+ .topbar{min-height:54px;height:54px;padding:0 13px}
+ .topbar .breadcrumb small,.topbar .divider-slash{display:none}
+ .topbar .breadcrumb strong{font-size:12px}
+ .mm-menu{display:none}
+ .mm-intro{grid-template-columns:1fr}
+ .mm-tools{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .mm-feature{min-height:190px;padding:18px}
+ .mm-feature h1{font-size:37px}
+ .mm-tool{min-height:126px;padding:13px}
+ .mm-tool strong{font-size:12px}
+ .mm-status{padding:15px}
+ .mm-workspace{padding-bottom:84px}
+ .mm-theme-host{margin-bottom:75px}
+}
+@media(max-width:380px){.mm-tools{grid-template-columns:1fr}.mm-tool{min-height:99px}}
+@media(prefers-reduced-motion:reduce){.mm-tool,.mm-link{transition:none!important}}
