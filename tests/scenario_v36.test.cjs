@@ -20,7 +20,9 @@ assert.match(html,/m\.replaceChildren\(\)/);
 assert.match(html,/const m=\$\('#screen-master'\)/);
 assert.match(html,/function renderCatalogs\(\)\{\}/); // compatibility shim
 assert.match(html,/window\.RPG05=\{catalog,openPdf,renderItems,renderCatalogs,bookState,executeRitual\}/);
-assert.match(html,/if\(!Array\.isArray\(sys\.state\.rituaisConhecidos\)\|\|!sys\.state\.rituaisConhecidos\.includes\(id\)\)/);
+assert.match(html,/if\(!known\.includes\(id\)\)/);
+assert.match(html,/legacyKnown/);
+assert.ok(!html.includes("$('#rpg05-effect-feedback').textContent"),'legacy popup feedback removed');
 assert.match(html,/data-r36-use/);
 assert.match(html,/data-r36-rule/);
 assert.match(spells,/data-r36-use/);
