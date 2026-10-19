@@ -25,7 +25,7 @@ assert.ok(!home[1].includes('Kael Vesper'));
 assert.match(css,/:root:not\(\.mm-ready\) \.app\{visibility:hidden!important/);
 assert.match(css,/:root\.mm-ready #mm-loading\{display:none\}/);
 assert.match(script,/finally\{document\.documentElement\.classList\.add\('mm-ready'\)\}/);
-assert.match(script,/home\.replaceChildren\(\)/);
+assert.match(script,/home\.replaceChildren\(content\)/);
 assert.match(script,/function current\(\)/);
 assert.match(script,/MastermindCharacters/);
 assert.match(script,/banner=\$\('#v10-lab'\)/);
