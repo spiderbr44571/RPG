@@ -13,7 +13,7 @@ assert.match(manifest,/android:label="Mastermind"/);
 assert.match(build,/versionCode 38/);
 assert.match(html,/appName:prefs\.getItem\('rpg-app-name'\)\|\|'Mastermind'/);
 assert.ok(!html.includes('rpg07-go-sheet'),'obsolete home controls removed');
-assert.ok(!html.includes('rpg07-home-hero'),'old animated home removed');
+assert.ok(!html.includes('home.innerHTML='),'old renderer no longer replaces the real dashboard');
 assert.ok(!html.includes('if(e.id===\'screen-home\')e.innerHTML='),'intermediate home renderer removed');
 assert.match(html,/<link rel="stylesheet" href="mastermind38_shell\.css">/);
 assert.match(html,/<script src="mastermind38_shell\.js"><\/script>/);
