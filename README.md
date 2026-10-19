@@ -1,3 +1,17 @@
+# Mastermind 0.38 — interface unificada e carregamento sem telas antigas
+
+**Nome oficial:** Mastermind. O nome visível e o título Android são atualizados, mantendo o mesmo `applicationId`, armazenamento local, chaves de preferências e compatibilidade com atualizações anteriores. A logo permanece provisória; nenhum ícone definitivo foi introduzido.
+
+**Nova entrada:** o aplicativo não mostra mais a antiga página de demonstração no primeiro frame. A interface principal fica protegida até os módulos iniciarem, quando a nova página de trabalho substitui os cartões antigos. A tela inicial dá acesso direto às fichas, biblioteca, mestragem, bestiário, canvas e pesquisa offline, com indicação da ficha atualmente selecionada. Os dados são lidos dos registros locais, sem inventar campanhas.
+
+**Navegação:** sidebar aprimorada em desktop, modo recolhido opcional, navegação inferior no celular e painéis responsivos. As telas funcionais continuam ativas; a ficha fictícia que apenas sustentava o protótipo antigo permanece invisível como compatibilidade temporária de código, não como aba ou página acessível.
+
+**Personalização preservada:** roda RGB, temas paranormais, fontes, escala, animações, modo claro/escuro e cores de destaque seguem controlados pelos mesmos ajustes e armazenamento. Os botões de tema foram transferidos para Configurações sem reconstruir seus listeners. Nenhuma rotina apaga ou redefine preferências personalizadas; o antigo nome padrão 'PROJETO RPG' é a única opção migrada visualmente para 'Mastermind'.
+
+**Funcionalidades mantidas:** hospedagem LAN pelo celular, mesa virtual, personagens, regras determinísticas, rituais, fichas de múltiplos sistemas, biblioteca, bestiário, pesquisa contextual sem IA obrigatória, canvas, assets, iniciativa e nevoeiro.
+
+---
+
 # RPG Mesa v0.37 — ficha individual, perícias e inventário
 
 **Controle do mestre:** removidos da ficha os botões de turno, encerramento de cena e editor de efeitos temporários. A ficha mantém habilidades próprias, suas ações e exportação/importação; efeitos gerados por poderes continuam no motor de regras, mas são gerenciados na Mesa ao Vivo.
