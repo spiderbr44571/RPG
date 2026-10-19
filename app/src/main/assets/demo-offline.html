@@ -848,7 +848,10 @@ function renderCatalogs(){} // compatibilidade com fluxos antigos de atualizaç�
 function executeRitual(id){
  const r=catalog.rituais.find(x=>x.id===id);
  if(!r||r.automacao!=='semi-automatica')return;
- if(!Array.isArray(sys.state.rituaisConhecidos)||!sys.state.rituaisConhecidos.includes(id)){
+ const selectedId=$('#rpg05-char-select')?.value||'default';
+ const legacyKnown=(()=>{try{return JSON.parse(localStorage.getItem('rpg-v06-spells')||'{}')?.[selectedId]||[]}catch{return []}})();
+ const known=Array.isArray(sys.state.rituaisConhecidos)?sys.state.rituaisConhecidos:legacyKnown;
+ if(!known.includes(id)){
   notify('Aprenda este ritual na ficha antes de utilizá-lo.');return;
  }const level={1:5,2:25,3:55,4:85}[r.circulo];const me=sys.state;if(me.class==='Ocultista'&&me.nex<level){notify(`Exige acesso ao ${r.circulo}º círculo no NEX ${level}%.`);return}if(me.resources.PE<r.custoBasePE){notify('PE insuficiente.');return}if(!confirm('Confirmar ritual '+r.nome+'? O alvo, a ação e eventuais resistências devem ser validados pelo mestre.'))return;
  const effect=r.efeito,newChar=structuredClone(me),val=effect.valor||0;
