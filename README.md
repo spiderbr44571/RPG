@@ -1,3 +1,13 @@
+# Mastermind v0.53 — testes livres e Interlúdio
+
+**Rolagens do jogador:** os testes e dados da mesa podem ser lançados quantas vezes forem necessários, inclusive fora da vez do personagem. O tempo mínimo de 1,2 segundo entre rolagens foi removido do servidor. A rolagem continua autenticada, validada e registrada no histórico compartilhado; o jogador não pode escolher o resultado. O consumo de movimento, as restrições de posicionamento e a execução narrativa de ações durante combate continuam sob controle das regras e do mestre.
+
+**Modo Interlúdio:** o mestre alterna **Combate ↔ Interlúdio** tanto no painel de campanha quanto na mesa ao vivo e na interface web de mestragem. No Interlúdio, jogadores podem movimentar seus próprios tokens sem limite de quadrados e sem respeitar a ordem da iniciativa. A UI sinaliza **∞**, oculta a prioridade de turnos e pausa o avanço de rodadas. Os dados de iniciativa e rodada são preservados e retornam quando o mestre reativa o Combate. Ao alternar entre os modos, o deslocamento gasto é reiniciado, evitando que movimentos no Interlúdio consumam a cota do combate seguinte.
+
+**Segurança da mesa:** somente a chave do mestre pode trocar o modo. Jogadores continuam restritos aos seus próprios tokens, áreas cobertas pela névoa permanecem inacessíveis e os dados ocultos não são enviados. Não houve mudança nas fichas, campanhas existentes ou no identificador do APK. Campanhas anteriores sem configuração de modo iniciam em Combate.
+
+---
+
 # Mastermind v0.52 — experiência do jogador na mesa ao vivo
 
 **Mesa ao vivo reorganizada no celular:** o jogador mantém mapa, ficha, recursos e rolagens acessíveis sem precisar abandonar a cena. O painel contém **Mover**, **Medir**, **Marcar**, **Inspecionar** e **Caderno**. O HUD de movimento é compacto e o mapa continua com zoom, pinça, reposicionamento, tokens próprios e áreas encobertas. A ficha tem visualização legível de atributos, perícias, inventário, habilidades e recursos atuais. Os controles PV/PE/SAN (Ordem), PV (D&D) e HP/FP (GURPS) respeitam a ficha própria e são confirmados pelo servidor. O jogador não altera atributos nem edita fichas alheias.
