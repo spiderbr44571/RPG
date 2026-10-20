@@ -118,6 +118,7 @@ jobs:
           node tests/mastermind_v54.test.cjs
           node tests/mastermind_v55.test.cjs
           node tests/mastermind_v56.test.cjs
+          node tests/mastermind_v57.test.cjs
           node --check app/src/main/assets/rpg28_context_search.js
           node tests/contextual_offline_search.test.cjs
           python3 -m py_compile scripts/indexar_pdf.py
@@ -212,6 +213,7 @@ jobs:
 
       - name: Publicar log de diagnostico
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: log-compilacao
