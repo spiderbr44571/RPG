@@ -219,6 +219,8 @@ final class PdfTextSearch {
    StringBuilder expression=new StringBuilder();
    for(String w:words){if(expression.length()>0)expression.append(" OR ");expression.append(w).append("*");}
    SQLiteDatabase db=helper.getReadableDatabase();
+   // Never return pages from the previous PDF while a newly imported book is loading.
+   if(uri==null||!uri.equals(meta(db,"uri")))return result;
    List<JSONObject> candidates=new ArrayList<>();
    String sql="SELECT pages.page,pages.body,pages.normalized FROM page_fts "+
     "JOIN pages ON pages.page=page_fts.docid WHERE page_fts MATCH ? ORDER BY pages.page LIMIT 1400";
