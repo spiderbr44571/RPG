@@ -1,0 +1,61 @@
+/* Mastermind 0.55 — poderes e aprovação, acompanha os temas do jogador. */
+.v55-power-section{--v55-border:var(--r54-line,var(--line,#846b8a));--v55-bg:var(--r54-surface2,var(--surface2,#211b28));
+ --v55-ink:var(--r54-fg,var(--fg,#f6e9f6));--v55-accent:var(--accent,#e0b8dc);
+ display:grid;gap:12px;margin:12px 0 20px;color:var(--v55-ink);font-family:system-ui}
+.v55-power-section h3{font:600 21px Georgia,serif;margin:2px 0}
+.v55-power-section h4{font:600 14px Georgia,serif;margin:7px 0}
+.v55-power-section p{font-size:12px;line-height:1.7;margin:0;color:var(--v55-ink)}
+.v55-budget{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:space-between;
+ background:var(--v55-bg);border:1px solid var(--v55-border);border-radius:11px;padding:12px}
+.v55-budget strong{color:var(--v55-accent);font-size:15px}
+.v55-budget small{color:var(--v55-ink);opacity:.8}
+.v55-pills{display:flex;gap:7px;flex-wrap:wrap}
+.v55-power-section button,#v55-turn-panel button{padding:9px 12px;border:1px solid var(--v55-border,var(--r54-line,#826889));
+ color:var(--v55-ink,var(--r54-fg,#faf));background:var(--v55-bg,var(--r54-surface2,#30243d));border-radius:9px;cursor:pointer;min-height:41px}
+.v55-power-section button.active{border-color:var(--v55-accent);background:color-mix(in srgb,var(--v55-accent) 24%,var(--v55-bg))}
+.v55-power-section button:disabled,#v55-turn-panel button:disabled{opacity:.47;cursor:not-allowed}
+.v55-power-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px;max-height:300px;overflow:auto;overscroll-behavior:contain}
+.v55-card{display:grid;text-align:left;gap:6px;align-content:start;min-height:92px!important}
+.v55-card strong{font-size:12px}
+.v55-card span{color:var(--v55-accent);font-size:11px}
+.v55-card small{font-size:10px;opacity:.8}
+.v55-card.known{border-style:dashed}
+.v55-card.selected{outline:2px solid var(--v55-accent)}
+.v55-power-section label{display:grid;gap:6px;font-size:12px}
+.v55-power-section input{width:100%;max-width:100%;border:1px solid var(--v55-border);background:var(--v55-bg);
+ color:var(--v55-ink);border-radius:9px;padding:12px}
+.v55-power-section #v55-request-power{background:var(--v55-accent);color:var(--r54-bg,#18101c);font-weight:700}
+.v55-known,.v55-progress,.v55-pending{padding:12px;border:1px solid var(--v55-border);border-radius:10px}
+.v55-known>span{display:inline-block;background:var(--v55-bg);padding:6px 9px;border:1px solid var(--v55-border);
+ border-radius:20px;margin:3px;font-size:11px}
+.v55-progress>div{padding:8px 0;border-bottom:1px solid var(--v55-border);font-size:11px}
+#v55-status{color:var(--v55-accent);min-height:20px}
+#v55-action-launch{position:absolute;right:16px;bottom:88px;z-index:24;border-radius:24px;padding:10px 15px;
+ background:var(--r54-surface,#241927);color:var(--r54-accent,#d3aacc);
+ border:1px solid var(--r54-line,#80688c);font-weight:650;box-shadow:0 4px 14px #0005}
+body.r54-clean #v55-action-launch{display:none}
+#v55-turn-panel[hidden]{display:none!important}
+#v55-turn-panel{--v55-border:var(--r54-line,#846b8a);--v55-ink:var(--r54-fg,#fff4ff);
+ --v55-bg:var(--r54-surface2,#27202c);position:absolute;z-index:41;right:12px;
+ bottom:max(87px,calc(env(safe-area-inset-bottom) + 83px));width:min(365px,calc(100vw - 24px));
+ max-height:min(65dvh,540px);overflow:auto;padding:14px;border-radius:15px;
+ background:var(--r54-surface,#211b29);border:1px solid var(--v55-border);
+ color:var(--v55-ink);box-shadow:0 17px 46px #0009}
+#v55-turn-panel header{display:flex;justify-content:space-between;align-items:center;gap:8px}
+#v55-turn-panel h3{margin:4px 0;font:600 19px Georgia,serif}
+#v55-turn-panel p{font-size:12px;line-height:1.7}
+#v55-turn-panel .v55-bonus{padding:10px;background:var(--v55-bg);border:1px solid var(--v55-border);border-radius:9px;color:var(--r54-accent,#d7acdd)}
+.v55-turn-controls{display:grid;gap:10px}
+.v55-turn-controls label{display:grid;gap:7px;font-size:11px}
+.v55-turn-controls select{background:var(--v55-bg);border:1px solid var(--v55-border);border-radius:10px;
+ min-height:42px;color:var(--v55-ink);padding:9px;max-width:100%}
+.v55-turn-controls button{width:100%}
+#v55-turn-panel small{color:var(--v55-ink);opacity:.85;line-height:1.6}
+.r55-request{display:grid;gap:7px;background:#282131;border:1px solid #826b8b;padding:11px;border-radius:11px;margin:9px 0}
+.r55-request strong{font-size:12px}
+.r55-request p{font-size:11px;margin:0}
+.r55-request small{color:#dfc1dd}
+.r55-request button{white-space:normal}
+body.r54-clean .r54-wheel .r54-petal:nth-child(9){right:216px;bottom:171px}
+@media(max-width:390px){body.r54-clean .r54-wheel .r54-petal:nth-child(9){right:202px;bottom:155px}}
+@media(max-height:500px){#v55-turn-panel{max-height:68dvh;bottom:63px}}

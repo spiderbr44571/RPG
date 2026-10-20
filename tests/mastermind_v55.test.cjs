@@ -1,0 +1,72 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const root=path.resolve(__dirname,'../app/src/main');
+const asset=x=>fs.readFileSync(path.join(root,'assets',x),'utf8');
+const srv=fs.readFileSync(path.join(root,'java/dev/rpgmesa/demo/LocalCampaignServer.java'),'utf8');
+const powers=JSON.parse(asset('mastermind55_powers.json'));
+const player=asset('mastermind55_player_powers.js');
+const style=asset('mastermind55_player_powers.css');
+const scene=asset('lan_scene.html'),orig=asset('lan_player.html');
+const live=asset('rpg31_player_table.js'),master=asset('rpg31_master_table.js');
+const wheel=asset('mastermind54_player_shell.js'),gradle=fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8');
+assert.equal(powers.systemId,'ordem-paranormal');
+assert.equal(powers.powers.length,22,'All 22 curated paranormal powers must be listed');
+assert.deepEqual(powers.milestones,[15,30,45,60,75,90]);
+assert.ok(powers.powers.some(p=>p.name==='Surto Temporal'&&p.prerequisite.element==='Morte'&&p.prerequisite.count===2));
+assert.ok(powers.classPowers.Combatente&&powers.classPowers.Especialista&&powers.classPowers.Ocultista);
+assert.doesNotThrow(()=>new Function(player));
+assert.doesNotThrow(()=>new Function(live));
+assert.doesNotThrow(()=>new Function(master));
+assert.doesNotThrow(()=>new Function(wheel));
+assert.match(scene,/src="\/powers-ui\.js"/);
+assert.match(scene,/href="\/powers-ui\.css"/);
+assert.match(scene,/MastermindPowerUI\.initLive\(\)/);
+assert.match(orig,/src="\/powers-ui\.js"/);
+assert.match(orig,/id="v55-original-powers"/);
+assert.match(orig,/MastermindPowerUI\?\.mountOriginal/);
+assert.match(live,/groups\['Poderes e Transcender'\]/);
+assert.match(live,/MastermindPowerUI\?\.mountLive/);
+assert.match(wheel,/data-r54-action="actions"/);
+assert.match(wheel,/modal\('#v55-action-launch'\)/);
+for(const label of ['Surto Temporal','Transcender','Poderes de classe','Enviar escolha para aprovação','Atrasar para depois de quem','Marcar ação extra como utilizada','Passar a vez']){
+  assert.ok(player.includes(label),'Missing real player feature '+label);
+}
+assert.match(player,/api\('power-requests','POST'/);
+assert.match(player,/api\('consume-bonus','POST'/);
+assert.match(player,/request\('delay',null,select\.value\)/);
+assert.match(player,/hasSurto/);
+assert.match(player,/data-v55-turn="surto"/);
+assert.match(player,/slots-used/);
+assert.match(style,/v55-power-grid/);
+assert.match(style,/r55-request/);
+assert.match(serverFallback(srv),/private JSONObject paranormalCatalog\(\)/);
+for(const x of ['submitPlayerRequest','answerPlayerRequest','consumeBonusAction',
+'validateChoice','powerSlots','usedPowerSlots','playerRequests','powerByName','ownRequests']){
+ assert.ok(srv.includes(x),'Missing server handler '+x);
+}
+assert.match(srv,/private static final int\[\] POWER_NEX=\{15,30,45,60,75,90\}/);
+assert.match(srv,/Surto Temporal requer dois poderes paranormais de Morte anteriores/);
+assert.match(srv,/if\("transcend"\.equals\(type\)\)/);
+assert.match(srv,/san\.put\("max",Math\.max\(0,san\.optInt\("max",0\)-loss\)\)/);
+assert.match(srv,/String kind=input\.optString\("type",""\)/);
+assert.match(srv,/for\(int i=0;i<pending\.length\(\);i\+\+\)/);
+assert.match(srv,/if\("surto"\.equals\(kind\)\)/);
+assert.match(srv,/3 PE disponíveis/);
+assert.match(srv,/pe\.put\("current",pe\.getInt\("current"\)-3\)/);
+assert.match(srv,/body\.optBoolean\("fullTurn",false\)/);
+assert.match(srv,/pendingBonus\.optInt\(currentId,0\)>0/);
+assert.match(srv,/if\("delay"\.equals\(type\)\)/);
+assert.match(srv,/if\("pass"\.equals\(type\)\)/);
+assert.match(srv,/!"approve"\.equals\(action\)&&!"reject"\.equals\(action\)/);
+assert.match(srv,/if\(!master\(s\)\)return json\(403,"error","Chave do mestre inválida"\)/);
+assert.match(srv,/if\(p\.length==6&&p\[5\]\.equals\("power-request"\)&&method\.equals\("POST"\)\)/);
+assert.match(srv,/if\("power-requests"\.equals\(p\[4\]\)\)return response\(200,submitPlayerRequest\(cid,player,b\)\)/);
+assert.match(srv,/if\("consume-bonus"\.equals\(p\[4\]\)\)/);
+assert.match(srv,/mastermind55_powers\.json/);
+assert.match(master,/data-r55-decision="approve"/);
+assert.match(master,/data-r55-decision="full"/);
+assert.match(master,/data-r55-decision="reject"/);
+assert.match(master,/req\('\/power-request','POST'/);
+assert.match(gradle,/versionCode 55/);
+console.log('PASS v0.55: power catalog, progression/NEX restrictions, private requests and GM-approved temporal and initiative actions');
+function serverFallback(x){return x}

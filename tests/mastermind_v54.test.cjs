@@ -13,7 +13,7 @@ const build=fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8'
 assert.doesNotThrow(()=>new Function(script),'new UI module must parse in browser');
 assert.doesNotThrow(()=>new Function(player),'existing live player module must still parse');
 assert.doesNotThrow(()=>new Function(former),'existing player interactions remain intact');
-assert.match(build,/versionCode 54/);
+assert.ok(Number(build.match(/versionCode ([0-9]+)/)?.[1])>=54,'v54 features retained');
 assert.match(html,/<link rel="stylesheet" href="\/player-shell\.css">/);
 assert.match(html,/<script src="\/player-shell\.js"><\/script>/);
 assert.match(html,/window\.MastermindPlayerShell\.init\(\)/);

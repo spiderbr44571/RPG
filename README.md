@@ -1,3 +1,17 @@
+# Mastermind v0.55 — progressão de poderes, Transcender e decisões do mestre
+
+- A ficha pessoal e a ficha da Mesa ao Vivo agora oferecem a seção **Poderes e Transcender**, com as 22 escolhas paranormais cadastradas no pacote de Ordem Paranormal. As classes Combatente, Especialista e Ocultista recebem uma lista inicial de sugestões de poderes de classe e podem enviar outros nomes do livro à aprovação do mestre. **Essas sugestões e pré-requisitos além de Surto Temporal dependem de revisão pelo mestre**; não representamos o catálogo de classes como exaustivo ou integralmente automatizado.
+- O motor de progressão registra escolhas em NEX **15, 30, 45, 60, 75 e 90%**, contando cada Transcender como uma escolha de poder de classe. Ao aprovar Transcender, o mestre aplica a renúncia ao ganho de sanidade da progressão (3/4/5 de SAN, conforme a classe) à ficha. A aquisição fica registrada por NEX e elemento, e nenhum pedido altera a ficha antes de passar pela aprovação do mestre.
+- O pré-requisito específico **Morte 2** é verificado para **Surto Temporal**: são exigidos dois poderes paranormais anteriores do elemento Morte aprovados e registrados. Os demais pré-requisitos do livro ainda exigem conferência humana (cada escolha só entra na ficha após a aprovação do mestre).
+- Na roda da Mesa ao Vivo há agora um atalho **Ações**. Em seu próprio turno o jogador pode solicitar **passar a vez**, **atrasar a iniciativa para depois de outro participante** ou **ativar Surto Temporal** (3 PE, uma vez por cena na implementação inicial). O mestre recebe uma fila de pedidos, com botões Aprovar/Recusar.
+- Pela regra-base, Surto Temporal concede **uma ação padrão adicional**, não uma rodada completa. O mestre também tem um botão especial **Turno inteiro (regra da mesa)** para permitir a variante solicitada pelo grupo. O servidor debita 3 PE somente após autorização e acompanha ações/turnos extras em contadores explícitos; apenas o jogador pode marcar sua ação padrão extra como utilizada.
+- Os pedidos são autenticados por jogador e só o mestre pode aprovar, rejeitar e reordenar a iniciativa. Rolagens permanecem livres fora do turno e as restrições de fog-of-war, token próprio e Interlúdio continuam.
+- **Limite honesto:** os demais poderes do catálogo são apresentados e podem ser aprendidos com validação do mestre, mas os efeitos individuais ainda não possuem automações completas, porque o pacote de regras contém seus nomes e referências, não as regras descritivas integrais necessárias para a execução correta. Não serão inventados efeitos.
+
+Recomendação: depois de instalar, confira o poder e a classe de cada personagem importado de versões anteriores, pois escolhas legadas em `powers` sem histórico de NEX não são contadas automaticamente como aquisições novas.
+
+---
+
 # Mastermind v0.54 — mapa limpo, roda de ferramentas e personalização unificada
 
 **Objetivo:** devolver a maior parte da tela do celular ao mapa compartilhado com o mestre, sem perder acesso à ficha nem às ferramentas úteis durante a sessão.
