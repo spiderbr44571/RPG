@@ -1,0 +1,23 @@
+/* Mastermind v0.45: indexação offline do PDF fornecido pelo usuário */
+.r45-pdf-status{background:var(--panel2);border:1px solid var(--line);border-radius:11px;color:var(--fg);padding:11px 12px;font-size:11px;line-height:1.6;margin-bottom:12px}
+.r45-pdf-status[data-state="ready"]{border-color:var(--accent)}
+.r45-pdf-status[data-state="indexing"]{border-color:var(--accent);color:var(--accent)}
+.r45-pdf-hits{padding:14px 14px 8px;margin:0 0 17px;border:1px solid var(--accent);border-radius:13px;background:var(--panel2)}
+.r45-pdf-hits h3{margin:1px 0 7px;font-size:19px;font-family:var(--rpg-heading,Georgia,serif)}
+.r45-pdf-count{font-size:11px;color:var(--muted);margin-bottom:9px}
+.r45-pdf-hit{border-top:1px solid var(--line);padding:10px 2px;display:flex;gap:13px;justify-content:space-between;align-items:center}
+.r45-pdf-hit strong{font-size:11px;color:var(--fg)}
+.r45-pdf-hit p{font-size:11px;line-height:1.6;color:var(--muted);margin:5px 0 0;overflow-wrap:anywhere}
+.r45-pdf-hit button,#r45-pdf-more{border:1px solid var(--accent);color:var(--accent);border-radius:9px;background:var(--panel);padding:8px 10px;min-height:36px;font-size:10px;flex-shrink:0}
+#r45-pdf-more{width:100%;margin:9px 0}
+#r45-pdf-more[hidden]{display:none!important}
+#r45-page-viewer[hidden]{display:none!important}
+#r45-page-viewer{position:fixed;inset:0;z-index:2500;display:grid;place-items:center;background:#040509e8;padding:12px}
+.r45-page-dialog{width:min(900px,100%);max-height:96dvh;overflow-y:auto;box-sizing:border-box;border:1px solid var(--accent);border-radius:13px;background:var(--panel);padding:12px}
+.r45-page-top{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:2px 2px 12px}
+.r45-page-top strong{font-size:12px}
+#r45-page-close{border:1px solid var(--line);background:var(--panel2);color:var(--fg);padding:9px 13px;border-radius:9px}
+#r45-page-loading{color:var(--muted);font-size:12px}
+#r45-page-img{display:block;width:100%;height:auto;border-radius:6px}
+#r45-page-img[hidden]{display:none!important}
+@media(max-width:590px){.r45-pdf-hit{flex-direction:column;align-items:stretch;gap:7px}.r45-pdf-hit button{align-self:flex-start}.r45-pdf-hits{padding:12px}}

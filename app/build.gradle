@@ -2,8 +2,8 @@ plugins { id 'com.android.application' }
 android {
  namespace 'dev.rpgmesa.demo'
  compileSdk 35
- defaultConfig { applicationId 'dev.rpgmesa.demo'; minSdk 26; targetSdk 28; versionCode 44; versionName '0.44.0-mastermind-fichas-progressao' }
+ defaultConfig { applicationId 'dev.rpgmesa.demo'; minSdk 26; targetSdk 28; versionCode 45; versionName '0.45.0-mastermind-pesquisa-pdf' }
  compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
 }
 
-dependencies { implementation 'org.nanohttpd:nanohttpd:2.3.1' }
+dependencies { implementation 'org.nanohttpd:nanohttpd:2.3.1'; implementation 'com.tom-roush:pdfbox-android:2.0.27.0' }
