@@ -17,7 +17,7 @@
  '<div class="r26-quick"><button type="button" data-r26-quick="Como funciona o descanso em Ordem Paranormal?">Descanso</button><button type="button" data-r26-quick="Como funcionam testes e proficiência no D&D 5e?">Testes D&D</button><button type="button" data-r26-quick="Como funciona um teste 3d6 no GURPS?">GURPS 3d6</button></div>',
  '<div id="r26-answer" class="r26-answer" aria-live="polite"><div class="r26-empty">Faça uma pesquisa para ver a resposta resumida e suas fontes.</div></div></main>',
  '<aside class="r26-aside"><section class="r26-aside-box"><h3>Fontes da pesquisa</h3><div id="r26-sources" class="r26-muted">As páginas serão exibidas após a pesquisa.</div></section>',
- '<section class="r26-aside-box"><h3>Biblioteca pesquisável</h3><div id="r45-pdf-status" class="r45-pdf-status" aria-live="polite">Verificando PDF importado...</div><p id="r26-count">Carregando índices do aparelho...</p><label class="r26-index-select">Vincular índice ao sistema<select id="r26-index-system"><option value="">Selecione um sistema</option></select></label>',
+ '<section class="r26-aside-box"><h3>Biblioteca pesquisável</h3><div id="r45-pdf-status" class="r45-pdf-status" aria-live="polite">Verificando PDF importado...</div><button type="button" id="r47-retry-index" hidden>Retomar indexação</button><p id="r26-count">Carregando índices do aparelho...</p><label class="r26-index-select">Vincular índice ao sistema<select id="r26-index-system"><option value="">Selecione um sistema</option></select></label>',
  '<label class="r26-file">+ Importar índice PDF (JSON)<input id="r26-import" type="file" accept=".json,application/json"></label><div id="r26-books"></div>',
  '<p>PDFs pessoais importados na Biblioteca são indexados automaticamente neste Android, sem internet. Índices JSON continuam opcionais para outras fontes.</p></section></aside></div>'
  ].join('');
@@ -44,7 +44,7 @@
   const texts={
    ready:'PDF pesquisável: '+(state.pages||0)+' páginas · '+(state.title||'Livro pessoal'),
    indexing:'Busca liberada · '+(state.progress||0)+' / '+(state.pages||'?')+' páginas pesquisáveis enquanto o restante é preparado...',
-   partial:'Índice parcial: '+(state.progress||0)+' / '+(state.pages||'?')+' páginas. Toque para retomar.',
+   partial:'Índice parcial: '+(state.progress||0)+' / '+(state.pages||'?')+' páginas. A busca funciona nessas páginas.',
    pending:'PDF importado, aguardando extração de texto...',
    missing:'Nenhum PDF pessoal importado na Biblioteca.',
    no_text:'Este PDF não tem texto selecionável. Se for escaneado, é necessário OCR.',
@@ -53,6 +53,7 @@
   };
   el.textContent=texts[type]||'Verificando PDF...';
   el.dataset.state=type;
+  $('#r47-retry-index').hidden=!(type==='partial'||type==='pending');
   if((type==='pending'||type==='partial')&&native()&&force)native().indexSavedPdf();
   // Atualiza só a busca textual enquanto novas páginas são indexadas;
   // não recalcula catálogos nem recria o restante da resposta.
@@ -301,6 +302,7 @@
   });
   $('#r26-edition').addEventListener('change',e=>{activeEdition=e.target.value;if($('#r26-query').value.trim())perform($('#r26-query').value)});
  }
+ $('#r47-retry-index').addEventListener('click',()=>{if(native()){native().indexSavedPdf();showIndexStatus(false)}});
  selectSystem();load();showIndexStatus(true);
  window.addEventListener('rpg-book-selected',()=>{pdfPreviousState='pending';showIndexStatus(true)});
  setInterval(()=>showIndexStatus(false),1500);
