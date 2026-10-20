@@ -5,9 +5,10 @@
  if(!area||!op?.pack||!core||!extract||!templates)return;
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const systems=()=>window.RPG15_SYSTEMS?.systems||[];
- const base=core.makeOrderDocs(op).concat(core.makeRulesDocs(window.RPG18_DND_ENGINE,window.GURPS4_ENGINE));
+ const base=core.makeOrderDocs(op).concat(core.makeCreatureDocs(window.RPG19_ORDER_CREATURES),core.makeRulesDocs(window.RPG18_DND_ENGINE,window.GURPS4_ENGINE));
  const dbName='RPG-Mesa-Private-Search';
  let activeSystem='all',activeEdition='all',indexed=[],latest=[],latestAnswer=null,formattedAnswer=null;
+ let pdfPreviousState='',pdfLastQuery='',pdfPageOffset=0,pdfPageTotal=0,pdfPendingView=0;
  area.innerHTML=[
  '<div class="r26-top"><div><div class="eyebrow">CONSULTA CONTEXTUAL · 100% OFFLINE</div><h1 class="page-h">Pergunte <i>aos livros.</i></h1><p class="page-sub">Encontre regras por contexto, sinônimos e assuntos relacionados, sempre com fontes do sistema selecionado.</p></div><span id="r26-status" class="r26-status">● Pronto para pesquisar</span></div>',
  '<div class="r26-scope"><label>Sistema <select id="r26-system"><option value="all">Todos os sistemas</option></select></label><label>Edição <select id="r26-edition"><option value="all">Todas as edições</option><option value="1.3">Ordem v1.3</option><option value="5e-2014">D&D 5e (2014)</option><option value="2024">D&D 2024</option><option value="3.5">D&D 3.5</option><option value="4e">4ª edição</option></select></label></div>',
@@ -16,9 +17,9 @@
  '<div class="r26-quick"><button type="button" data-r26-quick="Como funciona o descanso em Ordem Paranormal?">Descanso</button><button type="button" data-r26-quick="Como funcionam testes e proficiência no D&D 5e?">Testes D&D</button><button type="button" data-r26-quick="Como funciona um teste 3d6 no GURPS?">GURPS 3d6</button></div>',
  '<div id="r26-answer" class="r26-answer" aria-live="polite"><div class="r26-empty">Faça uma pesquisa para ver a resposta resumida e suas fontes.</div></div></main>',
  '<aside class="r26-aside"><section class="r26-aside-box"><h3>Fontes da pesquisa</h3><div id="r26-sources" class="r26-muted">As páginas serão exibidas após a pesquisa.</div></section>',
- '<section class="r26-aside-box"><h3>Biblioteca pesquisável</h3><p id="r26-count">Carregando índices do aparelho...</p><label class="r26-index-select">Vincular índice ao sistema<select id="r26-index-system"><option value="">Selecione um sistema</option></select></label>',
+ '<section class="r26-aside-box"><h3>Biblioteca pesquisável</h3><div id="r45-pdf-status" class="r45-pdf-status" aria-live="polite">Verificando PDF importado...</div><p id="r26-count">Carregando índices do aparelho...</p><label class="r26-index-select">Vincular índice ao sistema<select id="r26-index-system"><option value="">Selecione um sistema</option></select></label>',
  '<label class="r26-file">+ Importar índice PDF (JSON)<input id="r26-import" type="file" accept=".json,application/json"></label><div id="r26-books"></div>',
- '<p>Os links do Drive são apenas referências. Para pesquisar as regras dentro de um livro, importe o índice de texto desse PDF. O índice permanece neste dispositivo.</p></section></aside></div>'
+ '<p>PDFs pessoais importados na Biblioteca são indexados automaticamente neste Android, sem internet. Índices JSON continuam opcionais para outras fontes.</p></section></aside></div>'
  ].join('');
  const status=msg=>$('#r26-status').textContent='● '+msg;
  const sysName=id=>systems().find(s=>s.id===id)?.title||id;
@@ -31,6 +32,113 @@
   if(/^https:\/\//.test(doc.url||'')){window.open(doc.url,'_blank','noopener,noreferrer');return}
   app?.notify?.('Consulte a página indicada no PDF original.');
  }
+ const native=()=>window.RpgBookBridge&&typeof window.RpgBookBridge.searchPdf==='function'?
+  window.RpgBookBridge:null;
+ function nativeStatus(){
+  try{return native()?JSON.parse(native().pdfIndexStatus()):{state:'unavailable'}}catch{return {state:'error',message:'Pesquisa nativa indisponível.'}}
+ }
+ function showIndexStatus(force=false){
+  const state=nativeStatus(),el=$('#r45-pdf-status');
+  if(!el)return;
+  const type=state.state;
+  const texts={
+   ready:'PDF pesquisável: '+(state.pages||0)+' páginas · '+(state.title||'Livro pessoal'),
+   indexing:'Indexando o livro no aparelho: '+(state.progress||0)+' páginas processadas...',
+   pending:'PDF importado, aguardando extração de texto...',
+   missing:'Nenhum PDF pessoal importado na Biblioteca.',
+   no_text:'Este PDF não tem texto selecionável. Se for escaneado, é necessário OCR.',
+   unavailable:'Busca do PDF disponível na versão Android instalada.',
+   error:state.message||'Não foi possível preparar a pesquisa do PDF.'
+  };
+  el.textContent=texts[type]||'Verificando PDF...';
+  el.dataset.state=type;
+  if(type==='pending'&&native()&&force)native().indexSavedPdf();
+  // Reexecutar a pergunta após a indexação terminar.
+  if(pdfPreviousState==='indexing'&&type==='ready'&&pdfLastQuery){
+   const query=pdfLastQuery;
+   setTimeout(()=>{if($('#r26-query')?.value.trim()===query)perform(query)},80);
+  }
+  pdfPreviousState=type;
+ }
+ function pdfResults(query,offset=0){
+  if(!native())return null;
+  try{return JSON.parse(native().searchPdf(query,20,offset))}
+  catch{return {state:'error',message:'Falha na busca interna do PDF.',hits:[]}}
+ }
+ function renderPdfResults(query,offset=0,append=false){
+  if(!native())return;
+  const data=pdfResults(query,offset),container=$('#r26-answer');
+  if(!container||!data)return;
+  const ready=data.state==='ready';
+  const old=container.querySelector('#r45-pdf-hits');
+  if(append&&old?.dataset.query!==query)return;
+  if(!append&&old)old.remove();
+  if(!ready){
+   if(!append){
+    const msg=document.createElement('section');msg.id='r45-pdf-hits';msg.className='r45-pdf-hits';
+    msg.innerHTML='<h3>Pesquisa no livro importado</h3><p class="r26-muted">'+esc(
+     data.state==='indexing'?'O texto do PDF ainda está sendo indexado. Aguarde para encontrar todas as palavras.':
+     data.state==='no_text'?'PDF sem camada de texto pesquisável (provavelmente escaneado).':
+     data.state==='missing'?'Importe seu PDF na Biblioteca para pesquisar dentro dele.':
+     data.state==='pending'?'Preparando índice do PDF...':'Pesquisa textual do PDF indisponível.'
+    )+'</p>';
+    container.prepend(msg);
+   }
+   return;
+  }
+  const hits=Array.isArray(data.hits)?data.hits:[];
+  pdfPageTotal=Number(data.total)||0;pdfPageOffset=offset+hits.length;
+  const list=hits.map(item=>'<article class="r45-pdf-hit"><div><strong>Página '+Number(item.page)+
+   ' do arquivo PDF</strong><p>'+esc(item.excerpt||'Trecho encontrado nesta página.')+
+   '</p></div><button type="button" data-r45-page="'+Number(item.page)+'">Abrir página ↗</button></article>').join('');
+  if(append&&old){
+   const rows=old.querySelector('.r45-pdf-hit-list');
+   rows?.insertAdjacentHTML('beforeend',list);
+   old.querySelector('.r45-pdf-count').textContent=pdfPageTotal+' páginas com correspondências';
+   const more=old.querySelector('#r45-pdf-more');if(more)more.hidden=pdfPageOffset>=pdfPageTotal;
+   return;
+  }
+  const panel=document.createElement('section');
+  panel.id='r45-pdf-hits';panel.className='r45-pdf-hits';panel.dataset.query=query;
+  panel.innerHTML='<h3>Resultados no PDF pessoal</h3>'+
+   '<p class="r45-pdf-count">'+pdfPageTotal+' páginas com correspondências · '+esc(data.book||'Livro importado')+'</p>'+
+   '<div class="r45-pdf-hit-list">'+(list||'<p class="r26-muted">Nenhuma ocorrência literal encontrada neste PDF.</p>')+'</div>'+
+   '<button type="button" id="r45-pdf-more" '+(pdfPageOffset>=pdfPageTotal?'hidden':'')+'>Mostrar mais páginas</button>';
+  container.prepend(panel);
+  if(hits.length){
+   const placeholders=container.querySelectorAll('.r26-empty');
+   for(const hint of placeholders)if(/Sem uma passagem|Importe um índice/.test(hint.textContent))hint.remove();
+  }
+ }
+ const viewer=document.createElement('div');
+ viewer.id='r45-page-viewer';viewer.hidden=true;
+ viewer.innerHTML='<div class="r45-page-dialog" role="dialog" aria-modal="true" aria-label="Página pesquisada do PDF">'+
+  '<div class="r45-page-top"><strong id="r45-page-caption">Página do livro</strong><button type="button" id="r45-page-close">Fechar ×</button></div>'+
+  '<p id="r45-page-loading">Abrindo página do arquivo pessoal...</p>'+
+  '<img id="r45-page-img" alt="Página do PDF pessoal pesquisado" hidden></div>';
+ document.body.append(viewer);
+ function closePdfViewer(){
+  viewer.hidden=true;pdfPendingView=0;$('#r45-page-img').removeAttribute('src');
+  $('#r45-page-img').hidden=true;
+ }
+ $('#r45-page-close').addEventListener('click',closePdfViewer);
+ viewer.addEventListener('click',event=>{if(event.target===viewer)closePdfViewer()});
+ function openPdfHit(page){
+  if(!native()||!Number.isInteger(page)||page<1)return;
+  pdfPendingView=page;viewer.hidden=false;
+  $('#r45-page-caption').textContent='PDF · página '+page+' do arquivo';
+  $('#r45-page-loading').textContent='Abrindo a página do PDF pessoal...';
+  $('#r45-page-img').hidden=true;
+  native().renderIndexPage(page);
+ }
+ window.addEventListener('rpg-page-rendered',event=>{
+  if(!pdfPendingView||!event.detail?.physical||event.detail.page!==pdfPendingView)return;
+  const img=$('#r45-page-img');img.src=event.detail.src;img.hidden=false;
+  $('#r45-page-loading').textContent='';
+ });
+ window.addEventListener('rpg-page-error',event=>{
+  if(pdfPendingView)$('#r45-page-loading').textContent=String(event.detail||'Não foi possível abrir a página.');
+ });
  function indexDB(){return new Promise((resolve,reject)=>{
   if(!window.indexedDB)return reject(Error('Armazenamento local indisponível'));
   const r=indexedDB.open(dbName,1);
@@ -120,7 +228,7 @@
   const q=String(question||'').trim().slice(0,450);
   if(!q)return;
   $('#r26-query').value=q;status('Pesquisando nos índices locais...');
-  try{const result=answerQuestion(q);render(result);status(result.state==='found'?result.points.length+' passagem(ns) · '+(activeSystem==='all'?'vários sistemas':sysName(activeSystem)):'Nenhuma regra indexada correspondente')}
+  try{const result=answerQuestion(q);render(result);pdfLastQuery=q;renderPdfResults(q);const nativeMatches=$('#r45-pdf-hits .r45-pdf-hit');status(nativeMatches?.length?'PDF pesquisado · '+pdfPageTotal+' página(s) encontrada(s)':result.state==='found'?result.points.length+' passagem(ns) · '+(activeSystem==='all'?'vários sistemas':sysName(activeSystem)):'Nenhuma regra indexada correspondente')}
   catch(err){status('Erro na pesquisa');$('#r26-answer').textContent=err.message||'Não foi possível pesquisar.'}
  }
  $('#r26-form').addEventListener('submit',e=>{e.preventDefault();perform($('#r26-query').value)});
@@ -130,6 +238,8 @@
   if(value.length>=6)delay=setTimeout(()=>perform(value),500);
  });
  area.addEventListener('click',e=>{
+  const nativePage=e.target.closest('[data-r45-page]');if(nativePage){openPdfHit(Number(nativePage.dataset.r45Page));return}
+  if(e.target.id==='r45-pdf-more'){renderPdfResults($('#r26-query').value.trim(),pdfPageOffset,true);return}
   const quick=e.target.closest('[data-r26-quick]');if(quick){perform(quick.dataset.r26Quick);return}
   const book=e.target.closest('[data-r26-open]');if(book){e.preventDefault();openSource(latestAnswer?.points?.[Number(book.dataset.r26Open)]?.source||{});return}
   const formatted=e.target.closest('[data-r27-source]');
@@ -179,7 +289,9 @@
   });
   $('#r26-edition').addEventListener('change',e=>{activeEdition=e.target.value;if($('#r26-query').value.trim())perform($('#r26-query').value)});
  }
- selectSystem();load();
+ selectSystem();load();showIndexStatus(true);
+ window.addEventListener('rpg-book-selected',()=>{pdfPreviousState='pending';showIndexStatus(true)});
+ setInterval(()=>showIndexStatus(false),1500);
  window.RPG11={search:q=>extract.rankDocuments(q,base.concat(indexed),{systemId:activeSystem,edition:activeEdition,systems:systems(),core}),
   ask:q=>{perform(q);return latestAnswer},imported:()=>indexed.length,baseCount:base.length,get currentSystem(){return activeSystem}};
 })();
