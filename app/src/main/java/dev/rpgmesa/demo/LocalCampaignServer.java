@@ -1146,6 +1146,254 @@ public final class LocalCampaignServer extends NanoHTTPD {
     if(ref.isEmpty())throw new IllegalArgumentException("Aguardando ficha do mestre");
     return entry(campaign(cid).getJSONArray("characters"),ref,"Ficha").getJSONObject("sheet");
   }
+  /* v0.55: the official catalog of named paranormal choices is supplied with the
+   * app. No player can grant themselves abilities; GM approves every advancement. */
+  private JSONObject paranormalCatalog() throws Exception{
+    try(InputStream in=context.getAssets().open("mastermind55_powers.json");
+        ByteArrayOutputStream output=new ByteArrayOutputStream()){
+      byte[] bytes=new byte[4096];int n;
+      while((n=in.read(bytes))!=-1)output.write(bytes,0,n);
+      return new JSONObject(output.toString("UTF-8"));
+    }
+  }
+  private JSONArray pendingRequests(JSONObject c)throws JSONException{
+    JSONArray a=c.optJSONArray("playerRequests");
+    if(a==null){a=new JSONArray();c.put("playerRequests",a);}
+    return a;
+  }
+  private JSONObject requestPublic(JSONObject r)throws JSONException{
+    return new JSONObject().put("id",r.optString("id")).put("playerId",r.optString("playerId"))
+      .put("playerName",r.optString("playerName")).put("type",r.optString("type"))
+      .put("name",r.optString("name")).put("element",r.optString("element"))
+      .put("nex",r.optInt("nex",0)).put("targetId",r.optString("targetId"))
+      .put("createdAt",r.optLong("createdAt",0));
+  }
+  private JSONArray ownRequests(JSONObject c,JSONObject player)throws JSONException{
+    JSONArray all=pendingRequests(c),out=new JSONArray();
+    for(int i=0;i<all.length();i++)if(player.optString("id").equals(all.getJSONObject(i).optString("playerId")))
+      out.put(requestPublic(all.getJSONObject(i)));
+    return out;
+  }
+  private JSONObject powerByName(String name)throws Exception{
+    JSONArray powers=paranormalCatalog().getJSONArray("powers");
+    for(int i=0;i<powers.length();i++){
+      JSONObject p=powers.getJSONObject(i);
+      if(name.equals(p.optString("name")))return p;
+    }
+    return null;
+  }
+  private static final int[] POWER_NEX={15,30,45,60,75,90};
+  private int powerSlots(int nex){
+    int n=0;for(int milestone:POWER_NEX)if(nex>=milestone)n++;return n;
+  }
+  private JSONArray choices(JSONObject sheet)throws JSONException{
+    JSONArray v=sheet.optJSONArray("powerChoices");
+    if(v==null){v=new JSONArray();sheet.put("powerChoices",v);}
+    return v;
+  }
+  private int deathPowers(JSONObject sheet)throws JSONException{
+    int count=0;JSONArray powers=choices(sheet);
+    for(int i=0;i<powers.length();i++){
+      JSONObject x=powers.optJSONObject(i);
+      if(x!=null&&"transcend".equals(x.optString("type"))&&"Morte".equals(x.optString("element")))
+        count++;
+    }
+    return count;
+  }
+  private int usedPowerSlots(JSONObject sheet)throws JSONException{
+    JSONArray used=choices(sheet);
+    int n=0;for(int i=0;i<used.length();i++){
+      JSONObject row=used.optJSONObject(i);
+      if(row!=null&&(row.optString("type").equals("transcend")||row.optString("type").equals("class")))n++;
+    }
+    return n;
+  }
+  private void validateChoice(JSONObject sheet,String type,String name)throws Exception{
+    if(!"ordem-paranormal".equals(sheet.optString("systemId","ordem-paranormal")))
+      throw new IllegalArgumentException("Este catálogo é específico de Ordem Paranormal.");
+    int nex=sheet.optInt("nex",5);
+    if(powerSlots(nex)<=usedPowerSlots(sheet))
+      throw new IllegalArgumentException("Não há escolhas de poder disponíveis no NEX atual.");
+    JSONArray prev=choices(sheet);
+    for(int i=0;i<prev.length();i++)
+      if(name.equals(prev.getJSONObject(i).optString("name")))
+        throw new IllegalArgumentException("Este poder já foi escolhido.");
+    if("transcend".equals(type)){
+      JSONObject power=powerByName(name);
+      if(power==null)throw new IllegalArgumentException("Poder paranormal fora do catálogo.");
+      // The book requires two prior Death powers for Temporal Surge.
+      if("Surto Temporal".equals(name)&&deathPowers(sheet)<2)
+        throw new IllegalArgumentException("Surto Temporal requer dois poderes paranormais de Morte anteriores.");
+    }else if("class".equals(type)){
+      if(name.length()<3||name.length()>90)throw new IllegalArgumentException("Nome do poder de classe inválido.");
+    }else throw new IllegalArgumentException("Escolha de poder inválida.");
+  }
+  private JSONObject playerRequests(String cid,JSONObject player)throws Exception{
+    synchronized(lock){
+      JSONObject c=campaign(cid),sheet=playerSheet(cid,player);
+      return new JSONObject().put("requests",ownRequests(c,player))
+        .put("choices",new JSONArray(choices(sheet).toString()))
+        .put("slots",powerSlots(sheet.optInt("nex",5)))
+        .put("used",usedPowerSlots(sheet));
+    }
+  }
+  private JSONObject submitPlayerRequest(String cid,JSONObject actor,JSONObject input)throws Exception{
+    synchronized(lock){
+      JSONObject c=campaign(cid),sheet=playerSheet(cid,actor);
+      JSONArray pending=pendingRequests(c);
+      String kind=input.optString("type","");
+      if(!java.util.Arrays.asList("class","transcend","pass","delay","surto").contains(kind))
+        throw new IllegalArgumentException("Tipo de solicitação inválido");
+      for(int i=0;i<pending.length();i++)
+        if(actor.optString("id").equals(pending.getJSONObject(i).optString("playerId")))
+          throw new IllegalArgumentException("Você já tem uma solicitação pendente. Aguarde o mestre.");
+      if(pending.length()>=40)throw new IllegalArgumentException("Muitas solicitações aguardando o mestre.");
+      JSONObject req=new JSONObject().put("id",UUID.randomUUID().toString().replace("-",""))
+        .put("playerId",actor.getString("id")).put("playerName",actor.optString("nickname"))
+        .put("characterId",actor.optString("characterId")).put("type",kind)
+        .put("createdAt",System.currentTimeMillis()).put("nex",sheet.optInt("nex",0));
+      if("class".equals(kind)||"transcend".equals(kind)){
+        String name=field(input,"name",90);
+        validateChoice(sheet,kind,name);
+        req.put("name",name);
+        if("transcend".equals(kind))req.put("element",powerByName(name).optString("element"));
+      }else{
+        if("interlude".equals(sessionMode(c)))throw new IllegalArgumentException("Este pedido é do modo Combate.");
+        JSONObject init=initiativeData(c);
+        JSONArray entries=init.optJSONArray("entries");
+        if(entries==null||entries.length()==0)throw new IllegalArgumentException("Inicie a iniciativa primeiro.");
+        JSONObject map=activeScene(c);
+        if(map==null)throw new IllegalArgumentException("Publique um mapa primeiro.");
+        String ownerId=actor.optString("id"),chosen="";
+        for(int i=0;i<map.getJSONArray("tokens").length();i++){
+          JSONObject token=map.getJSONArray("tokens").getJSONObject(i);
+          if(ownerId.equals(token.optString("ownerPlayerId"))&&actor.optString("characterId").equals(token.optString("characterId"))){
+            chosen=token.optString("id");break;
+          }
+        }
+        if(!chosen.equals(init.optString("activeId",""))||chosen.isEmpty())
+          throw new IllegalArgumentException("Solicite essa ação durante o seu turno.");
+        req.put("tokenId",chosen);
+        if("delay".equals(kind)){
+          String target=field(input,"targetId",70);
+          if(target.equals(chosen))throw new IllegalArgumentException("Escolha outro participante.");
+          boolean exists=false;
+          for(int i=0;i<entries.length();i++)if(target.equals(entries.getJSONObject(i).optString("tokenId")))exists=true;
+          if(!exists)throw new IllegalArgumentException("Participante não encontrado na iniciativa.");
+          req.put("targetId",target);
+        }
+        if("surto".equals(kind)){
+          boolean known=false;
+          JSONArray powers=sheet.optJSONArray("powers");
+          if(powers!=null)for(int i=0;i<powers.length();i++)
+            if("Surto Temporal".equals(powers.optString(i)))known=true;
+          if(!known)throw new IllegalArgumentException("Este personagem ainda não possui Surto Temporal.");
+          JSONObject pe=sheet.optJSONObject("resources")==null?null:sheet.getJSONObject("resources").optJSONObject("PE");
+          if(pe==null||pe.optInt("current",0)<3)throw new IllegalArgumentException("São necessários 3 PE disponíveis.");
+          String scene=map.optString("id");
+          JSONObject spent=c.optJSONObject("surtoUsage");
+          if(spent!=null&&scene.equals(spent.optString(actor.optString("id"))))
+            throw new IllegalArgumentException("Surto Temporal já utilizado nesta cena.");
+          req.put("name","Surto Temporal");
+        }
+      }
+      pending.put(req);persist();
+      return new JSONObject().put("ok",true).put("request",requestPublic(req));
+    }
+  }
+  private JSONObject answerPlayerRequest(String cid,JSONObject body)throws Exception{
+    synchronized(lock){
+      JSONObject c=campaign(cid);JSONArray pending=pendingRequests(c);
+      String id=field(body,"id",70),action=field(body,"action",20);
+      if(!"approve".equals(action)&&!"reject".equals(action))throw new IllegalArgumentException("Decisão inválida.");
+      JSONObject req=null;int index=-1;
+      for(int i=0;i<pending.length();i++)if(id.equals(pending.getJSONObject(i).optString("id"))){req=pending.getJSONObject(i);index=i;break;}
+      if(req==null)throw new IllegalArgumentException("Solicitação não encontrada.");
+      if("approve".equals(action)){
+        String type=req.optString("type"),pid=req.optString("playerId");
+        JSONObject player=entry(c.getJSONArray("players"),pid,"Jogador");
+        if(!req.optString("characterId").equals(player.optString("characterId")))
+          throw new IllegalArgumentException("O jogador trocou de personagem. Refaça a solicitação.");
+        JSONObject sheet=playerSheet(cid,player);
+        if("class".equals(type)||"transcend".equals(type)){
+          String name=req.optString("name");validateChoice(sheet,type,name);
+          JSONArray used=choices(sheet);
+          int next=POWER_NEX[usedPowerSlots(sheet)];
+          JSONObject choice=new JSONObject().put("type",type).put("name",name).put("nex",next);
+          JSONArray powers=sheet.optJSONArray("powers");
+          if(powers==null){powers=new JSONArray();sheet.put("powers",powers);}
+          if("transcend".equals(type)){
+            JSONObject entry=powerByName(name);
+            choice.put("element",entry.optString("element")).put("sanityNotGained",true);
+            // Transcending forfeits the SAN gain associated with this progression.
+            int loss="Ocultista".equals(sheet.optString("class"))?5:
+              "Especialista".equals(sheet.optString("class"))?4:3;
+            choice.put("sanityProgression",loss);
+            JSONObject san=sheet.optJSONObject("resources")==null?null:sheet.getJSONObject("resources").optJSONObject("SAN");
+            if(san!=null){
+              san.put("max",Math.max(0,san.optInt("max",0)-loss));
+              san.put("current",Math.min(san.optInt("current",0),san.optInt("max",0)));
+            }
+          }
+          used.put(choice);powers.put(name);
+        }else{
+          JSONObject state=initiativeData(c);
+          JSONArray entries=state.optJSONArray("entries");
+          String token=req.optString("tokenId");
+          if("interlude".equals(sessionMode(c))||!token.equals(state.optString("activeId")))
+            throw new IllegalArgumentException("O turno mudou ou o interlúdio começou. Solicitação expirada.");
+          if("pass".equals(type)){
+            initiativeAction(cid,new JSONObject().put("action","next"));
+          }else if("delay".equals(type)){
+            String target=req.optString("targetId");JSONArray rearranged=new JSONArray();
+            JSONObject moving=null;
+            for(int i=0;i<entries.length();i++){
+              JSONObject item=entries.getJSONObject(i);
+              if(token.equals(item.optString("tokenId")))moving=item;
+              else rearranged.put(item);
+            }
+            if(moving==null)throw new IllegalArgumentException("Personagem ausente da iniciativa.");
+            JSONArray changed=new JSONArray();boolean inserted=false;
+            for(int i=0;i<rearranged.length();i++){
+              JSONObject item=rearranged.getJSONObject(i);changed.put(item);
+              if(target.equals(item.optString("tokenId"))){changed.put(moving);inserted=true;}
+            }
+            if(!inserted)throw new IllegalArgumentException("Participante alvo não encontrado.");
+            state.put("entries",changed);
+            state.put("activeId",rearranged.getJSONObject(0).getString("tokenId"));
+            c.put("movementSpent",new JSONObject());
+            advance(cid,"turn");
+          }else if("surto".equals(type)){
+            JSONObject res=sheet.optJSONObject("resources");
+            JSONObject pe=res==null?null:res.optJSONObject("PE");
+            if(pe==null||pe.optInt("current",0)<3)
+              throw new IllegalArgumentException("PE insuficiente para ativar Surto Temporal.");
+            JSONObject used=c.optJSONObject("surtoUsage");
+            if(used==null){used=new JSONObject();c.put("surtoUsage",used);}
+            String scene=activeScene(c).optString("id");
+            if(scene.equals(used.optString(pid)))
+              throw new IllegalArgumentException("Surto Temporal já utilizado nesta cena.");
+            pe.put("current",pe.getInt("current")-3);
+            used.put(pid,scene);
+            JSONObject bonus=c.optJSONObject("bonusActions");
+            if(bonus==null){bonus=new JSONObject();c.put("bonusActions",bonus);}
+            bonus.put(pid,bonus.optInt(pid,0)+1);
+            // Full turn is explicitly a GM-approved house rule, not the standard power.
+            if(body.optBoolean("fullTurn",false)){
+              JSONObject full=c.optJSONObject("bonusTurns");
+              if(full==null){full=new JSONObject();c.put("bonusTurns",full);}
+              full.put(token,full.optInt(token,0)+1);
+              bonus.put(pid,Math.max(0,bonus.optInt(pid)-1));
+            }
+          }else throw new IllegalArgumentException("Solicitação incompatível.");
+        }
+      }
+      JSONArray rest=new JSONArray();
+      for(int i=0;i<pending.length();i++)if(i!=index)rest.put(pending.getJSONObject(i));
+      c.put("playerRequests",rest);persist();
+      return new JSONObject().put("ok",true).put("action",action).put("type",req.optString("type"));
+    }
+  }
   private void playerProfile(String cid,JSONObject player,JSONObject body) throws Exception {
     synchronized(lock){
       if(body.length()>4)throw new IllegalArgumentException("Campos extras não permitidos");
