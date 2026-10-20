@@ -90,12 +90,14 @@ function open(id){
  '<div class="r15-tag">'+(sys.implementation==='partial'?'Módulo em desenvolvimento':'Acervo catalogado')+'</div>'+
  '<p>Livros, expansões, aventuras e materiais relacionados. Cada fonte mantém seu próprio vínculo ao Drive; regras e criaturas são incorporadas somente após validação.</p>'+
  driveAnchor(sys.folderId,'folder',sys.driveUrl,'Abrir pasta no Drive ↗')+'</section>'+
+ '<div id="r51-book-library" data-system-id="'+esc(id)+'"></div>'+ 
  '<div id="r15-ordem-book">'+(id==='ordem-paranormal'?localBookSlot():'')+'</div>'+
  '<div class="r15-row-title"><h2>Livros e arquivos relacionados</h2><small>'+arr.length+' registros</small></div>'+
  (arr.length?bookGroups(arr):'<p class="r15-footnote">Esta pasta não contém arquivos no catálogo atual.</p>');
  if(id==='ordem-paranormal')refreshLocalBook();
  if(id==='gurps'&&window.RPG16_GURPS){const slot=detail.querySelector('#r15-ordem-book');window.RPG16_GURPS.mount(slot);window.RPG17_PDF?.attachGurps(slot);}
  if(id==='d-d'&&window.RPG18_DND){window.RPG18_DND.mount(detail.querySelector('#r15-ordem-book'));}
+ document.dispatchEvent(new CustomEvent('mastermind:system-open',{detail:{systemId:id}}));
  window.scrollTo(0,0);
 }
 detail.addEventListener('click',e=>{

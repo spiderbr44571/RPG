@@ -44,5 +44,5 @@ assert.match(ui,/if\(activeSystem!=='all'&&activeSystem!=='ordem-paranormal'\)re
 assert.match(ui,/renderDriveBooks\(\);load\(\);showIndexStatus\(true\)/);
 assert.match(html,/mastermind50_drive_library\.css/);
 const build=fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8');
-assert.match(build,/versionCode 50/);
+assert.ok(Number(build.match(/versionCode ([0-9]+)/)?.[1])>=50,'v0.50 features retained');
 console.log('PASS Mastermind v0.50: 39 systems + D&D, 209 linked Drive books, D&D/GURPS rules initialized before search');

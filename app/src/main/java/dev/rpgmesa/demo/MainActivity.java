@@ -30,6 +30,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -55,6 +58,9 @@ public final class MainActivity extends Activity {
     // Activity fields are constructed before the Android Context is attached.
     // Initialize PDF search in onCreate, after super.onCreate(state).
     private PdfTextSearch pdfTextSearch;
+    private String pendingBookSystemId="ordem-paranormal";
+    private final Map<String,PdfTextSearch> bookSearchers=new ConcurrentHashMap<>();
+    private static final String PERSONAL_PDF_LIBRARY="mastermind_v51_private_pdf_library";
     private final LanBridge lan = new LanBridge();
     private final CampaignBridge campaign = new CampaignBridge();
     private final HostBridge localHost = new HostBridge();
@@ -200,27 +206,27 @@ public final class MainActivity extends Activity {
           return;
         }
         if(request==PICK_BOOK_DOCUMENT){
-          if(result==RESULT_OK && data!=null && data.getData()!=null){
+          if(result==RESULT_OK && data!=null){
+            final String chosenSystem=pendingBookSystemId;
+            pendingBookSystemId="ordem-paranormal";
             try{
-              Uri uri=data.getData();
-              getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-              String name="Livro de Regras (PDF)";
-              try(Cursor cur=getContentResolver().query(uri,new String[]{OpenableColumns.DISPLAY_NAME},null,null,null)){
-                if(cur!=null && cur.moveToFirst())name=cur.getString(0);
+              int count=0;
+              android.content.ClipData clip=data.getClipData();
+              if(clip!=null){
+                int max=Math.min(40,clip.getItemCount());
+                for(int i=0;i<max;i++){
+                  Uri uri=clip.getItemAt(i).getUri();
+                  if(uri==null)continue;
+                  try{importPersonalPdf(uri,chosenSystem,count==0);count++;}
+                  catch(Exception ex){showBookError("Não foi possível adicionar um dos PDFs: "+ex.getMessage());}
+                }
+              }else if(data.getData()!=null){
+                importPersonalPdf(data.getData(),chosenSystem,true);
+                count=1;
               }
-              getPreferences(Context.MODE_PRIVATE).edit().putString("op_pdf_uri",uri.toString()).putString("op_pdf_name",name).apply();
-              // Indexação assíncrona local: a pesquisa consulta todas as páginas, sem rede.
-              pdfTextSearch.ensureIndex(uri.toString(),name,true);
-              // A miniatura é criada localmente em segundo plano, usando a PRIMEIRA página do PDF.
-              final String filename=name;
-              new Thread(()->{
-                String cover=renderPdfCover(uri);
-                if(cover!=null)getPreferences(Context.MODE_PRIVATE).edit().putString("op_pdf_cover",cover).apply();
-                String payload="{name:"+JSONObject.quote(filename)+",available:true,cover:"+JSONObject.quote(cover==null?"":cover)+"}";
-                runOnUiThread(()->browser.evaluateJavascript("window.dispatchEvent(new CustomEvent('rpg-book-selected',{detail:"+payload+"}));",null));
-              },"rpg-pdf-cover").start();
-            }catch(Exception error){showBookError("Não foi possível guardar o acesso ao PDF: "+error.getMessage());}
-          }
+              if(count==0)showBookError("Nenhum PDF válido foi selecionado.");
+            }catch(Exception error){showBookError("Falha ao importar PDFs: "+error.getMessage());}
+          }else pendingBookSystemId="ordem-paranormal";
           return;
         }
         if(request==PICK_LOCAL_FILE && pendingUpload!=null){
@@ -230,6 +236,127 @@ public final class MainActivity extends Activity {
         }
     }
 
+    /** Each authorized Android SAF document remains in the user's own storage. */
+    private void importPersonalPdf(Uri uri,String systemId,boolean autoIndex){
+      getContentResolver().takePersistableUriPermission(uri,Intent.FLAG_GRANT_READ_URI_PERMISSION);
+      String name="Livro de regras (PDF)";
+      try(Cursor cur=getContentResolver().query(uri,new String[]{OpenableColumns.DISPLAY_NAME},null,null,null)){
+        if(cur!=null&&cur.moveToFirst()&&!cur.isNull(0))name=cur.getString(0);
+      }catch(Exception ignored){}
+      if(!name.toLowerCase(java.util.Locale.ROOT).endsWith(".pdf"))name=name+".pdf";
+      String id=rememberPersonalBook(name,uri.toString(),systemId);
+      // Index only the first selected document immediately. Others are registered
+      // and indexed on demand, to prevent dozens of heavy PDF parsers competing for RAM.
+      if(autoIndex)searcherFor(id).ensureIndex(uri.toString(),name,false);
+      final String event="{id:"+JSONObject.quote(id)+",name:"+JSONObject.quote(name)+
+        ",systemId:"+JSONObject.quote(systemId)+"}";
+      runOnUiThread(()->browser.evaluateJavascript(
+        "window.dispatchEvent(new CustomEvent('rpg-private-book-added',{detail:"+event+"}));",null));
+      if("ordem-paranormal".equals(systemId)){
+        getPreferences(Context.MODE_PRIVATE).edit().putString("op_pdf_uri",uri.toString())
+          .putString("op_pdf_name",name).apply();
+        final String filename=name;
+        new Thread(()->{
+          String cover=renderPdfCover(uri);
+          if(cover!=null)getPreferences(Context.MODE_PRIVATE).edit().putString("op_pdf_cover",cover).apply();
+          String payload="{name:"+JSONObject.quote(filename)+",available:true,cover:"+JSONObject.quote(cover==null?"":cover)+"}";
+          runOnUiThread(()->browser.evaluateJavascript(
+            "window.dispatchEvent(new CustomEvent('rpg-book-selected',{detail:"+payload+"}));",null));
+        },"rpg-pdf-cover").start();
+      }
+    }
+    private boolean validSystemId(String systemId){
+      return systemId!=null&&systemId.matches("[a-z0-9-]{1,64}");
+    }
+    private JSONArray personalBooks(){
+      try{return new JSONArray(getPreferences(Context.MODE_PRIVATE).getString(PERSONAL_PDF_LIBRARY,"[]"));}
+      catch(Exception ignored){return new JSONArray();}
+    }
+    private JSONObject findPersonalBook(String id){
+      if(id==null||!id.matches("[A-Za-z0-9_-]{1,72}"))return null;
+      JSONArray books=personalBooks();
+      for(int i=0;i<books.length();i++){
+        JSONObject book=books.optJSONObject(i);
+        if(book!=null&&id.equals(book.optString("id")))return book;
+      }
+      if("legacy-ordem".equals(id)){
+        String uri=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_uri",null);
+        if(uri!=null){
+          JSONObject legacy=new JSONObject();
+          try{
+            legacy.put("id",id);
+            legacy.put("name",getPreferences(Context.MODE_PRIVATE).getString("op_pdf_name","Ordem Paranormal"));
+            legacy.put("systemId","ordem-paranormal");
+            legacy.put("uri",uri);
+          }catch(Exception ignored){}
+          return legacy;
+        }
+      }
+      return null;
+    }
+    private JSONArray personalBookListing(){
+      JSONArray stored=personalBooks(),out=new JSONArray();boolean legacyListed=false;
+      String legacyUri=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_uri",null);
+      for(int i=0;i<stored.length();i++){
+        JSONObject book=stored.optJSONObject(i);
+        if(book==null)continue;
+        if(legacyUri!=null&&legacyUri.equals(book.optString("uri")))legacyListed=true;
+        JSONObject safe=new JSONObject();
+        try{
+          safe.put("id",book.optString("id"));
+          safe.put("name",book.optString("name"));
+          safe.put("systemId",book.optString("systemId"));
+        }catch(Exception ignored){}
+        out.put(safe);
+      }
+      if(!legacyListed&&legacyUri!=null){
+        JSONObject legacy=new JSONObject();
+        try{
+          legacy.put("id","legacy-ordem");
+          legacy.put("name",getPreferences(Context.MODE_PRIVATE).getString("op_pdf_name","Ordem Paranormal"));
+          legacy.put("systemId","ordem-paranormal");
+        }catch(Exception ignored){}
+        out.put(legacy);
+      }
+      return out;
+    }
+    private PdfTextSearch searcherFor(String bookId){
+      if("legacy-ordem".equals(bookId))return pdfTextSearch;
+      if(bookId==null||!bookId.matches("[A-Za-z0-9_-]{1,72}"))
+        throw new IllegalArgumentException("Identificador de livro inválido");
+      return bookSearchers.computeIfAbsent(bookId,id->new PdfTextSearch(getApplicationContext(),id));
+    }
+    private PdfTextSearch currentOrderSearcher(){
+      String uri=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_uri",null);
+      if(uri!=null){
+        JSONArray current=personalBooks();
+        for(int i=0;i<current.length();i++){
+          JSONObject b=current.optJSONObject(i);
+          if(b!=null&&uri.equals(b.optString("uri"))&&"ordem-paranormal".equals(b.optString("systemId")))
+            return searcherFor(b.optString("id"));
+        }
+      }
+      return pdfTextSearch;
+    }
+    private String rememberPersonalBook(String name,String uri,String systemId){
+      if(!validSystemId(systemId))throw new IllegalArgumentException("Sistema inválido");
+      JSONArray current=personalBooks();
+      for(int i=0;i<current.length();i++){
+        JSONObject old=current.optJSONObject(i);
+        if(old!=null&&uri.equals(old.optString("uri"))&&systemId.equals(old.optString("systemId")))
+          return old.optString("id");
+      }
+      if(current.length()>=100)throw new IllegalArgumentException("Limite de 100 PDFs pessoais por aparelho.");
+      String id="b"+UUID.randomUUID().toString().replace("-","");
+      JSONObject entry=new JSONObject();
+      try{
+        entry.put("id",id);entry.put("name",name);entry.put("uri",uri);entry.put("systemId",systemId);
+      }catch(Exception e){throw new IllegalStateException("Não foi possível registrar o livro.");}
+      current.put(entry);
+      if(!getPreferences(Context.MODE_PRIVATE).edit().putString(PERSONAL_PDF_LIBRARY,current.toString()).commit())
+        throw new IllegalStateException("Não foi possível salvar a biblioteca neste aparelho.");
+      return id;
+    }
     /** SAF: only user-selected PDFs, no broad storage permissions and no network upload. */
     public final class BookBridge {
       @JavascriptInterface public String getSavedPdf(){
@@ -240,16 +367,16 @@ public final class MainActivity extends Activity {
       }
       @JavascriptInterface public String pdfIndexStatus(){
         String uri=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_uri",null);
-        return pdfTextSearch.getStatus(uri).toString();
+        return currentOrderSearcher().getStatus(uri).toString();
       }
       @JavascriptInterface public void indexSavedPdf(){
         String uri=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_uri",null);
         String name=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_name","Livro pessoal");
-        pdfTextSearch.ensureIndex(uri,name,false);
+        currentOrderSearcher().ensureIndex(uri,name,false);
       }
       @JavascriptInterface public String searchPdf(String query,int limit,int offset){
         String uri=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_uri",null);
-        return pdfTextSearch.search(uri,query,limit,offset).toString();
+        return currentOrderSearcher().search(uri,query,limit,offset).toString();
       }
       // Índice 1-based físico do PDF; não confundir com paginação impressa +10.
       @JavascriptInterface public void renderIndexPage(int pageNumber){
@@ -276,15 +403,67 @@ public final class MainActivity extends Activity {
           }
         }catch(Exception err){sendPdfError("Erro ao abrir página do PDF indexado.");}
       }
-      @JavascriptInterface public void pickPdf(){runOnUiThread(()->{
+      @JavascriptInterface public void pickPdf(){pickPdfForSystem("ordem-paranormal");}
+      @JavascriptInterface public void pickPdfForSystem(String systemId){runOnUiThread(()->{
+        if(!validSystemId(systemId)){showBookError("Selecione um sistema válido para importar o PDF.");return;}
         try{
+          pendingBookSystemId=systemId;
           Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT);
           intent.addCategory(Intent.CATEGORY_OPENABLE);
           intent.setType("application/pdf");
+          intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
           intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
           startActivityForResult(intent,PICK_BOOK_DOCUMENT);
         }catch(Exception e){showBookError("Não foi possível abrir o seletor de PDF.");}
       });}
+      @JavascriptInterface public String listPersonalBooks(){return personalBookListing().toString();}
+      @JavascriptInterface public String personalBookStatus(String id){
+        JSONObject b=findPersonalBook(id);
+        if(b==null)return "{\"state\":\"missing\",\"message\":\"PDF não localizado na Biblioteca\"}";
+        return searcherFor(id).getStatus(b.optString("uri")).toString();
+      }
+      @JavascriptInterface public void indexPersonalBook(String id){
+        JSONObject b=findPersonalBook(id);
+        if(b!=null)searcherFor(id).ensureIndex(b.optString("uri"),b.optString("name"),false);
+      }
+      @JavascriptInterface public String searchPersonalBook(String id,String question,int limit,int offset){
+        JSONObject b=findPersonalBook(id);
+        if(b==null)return "{\"state\":\"missing\",\"hits\":[]}";
+        return searcherFor(id).search(b.optString("uri"),question,limit,offset).toString();
+      }
+      @JavascriptInterface public void openPersonalBook(String id){runOnUiThread(()->{
+        JSONObject b=findPersonalBook(id);
+        if(b==null){showBookError("Livro indisponível neste aparelho.");return;}
+        try{
+          Intent intent=new Intent(Intent.ACTION_VIEW);
+          intent.setDataAndType(Uri.parse(b.optString("uri")),"application/pdf");
+          intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+          startActivity(intent);
+        }catch(Exception e){showBookError("Instale um leitor PDF ou importe o arquivo novamente.");}
+      });}
+      @JavascriptInterface public void renderPersonalBookPage(String id,int pageNumber){
+        JSONObject b=findPersonalBook(id);
+        if(b==null||pageNumber<1||pageNumber>1400){sendPdfError("Livro ou página indisponível.");return;}
+        try(ParcelFileDescriptor fd=getContentResolver().openFileDescriptor(Uri.parse(b.optString("uri")),"r")){
+          if(fd==null)throw new IllegalStateException("Arquivo indisponível");
+          try(PdfRenderer renderer=new PdfRenderer(fd)){
+            if(pageNumber>renderer.getPageCount())throw new IllegalArgumentException("Página fora do PDF");
+            try(PdfRenderer.Page page=renderer.openPage(pageNumber-1)){
+              float scale=Math.min(1000f/page.getWidth(),1400f/page.getHeight());
+              Bitmap bitmap=Bitmap.createBitmap(Math.max(1,Math.round(page.getWidth()*scale)),Math.max(1,Math.round(page.getHeight()*scale)),Bitmap.Config.ARGB_8888);
+              try{
+                bitmap.eraseColor(Color.WHITE);
+                page.render(bitmap,null,null,PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
+                ByteArrayOutputStream bytes=new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.JPEG,75,bytes);
+                String image="data:image/jpeg;base64,"+Base64.encodeToString(bytes.toByteArray(),Base64.NO_WRAP);
+                String detail="{id:"+JSONObject.quote(id)+",page:"+pageNumber+",src:"+JSONObject.quote(image)+"}";
+                runOnUiThread(()->browser.evaluateJavascript("window.dispatchEvent(new CustomEvent('rpg-private-page-rendered',{detail:"+detail+"}));",null));
+              }finally{bitmap.recycle();}
+            }
+          }
+        }catch(Exception e){sendPdfError("Não foi possível abrir esta página do livro.");}
+      }
       /** Render only a page of the document chosen by the user; never bundled or uploaded. */
       @JavascriptInterface public void renderPage(int printedPage) {
         final String link=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_uri",null);
