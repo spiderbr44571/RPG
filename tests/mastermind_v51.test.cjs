@@ -50,6 +50,6 @@ assert.match(ui,/As regras específicas ainda precisam ser cadastradas e verific
 assert.match(html,/src="mastermind51_private_books\.js"/);
 assert.match(html,/href="mastermind51_private_books\.css"/);
 const gradle=fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8');
-assert.match(gradle,/versionCode 51/);
+assert.ok(Number(gradle.match(/versionCode ([0-9]+)/)?.[1])>=51,'v0.51 backward compatibility');
 assert.match(gradle,/applicationId 'dev\.rpgmesa\.demo'/);
 console.log('PASS v0.51: D&D PDF import, multibook indexes per system, legacy OP migration, manual sheets and no bundled PDFs');

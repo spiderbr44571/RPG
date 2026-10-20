@@ -1,3 +1,17 @@
+# Mastermind v0.52 — experiência do jogador na mesa ao vivo
+
+**Mesa ao vivo reorganizada no celular:** o jogador mantém mapa, ficha, recursos e rolagens acessíveis sem precisar abandonar a cena. O painel contém **Mover**, **Medir**, **Marcar**, **Inspecionar** e **Caderno**. O HUD de movimento é compacto e o mapa continua com zoom, pinça, reposicionamento, tokens próprios e áreas encobertas. A ficha tem visualização legível de atributos, perícias, inventário, habilidades e recursos atuais. Os controles PV/PE/SAN (Ordem), PV (D&D) e HP/FP (GURPS) respeitam a ficha própria e são confirmados pelo servidor. O jogador não altera atributos nem edita fichas alheias.
+
+**Distâncias orientativas por sistema:** escala calculada a partir do sistema do personagem vinculado à mesa. Ordem Paranormal: grid de 1,5 m por quadrado, corpo a corpo / toque adjacente, curto 9 m, médio 18 m, longo 36 m, extremo 90 m, indicação de alcance ilimitado somente se o efeito permitir. D&D 5e: 5 pés por quadrado; alcance de ações depende da regra específica. GURPS: aproximação de 1 m por quadrado neste mapa, já que seu grid real costuma ser hexagonal. O cálculo segue a diagonal equivalente a um quadrado usada na movimentação do servidor. Obstáculos, elevação, visibilidade e regras opcionais não são avaliados automaticamente. O mestre continua sendo a autoridade da cena.
+
+**Anotações imersivas:** caderno por jogador com entradas de texto extensas, títulos, busca, registros vinculados à cena e marcadores diretamente no mapa. As notas são salvas pelo servidor da campanha (rota privada autenticada), com cache local separado por identidade de jogador para contingência, botão de sincronização e opção de copiar o registro completo. Marcadores próprios **não são publicados para outros jogadores**. O mestre que administra o servidor continua tendo acesso administrativo aos dados da campanha, portanto o caderno não deve ser tratado como um cofre secreto contra o administrador.
+
+**Integração visual:** o modo claro e a cor personalizada selecionados na ficha do jogador também são aplicados à mesa ao vivo. A cena continua respeitando névoa do mestre e restrições de posse, turnos, deslocamento e resultados de dados confirmados no backend. A rolagem do menor entre dois d20 foi adicionada ao servidor para atributos 0 de Ordem Paranormal.
+
+**Limites:** esta versão não implementa regras integrais de todos os RPGs, chat por voz, áudio espacial, compartilhamento universal de anotações nem verificação automática de linha de visão. São recursos possíveis em futuras etapas, após testes reais em dispositivos.
+
+---
+
 # Mastermind v0.51 — PDFs particulares em todos os sistemas
 
 **Novo:** no detalhe de qualquer um dos 39 sistemas catalogados (incluindo D&D), a Biblioteca oferece o botão **Adicionar PDFs**. O seletor de documentos do Android permite selecionar um ou vários PDFs, inclusive os que a conta do usuário autoriza acessar via Google Drive. Cada documento é associado ao sistema selecionado, mantém permissão de acesso SAF e possui seu próprio índice de texto SQLite pesquisável (sem duplicar ou redistribuir os arquivos no APK). Um livro importado não substitui os outros; o leitor legado de Ordem Paranormal continua disponível.

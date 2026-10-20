@@ -92,7 +92,8 @@ function render(){
  const s=state?.scene;resources(state?.character);sheet();initiative();
  const active=state?.initiative?.entries?.find(p=>p.tokenId===state?.initiative?.activeId);
  $('#scene-turn').textContent=active?'Vez: '+active.name+' · Rodada '+(state.initiative.round||1):'Sem iniciativa';
- if(!s){$('#empty').hidden=false;$('#board').innerHTML='';return}
+ if(!s){$('#empty').hidden=false;$('#board').innerHTML='';
+   root.dispatchEvent(new CustomEvent('mastermind:player-live-render',{detail:{sceneId:''}}));return}
  $('#empty').hidden=true;$('#scene-title').textContent=readable(s.name)||'Cenário';
  const board=$('#board'),assets=new Map((state.assets||[]).map(a=>[a.id,a]));
  const bg=assets.get(s.backgroundAssetId)?.image;
@@ -113,6 +114,7 @@ function render(){
  $('#feed').innerHTML=(state.rolls||[]).slice(-3).reverse().map(r=>
   '<div class="roll"><strong>'+esc(r.by)+'</strong> - '+esc(r.label)+'<div><b>'+r.total+'</b><small class="dicefaces">'+
  esc(r.formula)+' : ['+esc((r.faces||[]).join(', '))+']'+(r.mode==='highest'?' (maior d20)':'')+'</small></div></div>').join('');
+ root.dispatchEvent(new CustomEvent('mastermind:player-live-render',{detail:{sceneId:s.id}}));
 }
 async function refresh(){
  if(busy||document.hidden)return;busy=true;
@@ -163,5 +165,7 @@ function mount(){
  document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal').forEach(m=>m.classList.remove('open'))});
  setInterval(refresh,1800);refresh();
 }
-root.RPG31_PLAYER={mount};
+root.RPG31_PLAYER={mount,get state(){return state},get selectedTokenId(){return selected},
+ get sceneId(){return state?.scene?.id||''},notify:msg};
+
 })(window);

@@ -15,7 +15,7 @@ assert.match(server,/repairLegacyLabels\(savedCampaigns\.getJSONObject\(i\)\)/);
 assert.match(server,/publishedScript\("rpg33_camera\.js"\)/);
 assert.match(demo,/<script src="rpg33_camera\.js"><\/script><script src="rpg31_master_table\.js"><\/script>/);
 assert.match(master,/<script src="\/table-camera\.js"><\/script><script src="\/table-master\.js"><\/script>/);
-assert.match(scene,/<script src="\/table-camera\.js"><\/script><script src="\/table-player\.js"><\/script>/);
+assert.match(scene,/<script src="\/table-camera\.js"><\/script><script src="\/player-range\.js"><\/script><script src="\/table-player\.js"><\/script>/);
 assert.match(gm,/camera\?\.attach\(/);
 assert.match(gm,/camera\?\.cellAt\(/);
 assert.match(gm,/data-action="fit"/);
