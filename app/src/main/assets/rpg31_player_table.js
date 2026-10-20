@@ -59,6 +59,7 @@ const sections=s=>{
  s=s||{};const groups={};
  if(s.attrs)groups['Atributos']=s.attrs;
  if(s.skills)groups['Perícias']=s.skills;
+ if(s.systemId==='ordem-paranormal')groups['Poderes e Transcender']=s.powerChoices||[];
  const abilities=[s.powers,s.rituaisConhecidos,s.abilities,s.spells,s.techniques].filter(x=>x!=null);
  if(abilities.length)groups['Rituais e habilidades']=abilities;
  const items=[s.inventory,s.items,s.weapons].filter(x=>x!=null);
@@ -82,6 +83,7 @@ function sheet(){
  $('#sheet-title').textContent=readable(s.name)||'Ficha pendente';
  $('#sheet-tabs').innerHTML=keys.map(k=>'<button data-tab="'+esc(k)+'" class="'+(k===tab?'active':'')+'">'+esc(k)+'</button>').join('');
  $('#sheet-data').innerHTML=content(groups[tab]);
+ if(tab==='Poderes e Transcender')root.MastermindPowerUI?.mountLive($('#sheet-data'),s);
 }
 function initiative(){
  const order=state?.initiative?.entries||[];
