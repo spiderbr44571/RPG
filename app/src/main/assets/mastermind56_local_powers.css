@@ -1,0 +1,51 @@
+/* v0.56: powers tab in the Android app's actual screen-sheet, not only the LAN guest page. */
+#v56-quick-powers{border:1px solid var(--accent);color:var(--accent-foreground,#201723);
+ font-weight:750;min-height:42px;white-space:nowrap}
+#screen-sheet .r14-tabs [data-r14-tab=advancement]{border-color:var(--accent);color:var(--accent);
+ font-weight:800;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 25%,transparent)}
+#screen-sheet .r14-tabs [data-r14-tab=advancement][aria-selected=true]{background:var(--accent);color:var(--accent-foreground,#1d1420)}
+#screen-sheet [data-r14-panel=advancement]{display:grid;gap:12px;min-width:0}
+#screen-sheet [data-r14-panel=advancement][hidden]{display:none!important}
+#v56-powers{padding:17px;border:1px solid var(--line);border-radius:16px;background:var(--panel);color:var(--fg);min-width:0}
+#v56-powers .v56-heading{display:flex;align-items:flex-start;flex-wrap:wrap;justify-content:space-between;gap:13px}
+#v56-powers .v56-heading>div:first-child{flex:1;min-width:190px}
+#v56-powers .v56-heading small{color:var(--accent);font-size:10px;letter-spacing:.11em}
+#v56-powers .v56-heading h3{font:600 27px Georgia,serif;margin:6px 0 8px;color:var(--fg)}
+#v56-powers p{color:var(--muted);font-size:12px;line-height:1.7;margin:6px 0 12px}
+#v56-powers .v56-budget{display:grid;gap:6px;min-width:140px;padding:10px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:12px}
+#v56-powers .v56-budget strong{font-size:15px;color:var(--accent)}
+#v56-powers .v56-budget span{font-size:11px;color:var(--muted)}
+#v56-powers .v56-switch{display:flex;flex-wrap:wrap;gap:9px;margin:16px 0 7px}
+#v56-powers button{cursor:pointer;border-radius:10px}
+#v56-powers .v56-switch button{min-height:42px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);padding:9px 13px}
+#v56-powers .v56-switch button.active{border-color:var(--accent);background:var(--accent);color:var(--accent-foreground,#201725)}
+#v56-powers .v56-powers-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:9px;max-height:380px;overflow-y:auto}
+#v56-powers .v56-power-card{min-height:86px;text-align:left;display:grid;gap:4px;align-content:center;
+ padding:11px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);overflow-wrap:anywhere}
+#v56-powers .v56-power-card strong{font-size:13px}
+#v56-powers .v56-power-card span{font-size:11px;color:var(--accent)}
+#v56-powers .v56-power-card small{font-size:10px;color:var(--muted);line-height:1.45}
+#v56-powers .v56-power-card.chosen{outline:2px solid var(--accent);background:var(--accent-soft,var(--panel2))}
+#v56-powers .v56-power-card:disabled{opacity:.47;cursor:not-allowed}
+#v56-powers .v56-custom{display:grid;gap:7px;margin:12px 0;font-size:12px;color:var(--fg)}
+#v56-powers .v56-custom input{min-height:42px;padding:10px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;color:var(--fg)}
+#v56-powers .v56-confirm{display:block;min-height:45px;width:100%;background:var(--accent);color:var(--accent-foreground,#241824);
+ border:1px solid var(--accent);font-size:13px;font-weight:800;margin:10px 0}
+#v56-powers .v56-confirm:disabled{opacity:.4}
+#v56-powers #v56-feedback{min-height:18px;color:var(--accent);font-weight:700}
+#v56-powers .v56-acquired{display:grid;gap:8px;margin:16px 0;border-top:1px solid var(--line);padding-top:11px}
+#v56-powers .v56-acquired h4{font:600 20px Georgia,serif;margin:4px 0}
+#v56-powers .v56-power-learned{border:1px solid var(--line);background:var(--panel2);
+ border-radius:9px;padding:10px;display:flex;justify-content:space-between;gap:9px;align-items:center;flex-wrap:wrap}
+#v56-powers .v56-power-learned strong{font-size:12px;color:var(--fg)}
+#v56-powers .v56-power-learned small{font-size:11px;color:var(--muted)}
+#v56-powers .v56-legacy{overflow-wrap:anywhere}
+#v56-powers .v56-warning{border:1px solid var(--line);border-radius:9px;padding:11px;background:var(--panel2);font-size:11px}
+@media(max-width:650px){
+ #v56-quick-powers{flex:1 1 100%;width:100%}
+ #v56-powers{padding:12px}
+ #v56-powers .v56-powers-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #v56-powers .v56-power-card{min-height:105px}
+ #v56-powers .v56-power-card strong{font-size:12px}
+}
+@media(max-width:365px){#v56-powers .v56-powers-list{grid-template-columns:1fr}}
