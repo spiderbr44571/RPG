@@ -66,10 +66,13 @@ const doc={
  querySelector:sel=>sel==='meta[name="theme-color"]'?{setAttribute:(k,v)=>attrs.set(k,v)}:null,
  addEventListener:(name,fn)=>{listeners[name]=fn}
 };
-const context={window:{addEventListener:(name,fn)=>listeners[name]=fn,dispatchEvent:()=>{},
- location:{pathname:'/scene/campaign123'},CustomEvent:class{constructor(type,opts){this.type=type;this.detail=opts?.detail}},
- document:doc,location:{pathname:'/scene/campaign123'},
- localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)}};
+const context={
+ window:{addEventListener:(name,fn)=>{listeners[name]=fn},dispatchEvent:()=>{}},
+ location:{pathname:'/scene/campaign123'},
+ CustomEvent:class{constructor(type,opts){this.type=type;this.detail=opts?.detail}},
+ document:doc,
+ localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)}
+};
 vm.runInNewContext(script,context);
 const shell=context.window.MastermindPlayerShell;
 assert.ok(shell&&typeof shell.savePrefs==='function');
