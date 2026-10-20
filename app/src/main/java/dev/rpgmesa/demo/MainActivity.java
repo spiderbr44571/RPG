@@ -52,6 +52,7 @@ public final class MainActivity extends Activity {
     private static final int PICK_BOOK_DOCUMENT = 1105;
     private static final int SAVE_CHARACTER_PDF = 1106;
     private final BookBridge books = new BookBridge();
+    private final PdfTextSearch pdfTextSearch = new PdfTextSearch(this);
     private final LanBridge lan = new LanBridge();
     private final CampaignBridge campaign = new CampaignBridge();
     private final HostBridge localHost = new HostBridge();
@@ -204,6 +205,8 @@ public final class MainActivity extends Activity {
                 if(cur!=null && cur.moveToFirst())name=cur.getString(0);
               }
               getPreferences(Context.MODE_PRIVATE).edit().putString("op_pdf_uri",uri.toString()).putString("op_pdf_name",name).apply();
+              // Indexação assíncrona local: a pesquisa consulta todas as páginas, sem rede.
+              pdfTextSearch.ensureIndex(uri.toString(),name,true);
               // A miniatura é criada localmente em segundo plano, usando a PRIMEIRA página do PDF.
               final String filename=name;
               new Thread(()->{
@@ -230,6 +233,44 @@ public final class MainActivity extends Activity {
         String name=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_name","Livro");
         String cover=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_cover","");
         return "{\"available\":"+(path!=null)+",\"name\":"+JSONObject.quote(name)+",\"cover\":"+JSONObject.quote(cover)+"}";
+      }
+      @JavascriptInterface public String pdfIndexStatus(){
+        String uri=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_uri",null);
+        return pdfTextSearch.getStatus(uri).toString();
+      }
+      @JavascriptInterface public void indexSavedPdf(){
+        String uri=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_uri",null);
+        String name=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_name","Livro pessoal");
+        pdfTextSearch.ensureIndex(uri,name,false);
+      }
+      @JavascriptInterface public String searchPdf(String query,int limit,int offset){
+        String uri=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_uri",null);
+        return pdfTextSearch.search(uri,query,limit,offset).toString();
+      }
+      // Índice 1-based físico do PDF; não confundir com paginação impressa +10.
+      @JavascriptInterface public void renderIndexPage(int pageNumber){
+        String link=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_uri",null);
+        if(link==null||pageNumber<1||pageNumber>1400){sendPdfError("Selecione uma página do PDF indexado.");return;}
+        try(ParcelFileDescriptor fd=getContentResolver().openFileDescriptor(Uri.parse(link),"r")){
+          if(fd==null){sendPdfError("PDF indisponível.");return;}
+          try(PdfRenderer renderer=new PdfRenderer(fd)){
+            int index=pageNumber-1;
+            if(index>=renderer.getPageCount()){sendPdfError("Página fora do livro.");return;}
+            try(PdfRenderer.Page page=renderer.openPage(index)){
+              float scale=Math.min(1150f/page.getWidth(),1450f/page.getHeight());
+              Bitmap bmp=Bitmap.createBitmap(Math.max(1,Math.round(page.getWidth()*scale)),Math.max(1,Math.round(page.getHeight()*scale)),Bitmap.Config.ARGB_8888);
+              try{
+                bmp.eraseColor(Color.WHITE);
+                page.render(bmp,null,null,PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
+                ByteArrayOutputStream out=new ByteArrayOutputStream();
+                bmp.compress(Bitmap.CompressFormat.JPEG,79,out);
+                String data="data:image/jpeg;base64,"+Base64.encodeToString(out.toByteArray(),Base64.NO_WRAP);
+                String script="window.dispatchEvent(new CustomEvent('rpg-page-rendered',{detail:{page:"+pageNumber+",physical:true,src:"+JSONObject.quote(data)+"}}));";
+                runOnUiThread(()->browser.evaluateJavascript(script,null));
+              }finally{bmp.recycle();}
+            }
+          }
+        }catch(Exception err){sendPdfError("Erro ao abrir página do PDF indexado.");}
       }
       @JavascriptInterface public void pickPdf(){runOnUiThread(()->{
         try{
