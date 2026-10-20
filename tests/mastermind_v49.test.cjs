@@ -22,5 +22,5 @@ assert.match(native,/PDDocument\.load\(temp,MemoryUsageSetting\.setupTempFileOnl
  'PDF parser uses disk scratch, not full in-memory document copy');
 assert.match(native,/final int BATCH=6/,'FTS index stays progressive');
 assert.match(native,/ORDER BY pages\.page LIMIT \? OFFSET \?/,'PDF Ctrl+F stays paginated');
-assert.match(gradle,/versionCode 49/);
+assert.ok(Number(gradle.match(/versionCode ([0-9]+)/)?.[1])>=49,'v49 PDF support on later releases');
 console.log('PASS Mastermind v0.49: streaming PDFs over 180 MB with disk quota checks, progress and incremental full-text search');
