@@ -1,3 +1,19 @@
+# Mastermind v0.56 — hotfix de funcionalidades invisíveis na ficha principal
+
+A v0.55 tinha sido compilada, mas **a nova aba de poderes não era carregada em `demo-offline.html`**, a interface principal do aplicativo Android. A maior parte do código estava nas páginas LAN usadas por jogadores conectados. O aplicativo também importava fichas de Ordem Paranormal para campanhas sem `systemId`, fazendo a aba desaparecer para jogadores conectados. Ambas as causas foram corrigidas nesta versão.
+
+**Onde a mudança é visível:** abra **Personagens** no Mastermind Android. Junto ao seletor do personagem há o botão **✦ Poderes / Transcender**, e na navegação da ficha há a aba **✦ Poderes / Transcender**. A tela lista os 22 poderes paranormais, sugestões de poderes de classe, escolhas disponíveis por NEX, pré-requisito de dois poderes de Morte para Surto Temporal, opções aprendidas e histórico de progressão do personagem selecionado. Registrar uma escolha local grava `powers` e `powerChoices` na ficha específica, usando a mesma função de persistência de múltiplos personagens já utilizada no aplicativo. A fórmula local de sanidade considera as escolhas de Transcender no cálculo de SAN máximo.
+
+**Mesa LAN:** a ficha do jogador conectada também ganhou aba de poderes independente de Habilidades/Rituais e a tela de cenário reconhece fichas antigas de Ordem sem identificador de sistema. Novas importações da Mestragem definem `systemId: 'ordem-paranormal'`, habilitando o módulo de poderes e o cálculo de distância correto.
+
+**Como verificar:** a barra de navegação do Android passa a exibir **v0.56**. O teste automatizado v0.56 executa o widget de poderes da tela principal em um ambiente simulado, prova aprendizagem progressiva em NEX 15/30/45 e bloqueia Surto Temporal antes de duas escolhas de Morte; também verifica as rotas de entrada da ficha principal, da ficha LAN e do cenário.
+
+**Limitação:** registrar poderes na ficha offline não é uma aprovação automática na campanha. Na mesa LAN o jogador ainda precisa solicitar e aguardar o mestre; habilidades individuais sem mecânicas confiáveis continuam exigindo revisão. As alterações da experiência visual radial continuam específicas do **Cenário LAN**, não da tela principal da Mestragem.
+
+Não desinstale nem limpe os dados do aplicativo ao atualizar, para preservar fichas e campanhas. A compilação Android e o teste automatizado não substituem uma sessão real no celular.
+
+---
+
 # Mastermind v0.55 — progressão de poderes, Transcender e decisões do mestre
 
 - A ficha pessoal e a ficha da Mesa ao Vivo agora oferecem a seção **Poderes e Transcender**, com as 22 escolhas paranormais cadastradas no pacote de Ordem Paranormal. As classes Combatente, Especialista e Ocultista recebem uma lista inicial de sugestões de poderes de classe e podem enviar outros nomes do livro à aprovação do mestre. **Essas sugestões e pré-requisitos além de Surto Temporal dependem de revisão pelo mestre**; não representamos o catálogo de classes como exaustivo ou integralmente automatizado.
