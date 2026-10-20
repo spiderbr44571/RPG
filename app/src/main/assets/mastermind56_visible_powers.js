@@ -43,7 +43,7 @@
    total=stages.filter(x=>nex>=x).length,known=c.powers||[];
   if(!['Combatente','Especialista','Ocultista'].includes(c.class)){root.hidden=true;return}
   root.hidden=false;
-  root.innerHTML='<header><div><small>ORDEM PARANORMAL · FICHA ATIVA</small>'+
+  root.innerHTML='<header><div><small>ORDEM PARANORMAL · FICHA ATIVA · MASTERMiND V0.56</small>'+
     '<h2>✧ Poderes e Transcender</h2><p>Escolhas do personagem '+esc(c.name||'')+' · NEX '+nex+'%</p></div>'+
     '<span class="v56-count">'+Math.max(0,total-used)+' / '+total+' escolhas</span></header>'+
     '<p class="v56-help">Agora esta seção fica diretamente na ficha principal do Mastermind. O Transcender encaminha para os poderes paranormais. Escolhas são salvas exclusivamente neste personagem.</p>'+
