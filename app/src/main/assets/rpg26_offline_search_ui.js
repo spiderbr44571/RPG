@@ -18,7 +18,8 @@
  '<div id="r26-answer" class="r26-answer" aria-live="polite"><div class="r26-empty">Faça uma pesquisa para ver a resposta resumida e suas fontes.</div></div></main>',
  '<aside class="r26-aside"><section class="r26-aside-box"><h3>Fontes da pesquisa</h3><div id="r26-sources" class="r26-muted">As páginas serão exibidas após a pesquisa.</div></section>',
  '<section class="r26-aside-box"><h3>Biblioteca pesquisável</h3><div id="r45-pdf-status" class="r45-pdf-status" aria-live="polite">Verificando PDF importado...</div><button type="button" id="r47-retry-index" hidden>Retomar indexação</button><p id="r26-count">Carregando índices do aparelho...</p><label class="r26-index-select">Vincular índice ao sistema<select id="r26-index-system"><option value="">Selecione um sistema</option></select></label>',
- '<label class="r26-file">+ Importar índice PDF (JSON)<input id="r26-import" type="file" accept=".json,application/json"></label><div id="r26-books"></div>',
+ '<label class="r26-file">+ Importar índice PDF (JSON)<input id="r26-import" type="file" accept=".json,application/json"></label><div id="r26-books"></div>'+ 
+ '<details class="r50-drive-catalog" id="r50-drive-catalog"><summary><strong>Livros do seu Google Drive</strong><span id="r50-drive-count">Carregando...</span></summary><p>Catálogo pessoal de links: os PDFs continuam no seu Drive e exigem acesso à conta autorizada.</p><input id="r50-drive-filter" placeholder="Filtrar por título, edição ou sistema" aria-label="Buscar livros do Google Drive"><div id="r50-drive-items"></div></details>',
  '<p>PDFs pessoais importados na Biblioteca são indexados automaticamente neste Android, sem internet. Índices JSON continuam opcionais para outras fontes.</p></section></aside></div>'
  ].join('');
  const status=msg=>$('#r26-status').textContent='● '+msg;
@@ -178,6 +179,39 @@
   $('#r26-books').innerHTML=books.map(b=>'<div class="r26-book"><span>'+esc(b.book?.title||'Índice')+'<small>'+esc(sysName(b.systemId||'ordem-paranormal'))+' · '+(b.chunks?.length||0)+' trechos</small></span><button type="button" data-r26-remove="'+esc(b.id)+'" aria-label="Remover índice">×</button></div>').join('')||'<span class="r26-muted">Nenhum índice PDF adicional importado.</span>';
  }
  async function load(){try{refresh(await getBooks())}catch{refresh(window.rpgVolatileBooks||[]);status('Armazenamento limitado; dados temporários')}}
+ // O Drive fornecido já está catalogado em rpg15_catalog_data.js (somente metadados).
+ // Não embutimos PDFs de terceiros no APK; a abertura exige acesso permitido ao Drive.
+ const trustedDriveId=id=>/^[A-Za-z0-9_-]{10,160}$/.test(String(id||''));
+ function getDriveBooks(){
+  const list=systems().filter(sys=>activeSystem==='all'||sys.id===activeSystem);
+  return list.flatMap(sys=>(sys.books||[]).map(book=>({...book,systemId:sys.id,systemName:sys.title})));
+ }
+ function renderDriveBooks(){
+  const list=getDriveBooks(),query=core.norm($('#r50-drive-filter')?.value||'');
+  const filtered=query?list.filter(b=>core.norm(b.title+' '+(b.path||[]).join(' ')+' '+b.systemName).includes(query)):list;
+  const count=$('#r50-drive-count');
+  if(count)count.textContent=list.length+' arquivos · '+(activeSystem==='all'?'39 sistemas':sysName(activeSystem));
+  const root=$('#r50-drive-items');
+  if(!root)return;
+  const showing=filtered.slice(0,100);
+  root.innerHTML=showing.map(b=>{
+   const size=Number(b.sizeBytes)>0?' · '+(Number(b.sizeBytes)/1024/1024).toFixed(1)+' MB':'';
+   return '<div class="r50-drive-book"><div><strong>'+esc(b.title)+'</strong><small>'+
+    esc(b.systemName)+' · '+esc((b.path||[]).join(' / ')||'Livros principais')+esc(size)+'</small></div>'+
+    (trustedDriveId(b.id)?'<button type="button" data-r50-drive-file="'+esc(b.id)+'">Abrir no Drive ↗</button>':'')+'</div>';
+  }).join('')||'<p class="r26-muted">Nenhum livro encontrado para este filtro.</p>';
+  if(filtered.length>100)root.insertAdjacentHTML('beforeend',
+   '<p class="r26-muted">Mostrando 100 de '+filtered.length+' arquivos. Filtre por nome para encontrar os demais.</p>');
+ }
+ $('#r50-drive-filter').addEventListener('input',renderDriveBooks);
+ $('#r50-drive-items').addEventListener('click',event=>{
+  const target=event.target.closest('[data-r50-drive-file]');
+  if(!target)return;
+  const id=target.dataset.r50DriveFile;
+  if(!trustedDriveId(id)||!getDriveBooks().some(b=>b.id===id))return;
+  if(window.RpgDriveBridge?.openDocument)window.RpgDriveBridge.openDocument('file',id);
+  else window.open('https://drive.google.com/file/d/'+id+'/view','_blank','noopener,noreferrer');
+ });
  function catalog(){return core.makeCatalogDocs(systems())}
  function answerQuestion(question){
   const named=core.inferSystem(question,systems());
@@ -290,6 +324,7 @@
  });
  function selectSystem(){
   const ss=systems(),options=ss.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.title)+'</option>').join('');
+  if(!ss.length){status('Catálogo de sistemas indisponível; reabra a consulta.');return}
   $('#r26-system').innerHTML='<option value="all">Todos os sistemas</option>'+options;
   $('#r26-index-system').innerHTML='<option value="">Selecione um sistema</option>'+options;
   const saved=localStorage.getItem('rpg-rules-system');
@@ -298,12 +333,13 @@
    activeSystem=e.target.value;activeEdition='all';$('#r26-edition').value='all';
    if(activeSystem!=='all')$('#r26-index-system').value=activeSystem;
    localStorage.setItem('rpg-rules-system',activeSystem);
+   renderDriveBooks();
    if($('#r26-query').value.trim())perform($('#r26-query').value);
   });
   $('#r26-edition').addEventListener('change',e=>{activeEdition=e.target.value;if($('#r26-query').value.trim())perform($('#r26-query').value)});
  }
  $('#r47-retry-index').addEventListener('click',()=>{if(native()){native().indexSavedPdf();showIndexStatus(false)}});
- selectSystem();load();showIndexStatus(true);
+ selectSystem();renderDriveBooks();load();showIndexStatus(true);
  window.addEventListener('rpg-book-selected',()=>{pdfPreviousState='pending';showIndexStatus(true)});
  setInterval(()=>showIndexStatus(false),1500);
  window.RPG11={search:q=>extract.rankDocuments(q,base.concat(indexed),{systemId:activeSystem,edition:activeEdition,systems:systems(),core}),
