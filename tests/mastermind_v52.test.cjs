@@ -64,5 +64,5 @@ assert.match(server,/mode\.equals\("lowest"\)/);
 assert.match(server,/sheet\.put\("hitPointsCurrent",current\)/);
 assert.match(server,/!key\.equals\("PV"\)/);
 const build=fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8');
-assert.match(build,/versionCode 52/);
+assert.ok(Number(build.match(/versionCode ([0-9]+)/)?.[1])>=52,'v0.52 remains supported');
 console.log('PASS v0.52: scene-specific tactical range, private synchronized player notes, usable sheet and Android asset routing');
