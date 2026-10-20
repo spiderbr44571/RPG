@@ -9,6 +9,9 @@ import android.os.ParcelFileDescriptor;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import com.tom_roush.pdfbox.android.PDFBoxResourceLoader;
+import com.tom_roush.pdfbox.io.MemoryUsageSetting;
+import android.graphics.pdf.PdfRenderer;
+import android.util.Log;
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
 import com.tom_roush.pdfbox.text.PDFTextStripper;
 import java.io.File;
@@ -45,6 +48,8 @@ final class PdfTextSearch {
  private volatile String error="";
  private volatile String indexingUri="";
  private volatile String indexingTitle="";
+ private volatile String stage="idle";
+ private volatile int pageTotal=0;
 
  PdfTextSearch(Context ctx) {
   if(ctx==null)throw new IllegalArgumentException("PDF search requires an attached Android Context");
@@ -95,8 +100,9 @@ final class PdfTextSearch {
   try{
    SQLiteDatabase db=helper.getReadableDatabase();
    if(!uri.equals(meta(db,"uri"))){
+    if(!error.isEmpty()&&uri.equals(indexingUri))return status("error",indexingTitle,progress,pageTotal,error);
     return status(running.get()&&uri.equals(indexingUri)?"indexing":"pending",
-      indexingTitle,progress,0,error.isEmpty()?"PDF aguardando indexação.":error);
+      indexingTitle,progress,pageTotal,running.get()?stage:"PDF aguardando indexação.");
    }
    int total=number(meta(db,"pages"));
    int done=number(meta(db,"progress"));
@@ -106,9 +112,13 @@ final class PdfTextSearch {
    int readable=number(meta(db,"readable"));
    boolean complete="ready".equals(phase)||(phase.isEmpty()&&total>0);
    String state=complete?(readable==0?"no_text":"ready"):
-    running.get()&&uri.equals(indexingUri)?"indexing":done>0?"partial":"pending";
-   String message=complete?(readable==0?"PDF sem texto selecionável. É necessário OCR.":"Índice pronto para Ctrl+F."):
-    error.isEmpty()?"É possível pesquisar nas páginas já processadas.":error;
+    running.get()&&uri.equals(indexingUri)?"indexing":
+    !error.isEmpty()&&uri.equals(indexingUri)?"error":
+    "failed".equals(phase)?"error":done>0?"partial":"pending";
+   String message=complete?(readable==0?"PDF sem texto selecionável. É necessário OCR.":"Índice pronto para Ctrl+F.") :
+    !error.isEmpty()?error:
+    running.get()?stage:
+    "failed".equals(phase)?meta(db,"error"):"Índice incompleto. Retome a extração.";
    return status(state,meta(db,"title"),done,total,message);
   }catch(Exception e){return status("error","",progress,0,"Falha ao consultar o índice no dispositivo.");}
  }
@@ -128,10 +138,19 @@ final class PdfTextSearch {
     }
    }
   }catch(Exception ignored){}
-  progress=0;error="";indexingUri=uri;indexingTitle=title;
+  progress=0;pageTotal=0;error="";stage="Verificando páginas e preparando pesquisa...";indexingUri=uri;indexingTitle=title;
   new Thread(()->{
    File temp=null;
    try{
+    // PdfRenderer counts pages without parsing PDF images into Java memory.
+    int preflightPages;
+    try(ParcelFileDescriptor fd=ctx.getContentResolver().openFileDescriptor(Uri.parse(uri),"r")){
+     if(fd==null)throw new IllegalStateException("O arquivo PDF selecionado não está acessível.");
+     try(PdfRenderer renderer=new PdfRenderer(fd)){preflightPages=renderer.getPageCount();}
+    }
+    if(preflightPages<1||preflightPages>MAX_PAGES)throw new IllegalArgumentException("O livro ultrapassa o limite de 1400 páginas.");
+    pageTotal=preflightPages;
+    stage="Abrindo texto do PDF sem carregar tudo na memória...";
     PDFBoxResourceLoader.init(ctx);
     temp=File.createTempFile("mastermind-book-", ".pdf",ctx.getCacheDir());
     try(InputStream in=ctx.getContentResolver().openInputStream(Uri.parse(uri));
@@ -144,8 +163,9 @@ final class PdfTextSearch {
       out.write(buf,0,n);
      }
     }
-    try(PDDocument pdf=PDDocument.load(temp)){
+    try(PDDocument pdf=PDDocument.load(temp,MemoryUsageSetting.setupTempFileOnly())){
      int count=pdf.getNumberOfPages();
+     pageTotal=count;
      if(count<=0||count>MAX_PAGES)throw new IllegalArgumentException("Quantidade de páginas não suportada.");
      SQLiteDatabase db=helper.getWritableDatabase();
      boolean resume=!force&&uri.equals(meta(db,"uri"))&&"building".equals(meta(db,"phase"));
@@ -164,6 +184,7 @@ final class PdfTextSearch {
       }finally{db.endTransaction();}
      }
      progress=start-1;
+     stage="Extraindo texto página a página";
      PDFTextStripper stripper=new PDFTextStripper();
      stripper.setSortByPosition(false); // Avoid expensive positional reordering.
      final int BATCH=6;
@@ -194,8 +215,20 @@ final class PdfTextSearch {
       Thread.yield();
      }
     }
-   }catch(Exception e){error=e.getMessage()==null?"Não foi possível extrair o PDF.":e.getMessage();}
-   finally{if(temp!=null)temp.delete();running.set(false);}
+   }catch(Throwable e){
+    // Includes PDF parser errors and memory exhaustion; never silently go back to pending.
+    error=e instanceof OutOfMemoryError?
+      "Memória insuficiente para este PDF. Tente um PDF menor ou outra versão do livro.":
+      e.getClass().getSimpleName()+": "+(e.getMessage()==null?"Falha na leitura do PDF":e.getMessage());
+    Log.e("MastermindPdf", "Falha na indexação de PDF",e);
+    try{
+     SQLiteDatabase db=helper.getWritableDatabase();
+     if(uri.equals(meta(db,"uri"))){putMeta(db,"phase","failed");putMeta(db,"error",error);}
+    }catch(Exception ignored){}
+   }finally{
+    if(temp!=null)temp.delete();
+    running.set(false);
+   }
   },"mastermind-pdf-index-v47").start();
  }
  private static String excerpt(String original,String normalized,String needle){
