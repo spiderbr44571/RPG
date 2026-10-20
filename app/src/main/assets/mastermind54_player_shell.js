@@ -46,6 +46,7 @@
   document.documentElement.style.colorScheme=current.mode;
   const tag=$('meta[name="theme-color"]');
   if(tag)tag.setAttribute('content',scheme.bg);
+  // Preserve the background art and fog authored by the GM; only personal chrome is themed.
   document.body.style.fontSize='calc(13px * var(--r54-font-scale))';
   updateSettings();
  }
@@ -189,6 +190,9 @@
   const legacy=$('#legacy-sheet');
   if(legacy)legacy.textContent='Abrir editor completo da ficha ↗';
   const top=$('.top');if(top){
+   const fit=document.createElement('button');fit.id='r54-fit-map';fit.type='button';
+   fit.textContent='⤢';fit.title='Centralizar e enquadrar o mapa';fit.setAttribute('aria-label','Centralizar e enquadrar o mapa');
+   top.append(fit);fit.onclick=()=>modal('#zoom-fit');
    const btn=document.createElement('button');btn.id='r54-open-settings';
    btn.setAttribute('type','button');btn.setAttribute('aria-label','Ficha completa e configurações');
    btn.title='Ficha completa e personalização';btn.textContent='⚙';
