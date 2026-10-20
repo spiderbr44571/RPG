@@ -90,6 +90,18 @@ function open(host,options){
       '<div class="actions"><button data-action="roll-public" class="primary">Todos veem</button><button data-action="roll-private">Só mestre</button></div>'+
       (s.privateResult?'<div class="info"><b>Rolagem privada</b> '+esc(s.privateResult.formula)+' : <b>'+s.privateResult.total+'</b> <small>Dados: '+esc(diceList(s.privateResult))+'</small></div>':'')+
       (d.rolls||[]).slice(-5).reverse().map(r=>'<div class="info">'+esc(r.by)+' - '+esc(r.label)+' <b>'+r.total+'</b><small>'+esc(r.formula)+' : '+esc(diceList(r))+'</small></div>').join('')+
+    '</section><section><h3>Solicitações dos jogadores</h3>'+
+      '<p>Decida quando jogadores podem aprender poderes, transcender ou ajustar a iniciativa. Pedidos de Surto Temporal custam 3 PE.</p>'+
+      ((d.playerRequests||[]).length?(d.playerRequests||[]).map(r=>
+       '<article class="r55-request"><strong>'+esc(r.playerName)+' · '+esc(
+          ({class:'Poder de classe',transcend:'Transcender',pass:'Passar a vez',delay:'Atrasar iniciativa',surto:'Surto Temporal'}[r.type]||r.type))+'</strong>'+
+         (r.name?'<p>'+esc(r.name)+(r.element?' · '+esc(r.element):'')+'</p>':'')+
+         (r.targetId?'<p>Depois de: '+esc(d.initiative?.entries?.find(x=>x.tokenId===r.targetId)?.name||'Participante')+'</p>':'')+
+         (r.nex?'<small>NEX '+Number(r.nex)+'%</small>':'')+
+         '<div class="actions"><button data-r55-decision="approve" data-r55-id="'+esc(r.id)+'">Aprovar</button>'+
+         (r.type==='surto'?'<button data-r55-decision="full" data-r55-id="'+esc(r.id)+'">Turno inteiro (regra da mesa)</button>':'')+
+         '<button data-r55-decision="reject" data-r55-id="'+esc(r.id)+'">Recusar</button></div></article>'
+       ).join(''):'<p>Sem pedidos pendentes.</p>')+
     '</section><section><h3>Ritmo da sessão</h3><div class="r53-mode-panel">'+
     '<strong>'+(interlude?'✦ Interlúdio ativo':'⚔ Combate / exploração controlada')+'</strong>'+
     '<p>'+(interlude?'Movimento ilimitado para cada jogador. Ordem de iniciativa pausada, sem perder os participantes nem a rodada.':'Movimento segue a iniciativa e o limite da ficha. Testes são livres, mesmo fora do turno.')+'</p>'+
@@ -211,7 +223,15 @@ function open(host,options){
  s.el.addEventListener('click',async e=>{
   const token=e.target.closest('[data-token]');if(token){s.selected=token.dataset.token;selection();s.el.querySelectorAll('[data-token]').forEach(t=>t.classList.toggle('active',t===token));return}
   const hp=e.target.closest('[data-hp]'),att=e.target.closest('[data-attack]'),removeInit=e.target.closest('[data-init-remove]'),button=e.target.closest('[data-action]');
+  const decision=e.target.closest('[data-r55-decision]');
   try{
+   if(decision){
+     const fullTurn=decision.dataset.r55Decision==='full';
+     await req('/power-request','POST',{id:decision.dataset.r55Id,
+       action:decision.dataset.r55Decision==='reject'?'reject':'approve',fullTurn});
+     feedback(fullTurn?'Turno extra autorizado como regra da mesa.':'Solicitação respondida.');
+     s.revision=-1;await refresh();return;
+   }
    if(removeInit){await req('/initiative','POST',{action:'remove',tokenId:removeInit.dataset.initRemove});s.revision=-1;await refresh();return}
    if(hp){await req('/token','POST',{tokenId:s.selected,action:'health',delta:Number(hp.dataset.hp)});s.revision=-1;await refresh();return}
    if(att){
