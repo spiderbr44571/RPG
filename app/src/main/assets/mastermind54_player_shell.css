@@ -193,3 +193,25 @@ body.r54-clean #r52-pin-layer .r52-pin{border-color:var(--r54-accent);color:var(
  body.r54-clean[data-r54-tool=measure] #r52-live-tools{top:3px;left:10px;right:auto}
  body.r54-clean .r54-tool-active{top:3px}
 }
+
+/* v0.56: essential player actions visible even without discovering radial menu */
+body.r54-clean .top .r56-quick{border:1px solid var(--r54-line);background:var(--r54-surface2);color:var(--r54-fg);
+ min-height:40px;padding:7px 9px;font-size:11px;font-weight:700;border-radius:10px;white-space:nowrap}
+body.r54-clean .top #r56-visible-powers{border-color:var(--r54-accent);color:var(--r54-accent)}
+body.r54-clean .top #r56-visible-wheel{background:var(--r54-accent);color:var(--r54-bg)}
+body.r54-clean .top{gap:7px;flex-wrap:nowrap}
+body.r54-clean .top #r56-visible-powers,
+body.r54-clean .top #r56-visible-wheel{display:inline-flex!important;align-items:center;justify-content:center}
+@media(max-width:660px){
+ body.r54-clean .top #r56-visible-powers{font-size:10px;padding:7px}
+ body.r54-clean .top #r56-visible-wheel{font-size:10px;padding:7px}
+ body.r54-clean .top>small:first-child{display:none}
+ body.r54-clean .top #r54-fit-map{min-width:36px;flex:0 0 36px}
+ body.r54-clean .top #r54-open-settings{min-width:36px;flex:0 0 36px}
+ body.r54-clean .top #scene-turn{display:none}
+}
+@media(max-width:420px){
+ body.r54-clean .top strong{max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ body.r54-clean .top #r56-visible-powers{max-width:90px;white-space:normal}
+ body.r54-clean .top #r56-visible-wheel{max-width:77px;white-space:normal}
+}
