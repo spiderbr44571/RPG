@@ -61,5 +61,5 @@ assert.match(master,/data-act="session-mode"/);
 assert.match(css,/\.r53-mode-button/);
 assert.match(view,/src="\/player-immersion\.js"/);
 const build=fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8');
-assert.match(build,/versionCode 53/);
+assert.ok(Number(build.match(/versionCode ([0-9]+)/)?.[1])>=53,'v0.53 retained in subsequent releases');
 console.log('PASS v0.53: repeated dice out of turn; GM-only interlude; unlimited player movement; scene fog and token ownership protected');
