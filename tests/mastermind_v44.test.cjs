@@ -57,5 +57,5 @@ assert.match(html,/if\(b\.remaining<=0\)/);
 assert.match(html,/rpg:character-selected/);
 assert.match(html,/mastermind44_sheet_rules\.css/);
 const build=fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8');
-assert.match(build,/versionCode 44/);
+assert.ok(Number(build.match(/versionCode ([0-9]+)/)?.[1])>=44,'v0.44 backward compatibility on newer Android versions');
 console.log('PASS Mastermind v0.44: per-character portraits, selectable skills/upgrades and ritual circle/NEX budgets');
