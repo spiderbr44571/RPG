@@ -66,6 +66,21 @@
   for(const r of rest)entries.push({...base,...r,id:'op13:interludio:'+r.page+':'+r.title,type:'Descanso e recuperação',sourceConfidence:'verified'});
   return entries;
  }
+ // Todas as criaturas cadastradas pertencem ao índice estruturado da busca.
+ function makeCreatureDocs(creatures){
+  if(!Array.isArray(creatures))return [];
+  return creatures.filter(c=>c&&c.name).map(c=>({
+   id:'creature:'+c.id,systemId:c.systemId||'ordem-paranormal',
+   systemName:c.systemId==='ordem-paranormal'?'Ordem Paranormal':c.systemId,
+   edition:c.edition||'1.3',book:c.source||'Bestiário do sistema',
+   kind:'structured',type:'Criatura do bestiário',
+   title:c.name,page:Number(c.page)||0,
+   text:'Criatura '+c.name+'. Elemento: '+(c.element||'não informado')+
+    '. PV '+(c.hp??'a consultar')+'. Defesa '+(c.defense??'a consultar')+
+    '. Consulte a ficha de criatura e a página indicada para habilidades.',
+   sourceBookId:c.sourceBookId||''
+  }));
+ }
  function makeRulesDocs(dnd,gurps){
   const docs=[];
   if(dnd){
@@ -157,5 +172,5 @@
    }));
   });
  }
- return {aliases,edition,norm,tokens,searchTerms,makeCatalogDocs,makeOrderDocs,makeRulesDocs,inferSystem,docMatch,search,docsFromIndexes};
+ return {aliases,edition,norm,tokens,searchTerms,makeCatalogDocs,makeOrderDocs,makeCreatureDocs,makeRulesDocs,inferSystem,docMatch,search,docsFromIndexes};
 });
