@@ -119,7 +119,7 @@ toolbar.addEventListener('click',async e=>{
  }catch(err){q('#r13-feedback').textContent='Erro: '+err.message}finally{b.disabled=false}
 });
 
-function selectedSheet(){let sheet=JSON.parse(JSON.stringify(op.state)),computed=op.calc();sheet.resources=sheet.resources||{};for(const k of ['PV','PE','SAN']){let max=Number(computed[k]);if(!Number.isFinite(max))continue;const v=sheet.resources[k];const cur=typeof v==='object'?Number(v.current):Number(v??max);sheet.resources[k]={current:Math.max(0,Math.min(max,Number.isFinite(cur)?cur:max)),max}}return sheet}
+function selectedSheet(){let sheet=JSON.parse(JSON.stringify(op.state)),computed=op.calc();sheet.systemId='ordem-paranormal';sheet.resources=sheet.resources||{};for(const k of ['PV','PE','SAN']){let max=Number(computed[k]);if(!Number.isFinite(max))continue;const v=sheet.resources[k];const cur=typeof v==='object'?Number(v.current):Number(v??max);sheet.resources[k]={current:Math.max(0,Math.min(max,Number.isFinite(cur)?cur:max)),max}}return sheet}
 async function act(action,button){
 try{
 if(action==='connect'){base=addr(q('#r11-server').value);secret=q('#r11-secret').value.trim();await api('/api/admin/campaigns');q('#r11-admin').hidden=false;q('#r11-campaign-status').textContent='Conectado';await list();feedback('Servidor conectado.')}
