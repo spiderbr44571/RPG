@@ -38,7 +38,7 @@ for(const term of ['SQLiteOpenHelper','CREATE VIRTUAL TABLE page_fts USING fts4'
  'Normalizer.normalize','progress=end','result.put("total",count)']){
  assert.ok(native.includes(term),term);
 }
-for(const field of ['pdfIndexStatus','indexSavedPdf','searchPdf','renderIndexPage','ensureIndex(uri.toString(),name,true)']){
+for(const field of ['pdfIndexStatus','indexSavedPdf','searchPdf','renderIndexPage','currentOrderSearcher()']){
  assert.ok(activity.includes(field),field);
 }
 assert.ok(!native.includes('HttpURLConnection'),'index stays on device');
