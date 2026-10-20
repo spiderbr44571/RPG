@@ -27,7 +27,7 @@ assert.match(act,/getClipData\(\)/);
 assert.match(act,/Math\.min\(40,clip\.getItemCount\(\)\)/);
 assert.match(act,/importPersonalPdf\(uri,chosenSystem,count==0\)/);
 assert.match(act,/if\(autoIndex\)searcherFor\(id\)\.ensureIndex/);
-assert.match(act,/String systemId=pendingBookSystemId/);
+assert.match(act,/final String chosenSystem=pendingBookSystemId/);
 assert.match(act,/entry\.put\("systemId",systemId\)/);
 assert.match(act,/current\.length\(\)>=100/);
 assert.match(act,/rpg-private-page-rendered/);
