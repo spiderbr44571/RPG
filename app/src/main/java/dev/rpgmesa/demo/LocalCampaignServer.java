@@ -674,7 +674,11 @@ public final class LocalCampaignServer extends NanoHTTPD {
         response.put("rolls",visibleRolls(c,false)).put("movement",new JSONObject().put("tokens",new JSONArray())).put("initiative",new JSONObject().put("round",1).put("activeId","").put("entries",new JSONArray())).put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName",""));
         return response;
       }
+      JSONObject actorSheet=playerSheet(cid,player);
+      String sceneSystem=actorSheet.optString("systemId","ordem-paranormal");
+      if(!sceneSystem.matches("[a-z0-9-]{1,60}"))sceneSystem="custom";
       JSONObject scene=new JSONObject().put("id",original.getString("id")).put("name",original.getString("name"))
+        .put("systemId",sceneSystem).put("gridScale",1.5).put("gridUnit","m")
         .put("width",original.getInt("width")).put("height",original.getInt("height"))
         .put("theme",original.optString("theme","stone"));
       JSONArray fog=new JSONArray(),visibleRooms=new JSONArray(),visibleTokens=new JSONArray();
@@ -716,6 +720,8 @@ public final class LocalCampaignServer extends NanoHTTPD {
           filteredAssets.put(visible);
         }
       }
+      if("d-d".equals(sceneSystem)){scene.put("gridScale",5).put("gridUnit","ft");}
+      else if("gurps".equals(sceneSystem)){scene.put("gridScale",1).put("gridUnit","m");}
       scene.put("rooms",visibleRooms).put("fog",fog).put("tokens",visibleTokens);
       response.put("initiative",initiativeForPlayer(c,visibleTokens));
       response.put("movement",playerMovement(c,player,visibleTokens));
@@ -1160,6 +1166,43 @@ public final class LocalCampaignServer extends NanoHTTPD {
       persist();
     }
   }
+  /** Journal belongs to the authenticated guest; never included in the scene for other players. */
+  private JSONObject playerJournal(JSONObject player) throws JSONException{
+    JSONArray existing=player.optJSONArray("liveJournal");
+    return new JSONObject().put("notes",existing==null?new JSONArray():new JSONArray(existing.toString()));
+  }
+  private JSONObject updatePlayerJournal(JSONObject player,JSONObject input) throws Exception{
+    JSONArray items=input.optJSONArray("notes");
+    if(items==null||items.length()>80)throw new IllegalArgumentException("Caderno inválido ou muitas notas.");
+    JSONArray safe=new JSONArray();
+    java.util.HashSet<String> ids=new java.util.HashSet<>();
+    for(int i=0;i<items.length();i++){
+      JSONObject n=items.optJSONObject(i);if(n==null)throw new IllegalArgumentException("Nota inválida.");
+      String id=field(n,"id",70);
+      if(!id.matches("[A-Za-z0-9_-]{1,70}")||!ids.add(id))
+        throw new IllegalArgumentException("Identificador de nota duplicado ou inválido.");
+      String heading=n.optString("title","").trim(),content=n.optString("body","");
+      if(heading.length()>100||content.length()>5000)throw new IllegalArgumentException("Nota muito extensa.");
+      if(heading.isEmpty())heading="Nota";
+      String scene=n.optString("sceneId","");
+      if(!scene.isEmpty()&&!scene.matches("[A-Za-z0-9_-]{1,70}"))
+        throw new IllegalArgumentException("Cena inválida.");
+      JSONObject clean=new JSONObject()
+        .put("id",id).put("title",heading).put("body",content)
+        .put("sceneId",scene).put("updated",Math.min(System.currentTimeMillis(),Math.max(0,n.optLong("updated",0))));
+      if(n.has("x")&&n.has("y")){
+        int x=n.optInt("x",-1),y=n.optInt("y",-1);
+        if(x<0||y<0||x>100||y>100)throw new IllegalArgumentException("Posição da nota inválida.");
+        clean.put("x",x).put("y",y);
+      }
+      safe.put(clean);
+    }
+    synchronized(lock){
+      player.put("liveJournal",safe);
+      persist();
+      return new JSONObject().put("ok",true).put("notes",safe.length());
+    }
+  }
   private void savePlayerCanvas(JSONObject player,JSONObject body) throws Exception {
     JSONArray nodes=body.optJSONArray("nodes");
     if(nodes==null||nodes.length()>150||nodes.toString().length()>80000)throw new IllegalArgumentException("Canvas inválido");
@@ -1346,6 +1389,11 @@ public final class LocalCampaignServer extends NanoHTTPD {
           if(!master(s))return json(403,"error","Acesso do mestre necessário");
           return response(200,getScenarios(p[4]));
         }
+        if(p.length==5&&p[1].equals("api")&&p[2].equals("play")&&p[4].equals("journal")){
+          JSONObject pl=checkPlayer(p[3],cookie(s,"rpg_guest"));
+          if(pl==null)return json(403,"error","Sessão inválida");
+          return response(200,playerJournal(pl));
+        }
         if(p.length==5&&p[1].equals("api")&&p[2].equals("play")&&p[4].equals("canvas")){
           JSONObject pl=checkPlayer(p[3],cookie(s,"rpg_guest"));
           if(pl==null)return json(403,"error","Sessão inválida");
@@ -1442,6 +1490,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
         if(player==null)return json(403,"error","Jogador não autorizado");
         if("profile".equals(p[4])){playerProfile(cid,player,b);return json(200,"ok","true");}
         if("canvas".equals(p[4])){savePlayerCanvas(player,b);return json(200,"ok","true");}
+        if("journal".equals(p[4]))return response(200,updatePlayerJournal(player,b));
         if("roll".equals(p[4])){storeRoll(cid,player,b);return json(200,"ok","true");}
       }
       if(p.length>=5&&p[1].equals("api")&&p[2].equals("admin")&&p[3].equals("campaigns")){
