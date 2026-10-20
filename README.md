@@ -1,3 +1,17 @@
+# Mastermind v0.51 — PDFs particulares em todos os sistemas
+
+**Novo:** no detalhe de qualquer um dos 39 sistemas catalogados (incluindo D&D), a Biblioteca oferece o botão **Adicionar PDFs**. O seletor de documentos do Android permite selecionar um ou vários PDFs, inclusive os que a conta do usuário autoriza acessar via Google Drive. Cada documento é associado ao sistema selecionado, mantém permissão de acesso SAF e possui seu próprio índice de texto SQLite pesquisável (sem duplicar ou redistribuir os arquivos no APK). Um livro importado não substitui os outros; o leitor legado de Ordem Paranormal continua disponível.
+
+**Pesquisa:** a seção *Consultar livros* agora consulta os PDFs pessoais importados do sistema escolhido, apresenta trechos curtos com referências às páginas físicas e abre as páginas selecionadas. A importação em lote registra até 40 arquivos de uma vez; apenas o primeiro começa a ser indexado imediatamente para não esgotar a RAM ao abrir arquivos grandes. Os demais mostram **Indexar/retomar**. Limites técnicos existentes de processamento (até 1400 páginas por PDF, necessidade de texto selecionável e espaço temporário suficiente) permanecem.
+
+**Sistemas:** Ordem Paranormal, D&D 5e e GURPS mantêm seus motores de regras existentes. Para os demais sistemas, há agora uma **ficha manual personalizável por sistema**, com personagem, campanha, anotações e campos definidos pelo mestre. Isso é uma base de trabalho, não a implementação completa das regras oficiais de todos os 39 RPGs: regras, progressões, testes e condições dependem de módulos curados e validados especificamente.
+
+**Direitos autorais e acesso:** os 209 livros do acervo do Drive continuam **somente como links/metadados** para abrir na conta autorizada. O APK não incorpora cópias integrais de livros comerciais de terceiros. PDFs particulares selecionados no próprio Android permanecem no armazenamento autorizado pelo usuário e são indexados localmente.
+
+**Atualização segura:** mantém o identificador Android original, dados de fichas, biblioteca legada, Canvas, preferências e campanhas. Evite desinstalar versões anteriores antes de verificar o backup.
+
+---
+
 # Mastermind v0.50 — seleção de sistemas e catálogo do Drive
 
 Corrige a tela **Consultar livros**, que carregava antes do catálogo de sistemas e exibia seletores vazios. O catálogo de 39 sistemas, o motor D&D 5e, o motor GURPS 4e e as criaturas de Ordem Paranormal agora são carregados antes da pesquisa. A pesquisa passa a oferecer os 39 sistemas, incluindo D&D, sem perder os filtros de edição.
