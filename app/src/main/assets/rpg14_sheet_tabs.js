@@ -4,7 +4,7 @@ if(!op||!root||root.dataset.r14Ready)return;
 const first=root.querySelector('.op-3col'),second=root.querySelector('.op-2col');
 if(!first||!second||first.children.length<3||second.children.length<2)return;
 const [identity,attributes,resources]=[...first.children],[skills,powers]=[...second.children];
-const types=[['attributes','Atributos'],['skills','Perícias'],['inventory','Inventário'],['powers','Habilidades / Rituais'],['story','História']];
+const types=[['attributes','Atributos'],['skills','Perícias'],['inventory','Inventário'],['powers','Habilidades / Rituais'],['advancement','✦ Poderes / Transcender'],['story','História']];
 const nav=document.createElement('nav');nav.className='r14-tabs';nav.setAttribute('role','tablist');nav.setAttribute('aria-label','Abas da ficha');
 const content=document.createElement('div');content.id='r14-content';
 for(const [id,name] of types){
