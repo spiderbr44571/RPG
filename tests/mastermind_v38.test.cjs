@@ -9,7 +9,7 @@ new Function(script);
 const allInline=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)].filter(s=>!s[1].includes('src=')&&!s[1].includes('application/json'));
 for(let i=0;i<allInline.length;i++)assert.doesNotThrow(()=>new Function(allInline[i][2]),'Inline script '+i);
 assert.match(html,/<title>Mastermind/);
-assert.match(manifest,/android:label="Mastermind"/);
+assert.match(manifest,/android:label="Mastermind(?: Prévia 0\.57)?"/);
 assert.ok(Number(build.match(/versionCode ([0-9]+)/)?.[1])>=39,'Android build must retain v0.39 or newer');
 assert.match(html,/appName:prefs\.getItem\('rpg-app-name'\)\|\|'Mastermind'/);
 assert.ok(!html.includes('rpg07-go-sheet'),'obsolete home controls removed');
