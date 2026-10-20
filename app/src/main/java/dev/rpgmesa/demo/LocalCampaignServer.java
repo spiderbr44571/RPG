@@ -307,7 +307,10 @@ public final class LocalCampaignServer extends NanoHTTPD {
   public void advance(String cid,String kind) throws Exception{
     synchronized(lock){
       JSONObject c=campaign(cid);
-      if(kind.equals("turn"))c.put("turn",c.getInt("turn")+1);
+      if(kind.equals("turn")){
+        if("interlude".equals(sessionMode(c)))throw new IllegalArgumentException("A rodada fica pausada durante o interlúdio.");
+        c.put("turn",c.getInt("turn")+1);
+      }
       else if(kind.equals("scene")){
         c.put("scene",c.getInt("scene")+1);c.put("turn",1);c.put("sceneName","Cena "+c.getInt("scene"));
         // Uma nova cena tem sua propria ordem de iniciativa.
