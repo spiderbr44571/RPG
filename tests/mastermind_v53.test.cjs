@@ -18,8 +18,10 @@ assert.match(server,/return new JSONObject\(\)\.put\("mode",sessionMode\(c\)\)/)
 assert.match(server,/\.put\("initiativePreserved",true\)/);
 assert.match(server,/if\(p\.length==6&&p\[5\]\.equals\("session-mode"\)&&method\.equals\("POST"\)\)/);
 const route=server.indexOf('if(p.length==6&&p[5].equals("session-mode")');
-const gmGate=server.lastIndexOf('if(!master(s))',route);
-assert.ok(gmGate>0&&route-gmGate<300,'mode route must be guarded by the GM token');
+const adminBranch=server.indexOf('if(p.length>=5&&p[1].equals("api")&&p[2].equals("admin")&&p[3].equals("campaigns"))');
+const gmGate=server.indexOf('if(!master(s))',adminBranch);
+assert.ok(adminBranch>0&&gmGate>adminBranch&&route>gmGate&&route-gmGate<3200,
+ 'mode route must be inside the authenticated GM-only admin branch');
 assert.doesNotMatch(server,/p\[4\]\.equals\("session-mode"\).*setSessionMode/);
 // Non-GM players still authenticate and can only move owned tokens through fog-filtered scene.
 assert.match(server,/boolean interlude="interlude"\.equals\(sessionMode\(c\)\)/);
