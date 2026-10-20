@@ -1,3 +1,18 @@
+# Mastermind v0.47 — pesquisa Ctrl+F progressiva com resumo por página
+
+**Antes:** o app extraía o PDF inteiro dentro de uma única transação de banco de dados. As páginas só ficavam disponíveis para pesquisa ao final desse trabalho, mesmo quando o livro era muito grande.
+
+**Agora:**
+- O PDF pessoal é extraído localmente em uma thread separada e indexado em pequenos lotes confirmados (6 páginas por transação). A busca FTS4 consulta as páginas que já estão prontas enquanto o restante do livro é processado, com SQLite WAL para separar leituras e escrita.
+- A interface atualiza as correspondências durante a extração, exibe cobertura parcial (ex.: 60/300 páginas) e mostra um resumo **extrativo** de até 3 passagens, com número de página e abertura no livro. Não inventa fatos, não usa IA e não reproduz capítulos inteiros.
+- O índice fica salvo no dispositivo. Em consultas seguintes, o Ctrl+F usa o texto pronto e não precisa extrair tudo novamente. Uma indexação interrompida pode retomar da última página confirmada, sem apagar resultados anteriores.
+- O usuário pode clicar em **Retomar indexação** se uma leitura parar. Ao importar outro livro, os resultados nunca misturam trechos do PDF anterior.
+- **Limite técnico:** a primeira extração ainda pode demorar em PDFs muito grandes, complexos ou escaneados. Durante esse tempo, a pesquisa cobre apenas as páginas já indexadas. PDFs sem camada de texto ainda exigem OCR (não incluído nesta versão).
+
+Os dados de fichas, campanhas e preferências permanecem inalterados. A biblioteca PdfBox-Android continua incluída, por isso o APK mantém o tamanho maior que versões anteriores.
+
+---
+
 # Mastermind v0.46 — correção de falha ao iniciar
 
 Na v0.45 o indexador de PDF era criado como campo de `MainActivity` antes de o Android preparar o Context, causando falha ao iniciar o aplicativo. A v0.46 corrige a ordem: o indexador é criado somente após `super.onCreate`, com Context válido. Há um novo teste de regressão no CI para bloquear a inicialização prematura.
