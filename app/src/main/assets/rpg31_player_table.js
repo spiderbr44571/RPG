@@ -59,7 +59,7 @@ const sections=s=>{
  s=s||{};const groups={};
  if(s.attrs)groups['Atributos']=s.attrs;
  if(s.skills)groups['Perícias']=s.skills;
- if(s.systemId==='ordem-paranormal')groups['Poderes e Transcender']=s.powerChoices||[];
+ if(s.systemId==='ordem-paranormal'||(!s.systemId&&s.class&&s.attrs?.Agilidade!==undefined))groups['Poderes e Transcender']=s.powerChoices||[];
  const abilities=[s.powers,s.rituaisConhecidos,s.abilities,s.spells,s.techniques].filter(x=>x!=null);
  if(abilities.length)groups['Rituais e habilidades']=abilities;
  const items=[s.inventory,s.items,s.weapons].filter(x=>x!=null);
