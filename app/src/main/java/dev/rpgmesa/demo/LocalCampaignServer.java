@@ -960,9 +960,12 @@ public final class LocalCampaignServer extends NanoHTTPD {
         int value=random.nextInt(faces)+1;faceSum+=value;highest=Math.max(highest,value);values.put(value);
       }
       String mode=input.optString("mode",count>1&&faces==20?"highest":"sum");
-      if(!mode.equals("sum")&&!mode.equals("highest"))throw new IllegalArgumentException("Modo de rolagem inválido");
-      if(mode.equals("highest")&&faces!=20)throw new IllegalArgumentException("Maior resultado só para d20");
-      sum+=mode.equals("highest")?highest:faceSum;
+      if(!mode.equals("sum")&&!mode.equals("highest")&&!mode.equals("lowest"))
+        throw new IllegalArgumentException("Modo de rolagem inválido");
+      if(!mode.equals("sum")&&faces!=20)throw new IllegalArgumentException("Selecionar maior/menor só para d20");
+      int lowest=faces;
+      for(int k=0;k<values.length();k++)lowest=Math.min(lowest,values.optInt(k,faces));
+      sum+=mode.equals("highest")?highest:mode.equals("lowest")?lowest:faceSum;
       String privacy=gm&&"master".equals(input.optString("visibility"))?"master":"public";
       String name=gm?"Mestre":actor.optString("nickname","Jogador");
       JSONObject result=new JSONObject().put("id",UUID.randomUUID().toString().replace("-",""))
@@ -1462,6 +1465,17 @@ public final class LocalCampaignServer extends NanoHTTPD {
             if(!Double.isFinite(next)||next< -max*5||next>max)return json(400,"error","Fora do limite GURPS");
             sheet.put(key.equals("HP")?"currentHP":"currentFP",next);persist();
             return response(200,new JSONObject().put("current",next));
+          }
+          if("d-d".equals(sheet.optString("systemId"))){
+            if(!key.equals("PV"))return json(403,"error","Somente PV nesta ficha");
+            Object raw=b.opt("current");
+            if(!(raw instanceof Number))return json(400,"error","Valor inválido");
+            double current=((Number)raw).doubleValue();
+            double max=Math.max(0,sheet.optDouble("hitPointsMax",0));
+            if(!Double.isFinite(current)||current<0||current>max)
+              return json(400,"error","PV fora do limite");
+            sheet.put("hitPointsCurrent",current);persist();
+            return response(200,new JSONObject().put("current",current));
           }
           if(!key.equals("PV")&&!key.equals("PE")&&!key.equals("SAN"))
             return json(403,"error","Recurso não permitido");
