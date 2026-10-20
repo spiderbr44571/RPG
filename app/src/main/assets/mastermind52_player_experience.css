@@ -82,3 +82,30 @@
  #r52-live-tools[data-mode=measure]{max-width:calc(100vw - 20px)}
  .r52-mode-group button{flex:1 1 auto}
 }
+
+/* O visual da sessão acompanha a preferência de modo claro cadastrada na ficha. */
+body.r52-light-mode{--ink:#292333;--muted:#72667b;background:#eee8ee;color:#292333}
+body.r52-light-mode .top{background:linear-gradient(#fff9ff,#e8dfea);border-color:#c5b3ca}
+body.r52-light-mode .stage{background:radial-gradient(#c3b8c8 1px,transparent 1px) 0 0/23px 23px,#eee8f0}
+body.r52-light-mode .hud{background:#fefafff5;color:#2b2330;border-color:#ad91ac}
+body.r52-light-mode .hero small,body.r52-light-mode .summary small{color:#73677a}
+body.r52-light-mode .meter .track{background:#d8d1da}
+body.r52-light-mode button{background:#f9f1f8;color:#2f2637;border-color:#c6adca}
+body.r52-light-mode button.primary{background:var(--accent);color:#24172c}
+body.r52-light-mode .drawer{background:#fff9ff;color:#2b2334;border-color:#b999bc}
+body.r52-light-mode .drawer h2,body.r52-light-mode .drawer p{color:#2c2131}
+body.r52-light-mode .entry{background:#f1ebf5;color:#31243a;border-color:#c2b1c8}
+body.r52-light-mode .entry small{color:#665b6e}
+body.r52-light-mode .drawer input{background:#fff;color:#211829;border-color:#b6a3bb}
+body.r52-light-mode #r52-live-tools{background:#fffbfff2;color:#2c2231;border-color:#bca1bc}
+body.r52-light-mode #r52-live-tools small{color:#625368}
+body.r52-light-mode .r52-mode-group button{background:#f3e8f1;color:#35283d;border-color:#c6afc5}
+body.r52-light-mode .r52-mode-group button.active{background:var(--accent);color:#221626}
+body.r52-light-mode #r52-distance{background:#e6d6e8;color:#33203a}
+body.r52-light-mode #r52-range{background:#fff;color:#27182f;border-color:#bba9c0}
+body.r52-light-mode #r52-journal .r52-journal-panel{background:#fbf7fc;color:#2c2031}
+body.r52-light-mode #r52-journal .r52-journal-panel p{color:#66536a}
+body.r52-light-mode #r52-journal .r52-journal-panel input,
+body.r52-light-mode #r52-journal .r52-journal-panel textarea{background:#fff;color:#291d2f;border-color:#bba2bf}
+body.r52-light-mode .r52-sheet-row,body.r52-light-mode .r52-detail,body.r52-light-mode .r52-resource{background:#f5ecf5;color:#302338;border-color:#c6b2cc}
+body.r52-light-mode .r52-sheet-row small{color:#6d5f6e}
