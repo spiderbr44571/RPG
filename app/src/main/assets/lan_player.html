@@ -33,8 +33,8 @@ section,.panel{background:var(--surface);border:1px solid var(--line);border-rad
 <header><div><div class="eyebrow">RPG MESA · MINHA CAMPANHA</div><h1 id="campaign">Carregando...</h1><small id="connected">Conectando ao mestre...</small></div><div class="row"><a id="scene-link" href="#" style="border:1px solid var(--accent);padding:10px;border-radius:10px;color:var(--accent);text-decoration:none">▦ Cenário</a><button id="appearance-btn">⚙ Tema</button></div></header>
 <div id="rounds" class="rounds" aria-live="polite"><div><small>Cena</small><strong id="scene">—</strong></div><div><small>Rodada</small><strong id="turn">—</strong></div></div>
 <div id="hero" class="panel">Aguardando ficha...</div>
-<nav id="tabs" class="tabs" role="tablist" aria-label="Seções da ficha"><button data-tab="attributes" aria-selected="true">Atributos</button><button data-tab="skills">Perícias</button><button data-tab="inventory">Inventário</button><button data-tab="abilities">Habilidades / Rituais</button><button data-tab="story">História</button><button data-tab="canvas">Canvas pessoal</button><button data-tab="settings">Personalização</button></nav>
-<section id="attributes" class="tabpage"></section><section id="skills" class="tabpage" hidden></section><section id="inventory" class="tabpage" hidden></section><section id="abilities" class="tabpage" hidden></section><section id="story" class="tabpage" hidden></section><section id="canvas" class="tabpage" hidden></section><section id="settings" class="tabpage" hidden></section>
+<nav id="tabs" class="tabs" role="tablist" aria-label="Seções da ficha"><button data-tab="attributes" aria-selected="true">Atributos</button><button data-tab="skills">Perícias</button><button data-tab="inventory">Inventário</button><button data-tab="abilities">Habilidades / Rituais</button><button data-tab="powers">✦ Poderes / Transcender</button><button data-tab="story">História</button><button data-tab="canvas">Canvas pessoal</button><button data-tab="settings">Personalização</button></nav>
+<section id="attributes" class="tabpage"></section><section id="skills" class="tabpage" hidden></section><section id="inventory" class="tabpage" hidden></section><section id="abilities" class="tabpage" hidden></section><section id="powers" class="tabpage" hidden><div id="v55-original-powers"></div></section><section id="story" class="tabpage" hidden></section><section id="canvas" class="tabpage" hidden></section><section id="settings" class="tabpage" hidden></section>
 <small id="sheet-status" role="status"></small>
 <section><div class="eyebrow">ACESSO PERMANENTE</div><div class="row"><strong id="nickname">—</strong><span id="short-id" class="pill">—</span><button id="copy-link">Copiar meu link</button></div><p class="muted">Seu link é pessoal: não compartilhe com outras pessoas. O mestre compartilha o convite geral da campanha.</p></section></main>
 <button class="d20" id="quick-die" title="Rolar um d20" aria-label="Rolar d20">20</button>
@@ -116,8 +116,7 @@ function renderAbilities(s){
  '<p class="muted">Nem todo ritual exige uma rolagem. Use uma fórmula cadastrada quando o mestre confirmar a mecânica.</p>'+
  '<h3 style="margin-top:22px">Rolagens fixas configuráveis</h3>'+rolls.map((x,i)=>'<div class="item"><div><strong>'+esc(x.label)+'</strong><small>'+esc(x.formula)+'</small></div><div class="actions"><button data-fixed-roll="'+i+'">🎲 Rolar</button><button data-del-roll="'+i+'">Remover</button></div></div>').join('')+
  '<div class="grid"><label class="field"><span>Nome do teste</span><input id="roll-label" placeholder="Ritual, habilidade ou teste" maxlength="64"></label><label class="field"><span>Fórmula validada</span><input id="roll-formula" placeholder="2d8+3" maxlength="32"></label></div><button class="primary" id="add-roll">Salvar rolagem</button>'+
- '<div id="v55-original-powers"></div>';
- if(s.systemId==='ordem-paranormal')window.MastermindPowerUI?.mountOriginal($('#v55-original-powers'),s);
+ '<p>Para aprender novos poderes, abra a aba ✦ Poderes / Transcender.</p>';
 }
 function renderStory(s){
  $('#story').innerHTML='<h3>História e descrição</h3><p class="muted">Seus textos acompanham a ficha da campanha. O mestre também pode lê-los.</p><label class="field"><span>Descrição do personagem</span><textarea id="description" maxlength="12000">'+esc(s.description||'')+'</textarea></label><label class="field"><span>História</span><textarea id="history" maxlength="12000">'+esc(s.history||'')+'</textarea></label><button id="save-story" class="primary">Salvar história</button>';
@@ -230,11 +229,11 @@ async function refresh(force=false){
   if(force||next!==signature){
    signature=next;
    const s=j.character;
-   if(!s){$('#hero').innerHTML='<h2>Aguardando ficha</h2><p>O mestre deve aprovar ou atribuir seu personagem.</p>';for(const key of ['attributes','skills','inventory','abilities','story'])$('#'+key).innerHTML='<p class="muted">Aguardando personagem...</p>'}
+   if(!s){$('#hero').innerHTML='<h2>Aguardando ficha</h2><p>O mestre deve aprovar ou atribuir seu personagem.</p>';for(const key of ['attributes','skills','inventory','abilities','story'])$('#'+key).innerHTML='<p class="muted">Aguardando personagem...</p>';$('#v55-original-powers').innerHTML='<p class="muted">Aguardando personagem...</p>'}
    else{
     let portrait=s.photo&&/^data:image\/(png|jpeg|webp);base64,/.test(s.photo)?'<img src="'+esc(s.photo)+'" alt="Personagem">':'';
     $('#hero').innerHTML='<div class="hero">'+portrait+'<div><div class="eyebrow">'+esc(s.class||'Personagem')+'</div><h2>'+esc(s.name||'Agente')+'</h2><span class="pill">NEX '+esc(s.nex??5)+'%</span></div></div>';
-    renderAttributes(s);renderSkills(s);renderInventory(s);renderAbilities(s);if(tab!=='story'||force)renderStory(s);
+    renderAttributes(s);renderSkills(s);renderInventory(s);renderAbilities(s);if((s.systemId==='ordem-paranormal'||(!s.systemId&&s.class&&s.attrs?.Agilidade!==undefined)))window.MastermindPowerUI?.mountOriginal($('#v55-original-powers'),s);else $('#v55-original-powers').innerHTML='<p>Os poderes paranormais deste módulo pertencem a Ordem Paranormal.</p>';if(tab!=='story'||force)renderStory(s);
    }
   }
   message('');
