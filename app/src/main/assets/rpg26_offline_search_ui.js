@@ -43,24 +43,24 @@
   const type=state.state;
   const texts={
    ready:'PDF pesquisável: '+(state.pages||0)+' páginas · '+(state.title||'Livro pessoal'),
-   indexing:'Busca liberada · '+(state.progress||0)+' / '+(state.pages||'?')+' páginas pesquisáveis enquanto o restante é preparado...',
+   indexing:(state.pages?'Processadas '+(state.progress||0)+' / '+state.pages+' páginas. ':'Verificando o total de páginas do PDF. ')+(state.message||'Preparando busca...'),
    partial:'Índice parcial: '+(state.progress||0)+' / '+(state.pages||'?')+' páginas. A busca funciona nessas páginas.',
-   pending:'PDF importado, aguardando extração de texto...',
+   pending:state.message||'PDF importado, aguardando extração de texto...',
    missing:'Nenhum PDF pessoal importado na Biblioteca.',
    no_text:'Este PDF não tem texto selecionável. Se for escaneado, é necessário OCR.',
    unavailable:'Busca do PDF disponível na versão Android instalada.',
-   error:state.message||'Não foi possível preparar a pesquisa do PDF.'
+   error:'Falha na extração: '+(state.message||'Não foi possível ler este PDF. Tente selecioná-lo novamente na Biblioteca.')
   };
   el.textContent=texts[type]||'Verificando PDF...';
   el.dataset.state=type;
-  $('#r47-retry-index').hidden=!(type==='partial'||type==='pending');
+  $('#r47-retry-index').hidden=!(type==='partial'||type==='pending'||type==='error');
   if((type==='pending'||type==='partial')&&native()&&force)native().indexSavedPdf();
   // Atualiza só a busca textual enquanto novas páginas são indexadas;
   // não recalcula catálogos nem recria o restante da resposta.
   const progress=Number(state.progress)||0;
   if(pdfLastQuery&&$('#r26-query')?.value.trim()===pdfLastQuery&&
    (progress>pdfLastProgress||type!==pdfPreviousState)&&
-   (type==='indexing'||type==='partial'||type==='ready'||type==='no_text')){
+   (type==='indexing'||type==='partial'||type==='ready'||type==='no_text'||type==='error')){
     renderPdfResults(pdfLastQuery);
   }
   pdfLastProgress=progress;
@@ -86,7 +86,7 @@
      data.state==='indexing'?'Buscando nas páginas já extraídas do livro. Os resultados aparecem conforme a leitura avança.':
      data.state==='no_text'?'PDF sem camada de texto pesquisável (provavelmente escaneado).':
      data.state==='missing'?'Importe seu PDF na Biblioteca para pesquisar dentro dele.':
-     data.state==='pending'?'Preparando índice do PDF...':'Pesquisa textual do PDF indisponível.'
+     data.state==='pending'?'Preparando índice do PDF...':data.state==='error'?(data.status?.message||data.message||'Erro ao ler o PDF.'):'Pesquisa textual do PDF indisponível.'
     )+'</p>';
     container.prepend(msg);
    }
