@@ -176,7 +176,13 @@ function mount(){
  document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal').forEach(m=>m.classList.remove('open'))});
  setInterval(refresh,1800);refresh();
 }
-root.RPG31_PLAYER={mount,get state(){return state},get selectedTokenId(){return selected},
+root.RPG31_PLAYER={mount,
+ openSheetTab(name){
+  $('#sheet-modal').classList.add('open');
+  tab=name;sheet();
+  return !!$('#sheet-tabs [data-tab="'+name+'"]');
+ },
+ get state(){return state},get selectedTokenId(){return selected},
  get sceneId(){return state?.scene?.id||''},notify:msg};
 
 })(window);
