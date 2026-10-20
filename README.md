@@ -1,3 +1,18 @@
+# Mastermind v0.54 — mapa limpo, roda de ferramentas e personalização unificada
+
+**Objetivo:** devolver a maior parte da tela do celular ao mapa compartilhado com o mestre, sem perder acesso à ficha nem às ferramentas úteis durante a sessão.
+
+- **Roda de ferramentas:** um único botão flutuante abre um menu radial de ações: ficha, dados, caderno, medição de distância, marcadores pessoais, inspeção de tokens, ordem de iniciativa e movimentação. O menu fecha após escolher uma ferramenta, ao tocar fora ou com Esc; fica fora da navegação por teclado enquanto fechado.
+- **HUD compacto:** o retrato e os recursos principais ficam num cartão pequeno no canto inferior, que pode ser expandido quando necessário. Zoom do mapa e ajustes estão disponíveis por botões pequenos no cabeçalho. Rolações, mesa, turno e interlúdio continuam operando com os controles e o servidor anteriores.
+- **Ficha completa e configurações:** o novo botão ⚙ abre a aparência no mesmo painel que contém a ficha completa. Um seletor alterna **Ficha completa ↔ Aparência**; a ficha detalhada original continua acessível diretamente do painel e permite editar atributos, perícias, inventário, rituais e textos conforme as permissões da campanha.
+- **Tema consistente:** as preferências de tema (Base, Sangue, Conhecimento, Energia, Morte, Medo), cor personalizada, modo claro/escuro e tamanho da fonte usam exatamente a chave `rpg-player-look:<id da campanha>` da ficha original. O mapa, modal de dados, ficha e caderno aplicam o mesmo esquema. Alterações feitas na ficha original são relidas ao voltar para a mesa ao vivo, no foco e quando a aba retorna ao primeiro plano.
+- **Autoria preservada:** as escolhas são privadas daquele aparelho/campanha. A interface não altera o tema artístico do grid escolhido pelo mestre, as posições de tokens, o mapa, áreas de névoa nem as regras de movimento/iniciativa. O servidor e seus endpoints continuam iguais, com duas rotas estáticas adicionais para os novos recursos visuais.
+- **Acessibilidade e mobile:** botões de tamanho apropriado, nomes de ação, foco visível, fechamento da roda ao tocar fora, suporte à paisagem e respeito à redução de movimento do Android.
+
+Este é um redesign do *cliente jogador* na mesa ao vivo, não uma mudança no sistema de RPG nem uma promessa de sincronizar preferências visuais entre aparelhos diferentes. O modo claro/escuro e o desenho radial ainda precisam de validação em celular real.
+
+---
+
 # Mastermind v0.53 — testes livres e Interlúdio
 
 **Rolagens do jogador:** os testes e dados da mesa podem ser lançados quantas vezes forem necessários, inclusive fora da vez do personagem. O tempo mínimo de 1,2 segundo entre rolagens foi removido do servidor. A rolagem continua autenticada, validada e registrada no histórico compartilhado; o jogador não pode escolher o resultado. O consumo de movimento, as restrições de posicionamento e a execução narrativa de ações durante combate continuam sob controle das regras e do mestre.
