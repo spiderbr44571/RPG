@@ -674,7 +674,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
         response.put("rolls",visibleRolls(c,false)).put("movement",new JSONObject().put("tokens",new JSONArray())).put("initiative",new JSONObject().put("round",1).put("activeId","").put("entries",new JSONArray())).put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName",""));
         return response;
       }
-      JSONObject actorSheet=playerSheet(cid,player);
+      JSONObject actorSheet=player.optString("characterId","").isEmpty()?null:playerSheet(cid,player);
       String sceneSystem=actorSheet.optString("systemId","ordem-paranormal");
       if(!sceneSystem.matches("[a-z0-9-]{1,60}"))sceneSystem="custom";
       JSONObject scene=new JSONObject().put("id",original.getString("id")).put("name",original.getString("name"))
