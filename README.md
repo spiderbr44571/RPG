@@ -1,3 +1,16 @@
+# Mastermind v0.57 — correção das telas que não carregavam (20/10/2026)
+
+A v0.55 incluía código para os poderes e a roda de ferramentas, mas **não estava operacional em todas as interfaces**. A v0.56 acrescentou a aba de poderes à tela principal do Android, mas faltavam duas correções cruciais. Foram identificadas em execução real em navegador com resolução mobile e corrigidas nesta versão:
+
+1. **Android principal:** uma função embutida no arquivo `demo-offline.html` chamava uma variável `select` inexistente durante a inicialização do bestiário, causando `ReferenceError: select is not defined`. A mesma cópia incorreta existia em `rpg06.js`. Ambas agora usam um seletor explícito e nulo-seguro para `#canvas-creature-select`. A tela principal passou por teste no navegador, com navegação até **Fichas → Poderes / Transcender**, 22 opções no catálogo e nenhum erro de JavaScript no fluxo.
+2. **Cena ao vivo:** `mastermind52_player_experience.js` consultava `#r52-sheet`, que nunca existiu, e acessava `.classList` em `null`. Isso interrompia a cadeia de inicialização antes de montar a roda v0.54 e o painel v0.55. Foi substituído por `#sheet-modal` com optional chaining. O teste mobile abriu a roda, a ficha e a seção **Poderes e Transcender** (22 cartões) sem exceções.
+3. **Ficha do jogador pelo navegador:** o teste mobile também abriu **Poderes / Transcender** com os 22 cartões, verificando que a interface legada está acessível.
+4. **Scripts sempre atualizados:** as rotas de JavaScript da mesa ao vivo agora devolvem `Cache-Control: no-store`, reduzindo o risco de servir recursos antigos após atualizar o APK.
+
+O aplicativo exibe **v0.57** no cabeçalho para o usuário verificar a versão realmente instalada. Não desinstale versões antigas: atualize por cima para preservar personagens e campanhas. Estes testes automatizados e testes de interface em navegador não substituem uma sessão real em dois celulares Android.
+
+---
+
 # Mastermind v0.56 — hotfix de funcionalidades invisíveis na ficha principal
 
 A v0.55 tinha sido compilada, mas **a nova aba de poderes não era carregada em `demo-offline.html`**, a interface principal do aplicativo Android. A maior parte do código estava nas páginas LAN usadas por jogadores conectados. O aplicativo também importava fichas de Ordem Paranormal para campanhas sem `systemId`, fazendo a aba desaparecer para jogadores conectados. Ambas as causas foram corrigidas nesta versão.
