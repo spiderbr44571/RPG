@@ -109,3 +109,9 @@ body.r52-light-mode #r52-journal .r52-journal-panel input,
 body.r52-light-mode #r52-journal .r52-journal-panel textarea{background:#fff;color:#291d2f;border-color:#bba2bf}
 body.r52-light-mode .r52-sheet-row,body.r52-light-mode .r52-detail,body.r52-light-mode .r52-resource{background:#f5ecf5;color:#302338;border-color:#c6b2cc}
 body.r52-light-mode .r52-sheet-row small{color:#6d5f6e}
+
+/* v0.53 — Interlúdio legível no HUD do jogador */
+#r52-turn.interlude{color:#ffe3a6;background:#413123;border:1px solid #b89b65;padding:7px 9px;border-radius:9px}
+body[data-session-mode=interlude] #scene-turn{color:#ffe7b0;font-weight:750}
+body[data-session-mode=interlude] .r53-unlimited .track i{background:#9eebc6}
+.r53-interlude-message{color:#f3d7a4;padding:14px;border-radius:10px;border:1px solid #a88a61;background:#30251e;line-height:1.6}

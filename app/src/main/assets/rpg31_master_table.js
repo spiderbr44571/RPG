@@ -61,7 +61,7 @@ function open(host,options){
     const defaults={'ordem-paranormal':9,'d-d':6,'gurps':5};
     const limit=s.data.movementLimits?.[t.id]??t.movementSquares??(s.data.movementRules?.[sys]??defaults[sys]??9);
     const spent=s.data.movementSpent?.[t.id]||0;
-    html+='<p>Movimento: <strong>'+Math.max(0,limit-spent)+'/'+limit+' quadrados restantes</strong></p>'+
+    html+='<p>Movimento: <strong>'+(s.data.sessionMode==='interlude'?'∞ ilimitado (interlúdio)':Math.max(0,limit-spent)+'/'+limit+' quadrados restantes')+'</strong></p>'+
       '<label>Deslocamento individual<input type="number" min="0" max="60" id="r35-token-speed" value="'+limit+'"></label>'+
       '<button data-action="token-speed">Definir deslocamento</button>';
   }
@@ -73,24 +73,33 @@ function open(host,options){
   const activeId=d.initiative?.activeId||'';
   const activeToken=map?.tokens?.find(t=>t.id===activeId);
   const activeName=activeToken?.name||(d.initiative?.entries||[]).find(t=>t.tokenId===activeId)?.name||'Iniciativa não iniciada';
+  const interlude=d.sessionMode==='interlude';
   s.scene=map;
   s.el.innerHTML='<header><strong>✧ MESTRE</strong><h2>'+esc(map?.name||'Sem cenário publicado')+'</h2>'+
-    '<span class="r35-active-turn" aria-live="polite">Vez: <b>'+esc(activeName)+'</b> · Rodada '+(d.initiative?.round||1)+'</span>'+
+    '<span class="r35-active-turn" aria-live="polite">'+(interlude?'✦ INTERLÚDIO · movimento livre':'Vez: <b>'+esc(activeName)+'</b> · Rodada '+(d.initiative?.round||1))+'</span>'+
     '<button data-action="panel">Painel</button>'+
     '<button data-action="zoom-out" title="Afastar">-</button><button data-action="zoom-in" title="Aproximar">+</button>'+
     '<button data-action="fit" title="Enquadrar mapa">Enquadrar</button>'+
-    '<button data-action="edit">Editar mapa</button><button data-action="turn">+ Turno</button><button data-action="close">Sair</button></header>'+
-    '<div class="body"><div id="r31-scroll" class="scroll"><div class="r35-turn-overlay">Vez atual: <strong>'+esc(activeName)+'</strong><small>Rodada '+(d.initiative?.round||1)+'</small></div><div id="r31-board" class="board"></div></div>'+
+    '<button data-action="session-mode" class="r53-mode-button '+(interlude?'interlude':'')+'">'+(interlude?'⚔ Voltar ao combate':'✦ Iniciar interlúdio')+'</button>'+
+    '<button data-action="edit">Editar mapa</button><button data-action="turn" '+(interlude?'disabled title="Iniciativa pausada durante o interlúdio"':'')+'>+ Turno</button><button data-action="close">Sair</button></header>'+
+    '<div class="body"><div id="r31-scroll" class="scroll"><div class="r35-turn-overlay '+(interlude?'r53-interlude-indicator':'')+'">'+
+    (interlude?'✦ INTERLÚDIO <strong>Exploração livre</strong><small>Todos os jogadores podem se mover e rolar dados. Iniciativa preservada.</small>':
+    'Vez atual: <strong>'+esc(activeName)+'</strong><small>Rodada '+(d.initiative?.round||1)+'</small>')+'</div><div id="r31-board" class="board"></div></div>'+
     '<aside id="r31-aside" class="'+(s.folded?'folded':'')+'"><section><h3>⚄ Rolagens</h3>'+
       '<input id="r31-formula" value="1d20" placeholder="1d20+5" aria-label="Notação do dado">'+
       '<div class="actions"><button data-action="roll-public" class="primary">Todos veem</button><button data-action="roll-private">Só mestre</button></div>'+
       (s.privateResult?'<div class="info"><b>Rolagem privada</b> '+esc(s.privateResult.formula)+' : <b>'+s.privateResult.total+'</b> <small>Dados: '+esc(diceList(s.privateResult))+'</small></div>':'')+
       (d.rolls||[]).slice(-5).reverse().map(r=>'<div class="info">'+esc(r.by)+' - '+esc(r.label)+' <b>'+r.total+'</b><small>'+esc(r.formula)+' : '+esc(diceList(r))+'</small></div>').join('')+
-    '</section><section><h3>Iniciativa</h3>'+
+    '</section><section><h3>Ritmo da sessão</h3><div class="r53-mode-panel">'+
+    '<strong>'+(interlude?'✦ Interlúdio ativo':'⚔ Combate / exploração controlada')+'</strong>'+
+    '<p>'+(interlude?'Movimento ilimitado para cada jogador. Ordem de iniciativa pausada, sem perder os participantes nem a rodada.':'Movimento segue a iniciativa e o limite da ficha. Testes são livres, mesmo fora do turno.')+'</p>'+
+    '<button data-action="session-mode" class="r53-mode-button">'+(interlude?'Voltar ao combate':'Ativar interlúdio')+'</button></div></section>'+
+    '<section><h3>Iniciativa</h3>'+
+    (interlude?'<p class="r53-interlude-hint">Pausada no interlúdio. Ao voltar ao combate, continua da ordem atual.</p>':'')+
    '<small>Selecione um token para rolar. A ordem fica visível na mesa e é controlada pelo mestre.</small>'+
    '<input id="r32-initiative-formula" value="1d20" placeholder="1d20+5">'+
    '<div class="actions"><button data-action="initiative-roll" class="primary">Rolar iniciativa</button><button data-action="initiative-set">Definir valor</button></div>'+
-   '<div class="actions"><button data-action="initiative-next">Próximo turno</button><button data-action="initiative-clear">Reiniciar</button></div>'+
+   '<div class="actions"><button data-action="initiative-next" '+(interlude?'disabled':'')+'>Próximo turno</button><button data-action="initiative-clear">Reiniciar</button></div>'+
    '<button data-action="scene">Encerrar cena</button>'+
    '<div class="r35-current-turn"><strong>AGORA: '+esc(activeName)+'</strong>'+
     '<small>Rodada '+(d.initiative?.round||1)+'</small></div>'+
@@ -215,6 +224,12 @@ function open(host,options){
    if(button){
     const action=button.dataset.action;
     if(action==='close'){close();return}
+    if(action==='session-mode'){
+      const next=s.data?.sessionMode==='interlude'?'combat':'interlude';
+      await req('/session-mode','POST',{mode:next});
+      feedback(next==='interlude'?'Interlúdio iniciado. Movimento livre; iniciativa pausada.':'Combate retomado. Iniciativa mantida; deslocamento reiniciado.');
+      s.revision=-1;await refresh();return;
+    }
     if(action==='movement-system'){
       const systemId=$('#r35-movement-system',s.el).value;
       const squares=Number($('#r35-system-speed',s.el).value);

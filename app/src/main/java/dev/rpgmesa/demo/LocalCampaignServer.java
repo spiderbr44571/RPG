@@ -164,10 +164,31 @@ public final class LocalCampaignServer extends NanoHTTPD {
       if(campaigns.length()>=50)throw new IllegalArgumentException("Máximo de 50 campanhas");
       JSONObject c=new JSONObject().put("id",UUID.randomUUID().toString().replace("-",""))
         .put("name",name).put("invite",newToken()).put("scene",1).put("sceneName","Cena 1")
-        .put("turn",1).put("players",new JSONArray()).put("characters",new JSONArray())
+        .put("turn",1).put("sessionMode","combat").put("players",new JSONArray()).put("characters",new JSONArray())
         .put("canvas",new JSONArray());
       campaigns.put(c);persist();
       return new JSONObject().put("id",c.getString("id")).put("name",name).put("invite",invite(c));
+    }
+  }
+  /** Session mode is campaign-scoped, independent from initiative and scene storage. */
+  private static String sessionMode(JSONObject campaign){
+    return "interlude".equals(campaign.optString("sessionMode","combat"))?"interlude":"combat";
+  }
+  public JSONObject setSessionMode(String cid,JSONObject input)throws Exception{
+    synchronized(lock){
+      JSONObject c=campaign(cid);
+      String mode=input.optString("mode","");
+      if(input.length()!=1||(!"interlude".equals(mode)&&!"combat".equals(mode)))
+        throw new IllegalArgumentException("Selecione Combate ou Interlúdio.");
+      if(!mode.equals(sessionMode(c))){
+        c.put("sessionMode",mode);
+        // Movement allowance applies only during combat, and resets on each transition.
+        // Initiative entries/order are retained intact for returning to combat.
+        c.put("movementSpent",new JSONObject());
+        persist();
+      }
+      return new JSONObject().put("mode",sessionMode(c))
+        .put("initiativePreserved",true).put("movementUnlimited","interlude".equals(sessionMode(c)));
     }
   }
   private JSONObject campaign(String cid) throws JSONException{
@@ -246,6 +267,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
         p.put("permalink",permalink(campaign(cid),p));
         p.remove("secret");
       }
+      data.put("sessionMode",sessionMode(campaign(cid)));
       data.put("invite",invite(campaign(cid)));
       return data;
     }
@@ -285,7 +307,10 @@ public final class LocalCampaignServer extends NanoHTTPD {
   public void advance(String cid,String kind) throws Exception{
     synchronized(lock){
       JSONObject c=campaign(cid);
-      if(kind.equals("turn"))c.put("turn",c.getInt("turn")+1);
+      if(kind.equals("turn")){
+        if("interlude".equals(sessionMode(c)))throw new IllegalArgumentException("A rodada fica pausada durante o interlúdio.");
+        c.put("turn",c.getInt("turn")+1);
+      }
       else if(kind.equals("scene")){
         c.put("scene",c.getInt("scene")+1);c.put("turn",1);c.put("sceneName","Cena "+c.getInt("scene"));
         // Uma nova cena tem sua propria ordem de iniciativa.
@@ -669,7 +694,8 @@ public final class LocalCampaignServer extends NanoHTTPD {
       if(ensurePlayerTokens(c))persist();
       JSONObject original=activeScene(c),response=new JSONObject()
         .put("revision",revision.get()).put("scene",JSONObject.NULL)
-        .put("playerId",player.optString("id",""));
+        .put("playerId",player.optString("id",""))
+        .put("sessionMode",sessionMode(c));
       if(original==null){
         response.put("character",playerInfo(cid,player).opt("character"));
         response.put("rolls",visibleRolls(c,false)).put("movement",new JSONObject().put("tokens",new JSONArray())).put("initiative",new JSONObject().put("round",1).put("activeId","").put("entries",new JSONArray())).put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName",""));
@@ -793,9 +819,11 @@ public final class LocalCampaignServer extends NanoHTTPD {
       JSONObject original=activeScene(c);
       if(original==null)continue;
       JSONObject source=entry(original.getJSONArray("tokens"),t.optString("id"),"Token");
+      boolean interlude="interlude".equals(sessionMode(c));
       int limit=movementLimit(c,source),used=spent.optInt(t.optString("id"),0);
-      own.put(new JSONObject().put("tokenId",t.optString("id")).put("limit",limit)
-       .put("used",used).put("remaining",Math.max(0,limit-used)));
+      own.put(new JSONObject().put("tokenId",t.optString("id")).put("limit",interlude?JSONObject.NULL:limit)
+       .put("used",interlude?0:used).put("remaining",interlude?JSONObject.NULL:Math.max(0,limit-used))
+       .put("unlimited",interlude));
     }
     return new JSONObject().put("tokens",own);
   }
@@ -811,16 +839,17 @@ public final class LocalCampaignServer extends NanoHTTPD {
       if(charId.isEmpty()||!t.optString("ownerPlayerId").equals(player.optString("id"))||
         !t.optString("characterId").equals(charId)||t.optBoolean("hidden",false))
         throw new SecurityException("Este token não pertence ao jogador");
+      boolean interlude="interlude".equals(sessionMode(c));
       JSONObject initiative=initiativeData(c);
       JSONArray order=initiative.optJSONArray("entries");
-      if(order!=null&&order.length()>0&&!id.equals(initiative.optString("activeId","")))
+      if(!interlude&&order!=null&&order.length()>0&&!id.equals(initiative.optString("activeId","")))
         throw new IllegalArgumentException("Aguarde sua vez na iniciativa");
       int oldX=t.getInt("x"),oldY=t.getInt("y");
       // Cada diagonal vale um quadrado (distância Chebyshev).
       int steps=Math.max(Math.abs(x-oldX),Math.abs(y-oldY));
       JSONObject spent=movementSpent(c);
       int already=spent.optInt(id,0),limit=movementLimit(c,t);
-      if(already+steps>limit)
+      if(!interlude&&already+steps>limit)
         throw new IllegalArgumentException("Deslocamento excedido: "+(limit-already)+" de "+limit+" quadrados restantes neste turno");
       // Não permitir atravessar salas ocultas, nem por movimentação diagonal.
       for(int step=0;step<=steps;step++){
@@ -828,9 +857,12 @@ public final class LocalCampaignServer extends NanoHTTPD {
         int sx=(int)Math.round(oldX+(x-oldX)*p),sy=(int)Math.round(oldY+(y-oldY)*p);
         if(covered(map,sx,sy))throw new IllegalArgumentException("Área ainda não revelada pelo mestre");
       }
-      t.put("x",x).put("y",y);spent.put(id,already+steps);persist();
+      t.put("x",x).put("y",y);
+      if(!interlude)spent.put(id,already+steps);
+      persist();
       return new JSONObject().put("ok",true).put("x",x).put("y",y)
-        .put("movementRemaining",limit-already-steps).put("revision",revision.get());
+        .put("movementRemaining",interlude?JSONObject.NULL:limit-already-steps)
+        .put("movementUnlimited",interlude).put("revision",revision.get());
     }
   }
 
@@ -866,6 +898,8 @@ public final class LocalCampaignServer extends NanoHTTPD {
       JSONArray entries=state.optJSONArray("entries");
       if(entries==null){entries=new JSONArray();state.put("entries",entries);}
       String action=body.optString("action","");
+      if("interlude".equals(sessionMode(c))&&"next".equals(action))
+        throw new IllegalArgumentException("A iniciativa fica pausada durante o interlúdio.");
       if("reset".equals(action)){
         state.put("entries",new JSONArray()).put("round",1).put("activeId","");
         c.put("movementSpent",new JSONObject());
@@ -949,10 +983,9 @@ public final class LocalCampaignServer extends NanoHTTPD {
       int bonus=matcher.group(3)==null?0:Integer.parseInt(matcher.group(3));
       if(Math.abs(bonus)>100)throw new IllegalArgumentException("Modificador fora do limite");
       long now=System.currentTimeMillis();
-      if(!gm){
-        if(now-actor.optLong("lastTableRoll",0)<1200)throw new IllegalArgumentException("Espere antes da próxima rolagem");
-        actor.put("lastTableRoll",now);
-      }
+      // Rolling dice is NOT bound to the active initiative or movement budget.
+      // Consecutive tests are allowed; input limits and authenticated audit log remain.
+      if(!gm)actor.put("lastTableRoll",now);
       String label=input.optString("label","Rolagem");
       if(label.length()>70)label=label.substring(0,70);
       if(label.isEmpty())label="Rolagem";
@@ -995,6 +1028,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
         }
       }
       result.put("movementLimits",limits);
+      result.put("sessionMode",sessionMode(c));
       result.put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName"))
         .put("campaignName",c.optString("name")).put("revision",revision.get())
         .put("rolls",visibleRolls(c,true)).put("initiative",new JSONObject(initiativeData(c).toString()))
@@ -1529,6 +1563,8 @@ public final class LocalCampaignServer extends NanoHTTPD {
         if(p.length==6&&p[5].equals("advance")&&method.equals("POST")){
           advance(cid,b.getString("kind"));return json(200,"ok","true");
         }
+        if(p.length==6&&p[5].equals("session-mode")&&method.equals("POST"))
+          return response(200,setSessionMode(cid,b));
         if(p.length==6&&p[5].equals("movement")&&method.equals("POST")){
           movementRule(cid,b);return json(200,"ok","true");
         }

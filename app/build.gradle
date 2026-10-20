@@ -2,7 +2,7 @@ plugins { id 'com.android.application' }
 android {
  namespace 'dev.rpgmesa.demo'
  compileSdk 35
- defaultConfig { applicationId 'dev.rpgmesa.demo'; minSdk 26; targetSdk 28; versionCode 52; versionName '0.52.0-mastermind-experiencia-jogador' }
+ defaultConfig { applicationId 'dev.rpgmesa.demo'; minSdk 26; targetSdk 28; versionCode 53; versionName '0.53.0-mastermind-interludio-testes-livres' }
  compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
 }
 
