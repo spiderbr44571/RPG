@@ -1,0 +1,220 @@
+{
+  "systemId": "ordem-paranormal",
+  "milestones": [
+    15,
+    30,
+    45,
+    60,
+    75,
+    90
+  ],
+  "sanityLostPerTranscend": {
+    "Combatente": 3,
+    "Especialista": 4,
+    "Ocultista": 5
+  },
+  "powers": [
+    {
+      "id": "p01",
+      "name": "Expansão de Conhecimento",
+      "element": "Conhecimento",
+      "page": 114,
+      "prerequisite": null,
+      "needsMasterReview": true
+    },
+    {
+      "id": "p02",
+      "name": "Percepção Paranormal",
+      "element": "Conhecimento",
+      "page": 114,
+      "prerequisite": null,
+      "needsMasterReview": true
+    },
+    {
+      "id": "p03",
+      "name": "Precognição",
+      "element": "Conhecimento",
+      "page": 114,
+      "prerequisite": null,
+      "needsMasterReview": true
+    },
+    {
+      "id": "p04",
+      "name": "Sensitivo",
+      "element": "Conhecimento",
+      "page": 114,
+      "prerequisite": null,
+      "needsMasterReview": true
+    },
+    {
+      "id": "p05",
+      "name": "Visão do Oculto",
+      "element": "Conhecimento",
+      "page": 114,
+      "prerequisite": null,
+      "needsMasterReview": true
+    },
+    {
+      "id": "p06",
+      "name": "Afortunado",
+      "element": "Energia",
+      "page": 115,
+      "prerequisite": null,
+      "needsMasterReview": true
+    },
+    {
+      "id": "p07",
+      "name": "Campo Protetor",
+      "element": "Energia",
+      "page": 115,
+      "prerequisite": null,
+      "needsMasterReview": true
+    },
+    {
+      "id": "p08",
+      "name": "Causalidade Fortuita",
+      "element": "Energia",
+      "page": 115,
+      "prerequisite": null,
+      "needsMasterReview": true
+    },
+    {
+      "id": "p09",
+      "name": "Golpe de Sorte",
+      "element": "Energia",
+      "page": 115,
+      "prerequisite": null,
+      "needsMasterReview": true
+    },
+    {
+      "id": "p10",
+      "name": "Manipular Entropia",
+      "element": "Energia",
+      "page": 115,
+      "prerequisite": null,
+      "needsMasterReview": true
+    },
+    {
+      "id": "p11",
+      "name": "Encarar a Morte",
+      "element": "Morte",
+      "page": 115,
+      "prerequisite": null,
+      "needsMasterReview": true
+    },
+    {
+      "id": "p12",
+      "name": "Escapar da Morte",
+      "element": "Morte",
+      "page": 115,
+      "prerequisite": null,
+      "needsMasterReview": true
+    },
+    {
+      "id": "p13",
+      "name": "Potencial Aprimorado",
+      "element": "Morte",
+      "page": 115,
+      "prerequisite": null,
+      "needsMasterReview": true
+    },
+    {
+      "id": "p14",
+      "name": "Potencial Reaproveitado",
+      "element": "Morte",
+      "page": 115,
+      "prerequisite": null,
+      "needsMasterReview": true
+    },
+    {
+      "id": "p15",
+      "name": "Surto Temporal",
+      "element": "Morte",
+      "page": 115,
+      "prerequisite": {
+        "element": "Morte",
+        "count": 2
+      },
+      "needsMasterReview": false
+    },
+    {
+      "id": "p16",
+      "name": "Anatomia Insana",
+      "element": "Sangue",
+      "page": 116,
+      "prerequisite": null,
+      "needsMasterReview": true
+    },
+    {
+      "id": "p17",
+      "name": "Arma de Sangue",
+      "element": "Sangue",
+      "page": 116,
+      "prerequisite": null,
+      "needsMasterReview": true
+    },
+    {
+      "id": "p18",
+      "name": "Sangue de Ferro",
+      "element": "Sangue",
+      "page": 116,
+      "prerequisite": null,
+      "needsMasterReview": true
+    },
+    {
+      "id": "p19",
+      "name": "Sangue Fervente",
+      "element": "Sangue",
+      "page": 116,
+      "prerequisite": null,
+      "needsMasterReview": true
+    },
+    {
+      "id": "p20",
+      "name": "Sangue Vivo",
+      "element": "Sangue",
+      "page": 116,
+      "prerequisite": null,
+      "needsMasterReview": true
+    },
+    {
+      "id": "p21",
+      "name": "Aprender Ritual",
+      "element": "Geral",
+      "page": 114,
+      "prerequisite": null,
+      "needsMasterReview": true
+    },
+    {
+      "id": "p22",
+      "name": "Resistir a Elemento",
+      "element": "Geral",
+      "page": 114,
+      "prerequisite": null,
+      "needsMasterReview": true
+    }
+  ],
+  "classPowers": {
+    "Combatente": [
+      "Transcender",
+      "Golpe Pesado",
+      "Combater com Duas Armas",
+      "Saque Rápido",
+      "Armamento Pesado",
+      "Proteção Pesada"
+    ],
+    "Especialista": [
+      "Transcender",
+      "Mochila de Utilidades",
+      "Conhecimento Aplicado",
+      "Ninja Urbano",
+      "Perito em Explosivos"
+    ],
+    "Ocultista": [
+      "Transcender",
+      "Ritual Potente",
+      "Camuflar Ocultismo",
+      "Identificação Paranormal"
+    ]
+  }
+}
