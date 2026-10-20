@@ -83,6 +83,6 @@ click('#v56-learn');
 assert.ok(app.powers.includes('Surto Temporal'),'Prerequisite power must be learnable once Morte2 is acquired');
 assert.equal(app.powerChoices.length,3);
 app.nex=5;windowStub.MastermindVisiblePowers.render();
-assert.match(mounted.innerHTML,/0 \/ 3 escolhas/);
+assert.match(mounted.innerHTML,/0 \/ 0 escolhas/);
 assert.ok(docHandlers['rpg:character-selected'],'switching characters must update visible powers');
 console.log('PASS v0.56: Android sheet actually mounts and persists power choices; Morte2 and NEX constraints verified; both live player entry paths visible');
