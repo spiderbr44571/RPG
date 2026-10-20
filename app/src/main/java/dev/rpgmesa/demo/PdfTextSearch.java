@@ -254,32 +254,34 @@ final class PdfTextSearch {
    SQLiteDatabase db=helper.getReadableDatabase();
    // Never return pages from the previous PDF while a newly imported book is loading.
    if(uri==null||!uri.equals(meta(db,"uri")))return result;
-   List<JSONObject> candidates=new ArrayList<>();
-   String sql="SELECT pages.page,pages.body,pages.normalized FROM page_fts "+
-    "JOIN pages ON pages.page=page_fts.docid WHERE page_fts MATCH ? ORDER BY pages.page LIMIT 1400";
-   try(Cursor c=db.rawQuery(sql,new String[]{expression.toString()})){
+   // Ctrl+F: fetch only the requested result page. The old search materialized
+   // up to 1,400 full PDF pages in Java memory on every query and could close
+   // the app on frequently used words such as "vida".
+   int from=Math.max(0,offset);
+   int limit=Math.min(30,Math.max(1,size));
+   int count=0;
+   try(Cursor totals=db.rawQuery("SELECT COUNT(*) FROM page_fts WHERE page_fts MATCH ?",
+     new String[]{expression.toString()})){
+    if(totals.moveToFirst())count=totals.getInt(0);
+   }
+   String sql="SELECT pages.page,pages.body FROM page_fts "+
+    "JOIN pages ON pages.page=page_fts.docid WHERE page_fts MATCH ? "+
+    "ORDER BY pages.page LIMIT ? OFFSET ?";
+   try(Cursor c=db.rawQuery(sql,new String[]{expression.toString(),Integer.toString(limit),Integer.toString(from)})){
     while(c.moveToNext()){
-     String body=c.getString(1),fold=c.getString(2);
-     int score=0,coverage=0;
-     for(String word:words){
-      int p=fold.indexOf(word);
-      if(p>=0){coverage++;score+=4;if(fold.contains(" "+word+" "))score+=4;}
-     }
-     // Prioritize pages covering several query terms, not generic one-word matches.
-     score+=coverage*coverage*6;
+     String body=c.getString(1);
+     // Only the 20 visible pages are inspected, never the complete document.
+     String folded=norm(body);
+     String needle=words.get(0);
+     for(String word:words){if(folded.contains(word)){needle=word;break;}}
      JSONObject hit=new JSONObject();
-     hit.put("page",c.getInt(0));hit.put("score",score);
-     hit.put("excerpt",excerpt(body,fold,words.get(0)));
+     hit.put("page",c.getInt(0));
+     hit.put("excerpt",excerpt(body,folded,needle));
      hit.put("title","Página "+c.getInt(0)+" do PDF");
-     candidates.add(hit);
+     hits.put(hit);
     }
    }
-   candidates.sort(Comparator.comparingInt((JSONObject item)->item.optInt("score")).reversed()
-    .thenComparingInt(item->item.optInt("page")));
-   int from=Math.min(Math.max(0,offset),candidates.size());
-   int to=Math.min(candidates.size(),from+Math.min(30,Math.max(1,size)));
-   for(int i=from;i<to;i++)hits.put(candidates.get(i));
-   result.put("total",candidates.size());
+   result.put("total",count);
    result.put("offset",from);
    result.put("book",meta(db,"title"));
    result.put("indexedPages",status.optInt("progress"));
