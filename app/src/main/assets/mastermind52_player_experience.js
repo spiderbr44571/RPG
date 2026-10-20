@@ -62,11 +62,14 @@ function draw(){
 function clearMeasure(){destination=null;draw();const e=$('#r52-distance');if(e)e.textContent='Toque em um alvo visível ou quadrado do mapa.'}
 function ownTurn(){
  const s=state(),active=s?.initiative?.activeId,assigned=(s?.scene?.tokens||[]).find(t=>t.movable);
+ const interlude=s?.sessionMode==='interlude';
  const ours=active&&assigned&&active===assigned.id;
  const label=$('#r52-turn');
- if(label)label.textContent=(s?.initiative?.entries?.length||0)===0?'Exploração livre':
-  ours?'★ Seu turno · você pode se mover':'Aguarde sua vez na iniciativa';
- label?.classList.toggle('active',!!ours);
+ if(label)label.textContent=interlude?'✦ INTERLÚDIO · movimento livre para todos':
+  (s?.initiative?.entries?.length||0)===0?'Exploração livre':
+  ours?'★ Seu turno · você pode se mover':'Aguarde sua vez para mover · testes sempre liberados';
+ label?.classList.toggle('active',!!ours||interlude);
+ label?.classList.toggle('interlude',interlude);
 }
 function applyAppearance(){
  try{
@@ -85,7 +88,7 @@ function setMode(next){
  });
  const info=$('#r52-instruction');
  if(info)info.textContent={
-  move:'Mover: toque em seu personagem e depois no destino permitido.',
+  move:state()?.sessionMode==='interlude'?'Interlúdio: movimento ilimitado. Testes sempre liberados.':'Mover: toque no personagem e depois no destino. Testes sempre liberados.',
   measure:'Medir: toque num alvo visível ou num quadrado. Não move seu personagem.',
   pin:'Marcar: toque no mapa para registrar uma pista pessoal.',
   inspect:'Inspecionar: toque nos tokens visíveis para consultar nome e distância.'
@@ -182,6 +185,10 @@ function liveRefresh(){
  if(cacheKey()&&!journalLoaded)void loadJournal();
  const s=scene();
  if(s?.id!==lastScene){destination=null;lastScene=s?.id||'';renderSystemRange();renderNotes()}
+ const hint=$('#r52-instruction');
+ if(hint&&mode==='move')hint.textContent=state()?.sessionMode==='interlude'?
+  'Interlúdio: mova seu personagem quantas vezes quiser. Testes e rolagens continuam livres.':
+  'Mover: toque em seu personagem e depois no destino permitido. Testes podem ser rolados a qualquer momento.';
  ownTurn();
  if(s&&s.tokens?.length){
   const own=s.tokens.find(t=>t.movable);if(own)origin=own.id;
