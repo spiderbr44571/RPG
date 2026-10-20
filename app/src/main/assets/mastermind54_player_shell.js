@@ -121,6 +121,7 @@
   if(name==='dice'){modal('#open-dice');return}
   if(name==='journal'){modal('#r52-open-journal');return}
   if(name==='initiative'){modal('#open-initiative');return}
+  if(name==='actions'){modal('#v55-action-launch');return}
   if(name==='measure'||name==='pin'||name==='inspect'){mode(name);return}
   if(name==='move'){mode('move');return}
   if(name==='zoom'){modal('#zoom-fit');return}
@@ -138,6 +139,7 @@
    '<button data-r54-action="inspect" class="r54-petal" style="--ix:5" aria-label="Inspecionar criatura ou token"><span aria-hidden="true">⌕</span><small>Inspec.</small></button>'+
    '<button data-r54-action="initiative" class="r54-petal" style="--ix:6" aria-label="Consultar iniciativa"><span aria-hidden="true">☷</span><small>Turnos</small></button>'+
    '<button data-r54-action="move" class="r54-petal" style="--ix:7" aria-label="Voltar a movimentar"><span aria-hidden="true">➤</span><small>Mover</small></button>'+
+   '<button data-r54-action="actions" class="r54-petal" style="--ix:8" aria-label="Poderes, passar a vez e atrasar iniciativa"><span aria-hidden="true">✧</span><small>Ações</small></button>'+
    '</div><button type="button" id="r54-toggle" class="r54-toggle" aria-label="Abrir ferramentas" aria-controls="r54-wheel-items" aria-expanded="false"><span aria-hidden="true">✦</span><small>Ferramentas</small></button>';
   stage.append(div);
   div.querySelector('#r54-toggle').onclick=toggleWheel;
