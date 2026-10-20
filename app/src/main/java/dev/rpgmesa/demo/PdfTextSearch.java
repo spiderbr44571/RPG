@@ -144,13 +144,16 @@ final class PdfTextSearch {
    try{
     // PdfRenderer counts pages without parsing PDF images into Java memory.
     int preflightPages;
+    preflightPages=0;
     try(ParcelFileDescriptor fd=ctx.getContentResolver().openFileDescriptor(Uri.parse(uri),"r")){
      if(fd==null)throw new IllegalStateException("O arquivo PDF selecionado não está acessível.");
      try(PdfRenderer renderer=new PdfRenderer(fd)){preflightPages=renderer.getPageCount();}
+    }catch(Exception notSeekable){
+     // Some SAF providers stream PDFs: count pages from the cached copy instead.
+     Log.w("MastermindPdf","Contagem direta indisponível; tentando cópia local",notSeekable);
     }
-    if(preflightPages<1||preflightPages>MAX_PAGES)throw new IllegalArgumentException("O livro ultrapassa o limite de 1400 páginas.");
     pageTotal=preflightPages;
-    stage="Abrindo texto do PDF sem carregar tudo na memória...";
+    stage="Preparando arquivo PDF selecionado...";
     PDFBoxResourceLoader.init(ctx);
     temp=File.createTempFile("mastermind-book-", ".pdf",ctx.getCacheDir());
     try(InputStream in=ctx.getContentResolver().openInputStream(Uri.parse(uri));
@@ -163,6 +166,17 @@ final class PdfTextSearch {
       out.write(buf,0,n);
      }
     }
+    if(preflightPages==0){
+     stage="Verificando páginas da cópia local...";
+     try(ParcelFileDescriptor fd=ParcelFileDescriptor.open(temp,ParcelFileDescriptor.MODE_READ_ONLY);
+         PdfRenderer renderer=new PdfRenderer(fd)){
+      preflightPages=renderer.getPageCount();
+      pageTotal=preflightPages;
+     }
+    }
+    if(preflightPages<1||preflightPages>MAX_PAGES)
+     throw new IllegalArgumentException("Este PDF possui uma quantidade de páginas não suportada.");
+    stage="Lendo conteúdo do PDF de forma econômica...";
     try(PDDocument pdf=PDDocument.load(temp,MemoryUsageSetting.setupTempFileOnly())){
      int count=pdf.getNumberOfPages();
      pageTotal=count;
