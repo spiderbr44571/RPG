@@ -213,6 +213,7 @@ jobs:
 
       - name: Publicar log de diagnostico
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: log-compilacao
