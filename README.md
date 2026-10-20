@@ -1,3 +1,7 @@
+# Prévia instalada paralelamente — NÃO MESCLE ESTE BRANCH
+
+Este branch muda apenas o applicationId e o rótulo visível para criar um aplicativo paralelo de teste. Dados locais não são migrados. Não mesclar em main, pois substituiria o identificador do aplicativo original.
+
 # Mastermind v0.57 — correção das telas que não carregavam (20/10/2026)
 
 A v0.55 incluía código para os poderes e a roda de ferramentas, mas **não estava operacional em todas as interfaces**. A v0.56 acrescentou a aba de poderes à tela principal do Android, mas faltavam duas correções cruciais. Foram identificadas em execução real em navegador com resolução mobile e corrigidas nesta versão:
