@@ -69,7 +69,8 @@ function ownTurn(){
  label?.classList.toggle('active',!!ours);
 }
 function setMode(next){
- mode=next;document.querySelectorAll('[data-r52-mode]').forEach(b=>{
+ mode=next;const tools=$('#r52-live-tools');if(tools)tools.dataset.mode=next;
+ document.querySelectorAll('[data-r52-mode]').forEach(b=>{
   const on=b.dataset.r52Mode===next;b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on))
  });
  const info=$('#r52-instruction');
@@ -313,7 +314,7 @@ function init(){
  journal.innerHTML='<div class="r52-journal-panel"><header><div><small>CADERNO DE CAMPANHA</small><h2>Minhas pistas</h2></div>'+
   '<button id="r52-close-journal">Fechar</button></header>'+
   '<div class="r52-journal-controls"><button id="r52-new-note">+ Nova anotação</button>'+
-  '<button id="r52-export">Copiar anotações</button><small id="r52-save">Aguardando sincronização</small></div>'+
+  '<button id="r52-export">Copiar anotações</button><button id="r52-sync">Sincronizar</button><small id="r52-save">Aguardando sincronização</small></div>'+
   '<input id="r52-find" placeholder="Buscar pistas, nomes, objetivos..." aria-label="Pesquisar anotações">'+
   '<div class="r52-note-grid"><nav id="r52-note-list" aria-label="Suas anotações"></nav>'+
   '<div id="r52-note-editor" hidden><label>Título<input id="r52-note-title" maxlength="100"></label>'+
@@ -332,6 +333,7 @@ function init(){
  $('#r52-range').addEventListener('change',draw);
  $('#r52-close-journal').onclick=()=>journal.classList.remove('open');
  $('#r52-new-note').onclick=()=>makeNote();
+ $('#r52-sync').onclick=()=>sendJournal();
  $('#r52-find').oninput=e=>{search=e.target.value.slice(0,120);renderNotes()};
  $('#r52-export').onclick=async()=>{
   const output=notes.map(n=>'# '+n.title+'\n'+(n.sceneId?'Cena '+n.sceneId+'\n':'')+n.body).join('\n\n---\n\n');
@@ -375,7 +377,6 @@ function init(){
   }
   const s=scene();if(!s)return;
   const hit=e.target.closest('[data-id]');
-  const camera=root.RPG33_CAMERA;
   // Uses board bounds including the current CSS scale and pan.
   const rect=$('#board').getBoundingClientRect();
   if(rect.width<=0||rect.height<=0)return;
