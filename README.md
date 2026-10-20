@@ -1,3 +1,13 @@
+# Mastermind v0.48 — busca PDF mais estável, sem travamento de memória
+
+A pesquisa em palavras frequentes (por exemplo, **vida**) da v0.47 podia criar uma lista com até 1400 páginas inteiras na memória do aplicativo, causando lentidão e potencial fechamento do processo. A v0.48 usa SQLite FTS4 com consulta **paginada, apenas 20 ocorrências por vez**, contagem separada e sem importar todo o texto para Java a cada Ctrl+F.
+
+A extração do PDF agora usa arquivos temporários para aliviar o heap Android (`MemoryUsageSetting.setupTempFileOnly()`), obtém a contagem de páginas rapidamente com `PdfRenderer` e tenta uma cópia local quando o provedor SAF não oferece arquivo navegável. Erros de extração, ausência de memória e problemas na leitura são registrados e apresentados na interface, com opção de **Retomar indexação**, em vez de mostrar "0/?" indefinidamente ou ocultar o motivo da falha. Os índices parciais válidos permanecem disponíveis.
+
+**Observação:** o teste automatizado não substitui a verificação com seu PDF real em aparelho Android. PDFs protegidos, danificados ou digitalizados podem continuar sem extração de texto. Os dados pessoais do Mastermind não foram redefinidos.
+
+---
+
 # Mastermind v0.47 — pesquisa Ctrl+F progressiva com resumo por página
 
 **Antes:** o app extraía o PDF inteiro dentro de uma única transação de banco de dados. As páginas só ficavam disponíveis para pesquisa ao final desse trabalho, mesmo quando o livro era muito grande.
