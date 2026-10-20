@@ -9,6 +9,8 @@ body.r54-clean .top #landscape,body.r54-clean .top #open-initiative,
 body.r54-clean .top #open-sheet,body.r54-clean .top #open-dice{display:none!important}
 body.r54-clean .top #scene-turn{font-size:calc(10px * var(--r54-font-scale));
  white-space:nowrap;max-width:115px;overflow:hidden;text-overflow:ellipsis}
+body.r54-clean #r54-fit-map{border:1px solid var(--r54-line);color:var(--r54-fg);background:var(--r54-surface2);
+ border-radius:11px;min-width:42px;min-height:43px;padding:0;font-size:21px;flex:0 0 42px}
 body.r54-clean #r54-open-settings{border:1px solid var(--r54-line);color:var(--r54-fg);
  background:var(--r54-surface2);border-radius:12px;min-width:45px;min-height:43px;
  font-size:22px;flex:0 0 45px;padding:0}
@@ -181,4 +183,13 @@ body.r54-clean #r52-pin-layer .r52-pin{border-color:var(--r54-accent);color:var(
 @media(prefers-reduced-motion:reduce){
  body.r54-clean .r54-wheel #r54-wheel-items,
  body.r54-clean .r54-wheel .r54-toggle{transition:none}
+}
+
+/* Ferramentas cabem no celular em paisagem e respeitam margens seguras. */
+@media(max-height:450px) and (orientation:landscape){
+ body.r54-clean .r54-wheel.open #r54-wheel-items{transform:scale(.74)}
+ body.r54-clean .r54-wheel .r54-toggle{width:50px;height:50px;min-height:50px}
+ body.r54-clean .hud{bottom:8px;left:8px}
+ body.r54-clean[data-r54-tool=measure] #r52-live-tools{top:3px;left:10px;right:auto}
+ body.r54-clean .r54-tool-active{top:3px}
 }
