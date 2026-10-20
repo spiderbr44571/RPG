@@ -52,7 +52,7 @@ for(const term of ['/player-range.js','/player-immersion.js','/player-immersion.
 }
 assert.match(server,/return response\(200,playerJournal\(pl\)\)/);
 assert.match(server,/updatePlayerJournal\(player,b\)/);
-assert.match(server,/notes\.length\(\)>80/);
+assert.match(server,/items\.length\(\)>80/);
 assert.match(server,/heading\.length\(\)>100\|\|content\.length\(\)>5000/);
 assert.match(server,/player\.put\("liveJournal",safe\)/);
 assert.match(server,/cookie\(s,"rpg_guest"\)/);
