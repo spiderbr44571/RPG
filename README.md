@@ -1,3 +1,18 @@
+# Mastermind v0.56 — corrigir recursos que estavam invisíveis na interface real
+
+**Problema corrigido:** as versões v0.54–0.55 adicionaram a roda de ferramentas e os poderes sobretudo nas páginas LAN `/scene/:id` e `/play/:id`. A tela **Fichas** do APK Android (`demo-offline.html`) não recebeu a seleção de poderes. Além disso, a ficha compartilhada escondia o formulário de poderes dentro da aba Habilidades, e o jogador não encontrava facilmente o botão da mesa imersiva.
+
+**Agora existem entradas identificáveis em TODOS os fluxos:**
+- **APK Android → Fichas → Poderes e Transcender:** painel dedicado inserido na ficha real do personagem, não num protótipo. Lista os 22 poderes paranormais locais, filtra elementos, oferece poderes de classe, mostra vagas por NEX, impede selecionar Surto Temporal sem dois poderes prévios de Morte e salva as escolhas no personagem atualmente selecionado por `MastermindCharacters.update`. Não concede poderes de um personagem a outro.
+- **Link do jogador (`/play/:campanha`) → ✦ Poderes & Transcender:** aba separada e visível, e destaque no link **Abrir mesa imersiva**.
+- **Mesa ao vivo (`/scene/:campanha`) → ✦ Poderes / ☷ Ferramentas:** dois botões explícitos no cabeçalho, além da roda de ferramentas existente. Não é mais necessário descobrir sozinho onde fica a roda.
+- **Identificação:** o painel Android exibe `MASTERMiND V0.56`; o Android registra `versionName 0.56.0-mastermind-ficha-poderes-visiveis`.
+- **Teste de integração:** adicionada verificação de montagem do painel com um DOM simulado, troca de NEX, escolha por personagem e pré-requisito de Morte, além de verificações das telas de entrada e das rotas da mesa.
+
+**Limitações e segurança:** a seleção offline é aplicada somente na ficha local. Na mesa multiplayer, aquisições e efeitos adicionais ainda dependem de aprovação do mestre no servidor. O fluxo não implementa automaticamente todos os poderes do livro, e Transcender avisa sobre a sanidade perdida para ser conferida com o mestre. A compilação automatizada não é teste real de Android: a abertura no dispositivo precisa ser validada por um usuário.
+
+---
+
 # Mastermind v0.55 — progressão de poderes, Transcender e decisões do mestre
 
 - A ficha pessoal e a ficha da Mesa ao Vivo agora oferecem a seção **Poderes e Transcender**, com as 22 escolhas paranormais cadastradas no pacote de Ordem Paranormal. As classes Combatente, Especialista e Ocultista recebem uma lista inicial de sugestões de poderes de classe e podem enviar outros nomes do livro à aprovação do mestre. **Essas sugestões e pré-requisitos além de Surto Temporal dependem de revisão pelo mestre**; não representamos o catálogo de classes como exaustivo ou integralmente automatizado.
