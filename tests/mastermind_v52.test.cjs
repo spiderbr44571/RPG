@@ -31,7 +31,7 @@ for(const phrase of ['mastermind:player-live-render','r52-measure-layer','r52-pi
 'data-r52-resource','r52-save','sendJournal','data-r52-mode','data-r52-kind','r52-range']){
  if(phrase!=='searchPersonalBook')assert.ok(experience.includes(phrase),phrase);
 }
-assert.match(experience,/const journalCache='mastermind52-journal-'/);
+assert.match(experience,/const cacheKey=\(\)=>state\(\)\?\.playerId/);
 assert.match(experience,/request\('journal','POST'/);
 assert.match(experience,/notes=Array\.isArray\(data\.notes\)/);
 assert.match(experience,/if\(mode==='pin'\)/);
@@ -51,6 +51,7 @@ for(const term of ['/player-range.js','/player-immersion.js','/player-immersion.
  assert.ok(server.includes(term),'Missing safe LAN asset route '+term);
 }
 assert.match(server,/return response\(200,playerJournal\(pl\)\)/);
+assert.match(server,/\.put\("playerId",player\.optString\("id",""\)\)/);
 assert.match(server,/updatePlayerJournal\(player,b\)/);
 assert.match(server,/items\.length\(\)>80/);
 assert.match(server,/heading\.length\(\)>100\|\|content\.length\(\)>5000/);
