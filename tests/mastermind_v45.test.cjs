@@ -35,7 +35,7 @@ const native=fs.readFileSync(path.join(__dirname,'../app/src/main/java/dev/rpgme
 const activity=fs.readFileSync(path.join(__dirname,'../app/src/main/java/dev/rpgmesa/demo/MainActivity.java'),'utf8');
 for(const term of ['SQLiteOpenHelper','CREATE VIRTUAL TABLE page_fts USING fts4','PDFTextStripper',
  'setStartPage(i)','setEndPage(i)','PDFBoxResourceLoader.init','openInputStream','page_fts MATCH ?',
- 'Normalizer.normalize','progress=end','result.put("total",candidates.size())']){
+ 'Normalizer.normalize','progress=end','result.put("total",count)']){
  assert.ok(native.includes(term),term);
 }
 for(const field of ['pdfIndexStatus','indexSavedPdf','searchPdf','renderIndexPage','ensureIndex(uri.toString(),name,true)']){
