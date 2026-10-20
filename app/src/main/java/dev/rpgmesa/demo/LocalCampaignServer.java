@@ -668,7 +668,8 @@ public final class LocalCampaignServer extends NanoHTTPD {
       JSONObject c=campaign(cid);
       if(ensurePlayerTokens(c))persist();
       JSONObject original=activeScene(c),response=new JSONObject()
-        .put("revision",revision.get()).put("scene",JSONObject.NULL);
+        .put("revision",revision.get()).put("scene",JSONObject.NULL)
+        .put("playerId",player.optString("id",""));
       if(original==null){
         response.put("character",playerInfo(cid,player).opt("character"));
         response.put("rolls",visibleRolls(c,false)).put("movement",new JSONObject().put("tokens",new JSONArray())).put("initiative",new JSONObject().put("round",1).put("activeId","").put("entries",new JSONArray())).put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName",""));
