@@ -196,7 +196,7 @@ html[data-paranormal="medo"] .v10-result:before{border-radius:45% 5% 45% 5%}
 @keyframes v10-pulse{to{transform:scale(1.09)}}@keyframes v10-ash{to{opacity:.66;transform:translateY(-6px);filter:blur(1px)}}
 
 </style><link rel="stylesheet" href="rpg15_catalog.css"><script src="rpg37_rules.js"></script><link rel="stylesheet" href="mastermind38_shell.css">
-<link rel="stylesheet" href="mastermind39_ui.css"><link rel="stylesheet" href="mastermind40_canvas_images.css"><link rel="stylesheet" href="mastermind42_workspace.css"><link rel="stylesheet" href="mastermind44_sheet_rules.css"><link rel="stylesheet" href="mastermind45_pdf_search.css">
+<link rel="stylesheet" href="mastermind39_ui.css"><link rel="stylesheet" href="mastermind40_canvas_images.css"><link rel="stylesheet" href="mastermind42_workspace.css"><link rel="stylesheet" href="mastermind44_sheet_rules.css"><link rel="stylesheet" href="mastermind45_pdf_search.css"><link rel="stylesheet" href="mastermind56_local_powers.css">
 </head>
 <body>
 <div id="mm-loading" role="status" aria-label="Preparando o Mastermind"><div><div class="mm-boot-mark" aria-hidden="true">M</div>Mastermind<small>Preparando seu espaço...</small></div></div>
@@ -240,7 +240,7 @@ html[data-paranormal="medo"] .v10-result:before{border-radius:45% 5% 45% 5%}
   <div class="sidebar-bottom"><div class="connected"><div class="connected-dot"></div><div><strong>Núcleo local disponível</strong><small>IA opcional · Biblioteca offline</small></div></div><div class="profile"><div class="avatar">R</div><div><strong>Seu espaço</strong><small>Seu espaço local</small></div></div></div>
 </aside>
 <main class="main">
- <header class="topbar"><div class="breadcrumb"><small>Workspace</small><span class="divider-slash">/</span><strong id="current-page">Visão geral</strong></div><div class="top-actions"><button class="kbtn" id="quick-search"><svg class="icon"><use href="#i-search"/></svg><span>Buscar livros</span><span class="hide-mobile" style="color:var(--faint)">⌘ K</span></button><button class="icon-btn" id="theme-quick" aria-label="Alternar tema"><svg class="icon"><use href="#i-sun"/></svg></button></div></header>
+ <header class="topbar"><div class="breadcrumb"><small>Workspace</small><span class="divider-slash">/</span><strong id="current-page">Visão geral</strong><small id="mm-release" aria-label="Versão instalada" style="color:var(--accent);font-size:10px">v0.56</small></div><div class="top-actions"><button class="kbtn" id="quick-search"><svg class="icon"><use href="#i-search"/></svg><span>Buscar livros</span><span class="hide-mobile" style="color:var(--faint)">⌘ K</span></button><button class="icon-btn" id="theme-quick" aria-label="Alternar tema"><svg class="icon"><use href="#i-sun"/></svg></button></div></header>
  <div class="content" id="content">
 <section id="screen-op" class="screen" aria-label="Sistema Ordem Paranormal versão 1.3">
 <div class="page-row"><div><div class="eyebrow">MÓDULO COMUNITÁRIO · 1.3</div><h1 class="page-h">Sistema <i>Paranormal.</i></h1><p class="op-note">Este é um conteúdo não oficial, publicado sob a Licença da Comunidade de Ordem Paranormal. Contém material gerado por inteligência artificial.</p><p class="page-sub">Livro de regras v1.3 · ficha e mecânicas offline · não é um aplicativo oficial.</p></div><span class="preview-pill">MÓDULO PARCIAL · VERIFICADO</span></div>
@@ -647,7 +647,8 @@ function calc(){const c=cls(),s=steps(),a=state.attrs,o=origin();
  const pv=c.pv[0]+a.Vigor+(s-1)*(c.pv[1]+a.Vigor)+(o.nome==='Desgarrado'?s:0)+(state.trail==='Tropa de Choque'&&state.nex>=10?s:0);
  const uni=o.nome==='Universitário'?(1+Array.from({length:9},(_,i)=>15+i*10).filter(n=>n<=state.nex).length):0;
  const pe=c.pe[0]+a.Presença+(s-1)*(c.pe[1]+a.Presença)+uni;
- const san=c.san[0]+(s-1)*c.san[1]+(o.nome==='Vítima'?s:0);
+ const transcends=(Array.isArray(state.powerChoices)?state.powerChoices:[]).filter(p=>p?.type==='transcend').length;
+ const san=Math.max(0,c.san[0]+(s-1)*c.san[1]+(o.nome==='Vítima'?s:0)-transcends*c.san[1]);
  const derived=effectsFor('defesa');return {PV:pv,PE:pe,SAN:san,defesa:10+a.Agilidade+(o.nome==='Policial'?2:0)+(hasPower('Reflexos Defensivos')?2:0)+derived,peTurn:pack.progressao.find(x=>x.nex===state.nex)?.limitePE||1,steps:s};}
 function effectsFor(stat){const normal=state.effects.filter(x=>x.stat===stat&&!x.condition).reduce((n,x)=>n+x.amount,0);
  const conditions=state.effects.filter(x=>x.stat===stat&&x.condition).map(x=>x.amount);
@@ -1645,4 +1646,4 @@ html body #r09-dice .r09-die-num{fill:#201522!important;font:900 29px system-ui,
 .r37-inventory-warning{border-radius:9px;border:1px solid #d29b66;background:#3a2a23;color:#f2d2ac;padding:12px;margin:0;line-height:1.6}
 .r37-inventory-ok{color:#91dabb;font-size:12px;margin:0}
 .r37-over{border-color:#e5aa77!important;color:#e8b88c}
-@media(max-width:450px){.r37-category-grid{grid-template-columns:1fr}}</style><script src="mastermind39_ui.js"></script><script src="mastermind40_canvas_images.js"></script><script src="mastermind42_workspace.js"></script></body></html>
+@media(max-width:450px){.r37-category-grid{grid-template-columns:1fr}}</style><script src="mastermind39_ui.js"></script><script src="mastermind40_canvas_images.js"></script><script src="mastermind42_workspace.js"></script><script src="mastermind56_local_powers.js"></script></body></html>
