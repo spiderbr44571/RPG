@@ -1,3 +1,16 @@
+# Mastermind v0.45 — pesquisa real nos PDFs da Biblioteca (offline)
+
+**Problema resolvido:** importar o PDF na Biblioteca anteriormente permitia apenas ler/renderizar páginas; a pesquisa consultava somente registros resumidos e índices JSON opcionais. Na versão Android, o PDF pessoal selecionado agora é extraído e indexado em segundo plano pelo PdfBox-Android, com busca SQLite FTS4 privada no aparelho. A indexação é iniciada na importação ou ao abrir a consulta em instalações já existentes.
+
+- **Busca abrangente:** palavras isoladas, expressões e prefixos de termos existentes na camada de texto do PDF (incluindo vida e nomes próprios). Remoção de acentos, normalização e tokens que ignoram perguntas introdutórias. Resultados paginados, até 20 páginas por vez, com referência à página física do arquivo.
+- **Bestiário pesquisável:** catálogo estruturado do app passou a incluir nomes e registros de criaturas já cadastradas (por exemplo, Aracnasita).
+- **Página original:** o botão de cada resultado abre a imagem daquela página gerada localmente pelo PdfRenderer. A extração de texto e o armazenamento SQLite não usam IA, rede, serviços externos ou cópias do PDF no APK.
+- **Estado e diagnóstico:** a tela mostra páginas indexadas e andamento. PDFs escaneados sem texto selecionável não podem ser extraídos sem OCR; o aplicativo informa essa limitação em vez de alegar uma busca completa.
+- **Escopo atual:** a extração nativa desta versão utiliza o PDF pessoal da Biblioteca de Ordem Paranormal associado via seletor Android. Outros sistemas continuam com o catálogo próprio e índices JSON importados. O novo PDF substitui o índice nativo anterior. Textos extraídos permanecem privados ao armazenamento do aplicativo.
+- **Segurança:** leitura restrita à URI escolhida pelo usuário (SAF) e limites por tamanho/páginas. Os resultados são trechos curtos para localização, não reprodução integral da obra.
+
+---
+
 # Mastermind v0.44 — fotos individuais, perícias e rituais por NEX
 
 - **Retrato por ficha:** novas fichas começam sem foto e não copiam a imagem de outro personagem. O upload fica ligado ao ID da ficha no momento da seleção (mesmo que o jogador troque de personagem antes de terminar). A ficha pode remover seu retrato individualmente. Retratos duplicados em arquivos antigos são preservados para evitar perda involuntária; remova-os na ficha correspondente caso tenham sido herdados.
