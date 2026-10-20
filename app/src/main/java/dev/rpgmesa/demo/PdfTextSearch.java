@@ -56,14 +56,20 @@ final class PdfTextSearch {
  private volatile String stage="idle";
  private volatile int pageTotal=0;
 
- PdfTextSearch(Context ctx) {
+ PdfTextSearch(Context ctx) {this(ctx,null);}
+ PdfTextSearch(Context ctx,String bookId) {
   if(ctx==null)throw new IllegalArgumentException("PDF search requires an attached Android Context");
   Context application=ctx.getApplicationContext();
   this.ctx=application!=null?application:ctx;
-  this.helper=new Store(this.ctx);
+  if(bookId!=null&&!bookId.matches("[A-Za-z0-9_-]{1,72}"))
+   throw new IllegalArgumentException("Invalid local PDF identifier");
+  this.helper=new Store(this.ctx,bookId);
  }
  private static class Store extends SQLiteOpenHelper {
-  Store(Context ctx){super(ctx,"mastermind_pdf_text_v45.db",null,1);setWriteAheadLoggingEnabled(true);}
+  Store(Context ctx,String bookId){
+   super(ctx,bookId==null?"mastermind_pdf_text_v45.db":"mastermind_pdf_text_v51_"+bookId+".db",null,1);
+   setWriteAheadLoggingEnabled(true);
+  }
   @Override public void onCreate(SQLiteDatabase db){
    db.execSQL("CREATE TABLE meta (k TEXT PRIMARY KEY,v TEXT NOT NULL)");
    db.execSQL("CREATE TABLE pages (page INTEGER PRIMARY KEY,body TEXT NOT NULL,normalized TEXT NOT NULL)");
