@@ -53,7 +53,7 @@ final class PdfTextSearch {
   this.helper=new Store(this.ctx);
  }
  private static class Store extends SQLiteOpenHelper {
-  Store(Context ctx){super(ctx,"mastermind_pdf_text_v45.db",null,1);}
+  Store(Context ctx){super(ctx,"mastermind_pdf_text_v45.db",null,1);setWriteAheadLoggingEnabled(true);}
   @Override public void onCreate(SQLiteDatabase db){
    db.execSQL("CREATE TABLE meta (k TEXT PRIMARY KEY,v TEXT NOT NULL)");
    db.execSQL("CREATE TABLE pages (page INTEGER PRIMARY KEY,body TEXT NOT NULL,normalized TEXT NOT NULL)");
@@ -87,26 +87,45 @@ final class PdfTextSearch {
   try{j.put("state",state);j.put("title",title);j.put("pages",total);j.put("progress",progress);j.put("message",message);}catch(Exception ignored){}
   return j;
  }
+ private static int number(String raw){
+  try{return Math.max(0,Integer.parseInt(raw));}catch(Exception ignored){return 0;}
+ }
  JSONObject getStatus(String uri){
   if(uri==null||uri.isEmpty())return status("missing","",0,0,"Importe um PDF na Biblioteca.");
-  if(running.get()&&uri.equals(indexingUri))
-   return status("indexing",indexingTitle,progress,0,"Extraindo texto do PDF localmente.");
   try{
    SQLiteDatabase db=helper.getReadableDatabase();
-   String indexed=meta(db,"uri");
-   if(!uri.equals(indexed))return status("pending","",0,0,error.isEmpty()?"PDF ainda não indexado.":error);
-   int count=Integer.parseInt(meta(db,"pages").isEmpty()?"0":meta(db,"pages"));
-   int readable=Integer.parseInt(meta(db,"readable").isEmpty()?"0":meta(db,"readable"));
-   return status(readable==0?"no_text":"ready",meta(db,"title"),count,count,
-    readable==0?"PDF sem camada de texto. Se for escaneado, precisará de OCR.":readable+" páginas com texto pesquisável.");
-  }catch(Exception e){return status("error","",progress,0,"Falha ao ler índice local.");}
+   if(!uri.equals(meta(db,"uri"))){
+    return status(running.get()&&uri.equals(indexingUri)?"indexing":"pending",
+      indexingTitle,progress,0,error.isEmpty()?"PDF aguardando indexação.":error);
+   }
+   int total=number(meta(db,"pages"));
+   int done=number(meta(db,"progress"));
+   // Índices da v0.45 terminados não possuíam campo phase/progress.
+   String phase=meta(db,"phase");
+   if(phase.isEmpty()&&total>0)done=total;
+   int readable=number(meta(db,"readable"));
+   boolean complete="ready".equals(phase)||(phase.isEmpty()&&total>0);
+   String state=complete?(readable==0?"no_text":"ready"):
+    running.get()&&uri.equals(indexingUri)?"indexing":done>0?"partial":"pending";
+   String message=complete?(readable==0?"PDF sem texto selecionável. É necessário OCR.":"Índice pronto para Ctrl+F."):
+    error.isEmpty()?"É possível pesquisar nas páginas já processadas.":error;
+   return status(state,meta(db,"title"),done,total,message);
+  }catch(Exception e){return status("error","",progress,0,"Falha ao consultar o índice no dispositivo.");}
  }
+ /**
+  * Text is extracted only once, on a background thread. The previous version
+  * held ONE database transaction for the whole book, making every search wait.
+  * Small committed batches let SQLite FTS search as early as the first pages.
+  */
  void ensureIndex(String uri,String title,boolean force){
   if(uri==null||uri.isEmpty()||!running.compareAndSet(false,true))return;
   try{
    SQLiteDatabase db=helper.getReadableDatabase();
    if(!force&&uri.equals(meta(db,"uri"))){
-    running.set(false);return;
+    String phase=meta(db,"phase");
+    if("ready".equals(phase)||(phase.isEmpty()&&number(meta(db,"pages"))>0)){
+     running.set(false);return;
+    }
    }
   }catch(Exception ignored){}
   progress=0;error="";indexingUri=uri;indexingTitle=title;
@@ -114,49 +133,70 @@ final class PdfTextSearch {
    File temp=null;
    try{
     PDFBoxResourceLoader.init(ctx);
-    temp=File.createTempFile("mastermind-book-", ".pdf", ctx.getCacheDir());
+    temp=File.createTempFile("mastermind-book-", ".pdf",ctx.getCacheDir());
     try(InputStream in=ctx.getContentResolver().openInputStream(Uri.parse(uri));
         OutputStream out=new FileOutputStream(temp)){
-      if(in==null)throw new IllegalStateException("Arquivo não disponível.");
-      byte[] buf=new byte[32768];long total=0;int n;
-      while((n=in.read(buf))!=-1){
-       total+=n;if(total>MAX_BYTES)throw new IllegalArgumentException("PDF maior que 180 MB.");
-       out.write(buf,0,n);
-      }
+     if(in==null)throw new IllegalStateException("Arquivo indisponível.");
+     byte[] buf=new byte[32768];long total=0;int n;
+     while((n=in.read(buf))!=-1){
+      total+=n;
+      if(total>MAX_BYTES)throw new IllegalArgumentException("PDF maior que 180 MB.");
+      out.write(buf,0,n);
+     }
     }
     try(PDDocument pdf=PDDocument.load(temp)){
      int count=pdf.getNumberOfPages();
      if(count<=0||count>MAX_PAGES)throw new IllegalArgumentException("Quantidade de páginas não suportada.");
      SQLiteDatabase db=helper.getWritableDatabase();
-     db.beginTransaction();
-     try{
-      db.execSQL("DELETE FROM page_fts");
-      db.execSQL("DELETE FROM pages");
-      PDFTextStripper stripper=new PDFTextStripper();
-      stripper.setSortByPosition(true);
-      int readable=0;
-      for(int i=1;i<=count;i++){
-       stripper.setStartPage(i);stripper.setEndPage(i);
-       String text=stripper.getText(pdf);
-       // Une palavras quebradas por hífen no fim de linha.
-       text=text.replaceAll("(?U)(?<=\\p{L})-\\s*\\r?\\n\\s*(?=\\p{L})","");
-       String normalized=norm(text);
-       if(!normalized.isEmpty()&&normalized.length()>8)readable++;
-       db.execSQL("INSERT INTO pages(page,body,normalized) VALUES(?,?,?)",
-        new Object[]{i,text,normalized});
-       db.execSQL("INSERT INTO page_fts(docid,normalized) VALUES(?,?)",
-        new Object[]{i,normalized});
-       progress=i;
-      }
-      putMeta(db,"uri",uri);putMeta(db,"title",title);
-      putMeta(db,"pages",Integer.toString(count));
-      putMeta(db,"readable",Integer.toString(readable));
-      db.setTransactionSuccessful();
-     }finally{db.endTransaction();}
+     boolean resume=!force&&uri.equals(meta(db,"uri"))&&"building".equals(meta(db,"phase"));
+     int start=resume?number(meta(db,"progress"))+1:1;
+     int readable=resume?number(meta(db,"readable")):0;
+     if(!resume){
+      db.beginTransactionNonExclusive();
+      try{
+       db.execSQL("DELETE FROM page_fts");
+       db.execSQL("DELETE FROM pages");
+       putMeta(db,"uri",uri);putMeta(db,"title",title);
+       putMeta(db,"pages",Integer.toString(count));
+       putMeta(db,"progress","0");putMeta(db,"readable","0");
+       putMeta(db,"phase","building");
+       db.setTransactionSuccessful();
+      }finally{db.endTransaction();}
+     }
+     progress=start-1;
+     PDFTextStripper stripper=new PDFTextStripper();
+     stripper.setSortByPosition(false); // Avoid expensive positional reordering.
+     final int BATCH=6;
+     for(int first=start;first<=count;first+=BATCH){
+      int end=Math.min(count,first+BATCH-1);
+      db.beginTransactionNonExclusive();
+      try{
+       for(int i=first;i<=end;i++){
+        stripper.setStartPage(i);stripper.setEndPage(i);
+        String page=stripper.getText(pdf);
+        // Fix words split at a line-break, without swallowing normal hyphens.
+        page=page.replaceAll("(?<=\\p{L})-\\s*\\r?\\n\\s*(?=\\p{L})","");
+        if(page.length()>150000)page=page.substring(0,150000);
+        String folded=norm(page);
+        if(folded.length()>8)readable++;
+        db.execSQL("INSERT OR REPLACE INTO pages(page,body,normalized) VALUES(?,?,?)",
+         new Object[]{i,page,folded});
+        db.execSQL("INSERT OR REPLACE INTO page_fts(docid,normalized) VALUES(?,?)",
+         new Object[]{i,folded});
+       }
+       putMeta(db,"progress",Integer.toString(end));
+       putMeta(db,"readable",Integer.toString(readable));
+       putMeta(db,"phase",end==count?"ready":"building");
+       db.setTransactionSuccessful();
+      }finally{db.endTransaction();}
+      // Visible progress reflects only data that is already committed/queryable.
+      progress=end;
+      Thread.yield();
+     }
     }
-   }catch(Exception e){error=e.getMessage()==null?"Falha na extração do PDF.":e.getMessage();}
+   }catch(Exception e){error=e.getMessage()==null?"Não foi possível extrair o PDF.":e.getMessage();}
    finally{if(temp!=null)temp.delete();running.set(false);}
-  },"mastermind-pdf-index-v45").start();
+  },"mastermind-pdf-index-v47").start();
  }
  private static String excerpt(String original,String normalized,String needle){
   // Output deliberately short: cite the page, do not reproduce the full book.
@@ -174,7 +214,7 @@ final class PdfTextSearch {
    String state=status.optString("state");
    result.put("state",state);result.put("status",status);result.put("hits",hits);
    result.put("total",0);
-   if(!"ready".equals(state))return result;
+   if(!"ready".equals(state)&&!"indexing".equals(state)&&!"partial".equals(state))return result;
    List<String> words=tokens(query);if(words.isEmpty())return result;
    StringBuilder expression=new StringBuilder();
    for(String w:words){if(expression.length()>0)expression.append(" OR ");expression.append(w).append("*");}
@@ -207,6 +247,9 @@ final class PdfTextSearch {
    result.put("total",candidates.size());
    result.put("offset",from);
    result.put("book",meta(db,"title"));
+   result.put("indexedPages",status.optInt("progress"));
+   result.put("totalPages",status.optInt("pages"));
+   result.put("complete","ready".equals(state));
   }catch(Exception e){try{result.put("state","error");result.put("message","Não foi possível pesquisar no PDF.");}catch(Exception ignored){}}
   return result;
  }
