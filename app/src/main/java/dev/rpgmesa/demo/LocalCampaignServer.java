@@ -1041,6 +1041,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       result.put("movementLimits",limits);
       result.put("sessionMode",sessionMode(c));
       result.put("playerRequests",new JSONArray(pendingRequests(c).toString()));
+      result.put("bonusActions",c.optJSONObject("bonusActions")==null?new JSONObject():new JSONObject(c.getJSONObject("bonusActions").toString()));
       result.put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName"))
         .put("campaignName",c.optString("name")).put("revision",revision.get())
         .put("rolls",visibleRolls(c,true)).put("initiative",new JSONObject(initiativeData(c).toString()))
@@ -1237,7 +1238,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       if("Surto Temporal".equals(name)&&deathPowers(sheet)<2)
         throw new IllegalArgumentException("Surto Temporal requer dois poderes paranormais de Morte anteriores.");
     }else if("class".equals(type)){
-      if(name.length()<3||name.length()>90)throw new IllegalArgumentException("Nome do poder de classe inválido.");
+      if(name.length()<3||name.length()>90||"Transcender".equalsIgnoreCase(name))throw new IllegalArgumentException("Selecione Transcender pela aba paranormal.");
     }else throw new IllegalArgumentException("Escolha de poder inválida.");
   }
   private JSONObject playerRequests(String cid,JSONObject player)throws Exception{
@@ -1313,6 +1314,16 @@ public final class LocalCampaignServer extends NanoHTTPD {
       return new JSONObject().put("ok",true).put("request",requestPublic(req));
     }
   }
+  private JSONObject consumeBonusAction(String cid,JSONObject player)throws Exception{
+    synchronized(lock){
+      JSONObject c=campaign(cid),bonus=c.optJSONObject("bonusActions");
+      String id=player.optString("id");
+      if(bonus==null||bonus.optInt(id,0)<=0)
+        throw new IllegalArgumentException("Não há ações adicionais disponíveis.");
+      bonus.put(id,bonus.getInt(id)-1);persist();
+      return new JSONObject().put("ok",true).put("remaining",bonus.optInt(id,0));
+    }
+  }
   private JSONObject answerPlayerRequest(String cid,JSONObject body)throws Exception{
     synchronized(lock){
       JSONObject c=campaign(cid);JSONArray pending=pendingRequests(c);
@@ -1371,8 +1382,14 @@ public final class LocalCampaignServer extends NanoHTTPD {
               if(target.equals(item.optString("tokenId"))){changed.put(moving);inserted=true;}
             }
             if(!inserted)throw new IllegalArgumentException("Participante alvo não encontrado.");
+            // Continue from the next participant in the original order.
+            String nextActive="";
+            for(int i=0;i<entries.length();i++)
+              if(token.equals(entries.getJSONObject(i).optString("tokenId"))){
+                nextActive=entries.getJSONObject((i+1)%entries.length()).optString("tokenId");break;
+              }
             state.put("entries",changed);
-            state.put("activeId",rearranged.getJSONObject(0).getString("tokenId"));
+            state.put("activeId",nextActive);
             c.put("movementSpent",new JSONObject());
             advance(cid,"turn");
           }else if("surto".equals(type)){
@@ -1616,6 +1633,13 @@ public final class LocalCampaignServer extends NanoHTTPD {
     Response r=utf8(Response.Status.OK,"text/css; charset=UTF-8",buf);
     r.addHeader("Cache-Control","no-store");r.addHeader("X-Content-Type-Options","nosniff");return r;
   }
+  private Response publishedJson(String asset)throws IOException{
+    try(InputStream in=context.getAssets().open(asset);ByteArrayOutputStream out=new ByteArrayOutputStream()){
+      byte[] bytes=new byte[4096];int n;
+      while((n=in.read(bytes))!=-1)out.write(bytes,0,n);
+      return utf8(Response.Status.OK,"application/json; charset=UTF-8",out.toByteArray());
+    }
+  }
   private Response publishedStyle(String asset)throws IOException{
     byte[] bytes;
     try(InputStream in=context.getAssets().open(asset);ByteArrayOutputStream out=new ByteArrayOutputStream()){
@@ -1812,6 +1836,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
         if("canvas".equals(p[4])){savePlayerCanvas(player,b);return json(200,"ok","true");}
         if("journal".equals(p[4]))return response(200,updatePlayerJournal(player,b));
         if("power-requests".equals(p[4]))return response(200,submitPlayerRequest(cid,player,b));
+        if("consume-bonus".equals(p[4]))return response(200,consumeBonusAction(cid,player));
         if("roll".equals(p[4])){storeRoll(cid,player,b);return json(200,"ok","true");}
       }
       if(p.length>=5&&p[1].equals("api")&&p[2].equals("admin")&&p[3].equals("campaigns")){
