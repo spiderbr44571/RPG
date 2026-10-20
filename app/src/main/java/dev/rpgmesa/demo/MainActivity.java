@@ -206,34 +206,27 @@ public final class MainActivity extends Activity {
           return;
         }
         if(request==PICK_BOOK_DOCUMENT){
-          if(result==RESULT_OK && data!=null && data.getData()!=null){
+          if(result==RESULT_OK && data!=null){
+            final String chosenSystem=pendingBookSystemId;
+            pendingBookSystemId="ordem-paranormal";
             try{
-              Uri uri=data.getData();
-              getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-              String name="Livro de Regras (PDF)";
-              try(Cursor cur=getContentResolver().query(uri,new String[]{OpenableColumns.DISPLAY_NAME},null,null,null)){
-                if(cur!=null && cur.moveToFirst())name=cur.getString(0);
+              int count=0;
+              android.content.ClipData clip=data.getClipData();
+              if(clip!=null){
+                int max=Math.min(40,clip.getItemCount());
+                for(int i=0;i<max;i++){
+                  Uri uri=clip.getItemAt(i).getUri();
+                  if(uri==null)continue;
+                  try{importPersonalPdf(uri,chosenSystem,count==0);count++;}
+                  catch(Exception ex){showBookError("Não foi possível adicionar um dos PDFs: "+ex.getMessage());}
+                }
+              }else if(data.getData()!=null){
+                importPersonalPdf(data.getData(),chosenSystem,true);
+                count=1;
               }
-              String systemId=pendingBookSystemId;
-              pendingBookSystemId="ordem-paranormal";
-              String bookId=rememberPersonalBook(name,uri.toString(),systemId);
-              searcherFor(bookId).ensureIndex(uri.toString(),name,false);
-              final String metadata="{id:"+JSONObject.quote(bookId)+",name:"+JSONObject.quote(name)+",systemId:"+JSONObject.quote(systemId)+"}";
-              runOnUiThread(()->browser.evaluateJavascript("window.dispatchEvent(new CustomEvent('rpg-private-book-added',{detail:"+metadata+"}));",null));
-              if("ordem-paranormal".equals(systemId)){
-                getPreferences(Context.MODE_PRIVATE).edit().putString("op_pdf_uri",uri.toString()).putString("op_pdf_name",name).apply();
-                // Preserve the original Order Paranormal reader and legacy searches.
-                // Legacy queries share this imported book's index instead of extracting twice.
-                final String filename=name;
-                new Thread(()->{
-                  String cover=renderPdfCover(uri);
-                  if(cover!=null)getPreferences(Context.MODE_PRIVATE).edit().putString("op_pdf_cover",cover).apply();
-                  String payload="{name:"+JSONObject.quote(filename)+",available:true,cover:"+JSONObject.quote(cover==null?"":cover)+"}";
-                  runOnUiThread(()->browser.evaluateJavascript("window.dispatchEvent(new CustomEvent('rpg-book-selected',{detail:"+payload+"}));",null));
-                },"rpg-pdf-cover").start();
-              }
-            }catch(Exception error){showBookError("Não foi possível guardar o acesso ao PDF: "+error.getMessage());}
-          }
+              if(count==0)showBookError("Nenhum PDF válido foi selecionado.");
+            }catch(Exception error){showBookError("Falha ao importar PDFs: "+error.getMessage());}
+          }else pendingBookSystemId="ordem-paranormal";
           return;
         }
         if(request==PICK_LOCAL_FILE && pendingUpload!=null){
@@ -243,6 +236,35 @@ public final class MainActivity extends Activity {
         }
     }
 
+    /** Each authorized Android SAF document remains in the user's own storage. */
+    private void importPersonalPdf(Uri uri,String systemId,boolean autoIndex){
+      getContentResolver().takePersistableUriPermission(uri,Intent.FLAG_GRANT_READ_URI_PERMISSION);
+      String name="Livro de regras (PDF)";
+      try(Cursor cur=getContentResolver().query(uri,new String[]{OpenableColumns.DISPLAY_NAME},null,null,null)){
+        if(cur!=null&&cur.moveToFirst()&&!cur.isNull(0))name=cur.getString(0);
+      }catch(Exception ignored){}
+      if(!name.toLowerCase(java.util.Locale.ROOT).endsWith(".pdf"))name=name+".pdf";
+      String id=rememberPersonalBook(name,uri.toString(),systemId);
+      // Index only the first selected document immediately. Others are registered
+      // and indexed on demand, to prevent dozens of heavy PDF parsers competing for RAM.
+      if(autoIndex)searcherFor(id).ensureIndex(uri.toString(),name,false);
+      final String event="{id:"+JSONObject.quote(id)+",name:"+JSONObject.quote(name)+
+        ",systemId:"+JSONObject.quote(systemId)+"}";
+      runOnUiThread(()->browser.evaluateJavascript(
+        "window.dispatchEvent(new CustomEvent('rpg-private-book-added',{detail:"+event+"}));",null));
+      if("ordem-paranormal".equals(systemId)){
+        getPreferences(Context.MODE_PRIVATE).edit().putString("op_pdf_uri",uri.toString())
+          .putString("op_pdf_name",name).apply();
+        final String filename=name;
+        new Thread(()->{
+          String cover=renderPdfCover(uri);
+          if(cover!=null)getPreferences(Context.MODE_PRIVATE).edit().putString("op_pdf_cover",cover).apply();
+          String payload="{name:"+JSONObject.quote(filename)+",available:true,cover:"+JSONObject.quote(cover==null?"":cover)+"}";
+          runOnUiThread(()->browser.evaluateJavascript(
+            "window.dispatchEvent(new CustomEvent('rpg-book-selected',{detail:"+payload+"}));",null));
+        },"rpg-pdf-cover").start();
+      }
+    }
     private boolean validSystemId(String systemId){
       return systemId!=null&&systemId.matches("[a-z0-9-]{1,64}");
     }
@@ -389,6 +411,7 @@ public final class MainActivity extends Activity {
           Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT);
           intent.addCategory(Intent.CATEGORY_OPENABLE);
           intent.setType("application/pdf");
+          intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
           intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
           startActivityForResult(intent,PICK_BOOK_DOCUMENT);
         }catch(Exception e){showBookError("Não foi possível abrir o seletor de PDF.");}
