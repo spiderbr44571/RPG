@@ -15,7 +15,7 @@ assert.match(server,/advance\(cid,"turn"\)/);
 assert.match(server,/sorted\.getJSONObject\(0\)\.getString\("tokenId"\)/);
 assert.match(server,/faceSum\+=value/);
 assert.match(server,/highest=Math\.max\(highest,value\)/);
-assert.match(server,/mode\.equals\("highest"\)\?highest:faceSum/);
+assert.match(server,/mode\.equals\("highest"\)\?highest:mode\.equals\("lowest"\)\?lowest:faceSum/);
 assert.match(server,/\.put\("faces",values\)/);
 assert.match(server,/\.put\("mode",mode\)/);
 assert.match(server,/new ByteArrayInputStream\(bytes\),bytes\.length/);
