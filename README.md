@@ -1,3 +1,11 @@
+# Mastermind v0.46 — correção de falha ao iniciar
+
+Na v0.45 o indexador de PDF era criado como campo de `MainActivity` antes de o Android preparar o Context, causando falha ao iniciar o aplicativo. A v0.46 corrige a ordem: o indexador é criado somente após `super.onCreate`, com Context válido. Há um novo teste de regressão no CI para bloquear a inicialização prematura.
+
+O aumento do APK em relação às versões de ~500 KB é causado pela dependência PdfBox-Android necessária para extrair texto de PDFs no dispositivo; os dados do usuário não são enviados a terceiros. Esta correção mantém as funcionalidades de busca da v0.45. Não desinstale nem limpe os dados do aplicativo antes de instalar uma atualização compatível.
+
+---
+
 # Mastermind v0.45 — pesquisa real nos PDFs da Biblioteca (offline)
 
 **Problema resolvido:** importar o PDF na Biblioteca anteriormente permitia apenas ler/renderizar páginas; a pesquisa consultava somente registros resumidos e índices JSON opcionais. Na versão Android, o PDF pessoal selecionado agora é extraído e indexado em segundo plano pelo PdfBox-Android, com busca SQLite FTS4 privada no aparelho. A indexação é iniciada na importação ou ao abrir a consulta em instalações já existentes.

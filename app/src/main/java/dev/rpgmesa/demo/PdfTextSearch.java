@@ -46,7 +46,12 @@ final class PdfTextSearch {
  private volatile String indexingUri="";
  private volatile String indexingTitle="";
 
- PdfTextSearch(Context ctx) {this.ctx=ctx.getApplicationContext();this.helper=new Store(this.ctx);}
+ PdfTextSearch(Context ctx) {
+  if(ctx==null)throw new IllegalArgumentException("PDF search requires an attached Android Context");
+  Context application=ctx.getApplicationContext();
+  this.ctx=application!=null?application:ctx;
+  this.helper=new Store(this.ctx);
+ }
  private static class Store extends SQLiteOpenHelper {
   Store(Context ctx){super(ctx,"mastermind_pdf_text_v45.db",null,1);}
   @Override public void onCreate(SQLiteDatabase db){

@@ -52,7 +52,9 @@ public final class MainActivity extends Activity {
     private static final int PICK_BOOK_DOCUMENT = 1105;
     private static final int SAVE_CHARACTER_PDF = 1106;
     private final BookBridge books = new BookBridge();
-    private final PdfTextSearch pdfTextSearch = new PdfTextSearch(this);
+    // Activity fields are constructed before the Android Context is attached.
+    // Initialize PDF search in onCreate, after super.onCreate(state).
+    private PdfTextSearch pdfTextSearch;
     private final LanBridge lan = new LanBridge();
     private final CampaignBridge campaign = new CampaignBridge();
     private final HostBridge localHost = new HostBridge();
@@ -71,6 +73,8 @@ public final class MainActivity extends Activity {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        // getApplicationContext() is available only after the Activity is attached.
+        pdfTextSearch = new PdfTextSearch(getApplicationContext());
         getWindow().setStatusBarColor(Color.rgb(12,14,20));
         getWindow().setNavigationBarColor(Color.rgb(12,14,20));
         LinearLayout root=new LinearLayout(this);

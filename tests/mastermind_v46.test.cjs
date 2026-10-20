@@ -1,0 +1,22 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const javaRoot=path.join(__dirname,'../app/src/main/java/dev/rpgmesa/demo');
+const activity=fs.readFileSync(path.join(javaRoot,'MainActivity.java'),'utf8');
+const search=fs.readFileSync(path.join(javaRoot,'PdfTextSearch.java'),'utf8');
+const build=fs.readFileSync(path.join(__dirname,'../app/build.gradle'),'utf8');
+assert.doesNotMatch(activity,/private\s+final\s+PdfTextSearch\s+\w+\s*=\s*new PdfTextSearch\(this\)/,
+ 'Fatal startup bug: Activity has no attached Context while instance fields are initialized');
+assert.match(activity,/private\s+PdfTextSearch pdfTextSearch;/);
+const superLine=activity.indexOf('super.onCreate(state);');
+const initLine=activity.indexOf('pdfTextSearch = new PdfTextSearch(getApplicationContext());');
+assert.ok(superLine>0 && initLine>superLine,'PDF extraction must initialize after the Activity is attached');
+const nextMethod=activity.indexOf('private int dp(int x)');
+assert.ok(initLine<nextMethod,'PDF extraction must be initialized during onCreate');
+assert.match(search,/if\(ctx==null\)throw new IllegalArgumentException/);
+assert.match(search,/this\.ctx=application!=null\?application:ctx;/);
+assert.match(activity,/@JavascriptInterface public String pdfIndexStatus\(\)/);
+assert.match(activity,/@JavascriptInterface public String searchPdf\(/);
+assert.match(activity,/@JavascriptInterface public void renderIndexPage\(/);
+assert.match(build,/versionCode 46/);
+assert.match(build,/com\.tom-roush:pdfbox-android:2\.0\.27\.0/);
+console.log('PASS v0.46: no premature Android Context access; PDF features remain available');
