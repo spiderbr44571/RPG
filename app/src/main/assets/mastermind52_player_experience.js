@@ -347,7 +347,7 @@ function init(){
    const n=notes.find(x=>x.id===selectedNote);if(!n)return;
    n[key]=e.target.value.slice(0,max);n.updated=Date.now();
    scheduleSave();
-   if(key==='title')$('#r52-note-list [data-r52-note="'+n.id+'"] strong').textContent=n.title||'Nota';
+   if(key==='title'){const h=$('#r52-note-list [data-r52-note="'+n.id+'"] strong');if(h)h.textContent=n.title||'Nota';}
   });
  }
  $('#r52-unpin').onclick=()=>{
