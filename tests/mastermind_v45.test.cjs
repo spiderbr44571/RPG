@@ -45,5 +45,5 @@ assert.ok(!native.includes('HttpURLConnection'),'index stays on device');
 assert.ok(native.includes('No uploading, OCR, AI or asset bundling'),'clearly marks no OCR support'); 
 const gradle=fs.readFileSync(path.join(__dirname,'../app/build.gradle'),'utf8');
 assert.match(gradle,/com\.tom-roush:pdfbox-android:2\.0\.27\.0/);
-assert.match(gradle,/versionCode 45/);
+assert.ok(Number(gradle.match(/versionCode ([0-9]+)/)?.[1])>=45,'PDF search available in v45+');
 console.log('PASS v0.45: Aracnasita in catalog, PDF native FTS, indexed pages, renderer and no network access');
