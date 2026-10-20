@@ -195,7 +195,7 @@ function liveRefresh(){
  }
  draw();renderPins();
  if($('#r52-notes-count'))$('#r52-notes-count').textContent=notes.length+' nota(s)';
- if($('#r52-sheet').classList.contains('open'))sheetEnhance();
+ if($('#sheet-modal')?.classList.contains('open'))sheetEnhance();
 }
 function flattened(v){
  if(Array.isArray(v))return v.map((x,i)=>({key:x?.name||x?.nome||String(i+1),
