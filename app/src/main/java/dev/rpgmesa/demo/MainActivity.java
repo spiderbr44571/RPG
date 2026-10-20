@@ -223,7 +223,7 @@ public final class MainActivity extends Activity {
               if("ordem-paranormal".equals(systemId)){
                 getPreferences(Context.MODE_PRIVATE).edit().putString("op_pdf_uri",uri.toString()).putString("op_pdf_name",name).apply();
                 // Preserve the original Order Paranormal reader and legacy searches.
-                pdfTextSearch.ensureIndex(uri.toString(),name,false);
+                // Legacy queries share this imported book's index instead of extracting twice.
                 final String filename=name;
                 new Thread(()->{
                   String cover=renderPdfCover(uri);
@@ -304,6 +304,18 @@ public final class MainActivity extends Activity {
         throw new IllegalArgumentException("Identificador de livro inválido");
       return bookSearchers.computeIfAbsent(bookId,id->new PdfTextSearch(getApplicationContext(),id));
     }
+    private PdfTextSearch currentOrderSearcher(){
+      String uri=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_uri",null);
+      if(uri!=null){
+        JSONArray current=personalBooks();
+        for(int i=0;i<current.length();i++){
+          JSONObject b=current.optJSONObject(i);
+          if(b!=null&&uri.equals(b.optString("uri"))&&"ordem-paranormal".equals(b.optString("systemId")))
+            return searcherFor(b.optString("id"));
+        }
+      }
+      return pdfTextSearch;
+    }
     private String rememberPersonalBook(String name,String uri,String systemId){
       if(!validSystemId(systemId))throw new IllegalArgumentException("Sistema inválido");
       JSONArray current=personalBooks();
@@ -333,16 +345,16 @@ public final class MainActivity extends Activity {
       }
       @JavascriptInterface public String pdfIndexStatus(){
         String uri=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_uri",null);
-        return pdfTextSearch.getStatus(uri).toString();
+        return currentOrderSearcher().getStatus(uri).toString();
       }
       @JavascriptInterface public void indexSavedPdf(){
         String uri=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_uri",null);
         String name=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_name","Livro pessoal");
-        pdfTextSearch.ensureIndex(uri,name,false);
+        currentOrderSearcher().ensureIndex(uri,name,false);
       }
       @JavascriptInterface public String searchPdf(String query,int limit,int offset){
         String uri=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_uri",null);
-        return pdfTextSearch.search(uri,query,limit,offset).toString();
+        return currentOrderSearcher().search(uri,query,limit,offset).toString();
       }
       // Índice 1-based físico do PDF; não confundir com paginação impressa +10.
       @JavascriptInterface public void renderIndexPage(int pageNumber){
