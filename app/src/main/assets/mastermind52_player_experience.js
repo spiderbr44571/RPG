@@ -9,11 +9,11 @@ const player=root.RPG31_PLAYER;
 if(!mm||!player)return;
 const state=()=>player.state;
 let mode='move',origin='',destination=null,focus='',notes=[],journalLoaded=false,journalSaving=false,journalPending=false,saveTimer=null,preview=null,search='',selectedNote='',lastScene='';
-const journalCache='mastermind52-journal-'+id;
+const cacheKey=()=>state()?.playerId?'mastermind52-journal-'+id+'-'+state().playerId:null;
 const limit=(n,a,b)=>Math.max(a,Math.min(b,n));
 const feedback=t=>{const e=$('#r52-message');if(e){e.textContent=t;e.hidden=false}};
-function cache(){try{localStorage.setItem(journalCache,JSON.stringify(notes))}catch{}}
-function recover(){try{let s=JSON.parse(localStorage.getItem(journalCache)||'[]');return Array.isArray(s)?s.filter(x=>x&&x.id).slice(0,80):[]}catch{return []}}
+function cache(){const key=cacheKey();if(!key)return;try{localStorage.setItem(key,JSON.stringify(notes))}catch{}}
+function recover(){const key=cacheKey();if(!key)return [];try{let s=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(s)?s.filter(x=>x&&x.id).slice(0,80):[]}catch{return []}}
 async function request(endpoint,method='GET',body){
  const r=await fetch(url+'/'+endpoint,{method,credentials:'same-origin',
   headers:{'Content-Type':'application/json'},cache:'no-store',body:body?JSON.stringify(body):undefined});
@@ -68,6 +68,16 @@ function ownTurn(){
   ours?'★ Seu turno · você pode se mover':'Aguarde sua vez na iniciativa';
  label?.classList.toggle('active',!!ours);
 }
+function applyAppearance(){
+ try{
+  const saved=JSON.parse(localStorage.getItem('rpg-player-look:'+id)||'{}');
+  const preset={base:'#e8b6d6',sangue:'#ea5b72',conhecimento:'#e4ba66',energia:'#a77aef',morte:'#abb8aa',medo:'#e3d7f2'};
+  const c=/^#[a-f0-9]{6}$/i.test(saved.color||'')?saved.color:preset[saved.theme]||preset.base;
+  document.body.style.setProperty('--accent',c);
+  if(saved.mode==='light')document.body.classList.add('r52-light-mode');
+  document.body.style.fontSize=(13*limit(Number(saved.size)||1,.9,1.3))+'px';
+ }catch{}
+}
 function setMode(next){
  mode=next;const tools=$('#r52-live-tools');if(tools)tools.dataset.mode=next;
  document.querySelectorAll('[data-r52-mode]').forEach(b=>{
@@ -83,7 +93,7 @@ function setMode(next){
  if(next==='move'||next==='pin')clearMeasure();
 }
 async function loadJournal(){
- if(journalLoaded)return;
+ if(journalLoaded||!cacheKey())return;
  try{
   const data=await request('journal');
   if(journalPending){journalLoaded=true;return}
@@ -169,6 +179,7 @@ function renderSystemRange(){
   'Estimativa baseada no grid do mestre. Confira os limites de cada ação e obstáculos com o mestre.';
 }
 function liveRefresh(){
+ if(cacheKey()&&!journalLoaded)void loadJournal();
  const s=scene();
  if(s?.id!==lastScene){destination=null;lastScene=s?.id||'';renderSystemRange();renderNotes()}
  ownTurn();
@@ -295,6 +306,7 @@ async function updateResource(key,delta){
  }catch(e){feedback(e.message)}
 }
 function init(){
+ applyAppearance();
  const stage=$('.stage'),sheet=$('#sheet-modal');
  if(!stage||!sheet)return;
  const tools=document.createElement('section');tools.id='r52-live-tools';
@@ -399,7 +411,7 @@ function init(){
  });
  root.addEventListener('mastermind:player-live-render',liveRefresh);
  root.addEventListener('focus',()=>{if(!journalLoaded)loadJournal()});
- loadJournal();setMode('move');liveRefresh();
+ setMode('move');liveRefresh();
 }
 root.MastermindPlayerExperience={init,measure,profileRoll,get notes(){return notes},get mode(){return mode}};
 })(window);
