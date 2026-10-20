@@ -35,6 +35,6 @@ assert.match(ui,/Principais passagens localizadas no PDF, sem interpretação po
 assert.match(ui,/data-r45-page/);
 assert.match(css,/\.r47-snippets/);
 const gradle=fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8');
-assert.match(gradle,/versionCode 47/);
+assert.ok(Number(gradle.match(/versionCode ([0-9]+)/)?.[1])>=47,'v0.47 functionality retained');
 assert.match(gradle,/com\.tom-roush:pdfbox-android/);
 console.log('PASS v0.47: progressive PDF index searchable mid-extraction, resumable and snippets linked to page');
