@@ -90,7 +90,7 @@
    '<p>Importe arquivos que você tem autorização para utilizar, incluindo pelo Google Drive no seletor Android. Eles ficam separados por sistema e não são enviados a servidores.</p></div>'+
    '<button type="button" data-r51-add="'+esc(sys)+'">+ Adicionar PDF</button></div>'+
    '<div class="r51-private-files">'+(selected.length?selected.map(b=>'<div class="r51-private-book">'+
-    '<div><strong>'+esc(b.name)+'</strong><small>'+esc(stateText(b))+'</small></div>'+
+    '<div><strong>'+esc(b.name)+'</strong><small data-r51-status="'+esc(b.id)+'">'+esc(stateText(b))+'</small></div>'+
     '<div class="r51-private-actions"><button type="button" data-r51-reindex="'+esc(b.id)+'">Indexar / retomar</button>'+
     '<button type="button" data-r51-open="'+esc(b.id)+'">Abrir PDF ↗</button></div></div>').join(''):
     '<p>Nenhum PDF deste sistema foi importado neste dispositivo.</p>')+'</div></section>'+manualForm(sys);
@@ -243,7 +243,12 @@
  });
  setInterval(()=>{
   if(!bridge())return;
-  if(openSystemId&&systemHost())renderSystem();
+  if(openSystemId&&systemHost()){
+   for(const el of systemHost().querySelectorAll('[data-r51-status]')){
+    const b=list().find(x=>x.id===el.dataset.r51Status);
+    if(b)el.textContent=stateText(b);
+   }
+  }
   const fingerprint=booksFor(scope()).map(b=>b.id+':'+status(b.id).state+':'+(status(b.id).progress||0)).join('|');
   if(fingerprint!==seenProgress){seenProgress=fingerprint;refreshResults();}
  },4000);
