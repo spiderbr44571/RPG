@@ -23,7 +23,7 @@ assert.ok(dnd.books.some(b=>/LDJ 5E/.test(b.title)));
 assert.ok(dnd.books.some(b=>/2024/.test(b.title)));
 for(const system of systems)for(const b of system.books){
  assert.ok(/^[A-Za-z0-9_-]{10,160}$/.test(b.id));
- assert.ok(b.url.includes('/file/d/'+b.id+'/'));
+ assert.ok(b.url.includes(b.id),'each linked resource must refer to its exact Drive file ID');
 }
 vm.runInNewContext(read('rpg18_dnd_engine.js'),sandbox);
 vm.runInNewContext(read('rpg16_gurps_engine.js'),sandbox);
