@@ -33,5 +33,5 @@ assert.match(ui,/state\.message\|\|'Preparando busca/);
 assert.match(ui,/type==='partial'\|\|type==='pending'\|\|type==='error'/);
 assert.match(ui,/Verificando o total de páginas do PDF/);
 const gradle=fs.readFileSync(path.join(__dirname,'../app/build.gradle'),'utf8');
-assert.match(gradle,/versionCode 48/);
+assert.ok(Number(gradle.match(/versionCode ([0-9]+)/)?.[1])>=48,'v0.48 regression remains valid');
 console.log('PASS v0.48: safe PDF memory usage, progress and error state; FTS bounded pagination');
