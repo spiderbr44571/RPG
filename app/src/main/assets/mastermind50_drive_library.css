@@ -1,0 +1,13 @@
+/* Mastermind v0.50 — catálogo do Drive por sistema na pesquisa, sem PDFs incorporados. */
+.r50-drive-catalog{margin-top:14px;padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
+.r50-drive-catalog>summary{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;cursor:pointer;font-size:13px;color:var(--fg)}
+.r50-drive-catalog>summary>span{font-size:10px;color:var(--accent)}
+.r50-drive-catalog>p{font-size:11px;color:var(--muted);line-height:1.6}
+.r50-drive-catalog input{box-sizing:border-box;width:100%;padding:10px;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--fg);font-size:12px;margin:8px 0 12px}
+#r50-drive-items{max-height:350px;overflow:auto;display:grid;gap:7px}
+.r50-drive-book{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:9px;padding:11px;background:var(--panel)}
+.r50-drive-book>div{min-width:0;overflow-wrap:anywhere;display:grid;gap:5px}
+.r50-drive-book strong{font-size:11px;color:var(--fg);font-weight:600}
+.r50-drive-book small{font-size:10px;color:var(--muted);line-height:1.5}
+.r50-drive-book button{background:var(--panel2);border:1px solid var(--accent);color:var(--accent);padding:9px 8px;border-radius:8px;min-height:35px;min-width:96px;font-size:10px;flex-shrink:0;cursor:pointer}
+@media(max-width:600px){.r50-drive-book{flex-wrap:wrap}.r50-drive-book button{min-width:0}}
