@@ -1,3 +1,13 @@
+# Mastermind v0.50 — seleção de sistemas e catálogo do Drive
+
+Corrige a tela **Consultar livros**, que carregava antes do catálogo de sistemas e exibia seletores vazios. O catálogo de 39 sistemas, o motor D&D 5e, o motor GURPS 4e e as criaturas de Ordem Paranormal agora são carregados antes da pesquisa. A pesquisa passa a oferecer os 39 sistemas, incluindo D&D, sem perder os filtros de edição.
+
+A consulta traz um painel recolhível **Livros do seu Google Drive**, com links catalogados dos 209 livros/arquivos presentes na pasta Livros do Drive informado. O mestre pode selecionar um sistema (por exemplo, D&D, com 9 documentos), filtrar títulos e abri-los no Drive usando as permissões de acesso de sua conta. O APK guarda **somente metadados e referências**, não redistribui os PDFs comerciais.
+
+**Limitação atual:** o índice local de texto PDF usado pela busca nativa ainda corresponde ao livro de Ordem Paranormal importado no Android. A pesquisa em D&D utiliza as regras estruturadas (SRD 5.1) e os links do catálogo; para texto integral de outras obras é necessário indexá-las por um fluxo autorizado, que não está incluído nesta versão. A interface impede misturar trechos locais de Ordem com resultados de D&D.
+
+---
+
 # Mastermind v0.49 — suporte a livros PDF maiores
 
 Removido o limite fixo de 180 MB. A pesquisa local agora aceita PDFs grandes conforme o espaço livre, com cópia em blocos, verificação de armazenamento e progresso em MB. A extração e o índice continuam usando arquivos temporários e SQLite. PDFs volumosos podem levar tempo; falta de espaço é informada claramente. O limite de 1400 páginas e a necessidade de texto selecionável continuam.
