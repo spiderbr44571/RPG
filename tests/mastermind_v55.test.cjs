@@ -67,6 +67,6 @@ assert.match(master,/data-r55-decision="approve"/);
 assert.match(master,/data-r55-decision="full"/);
 assert.match(master,/data-r55-decision="reject"/);
 assert.match(master,/req\('\/power-request','POST'/);
-assert.match(gradle,/versionCode 55/);
+assert.ok(Number(gradle.match(/versionCode ([0-9]+)/)?.[1])>=55,'v55 features retained');
 console.log('PASS v0.55: power catalog, progression/NEX restrictions, private requests and GM-approved temporal and initiative actions');
 function serverFallback(x){return x}
