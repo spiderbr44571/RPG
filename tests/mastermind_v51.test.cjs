@@ -18,10 +18,15 @@ for(const str of ['PERSONAL_PDF_LIBRARY','rememberPersonalBook','listPersonalBoo
  'pickPdfForSystem','searchPersonalBook','renderPersonalBookPage','openPersonalBook','indexPersonalBook',
  'findPersonalBook','personalBookListing','legacy-ordem','currentOrderSearcher',
  'Intent.ACTION_OPEN_DOCUMENT','takePersistableUriPermission','rpg-private-book-added',
- 'searcherFor(bookId).ensureIndex','ConcurrentHashMap']){
+ 'if(autoIndex)searcherFor(id).ensureIndex','ConcurrentHashMap']){
  assert.ok(act.includes(str),'missing '+str);
 }
 assert.match(act,/private String pendingBookSystemId="ordem-paranormal"/);
+assert.match(act,/Intent\.EXTRA_ALLOW_MULTIPLE,true/);
+assert.match(act,/getClipData\(\)/);
+assert.match(act,/Math\.min\(40,clip\.getItemCount\(\)\)/);
+assert.match(act,/importPersonalPdf\(uri,chosenSystem,count==0\)/);
+assert.match(act,/if\(autoIndex\)searcherFor\(id\)\.ensureIndex/);
 assert.match(act,/String systemId=pendingBookSystemId/);
 assert.match(act,/entry\.put\("systemId",systemId\)/);
 assert.match(act,/current\.length\(\)>=100/);
