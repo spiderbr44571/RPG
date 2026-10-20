@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.provider.OpenableColumns;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import org.json.JSONArray;
@@ -32,7 +33,11 @@ import java.util.regex.Pattern;
 
 /** Local, private, on-device PDF text index. No uploading, OCR, AI or asset bundling. */
 final class PdfTextSearch {
- private static final int MAX_PAGES=1400, MAX_BYTES=180*1024*1024;
+ private static final int MAX_PAGES=1400;
+ private static final long MiB=1024L*1024L;
+ // Only available free space constrains input size, rather than a small arbitrary cap.
+ private static final long MIN_FREE_DISK=160L*MiB;
+ private static final long COPY_STEP=8L*MiB;
  private static final Pattern WORDS=Pattern.compile("[a-z0-9]{2,}");
  private static final Set<String> STOP=new HashSet<>(Arrays.asList(
   "como","funciona","funcionam","oque","qual","quais","que","um","uma","uns","umas",
@@ -91,6 +96,23 @@ final class PdfTextSearch {
   JSONObject j=new JSONObject();
   try{j.put("state",state);j.put("title",title);j.put("pages",total);j.put("progress",progress);j.put("message",message);}catch(Exception ignored){}
   return j;
+ }
+ private long sourceSize(Uri source){
+  // SAF providers may omit length (e.g. some cloud storages).
+  try(Cursor c=ctx.getContentResolver().query(source,new String[]{OpenableColumns.SIZE},null,null,null)){
+   if(c!=null&&c.moveToFirst()){
+    int idx=c.getColumnIndex(OpenableColumns.SIZE);
+    if(idx>=0&&!c.isNull(idx))return c.getLong(idx);
+   }
+  }catch(Exception ignored){}
+  return -1;
+ }
+ private void ensureDisk(long available,long required){
+  if(available>=required)return;
+  throw new IllegalStateException(
+   "Espaço temporário insuficiente para este PDF. Livres: "+
+   (available/MiB)+" MB; recomendados: "+(required/MiB)+
+   " MB. Libere armazenamento sem apagar os dados do Mastermind.");
  }
  private static int number(String raw){
   try{return Math.max(0,Integer.parseInt(raw));}catch(Exception ignored){return 0;}
@@ -155,16 +177,34 @@ final class PdfTextSearch {
     pageTotal=preflightPages;
     stage="Preparando arquivo PDF selecionado...";
     PDFBoxResourceLoader.init(ctx);
-    temp=File.createTempFile("mastermind-book-", ".pdf",ctx.getCacheDir());
-    try(InputStream in=ctx.getContentResolver().openInputStream(Uri.parse(uri));
+    // Large PDFs are kept on disk, not in RAM. Estimate free disk before copying:
+    // one local PDF copy, potential parser scratch files and a safe free-space reserve.
+    Uri source=Uri.parse(uri);
+    File tmpFolder=ctx.getCacheDir();
+    long knownSize=sourceSize(source);
+    long needed=MIN_FREE_DISK;
+    if(knownSize>0){
+     if(knownSize>Long.MAX_VALUE/2)throw new IllegalArgumentException("PDF possui tamanho inválido.");
+     needed=knownSize*2+MIN_FREE_DISK;
+    }
+    ensureDisk(tmpFolder.getUsableSpace(),needed);
+    temp=File.createTempFile("mastermind-book-", ".pdf",tmpFolder);
+    try(InputStream in=ctx.getContentResolver().openInputStream(source);
         OutputStream out=new FileOutputStream(temp)){
      if(in==null)throw new IllegalStateException("Arquivo indisponível.");
-     byte[] buf=new byte[32768];long total=0;int n;
+     byte[] buf=new byte[64*1024];long total=0;int n;
+     long nextCheck=COPY_STEP;
      while((n=in.read(buf))!=-1){
       total+=n;
-      if(total>MAX_BYTES)throw new IllegalArgumentException("PDF maior que 180 MB.");
       out.write(buf,0,n);
+      // For providers without known size, watch storage as the file streams in.
+      if(total>=nextCheck){
+       stage="Copiando PDF grande: "+(total/MiB)+" MB transferidos...";
+       ensureDisk(tmpFolder.getUsableSpace(),MIN_FREE_DISK+Math.min(total/2,512L*MiB));
+       nextCheck=total+COPY_STEP;
+      }
      }
+     if(total==0)throw new IllegalStateException("PDF vazio ou indisponível.");
     }
     if(preflightPages==0){
      stage="Verificando páginas da cópia local...";

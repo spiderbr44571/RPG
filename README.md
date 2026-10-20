@@ -1,3 +1,9 @@
+# Mastermind v0.49 — suporte a livros PDF maiores
+
+Removido o limite fixo de 180 MB. A pesquisa local agora aceita PDFs grandes conforme o espaço livre, com cópia em blocos, verificação de armazenamento e progresso em MB. A extração e o índice continuam usando arquivos temporários e SQLite. PDFs volumosos podem levar tempo; falta de espaço é informada claramente. O limite de 1400 páginas e a necessidade de texto selecionável continuam.
+
+---
+
 # Mastermind v0.48 — busca PDF mais estável, sem travamento de memória
 
 A pesquisa em palavras frequentes (por exemplo, **vida**) da v0.47 podia criar uma lista com até 1400 páginas inteiras na memória do aplicativo, causando lentidão e potencial fechamento do processo. A v0.48 usa SQLite FTS4 com consulta **paginada, apenas 20 ocorrências por vez**, contagem separada e sem importar todo o texto para Java a cada Ctrl+F.

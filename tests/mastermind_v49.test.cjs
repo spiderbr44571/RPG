@@ -1,0 +1,26 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const native=fs.readFileSync(path.join(__dirname,'../app/src/main/java/dev/rpgmesa/demo/PdfTextSearch.java'),'utf8');
+const gradle=fs.readFileSync(path.join(__dirname,'../app/build.gradle'),'utf8');
+assert.doesNotMatch(native,/MAX_BYTES\s*=\s*180\s*\*\s*1024/,'old arbitrary PDF cap removed');
+assert.doesNotMatch(native,/PDF maior que 180 MB/,'do not refuse large PDFs based on a fixed threshold');
+assert.match(native,/getContentResolver\(\)\.query\(source,new String\[\]\{OpenableColumns\.SIZE\}/);
+assert.match(native,/long knownSize=sourceSize\(source\)/);
+assert.match(native,/needed=knownSize\*2\+MIN_FREE_DISK/);
+assert.match(native,/ensureDisk\(tmpFolder\.getUsableSpace\(\),needed\)/);
+assert.match(native,/byte\[\] buf=new byte\[64\*1024\]/,'stream PDF in bounded-size buffers');
+assert.match(native,/try\(InputStream in=ctx\.getContentResolver\(\)\.openInputStream\(source\)/);
+assert.match(native,/OutputStream out=new FileOutputStream\(temp\)/);
+assert.match(native,/while\(\(n=in\.read\(buf\)\)!=-1\)/);
+assert.match(native,/out\.write\(buf,0,n\)/);
+assert.match(native,/MIN_FREE_DISK\+Math\.min\(total\/2,512L\*MiB\)/);
+assert.match(native,/nextCheck=total\+COPY_STEP/);
+assert.match(native,/stage="Copiando PDF grande: "/);
+assert.match(native,/Espaço temporário insuficiente para este PDF/);
+assert.match(native,/getUsableSpace/);
+assert.match(native,/PDDocument\.load\(temp,MemoryUsageSetting\.setupTempFileOnly\(\)\)/,
+ 'PDF parser uses disk scratch, not full in-memory document copy');
+assert.match(native,/final int BATCH=6/,'FTS index stays progressive');
+assert.match(native,/ORDER BY pages\.page LIMIT \? OFFSET \?/,'PDF Ctrl+F stays paginated');
+assert.match(gradle,/versionCode 49/);
+console.log('PASS Mastermind v0.49: streaming PDFs over 180 MB with disk quota checks, progress and incremental full-text search');
