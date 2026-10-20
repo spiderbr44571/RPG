@@ -168,3 +168,11 @@ else if(action==='loadcanvas'){if(!confirm('Substituir cartões locais pelo snap
 block.addEventListener('click',async e=>{const b=e.target.closest('[data-r11]');if(b)await act(b.dataset.r11,b);const choose=e.target.closest('[data-choose]');if(choose){campaignId=choose.dataset.choose;await list()}});
 window.RPG11Campaigns={get campaign(){return latest},refresh:show};
 })();
+
+/* v0.53 -- modo interlúdio da campanha */
+const interludeStyle=document.createElement('style');interludeStyle.textContent=
+'.r53-campaign-mode{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:12px 0;padding:12px;border:1px solid var(--accent);border-radius:12px;background:var(--panel2)}'+
+'.r53-campaign-mode strong{color:var(--accent);font-size:13px}'+
+'.r53-campaign-mode span{flex:1;font-size:11px;min-width:140px}'+
+'.r53-campaign-mode button{padding:9px 12px;border:1px solid var(--accent);border-radius:8px;background:var(--panel);color:var(--accent)}';
+document.head.appendChild(interludeStyle);
