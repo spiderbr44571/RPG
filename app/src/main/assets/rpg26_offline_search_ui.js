@@ -73,6 +73,9 @@
   catch{return {state:'error',message:'Falha na busca interna do PDF.',hits:[]}}
  }
  function renderPdfResults(query,offset=0,append=false){
+  // The native PDF reader is currently associated with the local Ordem Paranormal PDF.
+  // Never misattribute its text to D&D or any other selected game system.
+  if(activeSystem!=='all'&&activeSystem!=='ordem-paranormal')return;
   if(!native())return;
   const data=pdfResults(query,offset),container=$('#r26-answer');
   if(!container||!data)return;
