@@ -1,0 +1,69 @@
+/* Mastermind v0.52 — jogador imersivo, controles móveis, mapa e ficha acessível */
+#r52-live-tools{position:absolute;top:12px;left:12px;z-index:18;max-width:min(625px,calc(100vw - 110px));
+ background:linear-gradient(140deg,#1b1724f4,#120e1deb);border:1px solid #9c7c9c;border-radius:15px;
+ box-shadow:0 14px 34px #0007;backdrop-filter:blur(10px);padding:11px;display:grid;gap:6px;color:#e6d8e6}
+.r52-mode-group{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.r52-mode-group button{background:#24202c;border:1px solid #806984;color:#e9dae8;padding:8px 11px;min-height:39px;border-radius:10px;font-size:12px;font-weight:650;cursor:pointer}
+.r52-mode-group button.active{background:#b692b5;color:#1c1020;border-color:#d8b8d7}
+#r52-turn{color:#cebdce;font-weight:650}
+#r52-turn.active{color:#86f4c3}
+#r52-instruction{color:#d4c0d5;line-height:1.4}
+.r52-range-options{display:flex;gap:9px;align-items:center;flex-wrap:wrap;border-top:1px solid #58495b;padding-top:7px}
+#r52-system{color:#a7e6d1;font-size:11px;flex:1}
+#r52-range{max-width:220px;background:#100d18;color:#fbecfb;border:1px solid #735974;padding:8px;border-radius:8px;font-size:11px}
+#r52-distance{color:#e3c4eb;background:#38263b;border-radius:9px;padding:7px 9px;font-weight:650;font-size:12px}
+#r52-caution{color:#b8aaba;font-size:10px;line-height:1.35}
+#r52-message{border:1px solid #96dfc1;color:#a2f8cc;background:#1b322d;padding:8px;border-radius:8px;font-size:12px}
+#r52-message[hidden]{display:none}
+#r52-pin-layer .r52-pin{position:absolute;z-index:1;border:1px solid #e8d2a2;color:#251923;background:#e0be76d9;
+ box-shadow:0 0 12px #d8b379cc;border-radius:45% 45% 45% 7%;width:23px;height:24px;
+ font-size:16px;display:grid;place-items:center;padding:0;min-height:0;min-width:0}
+#r52-journal{position:absolute;inset:0;z-index:40;display:none;background:#070811c9;justify-content:flex-end}
+#r52-journal.open{display:flex}
+.r52-journal-panel{background:linear-gradient(130deg,#241a2b,#15111f);width:min(780px,100%);height:100%;overflow:auto;padding:16px;
+ border-left:1px solid #88688b;box-shadow:-15px 0 44px #000b}
+.r52-journal-panel>header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.r52-journal-panel>header small{color:#c8a0c2;font-size:10px;letter-spacing:.13em}
+.r52-journal-panel h2{font:600 30px Georgia;margin:5px 0 12px}
+.r52-journal-panel button{background:#2e2236;border:1px solid #78627d;color:#f3e6f4;border-radius:9px;padding:9px;min-height:38px;font-size:12px}
+.r52-journal-controls{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin:12px 0}
+.r52-journal-controls #r52-new-note{background:#d4accf;color:#211426;font-weight:750}
+#r52-save{font-size:11px;color:#b1decc}
+#r52-find{display:block;width:100%;padding:11px;background:#140e1c;color:#fff;border:1px solid #786480;border-radius:9px;margin:9px 0}
+.r52-note-grid{display:grid;grid-template-columns:minmax(140px,240px) minmax(0,1fr);gap:14px;margin-top:12px}
+#r52-note-list{display:grid;align-content:start;gap:7px;max-height:65vh;overflow:auto}
+#r52-note-list>button{display:grid;text-align:left;gap:5px;overflow-wrap:anywhere;padding:10px}
+#r52-note-list>button.active{border-color:#b7eccf;background:#24302e}
+#r52-note-list small{color:#cebbcc;font-size:10px}
+#r52-note-editor{min-width:0;display:grid;align-content:start;gap:10px}
+#r52-note-editor[hidden]{display:none!important}
+#r52-note-editor label{display:grid;gap:6px;font-size:12px;color:#dacde0}
+#r52-note-editor input,#r52-note-editor textarea{font:13px system-ui;width:100%;background:#120e1b;border:1px solid #71577d;color:#fff;
+ border-radius:10px;padding:11px;box-sizing:border-box}
+#r52-note-editor textarea{min-height:240px;resize:vertical;line-height:1.6}
+#r52-note-position{color:#cab2cd}
+#r52-remove-note{color:#ffc0c0;background:#50252f}
+#r52-sheet-resources{display:flex;flex-wrap:wrap;gap:8px}
+.r52-resource{background:#261e31;border:1px solid #6b566e;border-radius:11px;padding:8px 11px;display:flex;align-items:center;gap:11px}
+.r52-resource span{font-size:12px;font-weight:650}
+.r52-resource div{display:flex;gap:4px}
+.r52-resource button{border:1px solid #896c8f;min-width:36px;min-height:36px;padding:5px;font-weight:800}
+.r52-sheet-section{display:grid;gap:8px}
+.r52-sheet-section>p{font-size:12px;color:#c4b6ce}
+.r52-sheet-row,.r52-detail{display:flex;align-items:center;justify-content:space-between;gap:9px;background:#231b2b;border:1px solid #5c4b61;border-radius:10px;padding:10px;min-width:0}
+.r52-sheet-row>div{display:grid;gap:2px;overflow-wrap:anywhere}
+.r52-sheet-row strong,.r52-detail strong{font-size:13px}
+.r52-sheet-row small{color:#cebfcd}
+.r52-sheet-row button{background:#44324b;border:1px solid #a78fac;color:#f6e4f5;min-width:78px}
+.r52-detail{display:block}
+.r52-detail p{font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere}
+#r52-roll-output{color:#b0edcd;font-size:13px;font-weight:700}
+@media(max-width:760px){
+ #r52-live-tools{max-width:calc(100vw - 20px);left:10px;right:10px;top:8px;padding:8px}
+ .r52-mode-group{gap:5px}
+ .r52-mode-group button{font-size:11px;min-height:35px;padding:7px 9px;flex:1}
+ #r52-instruction,#r52-caution{font-size:10px}
+ .r52-journal-panel{padding:12px}
+ .r52-journal-panel h2{font-size:23px}
+}
+@media(max-width:460px){.r52-note-grid{grid-template-columns:1fr}#r52-note-list{display:flex;max-height:145px;overflow:auto}#r52-note-list button{min-width:160px}#r52-note-editor textarea{min-height:180px}}
