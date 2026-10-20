@@ -1654,7 +1654,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       bytes=out.toByteArray();
     }
     Response r=utf8(Response.Status.OK,"application/javascript; charset=UTF-8",bytes);
-    r.addHeader("Cache-Control","private, max-age=120");return r;
+    r.addHeader("Cache-Control","no-store, max-age=0");return r;
   }
   @Override public Response serve(IHTTPSession s) {
     try {
