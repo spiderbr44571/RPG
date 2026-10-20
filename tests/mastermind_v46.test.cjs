@@ -17,6 +17,6 @@ assert.match(search,/this\.ctx=application!=null\?application:ctx;/);
 assert.match(activity,/@JavascriptInterface public String pdfIndexStatus\(\)/);
 assert.match(activity,/@JavascriptInterface public String searchPdf\(/);
 assert.match(activity,/@JavascriptInterface public void renderIndexPage\(/);
-assert.match(build,/versionCode 46/);
+assert.ok(Number(build.match(/versionCode ([0-9]+)/)?.[1])>=46,'startup fix retained in newer APK');
 assert.match(build,/com\.tom-roush:pdfbox-android:2\.0\.27\.0/);
 console.log('PASS v0.46: no premature Android Context access; PDF features remain available');
