@@ -42,7 +42,11 @@ function resources(s){
   return '<div class="meter"><span>'+esc(r.k)+'</span><div class="track"><i style="width:'+pct+'%;--fill:'+c+'"></i></div><strong>'+r.cur+'/'+r.max+'</strong></div>';
  }).join('')||'<small>Recursos não cadastrados</small>';
  const moving=state?.movement?.tokens?.[0];
- if(moving){
+ if(moving?.unlimited){
+   const e=document.createElement('div');e.className='meter r53-unlimited';
+   e.innerHTML='<span>MOVE</span><div class="track"><i style="width:100%;--fill:#81d2b0"></i></div><strong>∞</strong>';
+   $('#resources').appendChild(e);
+ }else if(moving){
    const element=document.createElement('div');
    element.className='meter';
    element.innerHTML='<span>MOVE</span><div class="track"><i style="width:'+
@@ -81,6 +85,10 @@ function sheet(){
 }
 function initiative(){
  const order=state?.initiative?.entries||[];
+ if(state?.sessionMode==='interlude'){
+   $('#initiative-entries').innerHTML='<p class="r53-interlude-message">Interlúdio ativo: a iniciativa está pausada. Todos podem se mover livremente e realizar testes. A ordem anterior será mantida para quando o mestre voltar ao combate.</p>';
+   return;
+ }
  $('#initiative-entries').innerHTML=order.length?order.map((part,i)=>
  '<div class="entry '+(part.tokenId===state.initiative.activeId?'initiative-current':'')+'">'+
  '<strong>'+(i+1)+'. '+esc(part.name)+' : '+part.score+'</strong>'+
@@ -91,7 +99,8 @@ function initiative(){
 function render(){
  const s=state?.scene;resources(state?.character);sheet();initiative();
  const active=state?.initiative?.entries?.find(p=>p.tokenId===state?.initiative?.activeId);
- $('#scene-turn').textContent=active?'Vez: '+active.name+' · Rodada '+(state.initiative.round||1):'Sem iniciativa';
+ $('#scene-turn').textContent=state?.sessionMode==='interlude'?'✦ INTERLÚDIO':active?'Vez: '+active.name+' · Rodada '+(state.initiative.round||1):'Sem iniciativa';
+ document.body.dataset.sessionMode=state?.sessionMode||'combat';
  if(!s){$('#empty').hidden=false;$('#board').innerHTML='';
    root.dispatchEvent(new CustomEvent('mastermind:player-live-render',{detail:{sceneId:''}}));return}
  $('#empty').hidden=true;$('#scene-title').textContent=readable(s.name)||'Cenário';
@@ -139,11 +148,11 @@ function mount(){
   if(target){if(target.dataset.movable==='true'){selected=target.dataset.id;msg('Seu token selecionado. Toque no destino.')}return}
   const s=state?.scene;if(!s||!selected)return;
   const activeId=state?.initiative?.activeId;
-  if((state?.initiative?.entries?.length||0)>0&&selected!==activeId){
+  if(state?.sessionMode!=='interlude'&&(state?.initiative?.entries?.length||0)>0&&selected!==activeId){
     msg('Aguarde seu turno para movimentar o personagem.');return;
   }
   const moving=state?.movement?.tokens?.find(item=>item.tokenId===selected);
-  if(moving&&moving.remaining<=0){msg('Você já utilizou todo o movimento deste turno.');return;}
+  if(state?.sessionMode!=='interlude'&&moving&&moving.remaining<=0){msg('Você já utilizou todo o movimento deste turno.');return;}
   const point=camera?.cellAt(e,cell,s.width,s.height);
   if(!point)return;const {x,y}=point;
   try{await api(sceneUrl+'/move','POST',{tokenId:selected,x,y});revision=-1;await refresh()}catch(err){msg(err.message)}
