@@ -67,3 +67,18 @@
  .r52-journal-panel h2{font-size:23px}
 }
 @media(max-width:460px){.r52-note-grid{grid-template-columns:1fr}#r52-note-list{display:flex;max-height:145px;overflow:auto}#r52-note-list button{min-width:160px}#r52-note-editor textarea{min-height:180px}}
+
+/* Liberar espaço do mapa quando o jogador só está se movimentando. */
+#r52-live-tools[data-mode=move] .r52-range-options,
+#r52-live-tools[data-mode=move] #r52-distance,
+#r52-live-tools[data-mode=move] #r52-caution,
+#r52-live-tools[data-mode=move] #r52-instruction,
+#r52-live-tools[data-mode=pin] .r52-range-options,
+#r52-live-tools[data-mode=pin] #r52-distance,
+#r52-live-tools[data-mode=pin] #r52-caution{display:none}
+#r52-live-tools[data-mode=inspect] .r52-range-options{display:none}
+@media(max-width:760px){
+ #r52-live-tools[data-mode=move],#r52-live-tools[data-mode=pin]{width:calc(100vw - 20px)}
+ #r52-live-tools[data-mode=measure]{max-width:calc(100vw - 20px)}
+ .r52-mode-group button{flex:1 1 auto}
+}
