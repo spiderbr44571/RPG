@@ -30,11 +30,11 @@ section,.panel{background:var(--surface);border:1px solid var(--line);border-rad
 .d20.roll{animation:fall .7s ease-out}@media(max-width:480px){main{padding:10px 9px 100px}section,.panel{padding:12px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hero img{height:75px;width:68px}.item{align-items:flex-start}.item .actions{justify-content:end}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
 </style><link rel="stylesheet" href="/powers-ui.css"></head><body data-theme="base"><main>
-<header><div><div class="eyebrow">RPG MESA · MINHA CAMPANHA</div><h1 id="campaign">Carregando...</h1><small id="connected">Conectando ao mestre...</small></div><div class="row"><a id="scene-link" href="#" style="border:1px solid var(--accent);padding:10px;border-radius:10px;color:var(--accent);text-decoration:none">▦ Cenário</a><button id="appearance-btn">⚙ Tema</button></div></header>
+<header><div><div class="eyebrow">RPG MESA · MINHA CAMPANHA</div><h1 id="campaign">Carregando...</h1><small id="connected">Conectando ao mestre...</small></div><div class="row"><a id="scene-link" href="#" style="border:1px solid var(--accent);padding:10px;border-radius:10px;color:var(--accent);text-decoration:none">✦ Abrir mesa imersiva</a><button id="appearance-btn">⚙ Tema</button></div></header>
 <div id="rounds" class="rounds" aria-live="polite"><div><small>Cena</small><strong id="scene">—</strong></div><div><small>Rodada</small><strong id="turn">—</strong></div></div>
 <div id="hero" class="panel">Aguardando ficha...</div>
-<nav id="tabs" class="tabs" role="tablist" aria-label="Seções da ficha"><button data-tab="attributes" aria-selected="true">Atributos</button><button data-tab="skills">Perícias</button><button data-tab="inventory">Inventário</button><button data-tab="abilities">Habilidades / Rituais</button><button data-tab="story">História</button><button data-tab="canvas">Canvas pessoal</button><button data-tab="settings">Personalização</button></nav>
-<section id="attributes" class="tabpage"></section><section id="skills" class="tabpage" hidden></section><section id="inventory" class="tabpage" hidden></section><section id="abilities" class="tabpage" hidden></section><section id="story" class="tabpage" hidden></section><section id="canvas" class="tabpage" hidden></section><section id="settings" class="tabpage" hidden></section>
+<nav id="tabs" class="tabs" role="tablist" aria-label="Seções da ficha"><button data-tab="attributes" aria-selected="true">Atributos</button><button data-tab="skills">Perícias</button><button data-tab="inventory">Inventário</button><button data-tab="abilities">Habilidades / Rituais</button><button data-tab="powers">✦ Poderes & Transcender</button><button data-tab="story">História</button><button data-tab="canvas">Canvas pessoal</button><button data-tab="settings">Personalização</button></nav>
+<section id="attributes" class="tabpage"></section><section id="skills" class="tabpage" hidden></section><section id="inventory" class="tabpage" hidden></section><section id="abilities" class="tabpage" hidden></section><section id="powers" class="tabpage" hidden><div id="v55-original-powers"></div></section><section id="story" class="tabpage" hidden></section><section id="canvas" class="tabpage" hidden></section><section id="settings" class="tabpage" hidden></section>
 <small id="sheet-status" role="status"></small>
 <section><div class="eyebrow">ACESSO PERMANENTE</div><div class="row"><strong id="nickname">—</strong><span id="short-id" class="pill">—</span><button id="copy-link">Copiar meu link</button></div><p class="muted">Seu link é pessoal: não compartilhe com outras pessoas. O mestre compartilha o convite geral da campanha.</p></section></main>
 <button class="d20" id="quick-die" title="Rolar um d20" aria-label="Rolar d20">20</button>
@@ -116,8 +116,15 @@ function renderAbilities(s){
  '<p class="muted">Nem todo ritual exige uma rolagem. Use uma fórmula cadastrada quando o mestre confirmar a mecânica.</p>'+
  '<h3 style="margin-top:22px">Rolagens fixas configuráveis</h3>'+rolls.map((x,i)=>'<div class="item"><div><strong>'+esc(x.label)+'</strong><small>'+esc(x.formula)+'</small></div><div class="actions"><button data-fixed-roll="'+i+'">🎲 Rolar</button><button data-del-roll="'+i+'">Remover</button></div></div>').join('')+
  '<div class="grid"><label class="field"><span>Nome do teste</span><input id="roll-label" placeholder="Ritual, habilidade ou teste" maxlength="64"></label><label class="field"><span>Fórmula validada</span><input id="roll-formula" placeholder="2d8+3" maxlength="32"></label></div><button class="primary" id="add-roll">Salvar rolagem</button>'+
- '<div id="v55-original-powers"></div>';
- if(s.systemId==='ordem-paranormal')window.MastermindPowerUI?.mountOriginal($('#v55-original-powers'),s);
+ '<p class="muted">Para aprender poderes de classe e paranormais, use a aba <strong>Poderes & Transcender</strong>.</p>';
+ if(s.systemId==='ordem-paranormal'){
+   window.MastermindPowerUI?.mountOriginal($('#v55-original-powers'),s);
+   $('#tabs [data-tab="powers"]').hidden=false;
+ }else{
+   $('#powers').innerHTML='<p>Poderes deste sistema ficam na ficha correspondente.</p>';
+   $('#tabs [data-tab="powers"]').hidden=true;
+   if(tab==='powers')activate('attributes');
+ }
 }
 function renderStory(s){
  $('#story').innerHTML='<h3>História e descrição</h3><p class="muted">Seus textos acompanham a ficha da campanha. O mestre também pode lê-los.</p><label class="field"><span>Descrição do personagem</span><textarea id="description" maxlength="12000">'+esc(s.description||'')+'</textarea></label><label class="field"><span>História</span><textarea id="history" maxlength="12000">'+esc(s.history||'')+'</textarea></label><button id="save-story" class="primary">Salvar história</button>';
