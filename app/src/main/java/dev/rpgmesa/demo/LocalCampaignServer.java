@@ -695,7 +695,9 @@ public final class LocalCampaignServer extends NanoHTTPD {
       JSONObject original=activeScene(c),response=new JSONObject()
         .put("revision",revision.get()).put("scene",JSONObject.NULL)
         .put("playerId",player.optString("id",""))
-        .put("sessionMode",sessionMode(c));
+        .put("sessionMode",sessionMode(c))
+        .put("playerRequests",ownRequests(c,player))
+        .put("bonusActions",c.optJSONObject("bonusActions")==null?0:c.getJSONObject("bonusActions").optInt(player.optString("id"),0));
       if(original==null){
         response.put("character",playerInfo(cid,player).opt("character"));
         response.put("rolls",visibleRolls(c,false)).put("movement",new JSONObject().put("tokens",new JSONArray())).put("initiative",new JSONObject().put("round",1).put("activeId","").put("entries",new JSONArray())).put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName",""));
@@ -905,6 +907,15 @@ public final class LocalCampaignServer extends NanoHTTPD {
         c.put("movementSpent",new JSONObject());
       }else if("next".equals(action)){
         if(entries.length()==0)throw new IllegalArgumentException("Adicione participantes à iniciativa");
+        JSONObject pendingBonus=c.optJSONObject("bonusTurns");
+        String currentId=state.optString("activeId");
+        if(pendingBonus!=null&&pendingBonus.optInt(currentId,0)>0){
+          pendingBonus.put(currentId,pendingBonus.getInt(currentId)-1);
+          // GM-approved table variant: one extra turn at the current initiative position.
+          advance(cid,"turn");
+          persist();
+          return new JSONObject(state.toString()).put("extraTurn",true);
+        }
         int index=-1;
         for(int i=0;i<entries.length();i++)if(entries.getJSONObject(i).optString("tokenId").equals(state.optString("activeId")))index=i;
         int next=(index+1)%entries.length();
@@ -1029,6 +1040,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       }
       result.put("movementLimits",limits);
       result.put("sessionMode",sessionMode(c));
+      result.put("playerRequests",new JSONArray(pendingRequests(c).toString()));
       result.put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName"))
         .put("campaignName",c.optString("name")).put("revision",revision.get())
         .put("rolls",visibleRolls(c,true)).put("initiative",new JSONObject(initiativeData(c).toString()))
@@ -1113,7 +1125,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       if(ch==null)v.put("character",JSONObject.NULL);
       else {
         JSONObject original=ch.getJSONObject("sheet"),pub=new JSONObject();
-        for(String k:new String[]{"name","class","nex","attrs","skills","resources","photo","sheetTheme","rituaisConhecidos","origem","trilha","systemId","effects","origin","trail","inventory","items","history","description","customRolls","powers","defense","notes","edition","mod","currentHP","currentFP","hitPointsMax","hitPointsCurrent","hitPointsTemp","spellSlots","klass","ancestry","level","armorClass","features","attacks","conditions","saveProficiencies","skillProficiencies","expertise","spellcastingAbility","hitDiceUsed","inspiration","speed","pointBudget","advantages","disadvantages","quirks","techniques","weapons","spells","languages","cultures","background","concept","techLevel","portrait","settings","parrySkill","blockSkill"})
+        for(String k:new String[]{"name","class","nex","attrs","skills","resources","photo","sheetTheme","rituaisConhecidos","origem","trilha","systemId","effects","origin","trail","inventory","items","history","description","customRolls","powers","powerChoices","defense","notes","edition","mod","currentHP","currentFP","hitPointsMax","hitPointsCurrent","hitPointsTemp","spellSlots","klass","ancestry","level","armorClass","features","attacks","conditions","saveProficiencies","skillProficiencies","expertise","spellcastingAbility","hitDiceUsed","inspiration","speed","pointBudget","advantages","disadvantages","quirks","techniques","weapons","spells","languages","cultures","background","concept","techLevel","portrait","settings","parrySkill","blockSkill"})
           if(original.has(k))pub.put(k,original.get(k));
         if(pub.optJSONObject("attrs")!=null && !"gurps".equals(original.optString("systemId")))
           pub.put("attrs",sanitizeAttributes(pub.getJSONObject("attrs")));
@@ -1680,6 +1692,12 @@ public final class LocalCampaignServer extends NanoHTTPD {
           if(!master(s))return json(403,"error","Acesso do mestre necessário");
           return response(200,getScenarios(p[4]));
         }
+        if(p.length==5&&p[1].equals("api")&&p[2].equals("play")&&p[4].equals("power-requests")){
+          JSONObject pl=checkPlayer(p[3],cookie(s,"rpg_guest"));
+          if(pl==null)return json(403,"error","Sessão inválida");
+          return response(200,playerRequests(p[3],pl));
+        }
+        if(path.equals("/powers-catalog.json"))return publishedJson("mastermind55_powers.json");
         if(p.length==5&&p[1].equals("api")&&p[2].equals("play")&&p[4].equals("journal")){
           JSONObject pl=checkPlayer(p[3],cookie(s,"rpg_guest"));
           if(pl==null)return json(403,"error","Sessão inválida");
@@ -1793,6 +1811,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
         if("profile".equals(p[4])){playerProfile(cid,player,b);return json(200,"ok","true");}
         if("canvas".equals(p[4])){savePlayerCanvas(player,b);return json(200,"ok","true");}
         if("journal".equals(p[4]))return response(200,updatePlayerJournal(player,b));
+        if("power-requests".equals(p[4]))return response(200,submitPlayerRequest(cid,player,b));
         if("roll".equals(p[4])){storeRoll(cid,player,b);return json(200,"ok","true");}
       }
       if(p.length>=5&&p[1].equals("api")&&p[2].equals("admin")&&p[3].equals("campaigns")){
@@ -1813,6 +1832,8 @@ public final class LocalCampaignServer extends NanoHTTPD {
         if(p.length==6&&p[5].equals("advance")&&method.equals("POST")){
           advance(cid,b.getString("kind"));return json(200,"ok","true");
         }
+        if(p.length==6&&p[5].equals("power-request")&&method.equals("POST"))
+          return response(200,answerPlayerRequest(cid,b));
         if(p.length==6&&p[5].equals("session-mode")&&method.equals("POST"))
           return response(200,setSessionMode(cid,b));
         if(p.length==6&&p[5].equals("movement")&&method.equals("POST")){
