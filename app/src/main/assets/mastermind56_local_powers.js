@@ -78,7 +78,7 @@ function learn(name){
  const nex=milestones[prev.length];
  const element=mode==='transcend'?powers.find(p=>p.name===name)?.element||'':'';
  const choice={type:mode,name,nex,...(element?{element}:{}),source:'mastermind-v056'};
- const updated=[...prev,choice];
+ const updated=[...(Array.isArray(s.powerChoices)?s.powerChoices:[]),choice];
  const old=Array.isArray(s.powers)?s.powers:[];
  if(!window.confirm('Registrar '+name+' como escolha de NEX '+nex+'% na ficha '+(s.name||'')+'? Confirme os pré-requisitos com o mestre.'))return;
  const ok=pc.update(selected(),{powers:[...old,name],powerChoices:updated});
@@ -115,6 +115,8 @@ if(mini)mini.insertAdjacentHTML('afterbegin',
 mini?.addEventListener('click',e=>{if(e.target.closest('#v56-go-powers'))open()});
 char?.addEventListener('change',()=>setTimeout(()=>{chosen='';show()},45));
 document.addEventListener('rpg:character-selected',()=>setTimeout(()=>{chosen='';show()},0));
+$('#rpg05-new-char')?.addEventListener('click',()=>{chosen='';note='';show()});
+$('#rpg05-del-char')?.addEventListener('click',()=>{chosen='';note='';show()});
 $('#op-nex')?.addEventListener('change',()=>setTimeout(show,0));
 window.Mastermind56Powers={show,open,learn,get count(){return powers.length},get panel(){return panel}};
 show();

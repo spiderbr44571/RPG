@@ -1,0 +1,7 @@
+node_modules/
+test-results/
+playwright-report/
+.runtime/
+.gradle/
+app/build/
+local.properties

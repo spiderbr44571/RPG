@@ -1,0 +1,2 @@
+const {defineConfig}=require('@playwright/test');
+module.exports=defineConfig({testDir:'tests/e2e',workers:1,timeout:30000,reporter:[['list'],['html',{open:'never'}]],use:{viewport:{width:412,height:915},headless:true,launchOptions:process.env.CI?{}:{executablePath:'/usr/bin/chromium',args:['--no-sandbox']},screenshot:'only-on-failure',trace:'retain-on-failure'},webServer:{command:'python3 -m http.server 8123 --directory app/src/main/assets',url:'http://127.0.0.1:8123',reuseExistingServer:!process.env.CI}});

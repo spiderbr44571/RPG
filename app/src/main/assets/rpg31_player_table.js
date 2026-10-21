@@ -82,8 +82,9 @@ function sheet(){
  if(!keys.includes(tab))tab=keys[0];
  $('#sheet-title').textContent=readable(s.name)||'Ficha pendente';
  $('#sheet-tabs').innerHTML=keys.map(k=>'<button data-tab="'+esc(k)+'" class="'+(k===tab?'active':'')+'">'+esc(k)+'</button>').join('');
+ if(tab==='Poderes e Transcender'){root.MastermindPowerUI?.mountLive($('#sheet-data'),s);return;}
+ root.MastermindPowerUI?.unmountLive();
  $('#sheet-data').innerHTML=content(groups[tab]);
- if(tab==='Poderes e Transcender')root.MastermindPowerUI?.mountLive($('#sheet-data'),s);
 }
 function initiative(){
  const order=state?.initiative?.entries||[];
@@ -176,7 +177,7 @@ function mount(){
  document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal').forEach(m=>m.classList.remove('open'))});
  setInterval(refresh,1800);refresh();
 }
-root.RPG31_PLAYER={mount,get state(){return state},get selectedTokenId(){return selected},
+root.RPG31_PLAYER={mount,refresh,get state(){return state},get selectedTokenId(){return selected},
  get sceneId(){return state?.scene?.id||''},notify:msg};
 
 })(window);

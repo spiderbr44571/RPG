@@ -1,3 +1,11 @@
+# Mastermind v0.58 — integração testada das telas e pedidos
+
+Corrige a aba de Poderes que sobrescrevia outras seções, sincronização da ficha LAN, expiração de ações extras e pedidos de turnos antigos. Acrescenta testes reais de navegador/servidor e teste da WebView do APK em emulador no CI.
+
+Consulte [a auditoria e as limitações](docs/VERIFICACAO-v058.md). O catálogo completo de regras, afinidades e efeitos individuais continua parcial. O APK só é publicado se os testes novos, os checks existentes do workflow e a verificação de conteúdo passarem. Compatibilidade de assinatura com APKs anteriores não foi estabelecida; não desinstale nem limpe dados para contornar falha de atualização.
+
+---
+
 # Mastermind v0.57 — correção das telas que não carregavam (20/10/2026)
 
 A v0.55 incluía código para os poderes e a roda de ferramentas, mas **não estava operacional em todas as interfaces**. A v0.56 acrescentou a aba de poderes à tela principal do Android, mas faltavam duas correções cruciais. Foram identificadas em execução real em navegador com resolução mobile e corrigidas nesta versão:

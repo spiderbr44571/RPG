@@ -242,5 +242,6 @@ async function refresh(force=false){
 }
 $('#copy-link').onclick=async()=>{if(!ownLink)return message('O link ainda não foi criado');try{await navigator.clipboard.writeText(ownLink);message('Link pessoal copiado')}catch{message('Seu link pessoal: '+ownLink)}};
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});window.addEventListener('focus',()=>refresh());
+window.addEventListener('storage',e=>{if(e.key===memoKey){try{prefs=JSON.parse(e.newValue)||{}}catch{prefs={}}appearance();if(tab==='settings')renderSettings();}});
 appearance();renderSettings();activate('attributes');loadCanvas();refresh();setInterval(()=>{if(!document.hidden)refresh()},2000);
 </script></body></html>

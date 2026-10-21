@@ -110,10 +110,9 @@ public final class LocalCampaignServer extends NanoHTTPD {
         out.write(data);
         out.getFD().sync();
       }
-      if(!tmp.renameTo(database)){
-        if(database.exists()&&!database.delete())throw new IOException("Não foi possível salvar campanha");
-        if(!tmp.renameTo(database))throw new IOException("Erro ao gravar dados da mesa");
-      }
+      // Replace only after the complete new file is durable. Never delete the old database first.
+      java.nio.file.Files.move(tmp.toPath(),database.toPath(),
+        java.nio.file.StandardCopyOption.ATOMIC_MOVE,java.nio.file.StandardCopyOption.REPLACE_EXISTING);
       revision.incrementAndGet();
     }
   }
@@ -318,6 +317,10 @@ public final class LocalCampaignServer extends NanoHTTPD {
       }
       else throw new IllegalArgumentException("Evento desconhecido");
       c.put("movementSpent",new JSONObject());
+      c.put("bonusActions",new JSONObject());
+      if(kind.equals("scene")){
+        c.put("surtoUsage",new JSONObject());c.put("bonusTurns",new JSONObject());
+      }
       JSONArray characters=c.getJSONArray("characters");
       for(int i=0;i<characters.length();i++){
         JSONObject s=characters.getJSONObject(i).getJSONObject("sheet");
@@ -904,7 +907,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
         throw new IllegalArgumentException("A iniciativa fica pausada durante o interlúdio.");
       if("reset".equals(action)){
         state.put("entries",new JSONArray()).put("round",1).put("activeId","");
-        c.put("movementSpent",new JSONObject());
+        c.put("movementSpent",new JSONObject());c.put("bonusActions",new JSONObject());c.put("bonusTurns",new JSONObject());
       }else if("next".equals(action)){
         if(entries.length()==0)throw new IllegalArgumentException("Adicione participantes à iniciativa");
         JSONObject pendingBonus=c.optJSONObject("bonusTurns");
@@ -1227,6 +1230,12 @@ public final class LocalCampaignServer extends NanoHTTPD {
     int nex=sheet.optInt("nex",5);
     if(powerSlots(nex)<=usedPowerSlots(sheet))
       throw new IllegalArgumentException("Não há escolhas de poder disponíveis no NEX atual.");
+    JSONArray known=sheet.optJSONArray("powers");
+    if(known!=null)for(int i=0;i<known.length();i++){
+      Object value=known.opt(i);
+      String existing=value instanceof JSONObject?((JSONObject)value).optString("name",((JSONObject)value).optString("nome")):String.valueOf(value);
+      if(name.equals(existing))throw new IllegalArgumentException("Este poder já está na ficha.");
+    }
     JSONArray prev=choices(sheet);
     for(int i=0;i<prev.length();i++)
       if(name.equals(prev.getJSONObject(i).optString("name")))
@@ -1286,7 +1295,8 @@ public final class LocalCampaignServer extends NanoHTTPD {
         }
         if(!chosen.equals(init.optString("activeId",""))||chosen.isEmpty())
           throw new IllegalArgumentException("Solicite essa ação durante o seu turno.");
-        req.put("tokenId",chosen);
+        req.put("tokenId",chosen).put("turnStamp",c.optInt("turn",1))
+          .put("sceneStamp",c.optInt("scene",1)).put("mapStamp",map.optString("id"));
         if("delay".equals(kind)){
           String target=field(input,"targetId",70);
           if(target.equals(chosen))throw new IllegalArgumentException("Escolha outro participante.");
@@ -1318,6 +1328,14 @@ public final class LocalCampaignServer extends NanoHTTPD {
     synchronized(lock){
       JSONObject c=campaign(cid),bonus=c.optJSONObject("bonusActions");
       String id=player.optString("id");
+      JSONObject map=activeScene(c);String active=initiativeData(c).optString("activeId");
+      boolean own=false;
+      if(map!=null)for(int i=0;i<map.getJSONArray("tokens").length();i++){
+        JSONObject token=map.getJSONArray("tokens").getJSONObject(i);
+        if(active.equals(token.optString("id"))&&id.equals(token.optString("ownerPlayerId"))
+          &&player.optString("characterId").equals(token.optString("characterId")))own=true;
+      }
+      if(!own||"interlude".equals(sessionMode(c)))throw new IllegalArgumentException("Use a ação adicional no seu turno.");
       if(bonus==null||bonus.optInt(id,0)<=0)
         throw new IllegalArgumentException("Não há ações adicionais disponíveis.");
       bonus.put(id,bonus.getInt(id)-1);persist();
@@ -1363,7 +1381,10 @@ public final class LocalCampaignServer extends NanoHTTPD {
           JSONObject state=initiativeData(c);
           JSONArray entries=state.optJSONArray("entries");
           String token=req.optString("tokenId");
-          if("interlude".equals(sessionMode(c))||!token.equals(state.optString("activeId")))
+          if("interlude".equals(sessionMode(c))||!token.equals(state.optString("activeId"))
+            ||req.optInt("turnStamp",-1)!=c.optInt("turn",1)
+            ||req.optInt("sceneStamp",-1)!=c.optInt("scene",1)
+            ||activeScene(c)==null||!req.optString("mapStamp").equals(activeScene(c).optString("id")))
             throw new IllegalArgumentException("O turno mudou ou o interlúdio começou. Solicitação expirada.");
           if("pass".equals(type)){
             initiativeAction(cid,new JSONObject().put("action","next"));

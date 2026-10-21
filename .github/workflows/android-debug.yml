@@ -13,7 +13,7 @@ jobs:
   apk:
     name: Compilar aplicativo Android
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 40
     steps:
       - name: Baixar codigo
         uses: actions/checkout@v4
@@ -205,6 +205,18 @@ jobs:
           PY
           for file in /tmp/lan_join.html.js /tmp/lan_player.html.js /tmp/lan_master.html.js /tmp/lan_gurps.html.js; do node --check "$file"; done
 
+      - name: Preparar testes reais de navegador e servidor
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Testar boot real, persistência e aprovação na LAN
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npm test
+
       - name: Compilar APK
         shell: bash
         run: |
@@ -219,6 +231,40 @@ jobs:
           name: log-compilacao
           path: build-log.txt
           if-no-files-found: ignore
+
+      - name: Habilitar aceleração do emulador
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Testar APK instalado no Android
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          script: gradle :app:connectedDebugAndroidTest --stacktrace --no-daemon
+
+      - name: Verificar conteúdo e assinatura do APK testado
+        run: |
+          python3 tests/verify_apk.py app/build/outputs/apk/debug/app-debug.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-debug.apk > apk-signature.txt
+          sha256sum app/build/outputs/apk/debug/app-debug.apk > apk-sha256.txt
+
+      - name: Publicar evidências dos testes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mastermind-verification
+          path: |
+            playwright-report/
+            test-results/
+            app/build/reports/androidTests/
+            app/build/outputs/androidTest-results/
+            apk-signature.txt
+            apk-sha256.txt
 
       - name: Publicar APK debug
         if: success()

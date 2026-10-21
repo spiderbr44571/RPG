@@ -8,9 +8,11 @@
  const base='/api/play/'+cid;
  const choicesNex=[15,30,45,60,75,90];
  let catalog=null,requests=[],serverChoices=[],slots=0,used=0,loadAt=0,busy=false,original=null,live=null;
- let lastCharacter=null,selectedCategory='transcend',chosen='';
+ let lastCharacter=null,selectedCategory='transcend',chosen='',feedback='',syncing=false,polling=false;
+ const rendered=new WeakMap();
+ function startPolling(){if(polling)return;polling=true;setInterval(()=>{if(!document.hidden)sync().then(renderTurns)},2000);}
  const get=()=>root.RPG31_PLAYER?.state?.character||lastCharacter||null;
- const notify=s=>{const el=$('#v55-status')||$('#sheet-status');if(el)el.textContent=s;else root.RPG31_PLAYER?.notify?.(s)};
+ const notify=s=>{feedback=s;const el=$('#v55-status')||$('#sheet-status');if(el)el.textContent=s;else root.RPG31_PLAYER?.notify?.(s)};
  async function api(path,method='GET',payload){
   const r=await fetch(base+'/'+path,{method,credentials:'same-origin',
    headers:{'Content-Type':'application/json'},cache:'no-store',body:payload?JSON.stringify(payload):undefined});
@@ -25,12 +27,13 @@
   catalog=await r.json();return catalog;
  }
  async function sync(){
+  if(syncing)return;syncing=true;
   try{
    await ensureCatalog();
    const state=await api('power-requests');
    requests=state.requests||[];serverChoices=state.choices||[];slots=state.slots||0;used=state.used||0;
-   for(const host of [original,live])if(host?.isConnected)render(host,lastCharacter||get(),host===live);
-  }catch(e){notify(e.message)}
+   for(const host of [original,live])if(host?.isConnected&&host.dataset.v55Container)render(host,get(),host===live);
+  }catch(e){notify(e.message)}finally{syncing=false}
  }
  const present=sheet=>Array.isArray(sheet?.powers)?sheet.powers.map(x=>typeof x==='string'?x:x?.name||x?.nome).filter(Boolean):[];
  const elementCounts=()=>serverChoices.filter(x=>x.type==='transcend').reduce((acc,x)=>{
@@ -59,6 +62,10 @@
  }
  function render(rootEl,sheet,liveMode){
   if(!rootEl||!catalog)return;
+  const signature=JSON.stringify([sheet,serverChoices,requests,slots,used,chosen,selectedCategory,feedback]);
+  if(rendered.get(rootEl)===signature&&rootEl.querySelector('.v55-power-section'))return;
+  rendered.set(rootEl,signature);
+  const custom=rootEl.querySelector('#v55-custom')?.value||'';
   const n=Number(sheet?.nex)||5,known=present(sheet);
   const all=catalogItems(sheet);
   if(!all.some(x=>x.name===chosen))chosen='';
@@ -74,14 +81,15 @@
     'Escolha entre sugestões de poderes de classe; outras opções do livro podem ser solicitadas pelo campo personalizado.')+'</p>'+
    '<div class="v55-power-grid">'+cards(all,known)+'</div>'+
    (selectedCategory==='class'?'<label>Outro poder de classe do seu livro <input id="v55-custom" maxlength="90" placeholder="Nome exato do poder"></label>':'')+
-   '<button type="button" id="v55-request-power" '+(slots-used<=0?'disabled':'')+'>Enviar escolha para aprovação</button>'+
+   '<button type="button" id="v55-request-power" '+(slots-used<=0||requests.length||busy?'disabled':'')+'>Enviar escolha para aprovação</button>'+
    '<div class="v55-known"><h4>Poderes aprendidos</h4>'+(known.length?known.map(x=>'<span>'+escapeHtml(x)+'</span>').join(''):'<small>Nenhum poder cadastrado ainda.</small>')+'</div>'+
    '<div class="v55-progress"><h4>Histórico de evolução</h4>'+(powerRecords.length?powerRecords.map(x=>'<div>NEX '+x.nex+'% · '+escapeHtml(x.name)+
       (x.type==='transcend'?' · Transcender / '+escapeHtml(x.element||''):' · Classe')+'</div>').join(''):
     '<small>As escolhas aprovadas aparecem aqui.</small>')+'</div>'+
    (requests.length?'<div class="v55-pending"><h4>Aguardando mestre</h4>'+requests.map(r=>'<p>'+escapeHtml(r.name||
      ({pass:'Passar a vez',delay:'Atrasar iniciativa',surto:'Surto Temporal'}[r.type]||r.type))+'</p>').join('')+'</div>':'')+
-   '<p id="v55-status" role="status"></p></section>';
+   '<p id="v55-status" role="status">'+escapeHtml(feedback)+'</p></section>';
+  const field=rootEl.querySelector('#v55-custom');if(field)field.value=custom;
  }
  async function request(type,name,targetId){
   if(busy)return;
@@ -89,7 +97,7 @@
   try{
    await api('power-requests','POST',{type,...(name?{name}:{}),...(targetId?{targetId}:{})});
    notify('Solicitação enviada ao mestre para aprovação.');
-   await sync();
+   busy=false;await sync();
   }catch(e){notify(e.message)}
   finally{busy=false}
  }
@@ -110,7 +118,7 @@
   if(action){
    const type=action.dataset.v55Turn;
    if(type==='consume'){
-    api('consume-bonus','POST',{}).then(()=>{notify('Ação adicional marcada como utilizada.');sync()}).catch(err=>notify(err.message));
+    api('consume-bonus','POST',{}).then(()=>{notify('Ação adicional marcada como utilizada.');root.RPG31_PLAYER?.refresh?.();sync()}).catch(err=>notify(err.message));
     return;
    }
    if(type==='delay'){
@@ -125,7 +133,7 @@
  });
  function mountOriginal(rootEl,sheet){
   if(!rootEl)return;
-  lastCharacter=sheet;original=rootEl;rootEl.dataset.v55Container='original';
+  startPolling();lastCharacter=sheet;original=rootEl;rootEl.dataset.v55Container='original';
   if(catalog)render(rootEl,sheet,false);else ensureCatalog().then(()=>sync()).catch(e=>notify(e.message));
  }
  function mountLive(rootEl,sheet){
@@ -157,7 +165,9 @@
      (pending?'<p>Aguardando aprovação do mestre: '+requests.map(x=>escapeHtml(x.name||x.type)).join(', ')+'</p>':'')+
      '<small>Surto Temporal normalmente concede uma ação padrão extra; o mestre pode autorizar um turno completo pela regra da mesa. Seus testes de dados não dependem da ordem de iniciativa.</small>';
  }
+ function unmountLive(){if(live){delete live.dataset.v55Container;rendered.delete(live);}live=null;}
  function initLive(){
+  if($('#v55-action-launch'))return;startPolling();
   const stage=$('.stage');if(!stage)return;
   const button=document.createElement('button');
   button.type='button';button.id='v55-action-launch';button.dataset.v55OpenActions='1';
@@ -173,8 +183,8 @@
      mountLive(data,root.RPG31_PLAYER.state.character);
    }
   });
-  setInterval(()=>{if(!document.hidden)sync().then(()=>{if(!panel.hidden)renderTurns()})},5500);
+
   sync();
  }
- root.MastermindPowerUI={initLive,mountLive,mountOriginal,sync,renderTurns,get catalog(){return catalog}};
+ root.MastermindPowerUI={initLive,mountLive,mountOriginal,unmountLive,sync,renderTurns,get catalog(){return catalog}};
 })(window);
