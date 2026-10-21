@@ -69,6 +69,9 @@ test('live player requests Surto and master approves through the actual tabletop
  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(server.url+'/scene/test');
  await expect(page.locator('#hero-name')).toHaveText('Agente Teste');
  await page.locator('#r54-toggle').click();await page.locator('[data-r54-action="actions"]').click();
+ await page.locator('#v55-delay-target').selectOption('t2');
+ await page.evaluate(()=>MastermindPowerUI.renderTurns());
+ await expect(page.locator('#v55-delay-target')).toHaveValue('t2');
  await page.locator('[data-v55-turn="surto"]').click();
  const master=await browser.newPage();master.on('pageerror',e=>errors.push(e.message));await master.goto(server.url+'/master');
  await master.locator('#key').fill('master-test');await master.locator('#sign').click();await master.locator('[data-camp="test"]').click();
@@ -77,4 +80,10 @@ test('live player requests Surto and master approves through the actual tabletop
  await expect(page.locator('.v55-bonus')).toContainText('1 ação');await page.locator('[data-v55-turn="consume"]').click();
  await expect(page.locator('.v55-bonus')).toHaveCount(0);
  expect(errors).toEqual([]);await page.screenshot({path:'test-results/live-mobile.png'});await master.close();
+});
+test('switching to interlude invalidates pending turn requests even when combat resumes',async()=>{
+ const r=await player('/power-requests',{type:'pass'});
+ await gm('/session-mode',{mode:'interlude'});await gm('/session-mode',{mode:'combat'});
+ expect((await gm('/power-request',{id:r.data.request.id,action:'approve'})).status).toBe(400);
+ expect((await player('/scenario')).data.initiative.activeId).toBe('t1');
 });

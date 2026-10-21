@@ -20,7 +20,7 @@ Gravação do banco agora substitui o arquivo atomicamente após sincronizar o n
 
 ## Validação
 
-`npm ci && npm test`: oito testes de integração em Chromium, incluindo jogador e mestre em páginas distintas aprovando Surto pelos botões reais. Testes antigos: 37 passam e cinco falham também na base v0.57 (`ai_resilience`, `ai_response_quality`, `cloud_free`, `rules_chat_regression`, `universal_ai_chat`). Não foram removidos ou marcados como aprovados.
+`npm ci && npm test`: nove testes de integração em Chromium, incluindo jogador e mestre em páginas distintas aprovando Surto pelos botões reais. Testes antigos: 37 passam e cinco falham também na base v0.57 (`ai_resilience`, `ai_response_quality`, `cloud_free`, `rules_chat_regression`, `universal_ai_chat`). Não foram removidos ou marcados como aprovados.
 
 CI adiciona instalação do APK em emulador Android 29 e teste da WebView real: boot, botão visível, 22 cartões, aprendizagem, NEX e persistência após reload. Publicação do APK depende desse teste e da comparação byte a byte de todos os assets com o checkout. O resultado final da execução deve ser consultado no GitHub Actions; esta descrição não afirma antecipadamente que passou.
 

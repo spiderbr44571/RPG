@@ -181,6 +181,12 @@ public final class LocalCampaignServer extends NanoHTTPD {
         throw new IllegalArgumentException("Selecione Combate ou Interlúdio.");
       if(!mode.equals(sessionMode(c))){
         c.put("sessionMode",mode);
+        c.put("bonusActions",new JSONObject());c.put("bonusTurns",new JSONObject());
+        JSONArray pending=pendingRequests(c);
+        for(int i=0;i<pending.length();i++){
+          JSONObject req=pending.getJSONObject(i);
+          if(!"class".equals(req.optString("type"))&&!"transcend".equals(req.optString("type")))req.put("turnStamp",-1);
+        }
         // Movement allowance applies only during combat, and resets on each transition.
         // Initiative entries/order are retained intact for returning to combat.
         c.put("movementSpent",new JSONObject());

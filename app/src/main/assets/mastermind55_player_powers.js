@@ -144,6 +144,7 @@
  function renderTurns(){
   const s=root.RPG31_PLAYER?.state,container=$('#v55-turn-panel');
   if(!container||container.hidden)return;
+  const delayTarget=$('#v55-delay-target')?.value||'';
   const own=(s?.scene?.tokens||[]).find(t=>t.movable),active=s?.initiative?.activeId;
   const can=!!own&&active===own.id&&s?.sessionMode!=='interlude';
   const targets=(s?.initiative?.entries||[]).filter(t=>t.tokenId!==own?.id);
@@ -164,6 +165,7 @@
       '<small>Surto Temporal aparece quando for aprendido e aprovado pelo mestre.</small>')+'</div>'+
      (pending?'<p>Aguardando aprovação do mestre: '+requests.map(x=>escapeHtml(x.name||x.type)).join(', ')+'</p>':'')+
      '<small>Surto Temporal normalmente concede uma ação padrão extra; o mestre pode autorizar um turno completo pela regra da mesa. Seus testes de dados não dependem da ordem de iniciativa.</small>';
+  const selector=$('#v55-delay-target');if(selector&&targets.some(t=>t.tokenId===delayTarget))selector.value=delayTarget;
  }
  function unmountLive(){if(live){delete live.dataset.v55Container;rendered.delete(live);}live=null;}
  function initLive(){
