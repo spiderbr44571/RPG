@@ -29,7 +29,7 @@ public class BootTest extends InstrumentationTestCase {
  private void waitFor(String expression)throws Exception{
   long until=System.currentTimeMillis()+30000;
   while(System.currentTimeMillis()<until){if("true".equals(js(expression)))return;Thread.sleep(150);}
-  fail("APK boot assertion failed: "+expression+"; URL="+js("location.href"));
+  fail("APK boot assertion failed: "+expression+"; URL="+js("location.href")+"; WebView="+js("navigator.userAgent")+"; modules="+js("JSON.stringify({powers:!!window.Mastermind56Powers,characters:!!window.MastermindCharacters,tabs:!!window.RPG14})"));
  }
  public void testInstalledApkPowersAndPersistence()throws Exception{
   Intent intent=new Intent(getInstrumentation().getTargetContext(),MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
