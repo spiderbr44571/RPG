@@ -6,7 +6,7 @@ const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLo
 const sources=()=>root.OP13?.pack||{};
 const overridesKey='mastermind63-personal-descriptions-v1';
 const getOverrides=()=>{try{return JSON.parse(localStorage.getItem(overridesKey)||'{}')}catch{return {}}};
-const itemKey=x=>[x.systemId||'',norm(x.name),norm(x.kind||''),norm(x.element||'')].join('|');
+const itemKey=x=>[x.systemId||'',norm(x.name),norm(x.kind||''),norm(x.element||''),norm(x.className||''),String(x.level||'')].join('|');
 function packItems(){
  const p=sources(),arr=[];
  const scan=(value,kind)=>{
