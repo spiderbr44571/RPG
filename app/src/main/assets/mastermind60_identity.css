@@ -1,0 +1,88 @@
+/* Mastermind 0.60 — launcher identity, home-menu and free-standing dice.
+   Brand mark is fixed. Interactive surfaces follow the user's selected palette. */
+:root {
+  --mm60-icon: var(--v10-light, var(--accent, #d7b780));
+  --mm60-icon-base: var(--v10-strong, var(--panel2, #1b1720));
+}
+html body #r09-dice {
+  width:78px!important;height:78px!important;min-width:72px!important;min-height:72px!important;
+  display:grid!important;place-items:center!important;
+  background:radial-gradient(circle at 40% 24%, color-mix(in srgb,var(--accent) 24%,var(--panel)),var(--mm60-icon-base) 83%)!important;
+  border:2px solid var(--mm60-icon)!important;border-radius:22px!important;
+  box-shadow:inset 0 1px 5px color-mix(in srgb,var(--mm60-icon) 28%,transparent),
+   0 8px 25px #0009,0 0 17px var(--v10-shadow,var(--accent-soft))!important;
+  filter:drop-shadow(0 0 11px var(--v10-shadow,transparent))!important;
+  color:var(--mm60-icon)!important;
+}
+html body #r09-dice svg.r09-home-svg {
+  display:block!important;visibility:visible!important;opacity:1!important;
+  width:58px!important;height:58px!important;max-width:76%!important;
+  overflow:visible;filter:drop-shadow(0 0 5px var(--v10-shadow,transparent));
+}
+html body #r09-dice .r09-home-roof {
+  fill:var(--mm60-icon);stroke:color-mix(in srgb,var(--mm60-icon) 34%,var(--panel));
+  stroke-width:2.8;stroke-linejoin:round;
+}
+html body #r09-dice .r09-home-body {
+  fill:var(--mm60-icon);stroke:color-mix(in srgb,var(--mm60-icon) 25%,var(--panel));
+  stroke-width:1.8;stroke-linejoin:round;
+}
+html body #r09-dice .r09-home-door {
+  fill:var(--mm60-icon-base);stroke:color-mix(in srgb,var(--mm60-icon) 70%,var(--panel));
+  stroke-width:2.2;
+}
+html body #r09-dice:focus-visible {outline:3px solid var(--accent)!important;outline-offset:5px}
+html body #r09-dice[aria-expanded=true] {background:var(--accent-soft)!important}
+html body .r09-dock:before {
+  background:radial-gradient(circle,color-mix(in srgb,var(--accent) 30%,transparent),transparent 72%)!important;
+}
+/* Remove every card/tile background from the dice themselves.
+   Dice remain an SVG silhouette, shaped to match each die rather than a CSS square. */
+html body #v10-roll-burst .v101-die,
+html[data-paranormal="base"] body #v10-roll-burst .v101-die {
+  background:transparent!important;background-image:none!important;
+  border:0!important;box-shadow:none!important;border-radius:0!important;
+  padding:0!important;margin:0!important;color:var(--fg)!important;
+  outline:0!important;filter:none!important;isolation:isolate;
+}
+html body #v10-roll-burst .v101-die::before,
+html body #v10-roll-burst .v101-die::after {content:none!important;display:none!important}
+html body #v10-roll-burst .v101-die svg {
+  display:block!important;position:relative!important;
+  width:100%!important;height:100%!important;
+  background:transparent!important;box-shadow:none!important;
+  filter:drop-shadow(0 3px 7px #0009)!important;
+}
+html body #v10-roll-burst .v101-die svg path:first-child {
+  fill:color-mix(in srgb,var(--v10-accent,var(--accent)) 70%,#9d2133)!important;
+  stroke:var(--v10-light,var(--fg))!important;stroke-width:3.3!important;
+  stroke-linecap:round;stroke-linejoin:round;
+}
+html[data-paranormal="base"] body #v10-roll-burst .v101-die svg path:first-child {
+  fill:color-mix(in srgb,var(--accent,#c7a87b) 38%,#af111d)!important;
+}
+html body #v10-roll-burst .v101-die svg path:nth-child(2) {
+  fill:none!important;stroke:var(--v10-light,var(--fg))!important;
+  stroke-width:2.5!important;stroke-linecap:round;stroke-linejoin:round;
+}
+html body #v10-roll-burst .v101-die-face,
+html[data-paranormal="base"] body #v10-roll-burst .v101-die-face {
+  color:#fff!important;fill:#fff!important;
+  text-shadow:0 1px 4px #0009!important;font-weight:900!important;
+  top:38%!important;pointer-events:none;
+}
+html body #v10-roll-burst .v101-die-tag {
+  color:#fff!important;text-shadow:0 1px 3px #000b!important;
+  bottom:11%!important;pointer-events:none;
+}
+/* The roll animation remains independent of the menu's home button. */
+@media(max-width:390px){
+  html body #v10-roll-burst .v101-roll-faces {gap:6px!important}
+  html body #v10-roll-burst .v101-die {width:min(21vw,82px)!important;height:min(24vw,92px)!important}
+}
+@media(prefers-reduced-motion:reduce){
+  html body #r09-dice,html body #v10-roll-burst .v101-die{animation:none!important;transition:none!important}
+}
+/* Show the exact selected brand artwork in the old brand block, keeping alt text in HTML. */
+html body .brand-glyph {background-image:url('mastermind_logo.png')!important;
+ background-position:center!important;background-size:cover!important}
