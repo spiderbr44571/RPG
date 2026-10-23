@@ -13,7 +13,7 @@ assert.match(js,/s\.data\?\.sessionMode==='interlude'/);
 const made=[];
 function element(tag){
  const el={tagName:tag,style:{overflow:'',setProperty(){}},classList:{add(){},remove(){},toggle(){}},
-  listeners:{},innerHTML:'',hidden:false,textContent:'',append(){},remove(){},querySelector(){return null},
+  listeners:{},innerHTML:'',hidden:false,textContent:'',append(){},appendChild(child){this.lastChild=child},remove(){},querySelector(){return null},
   querySelectorAll(){return []},addEventListener(name,cb){this.listeners[name]=cb},contains(){return true},
   setAttribute(){},scrollTop:0,dataset:{}};
  made.push(el);return el;
