@@ -48,3 +48,16 @@ Os PDFs continuam no armazenamento autorizado do usuário. Nenhuma reprodução 
 6. Registre vantagens/desvantagens, edite a história e exporte a ficha.
 7. Reabra o app e confira os dados persistidos.
 8. Na Mestragem, adicione a ficha GURPS, atribua a um jogador via convite e confira PV/PF, 3d6, cenas e rodadas no navegador.
+
+## Atualização v0.61 — catálogo de características e edição de perícias
+
+- Índice pesquisável do **GURPS 4e Basic Set**: **298 vantagens**, **307 desvantagens**, **17 qualidades menores** e **42 peculiaridades** (664 entradas). Inclui nomes originais em inglês, custo nominal quando conhecido, custo por nível quando aplicável e referência de página Bxx.
+- O catálogo usa somente dados factuais de indexação, não reproduz os textos dos livros. Fonte: [GCS Master Library, Basic Set Traits.adq](https://github.com/richardwilkes/gcs_master_library/blob/main/Library/Basic%20Set/Basic%20Set%20Traits.adq), contribuidores do GCS, licença [MPL-2.0](https://github.com/richardwilkes/gcs_master_library/blob/main/LICENSE); GURPS é marca de Steve Jackson Games. As descrições continuam restritas ao livro possuído pelo usuário.
+- **68 entradas têm custo variável ou personalizado** na fonte: o app exige informar o custo real antes de cadastrar. O valor indicado para características por nível é uma base sem modificadores, ajustável no formulário. Combinações, variantes, pré-requisitos e alterações de autocontrole continuam sob validação do mestre.
+- As características tratadas como atributos pelo motor são sinalizadas para evitar contagem dupla. O catálogo corresponde à edição básica; vantagens e desvantagens exclusivas de suplementos adicionais não estão incluídas.
+- A busca filtra por nome, tipo e página, apresentando até 80 correspondências por vez para manter desempenho no Android; todos os 664 nomes ficam disponíveis para pesquisa.
+- Em **Perícias**, o botão **Editar** reabre os dados atuais de nome, especialização, atributo, dificuldade, pontos e bônus. **Salvar alterações** modifica o mesmo registro, sem remover a perícia, preservando sua posição e associações, e recalcula NH e saldo de pontos. **Cancelar edição** não altera o registro.
+- Nenhum formato de ficha ou chave de localStorage foi migrado, renomeado ou descartado; fichas já salvas seguem válidas, e a edição online do mestre usa o mesmo fluxo de salvar no servidor.
+- Verificações previstas: teste unitário v61, E2E GURPS v61 e workflow Android; execução efetiva do CI e APK devem ser conferidas separadamente.
+
+**Escopo pendente:** versão completa em português com nomenclatura literal da tradução oficial, validação automática dos modificadores e pré-requisitos específicos, textos autorizados do livro e suplemento por suplemento. Não confundir o índice nominal com a automação integral de todas as regras.
