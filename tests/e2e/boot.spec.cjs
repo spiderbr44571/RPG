@@ -7,13 +7,13 @@ test('APK assets boot: visible powers, NEX, persistence and isolated characters'
  const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
  await page.goto('http://127.0.0.1:8123/demo-offline.html');
  await page.evaluate(()=>RPG_DEMO.navigate('sheet'));
- await page.locator('#v56-quick-powers').click();
+ await page.locator('#screen-sheet .r14-tabs [data-r14-tab="advancement"]').click();
  await expect(page.locator('#v56-powers')).toBeVisible();
  await page.evaluate(()=>MastermindCharacters.update(MastermindCharacters.selectedId(),{nex:45}));
- await page.locator('#v56-quick-powers').click();
+ await page.locator('#screen-sheet .r14-tabs [data-r14-tab="advancement"]').click();
  await page.locator('[data-v56-select="Encarar a Morte"]').click();await page.locator('#v56-learn').click();
  await expect(page.locator('.v56-power-learned')).toHaveCount(1);
- await page.reload();await page.evaluate(()=>RPG_DEMO.navigate('sheet'));await page.locator('#v56-quick-powers').click();
+ await page.reload();await page.evaluate(()=>RPG_DEMO.navigate('sheet'));await page.locator('#screen-sheet .r14-tabs [data-r14-tab="advancement"]').click();
  await expect(page.locator('.v56-power-learned')).toHaveCount(1);
  await page.locator('#rpg05-new-char').click();
  await expect(page.locator('.v56-power-learned')).toHaveCount(0);
