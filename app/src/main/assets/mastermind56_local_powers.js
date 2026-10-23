@@ -133,6 +133,8 @@ document.addEventListener('rpg:character-selected',()=>setTimeout(()=>{chosen=''
 $('#rpg05-new-char')?.addEventListener('click',()=>{chosen='';note='';show()});
 $('#rpg05-del-char')?.addEventListener('click',()=>{chosen='';note='';show()});
 $('#op-nex')?.addEventListener('change',()=>setTimeout(show,0));
+$('#op-classe')?.addEventListener('change',()=>setTimeout(()=>{chosen='';show()},0));
+tabs.addEventListener('click',e=>{if(e.target.closest('[data-r14-tab="advancement"]'))setTimeout(show,0)});
 window.Mastermind56Powers={show,open,learn,get count(){return powers.length},get panel(){return panel}};
 show();
 })();
