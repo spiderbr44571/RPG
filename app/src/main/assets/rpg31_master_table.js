@@ -113,13 +113,13 @@ function open(host,options){
     '<div class="body '+(s.folded?'r64-panel-folded':'')+'"><div id="r31-scroll" class="scroll"><div class="r35-turn-overlay '+(interlude?'r53-interlude-indicator':'')+'">'+
     (interlude?'✦ INTERLÚDIO <strong>Exploração livre</strong><small>Todos os jogadores podem se mover e rolar dados. Iniciativa preservada.</small>':
     'Vez atual: <strong>'+esc(activeName)+'</strong><small>Rodada '+(d.initiative?.round||1)+'</small>')+'</div><div id="r31-board" class="board"></div></div>'+
-    '<aside id="r31-aside" class="'+(s.folded?'folded':'')+'"><section><h3>⚄ Rolagens</h3>'+
-      '<input id="r31-formula" value="1d20" placeholder="1d20+5" aria-label="Notação do dado">'+
-      '<div class="actions"><button data-action="roll-public" class="primary">Todos veem</button><button data-action="roll-private">Só mestre</button></div>'+
+    '<aside id="r31-aside" class="r64-dock '+(s.folded?'folded':'')+'">'+r64Group('rolls','dice','Rolagens')+
+      '<div class="r64-dice-entry"><input id="r31-formula" value="1d20" placeholder="1d20+5" aria-label="Notação do dado">'+r64Icon('dice')+'</div>'+
+      '<div class="actions r64-roll-visibility"><button data-action="roll-public" class="primary">'+r64Icon('people')+'Todos</button><button data-action="roll-private">'+r64Icon('shield')+'Mestre</button></div>'+
       (s.privateResult?'<div class="info"><b>Rolagem privada</b> '+esc(s.privateResult.formula)+' : <b>'+s.privateResult.total+'</b> <small>Dados: '+esc(diceList(s.privateResult))+'</small></div>':'')+
       (d.rolls||[]).slice(-5).reverse().map(r=>'<div class="info">'+esc(r.by)+' - '+esc(r.label)+' <b>'+r.total+'</b><small>'+esc(r.formula)+' : '+esc(diceList(r))+'</small></div>').join('')+
-    '</section><section><h3>Solicitações dos jogadores</h3>'+
-      '<p>Decida quando jogadores podem aprender poderes, transcender ou ajustar a iniciativa. Pedidos de Surto Temporal custam 3 PE.</p>'+
+    '</div></details>'+r64Group('requests','requests','Solicitações',(d.playerRequests||[]).length?String(d.playerRequests.length):'')+
+      '<p class="r64-helper">Pedidos para poderes, transcendência e iniciativa.</p>'+
       ((d.playerRequests||[]).length?(d.playerRequests||[]).map(r=>
        '<article class="r55-request"><strong>'+esc(r.playerName)+' · '+esc(
           ({class:'Poder de classe',transcend:'Transcender',pass:'Passar a vez',delay:'Atrasar iniciativa',surto:'Surto Temporal'}[r.type]||r.type))+'</strong>'+
@@ -129,14 +129,14 @@ function open(host,options){
          '<div class="actions"><button data-r55-decision="approve" data-r55-id="'+esc(r.id)+'">Aprovar</button>'+
          (r.type==='surto'?'<button data-r55-decision="full" data-r55-id="'+esc(r.id)+'">Turno inteiro (regra da mesa)</button>':'')+
          '<button data-r55-decision="reject" data-r55-id="'+esc(r.id)+'">Recusar</button></div></article>'
-       ).join(''):'<p>Sem pedidos pendentes.</p>')+
-    '</section><section><h3>Ritmo da sessão</h3><div class="r53-mode-panel">'+
+       ).join(''):'<p class="r64-empty">Sem pedidos pendentes.</p>')+
+    '</div></details>'+r64Group('pace','coffee','Ritmo da sessão')+'<div class="r53-mode-panel">'+
     '<strong>'+(interlude?'✦ Interlúdio ativo':'⚔ Combate / exploração controlada')+'</strong>'+
     '<p>'+(interlude?'Movimento ilimitado para cada jogador. Ordem de iniciativa pausada, sem perder os participantes nem a rodada.':'Movimento segue a iniciativa e o limite da ficha. Testes são livres, mesmo fora do turno.')+'</p>'+
-    '<button data-action="session-mode" class="r53-mode-button">'+(interlude?'Voltar ao combate':'Ativar interlúdio')+'</button></div></section>'+
-    '<section><h3>Iniciativa</h3>'+
+    '<button data-action="session-mode" class="r53-mode-button">'+(interlude?'Voltar ao combate':'Ativar interlúdio')+'</button></div></div></details>'+
+    r64Group('initiative','initiative','Iniciativa / sessão','R'+(d.initiative?.round||1))+
     (interlude?'<p class="r53-interlude-hint">Pausada no interlúdio. Ao voltar ao combate, continua da ordem atual.</p>':'')+
-   '<small>Selecione um token para rolar. A ordem fica visível na mesa e é controlada pelo mestre.</small>'+
+   '<div class="r64-initiative-summary"><span>'+r64Icon('hourglass')+'<b>'+esc(activeName)+'</b></span><small>Rodada '+(d.initiative?.round||1)+' · '+(d.initiative?.entries||[]).length+' na ordem</small></div>'+
    '<input id="r32-initiative-formula" value="1d20" placeholder="1d20+5">'+
    '<div class="actions"><button data-action="initiative-roll" class="primary">Rolar iniciativa</button><button data-action="initiative-set">Definir valor</button></div>'+
    '<div class="actions"><button data-action="initiative-next" '+(interlude?'disabled':'')+'>Próximo turno</button><button data-action="initiative-clear">Reiniciar</button></div>'+
@@ -148,7 +148,7 @@ function open(host,options){
      '<b>'+(index+1)+'. '+esc(item.name)+' - '+item.score+'</b>'+
      (item.faces?.length?'<small>'+esc(item.formula)+' : ['+esc(item.faces.join(', '))+']</small>':'')+
      '<button data-init-remove="'+esc(item.tokenId)+'" title="Remover da iniciativa">Remover</button></div>').join('')+
- '</section><section><h3>Jogadores e efeitos</h3>'+
+ '</div></details>'+r64Group('players','people','Jogadores e efeitos',String((d.players||[]).length))+
       (d.players||[]).map(p=>{
         const c=(d.characters||[]).find(c=>c.id===p.characterId);
         const own=map?.tokens?.find(t=>t.ownerPlayerId===p.id&&t.characterId===p.characterId&&!t.hidden);
@@ -165,16 +165,16 @@ function open(host,options){
       '<label>Valor do modificador<input id="r36-effect-amount" type="number" min="-20" max="20" value="0"></label>'+
       '<select id="r31-duration"><option value="scene">Cena</option><option value="turn">Turnos</option><option value="permanent">Permanente</option></select>'+
       '<input id="r31-rem" type="number" min="1" max="999" value="3">'+
-      '<button data-action="effect" class="primary">Aplicar nos selecionados</button></section>'+
-    '<section><h3>Movimento por sistema</h3>'+
+      '<button data-action="effect" class="primary">Aplicar nos selecionados</button></div></details>'+
+    r64Group('movement','walk','Movimento por sistema')+
     '<label>Sistema<select id="r35-movement-system">'+
       [['ordem-paranormal','Ordem Paranormal'],['d-d','D&D 5e'],['gurps','GURPS']].map(([id,label])=>
        '<option value="'+id+'">'+label+'</option>').join('')+'</select></label>'+
     '<label>Limite padrão (quadrados por turno)<input id="r35-system-speed" type="number" min="0" max="60" value="'+
       (d.movementRules?.['ordem-paranormal']??9)+'"></label>'+
     '<button data-action="movement-system">Salvar limite</button>'+
-    '<small>Em diagonal, cada célula conta como um quadrado. Ajustes individuais têm prioridade.</small></section>'+
-    '<section id="r31-details"><h3>Alvo</h3></section></aside></div>'+
+    '<small>Em diagonal, cada célula conta como um quadrado. Ajustes individuais têm prioridade.</small></div></details>'+
+    '<details class="r64-card r64-target" data-r64-group="target" '+(s.groups.target?'open':'')+'><summary>'+r64Icon('target')+'<span>Alvo selecionado</span>'+r64Icon('chevron')+'</summary><section id="r31-details" class="r64-card-body"><h3>Alvo</h3></section></details></aside></div>'+
     '<footer id="r31-status">Mestre: visualiza todos os tokens e ambientes.</footer>';
   if(!map)return;
   const board=$('#r31-board',s.el),assets=new Map((d.assets||[]).map(a=>[a.id,a])),bg=assets.get(map.backgroundAssetId)?.image;
