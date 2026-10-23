@@ -7,6 +7,18 @@
  const cid=location.pathname.split('/')[2];
  const base='/api/play/'+cid;
  const choicesNex=[15,30,45,60,75,90];
+ function missingClass(name,sheet){
+  const r=catalog?.classPowerRules?.[name]||{},missing=[];
+  if(r.minNex&&Number(sheet?.nex||0)<r.minNex)missing.push('NEX '+r.minNex+'%');
+  for(const [attr,min] of Object.entries(r.attrs||{}))
+   if(Number(sheet?.attrs?.[attr]||0)<min)missing.push(attr+' '+min);
+  const trained=skill=>Number(sheet?.skills?.[skill]||0)>0;
+  for(const skill of r.skillsAll||[])if(!trained(skill))missing.push('Treinado em '+skill);
+  if(r.skillsAny?.length&&!r.skillsAny.some(trained))
+   missing.push('Treinado em '+r.skillsAny.join(' ou '));
+  if(r.power&&!present(sheet).includes(r.power))missing.push('Poder '+r.power);
+  return missing;
+ }
  let catalog=null,requests=[],serverChoices=[],slots=0,used=0,loadAt=0,busy=false,original=null,live=null;
  let lastCharacter=null,selectedCategory='transcend',chosen='',feedback='',syncing=false,polling=false;
  const rendered=new WeakMap();
@@ -42,21 +54,24 @@
  function catalogItems(sheet){
   const source=selectedCategory==='class'
    ?(catalog?.classPowers?.[sheet?.class]||[]).filter(n=>n!=='Transcender')
-    .map(name=>({name,element:'Classe',page:0,needsMasterReview:true}))
+    .map(name=>({name,element:sheet?.class||'Classe',page:catalog?.classPowerPage?.[sheet?.class]||0,
+      repeatable:!!catalog?.classPowerRules?.[name]?.repeatable,needsMasterReview:true}))
    :(catalog?.powers||[]);
   return source;
  }
- function cards(list,powers){
+ function cards(list,powers,sheet){
   return list.map(p=>{
-   const known=powers.includes(p.name),picked=chosen===p.name;
+   const known=powers.includes(p.name)&&!p.repeatable,picked=chosen===p.name;
    const prior=p.prerequisite;
    const count=prior?(elementCounts()[prior.element]||0):0;
-   const allowed=!prior||count>=prior.count;
+   const missing=selectedCategory==='class'?missingClass(p.name,sheet):
+     prior&&count<prior.count?['Requer '+prior.element+' '+prior.count+' · você tem '+count]:[];
+   const allowed=!missing.length;
    return '<button type="button" data-v55-select="'+escapeHtml(p.name)+'" class="v55-card'+(known?' known':'')+
      (picked?' selected':'')+'" '+(known||!allowed?'disabled':'')+'>'+
      '<strong>'+escapeHtml(p.name)+'</strong><span>'+escapeHtml(p.element)+
      (p.page?' · Livro p. '+p.page:'')+'</span>'+
-     '<small>'+(known?'Aprendido':!allowed?'Requer '+escapeHtml(prior.element)+' '+prior.count+' · você tem '+count:
+     '<small>'+(known?'Aprendido':!allowed?escapeHtml(missing.join(' · ')):
         'Sujeito a aprovação do mestre')+'</small></button>';
   }).join('');
  }
@@ -65,7 +80,6 @@
   const signature=JSON.stringify([sheet,serverChoices,requests,slots,used,chosen,selectedCategory,feedback]);
   if(rendered.get(rootEl)===signature&&rootEl.querySelector('.v55-power-section'))return;
   rendered.set(rootEl,signature);
-  const custom=rootEl.querySelector('#v55-custom')?.value||'';
   const n=Number(sheet?.nex)||5,known=present(sheet);
   const all=catalogItems(sheet);
   if(!all.some(x=>x.name===chosen))chosen='';
@@ -78,9 +92,9 @@
     '<button data-v55-kind="class" class="'+(selectedCategory==='class'?'active':'')+'">Poderes de classe</button></div>'+
    '<p class="v55-hint">'+(selectedCategory==='transcend'?
     'Poderes paranormais por elemento. Pré-requisitos, afinidade e fontes adicionais devem ser conferidos com o mestre.':
-    'Escolha entre sugestões de poderes de classe; outras opções do livro podem ser solicitadas pelo campo personalizado.')+'</p>'+
-   '<div class="v55-power-grid">'+cards(all,known)+'</div>'+
-   (selectedCategory==='class'?'<label>Outro poder de classe do seu livro <input id="v55-custom" maxlength="90" placeholder="Nome exato do poder"></label>':'')+
+    'Poderes do livro básico 1.3 para sua classe. O mestre verifica requisitos antes de autorizar a escolha.')+'</p>'+
+   '<div class="v55-power-grid">'+cards(all,known,sheet)+'</div>'+
+   
    '<button type="button" id="v55-request-power" '+(slots-used<=0||requests.length||busy?'disabled':'')+'>Enviar escolha para aprovação</button>'+
    '<div class="v55-known"><h4>Poderes aprendidos</h4>'+(known.length?known.map(x=>'<span>'+escapeHtml(x)+'</span>').join(''):'<small>Nenhum poder cadastrado ainda.</small>')+'</div>'+
    '<div class="v55-progress"><h4>Histórico de evolução</h4>'+(powerRecords.length?powerRecords.map(x=>'<div>NEX '+x.nex+'% · '+escapeHtml(x.name)+
@@ -89,7 +103,6 @@
    (requests.length?'<div class="v55-pending"><h4>Aguardando mestre</h4>'+requests.map(r=>'<p>'+escapeHtml(r.name||
      ({pass:'Passar a vez',delay:'Atrasar iniciativa',surto:'Surto Temporal'}[r.type]||r.type))+'</p>').join('')+'</div>':'')+
    '<p id="v55-status" role="status">'+escapeHtml(feedback)+'</p></section>';
-  const field=rootEl.querySelector('#v55-custom');if(field)field.value=custom;
  }
  async function request(type,name,targetId){
   if(busy)return;
@@ -110,8 +123,14 @@
   const send=e.target.closest('#v55-request-power');
   if(send){
    const host=send.closest('[data-v55-container]');
-   const name=selectedCategory==='class'?($('#v55-custom',host)?.value.trim()||chosen):chosen;
+   const name=chosen;
    if(!name)return notify('Selecione um poder antes de enviar.');
+   if(selectedCategory==='class'){
+    if(!(catalog?.classPowers?.[get()?.class]||[]).includes(name))
+     return notify('Este poder não pertence à classe selecionada.');
+    const missing=missingClass(name,get());
+    if(missing.length)return notify('Pré-requisitos pendentes: '+missing.join(', ')+'.');
+   }
    request(selectedCategory,name);return;
   }
   const action=e.target.closest('[data-v55-turn]');
