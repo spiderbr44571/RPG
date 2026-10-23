@@ -86,3 +86,6 @@ html body #v10-roll-burst .v101-die-tag {
 /* Show the exact selected brand artwork in the old brand block, keeping alt text in HTML. */
 html body .brand-glyph {background-image:url('mastermind_logo.png')!important;
  background-position:center!important;background-size:cover!important}
+
+/* v0.62: a porta e o corpo não desenham o traço horizontal inferior. */
+html body #r09-dice .r09-home-body,html body #r09-dice .r09-home-door {stroke:none!important}
