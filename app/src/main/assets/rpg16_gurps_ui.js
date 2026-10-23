@@ -46,28 +46,31 @@ function renderSkills(s){
  const d=E.derived(s),p=E.spent(s),idx=editingSkillIndex>=0&&s.skills[editingSkillIndex]?editingSkillIndex:-1,edit=idx>=0?s.skills[idx]:null;
  const rows=(s.skills||[]).map((x,i)=>{
  const level=E.skillLevel(x,{...s.attrs,Per:d.per,Will:d.will});
- return '<tr><td><strong>'+esc(x.name)+'</strong><small>'+esc(x.specialty||'')+'</small></td><td>'+esc(x.attr)+' / '+esc(x.diff)+'</td><td>'+esc(x.points)+' pt</td><td><b>'+(level??'—')+'</b></td><td class="g-actions"><button data-roll="skill:'+i+'" aria-label="Rolar perícia">🎲</button> <button data-edit-skill="'+i+'" aria-label="Editar perícia '+esc(x.name)+'">Editar</button> <button data-remove="skills:'+i+'" aria-label="Excluir perícia">×</button></td></tr>'}).join('');
+ return '<tr><td><strong>'+esc(x.name)+'</strong><small>'+esc(x.specialty||'')+'</small></td><td>'+esc(x.attr)+' / '+esc(x.diff)+'</td><td>'+esc(x.points)+' pt</td><td><b>'+(level??'—')+'</b></td><td class="g-actions"><button data-roll="skill:'+i+'" aria-label="Rolar perícia">🎲</button> <button type="button" data-g62-detail="skills:'+i+'">Descrição</button> <button data-edit-skill="'+i+'" aria-label="Editar perícia '+esc(x.name)+'">Editar</button> <button data-remove="skills:'+i+'" aria-label="Excluir perícia">×</button></td></tr>'}).join('');
  return '<section class="g-panel"><div class="g-heading"><div><h3>Perícias, especializações e técnicas</h3><p class="g-muted">Use Editar para corrigir uma perícia sem excluí-la; o vínculo com armas e os registros existentes são preservados.</p></div><strong class="g-chip">'+p.skills+' pontos investidos</strong></div><div class="g-scroller"><table class="g-table"><thead><tr><th>Perícia</th><th>Base</th><th>Pontos</th><th>NH</th><th>Ações</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+(s.skills?.length?'':'<p class="g-empty">Nenhuma perícia cadastrada.</p>')+'</section>'+
  '<section class="g-panel" id="g-skill-editor"><h3>'+(edit?'Editar perícia':'Adicionar perícia')+'</h3><div class="g-col"><label><span>Selecionar uma perícia do GURPS Lite (opcional)</span><select id="g-skill-suggest"><option value="">Perícia personalizada ou escolher da lista</option>'+(window.GURPS4_LITE_SKILLS||[]).map((k,i)=>'<option value="'+i+'">'+esc(k.name)+' · '+k.attr+'/'+k.diff+'</option>').join('')+'</select></label><label><span>Nome</span><input id="g-skill-name" value="'+esc(edit?.name||'')+'" placeholder="Ex.: Furtividade" maxlength="100"></label><label><span>Especialização (se exigida)</span><input id="g-skill-spec" value="'+esc(edit?.specialty||'')+'" maxlength="90" placeholder="Ex.: Pistola / NT 8"></label><label><span>Atributo</span><select id="g-skill-attr">'+optsAttrs(edit?.attr||'DX')+'</select></label><label><span>Dificuldade</span><select id="g-skill-diff">'+selects(edit?.diff||'A',[['E','Fácil (F)'],['A','Média (M)'],['H','Difícil (D)'],['VH','Muito Difícil (MD)']])+'</select></label><label><span>Pontos investidos</span><input id="g-skill-pts" type="number" min="1" max="1000" step="1" value="'+esc(edit?.points??1)+'"></label><label><span>Bônus/penalidade de NH</span><input id="g-skill-bonus" type="number" step="1" value="'+esc(edit?.bonus??0)+'" min="-30" max="30"></label></div><div class="g-controls"><button class="g-primary" data-add="skill">'+(edit?'Salvar alterações':' + Adicionar perícia')+'</button>'+(edit?'<button data-cancel-skill="1">Cancelar edição</button>':'')+'</div><p class="g-muted">O NH e os pontos totais são recalculados ao salvar. Mudanças afetam somente o personagem selecionado.</p></section>'+
  listEditor('Técnicas / Especializações','techniques','Técnica',false,true);
 }
 function traitCatalog(){return window.GURPS4_BASIC_TRAITS||[]}
+function traitLabel(x){return x?.namePt||x?.name||''}
+function traitAlt(x){return x?.namePt&&x.namePt!==x.name?' ('+x.name+')':''}
 function traitTypes(key){
  return key==='advantages'?['advantages','perks']:key==='disadvantages'?['disadvantages']:key==='quirks'?['quirks']:[];
 }
 function traitOptions(key,query=''){
  const types=traitTypes(key),q=String(query).toLocaleLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
- const entries=traitCatalog().map((x,i)=>({x,i})).filter(({x})=>types.includes(x.category)&&(!q||[x.name,x.reference,x.scope].some(v=>String(v||'').toLocaleLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').includes(q))));
+ const entries=traitCatalog().map((x,i)=>({x,i})).filter(({x})=>types.includes(x.category)&&(!q||[x.name,x.namePt,x.reference,x.scope].some(v=>String(v||'').toLocaleLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').includes(q))));
  return '<option value="">'+(entries.length?'Selecione uma característica ('+entries.length+' resultado(s))':'Nenhum resultado')+'</option>'+
- entries.slice(0,80).map(({x,i})=>'<option value="'+i+'">'+esc(x.name)+' · '+(x.points===null?'variável':x.points+' pts')+' · '+esc(x.reference)+'</option>').join('');
+ entries.sort((a,b)=>traitLabel(a.x).localeCompare(traitLabel(b.x),'pt-BR')).slice(0,80).map(({x,i})=>'<option value="'+i+'">'+esc(traitLabel(x))+esc(traitAlt(x))+' · '+(x.points===null?'variável':x.points+' pts')+' · '+esc(x.reference)+'</option>').join('');
 }
 function fillTrait(key,index){
  const x=traitCatalog()[Number(index)];if(!x||!traitTypes(key).includes(x.category))return;
  const set=(id,value)=>{const el=host.querySelector('#'+id);if(el)el.value=value};
- set('g-add-name-'+key,x.name.replace(/@/g,''));
+ set('g-add-name-'+key,traitLabel(x).replace(/@/g,''));
  set('g-add-points-'+key,x.points===null?'':x.points);
  set('g-trait-levels-'+key,1);
  set('g-add-details-'+key,(x.reference+' · '+(x.scope||'')+(x.per!==null?' · '+x.per+' pts/nível':'')+(x.points===null?' · custo variável: consulte o livro':'' )).slice(0,320));
+ const view=host.querySelector('#g62-trait-preview-'+key);if(view)view.innerHTML='<button type="button" data-g62-catalog="'+Number(index)+'">Ver descrição / página</button>';
  if(x.attributeManaged)notify('Atenção: esta característica já pode estar contabilizada nos atributos básicos. Não a desconte ou some duas vezes.',true);
 }
 function traitLevelsChanged(key){
@@ -80,7 +83,7 @@ function traitLevelsChanged(key){
 }
 function listEditor(title,key,hint,negative=false,extras=false){
  const arr=current()[key]||[],types=traitTypes(key),total=traitCatalog().filter(x=>types.includes(x.category)).length;
- const search=types.length?'<div class="g-trait-browser"><h4>Catálogo do Módulo Básico 4e · '+total+' entradas</h4><label><span>Pesquisar característica, tipo ou página</span><input id="g-trait-filter-'+key+'" type="search" placeholder="Buscar no índice do livro…" autocomplete="off"></label><label><span>Escolha uma entrada (até 80 resultados por pesquisa)</span><select id="g-trait-suggest-'+key+'" size="7" aria-label="Lista de '+esc(title)+'">'+traitOptions(key)+'</select></label><p class="g-muted">Índice de nomes e custos nominais do GCS Basic Set (páginas B). Custos variáveis, modificadores e pré-requisitos exigem consulta ao livro. Os campos continuam editáveis.</p></div>':'';
+ const search=types.length?'<div class="g-trait-browser"><h4>Catálogo do Módulo Básico 4e · '+total+' entradas</h4><label><span>Pesquisar característica, tipo ou página</span><input id="g-trait-filter-'+key+'" type="search" placeholder="Buscar no índice do livro…" autocomplete="off"></label><label><span>Escolha uma entrada (até 80 resultados por pesquisa)</span><select id="g-trait-suggest-'+key+'" size="7" aria-label="Lista de '+esc(title)+'">'+traitOptions(key)+'</select></label><div id="g62-trait-preview-'+key+'" class="g-controls"></div><p class="g-muted">Nomes em português conforme a Lista de Características enviada. Outras variantes do catálogo preservam o nome inglês. Custos básicos do GCS (páginas B). Custos variáveis, modificadores e pré-requisitos exigem consulta ao livro. Os campos continuam editáveis.</p></div>':'';
  return '<section class="g-panel"><div class="g-heading"><h3>'+esc(title)+'</h3><span class="g-chip">'+arr.length+' registro(s)</span></div><div class="g-stacked">'+arr.map((x,i)=>'<div class="g-item"><div><strong>'+esc(x.name)+'</strong><small>'+esc(x.details||'')+(x.points!==undefined?' · '+x.points+' pts':'')+'</small></div><button data-remove="'+key+':'+i+'">Remover</button></div>').join('')+'</div>'+search+
  '<div class="g-col"><label><span>Nome</span><input id="g-add-name-'+key+'" placeholder="'+esc(hint)+'" maxlength="120"></label><label><span>Custo total em pontos</span><input id="g-add-points-'+key+'" type="number" min="-5000" max="5000" step="1" value="'+(negative?-5:1)+'"></label>'+(types.length?'<label><span>Níveis (para custo por nível)</span><input id="g-trait-levels-'+key+'" type="number" value="1" min="1" max="100" step="1"></label>':'')+'<label><span>Notas e limitações</span><input id="g-add-details-'+key+'" maxlength="320" placeholder="Nível, pré-requisitos, efeito..."></label></div><button class="g-primary" data-add="'+key+'">+ Adicionar</button></section>';
 }
@@ -207,6 +210,8 @@ function onClick(ev){
  const b=ev.target.closest('button');if(!b||!host?.contains(b))return;
  try{
  if(b.dataset.tab){tab=b.dataset.tab;render();return}
+ if(b.dataset.g62Catalog!==undefined){const x=traitCatalog()[Number(b.dataset.g62Catalog)];if(x)window.Mastermind62Descriptions?.open?.({systemId:'gurps',kind:x.category,name:traitLabel(x),page:x.pagePt||'',reference:x.reference,origin:x.translatedSource||'GURPS Basic Set',summary:x.points==null?'Custo variável (consulte o livro).':'Custo básico: '+x.points+' pontos',english:x.name});return}
+ if(b.dataset.g62Detail){const [key,index]=b.dataset.g62Detail.split(':'),x=current()?.[key]?.[Number(index)];if(x)window.Mastermind62Descriptions?.open?.({systemId:'gurps',kind:key,name:x.name,description:x.description||'',notes:x.details||'',origin:'Ficha GURPS 4ª edição'});return}
  if(b.dataset.editSkill!==undefined){const i=Number(b.dataset.editSkill);if(!current().skills?.[i])throw Error('Perícia não encontrada.');editingSkillIndex=i;render();host.querySelector('#g-skill-name')?.focus();return}
  if(b.dataset.cancelSkill!==undefined){editingSkillIndex=-1;render();return}
  if(b.dataset.add){add(b.dataset.add);return}
