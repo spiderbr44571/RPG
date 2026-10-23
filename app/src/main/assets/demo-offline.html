@@ -240,7 +240,7 @@ html[data-paranormal="medo"] .v10-result:before{border-radius:45% 5% 45% 5%}
   <div class="sidebar-bottom"><div class="connected"><div class="connected-dot"></div><div><strong>Núcleo local disponível</strong><small>IA opcional · Biblioteca offline</small></div></div><div class="profile"><div class="avatar">R</div><div><strong>Seu espaço</strong><small>Seu espaço local</small></div></div></div>
 </aside>
 <main class="main">
- <header class="topbar"><div class="breadcrumb"><small>Workspace</small><span class="divider-slash">/</span><strong id="current-page">Visão geral</strong><small id="mm-release" aria-label="Versão instalada" style="color:var(--accent);font-size:10px">v0.59</small></div><div class="top-actions"><button class="kbtn" id="quick-search"><svg class="icon"><use href="#i-search"/></svg><span>Buscar livros</span><span class="hide-mobile" style="color:var(--faint)">⌘ K</span></button><button class="icon-btn" id="theme-quick" aria-label="Alternar tema"><svg class="icon"><use href="#i-sun"/></svg></button></div></header>
+ <header class="topbar"><div class="breadcrumb"><small>Workspace</small><span class="divider-slash">/</span><strong id="current-page">Visão geral</strong><small id="mm-release" aria-label="Versão instalada" style="color:var(--accent);font-size:10px">v0.60</small></div><div class="top-actions"><button class="kbtn" id="quick-search"><svg class="icon"><use href="#i-search"/></svg><span>Buscar livros</span><span class="hide-mobile" style="color:var(--faint)">⌘ K</span></button><button class="icon-btn" id="theme-quick" aria-label="Alternar tema"><svg class="icon"><use href="#i-sun"/></svg></button></div></header>
  <div class="content" id="content">
 <section id="screen-op" class="screen" aria-label="Sistema Ordem Paranormal versão 1.3">
 <div class="page-row"><div><div class="eyebrow">MÓDULO COMUNITÁRIO · 1.3</div><h1 class="page-h">Sistema <i>Paranormal.</i></h1><p class="op-note">Este é um conteúdo não oficial, publicado sob a Licença da Comunidade de Ordem Paranormal. Contém material gerado por inteligência artificial.</p><p class="page-sub">Livro de regras v1.3 · ficha e mecânicas offline · não é um aplicativo oficial.</p></div><span class="preview-pill">MÓDULO PARCIAL · VERIFICADO</span></div>
@@ -1330,7 +1330,7 @@ const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.quer
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const get=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}};
 const set=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch{return false}};
-const svgDie=`<svg class="r09-poly" viewBox="0 0 100 106" aria-hidden="true"><path class="die-shell" d="M50 3 88 20 99 56 78 92 50 104 22 92 1 56 12 20Z"/><path class="die-wire" d="M50 3 28 44 50 74 72 44Z M12 20 28 44 1 56 22 92 50 74 78 92 99 56 72 44 88 20 M28 44 72 44 M50 74 50 104"/><text x="50" y="62" class="r09-die-num" text-anchor="middle">20</text></svg>`;
+const svgHome=`<svg class="r09-home-svg" viewBox="0 0 100 100" aria-hidden="true"><path class="r09-home-roof" d="M8 46 49 12 67 27V19h13v19l12 9-9 12-34-28-33 28Z"/><path class="r09-home-body" d="M21 54 49 31 78 54v34H21Z"/><path class="r09-home-door" d="M41 88V66a8 8 0 0 1 16 0v22Z"/></svg>`;
 const tools=[
  ['library','Biblioteca','book-open','Livros, sistemas e regras'],
  ['sheet','Fichas','users','Personagens, poderes e retratos'],
@@ -1354,7 +1354,7 @@ const icons={
  palette:'<path d="M12 3a9 9 0 0 0 0 18h1a2 2 0 0 0 1-4 2 2 0 0 1 1-3h2a4 4 0 0 0 4-4C21 6 17 3 12 3Z"/><circle cx="7" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="16" cy="8" r="1"/>',
  house:'<path d="m3 11 9-8 9 8v10h-6v-7H9v7H3Z"/>'};
 const icon=name=>`<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round">${icons[name]||icons.dice}</svg>`;
-// The single d20 is the sole permanent navigator, on desktop and mobile.
+// The home icon opens the main menu. Dice are rolled only inside the dedicated dice tool.
 const visual=document.createElement('style');visual.id='rpg09-style';visual.textContent=`
 .rpg08-mobile-bar,.rpg08-sheet,.rpg08-scrim,#rpg07-settings-quick{display:none!important}
 .sidebar{display:none!important}
@@ -1406,7 +1406,7 @@ const visual=document.createElement('style');visual.id='rpg09-style';visual.text
 document.head.append(visual);
 // Hide the old floating desktop/mobile navigation, but keep every existing view routable.
 $$('.rpg08-mobile-bar,.rpg08-sheet,.rpg08-scrim').forEach(el=>el.remove());
-const dock=document.createElement('div');dock.className='r09-dock';dock.innerHTML=`<div class="r09-dock-label">Abrir ferramentas</div><button type="button" class="r09-die" id="r09-dice" aria-label="Abrir central de ferramentas" aria-expanded="false">${svgDie}</button>`;
+const dock=document.createElement('div');dock.className='r09-dock';dock.innerHTML=`<div class="r09-dock-label">Abrir ferramentas</div><button type="button" class="r09-die" id="r09-dice" aria-label="Abrir menu principal do Mastermind" title="Abrir menu principal" aria-expanded="false">${svgHome}</button>`;
 const overlay=document.createElement('div');overlay.className='r09-overlay';overlay.id='r09-overlay';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-label','Central de ferramentas');
 overlay.innerHTML=`<section class="r09-hub"><div class="r09-head"><div><div class="r09-kicker">CENTRAL DA MESA</div><h2 class="r09-title">Escolha seu próximo <i>caminho.</i></h2><p class="r09-sub">Todas as ferramentas em um só lugar. Abrir esta central não realiza rolagens.</p></div><button class="r09-close" type="button" aria-label="Fechar ferramentas">×</button></div><div class="r09-grid">${tools.map(([id,title,ico,sub])=>`<button class="r09-tool" type="button" data-r09-tool="${id}">${icon(ico)}<strong>${title}</strong><small>${sub}</small></button>`).join('')}</div></section>`;
 document.body.append(overlay,dock);
@@ -1622,7 +1622,7 @@ html[data-paranormal="base"] #r09-dice .die-shell{fill:color-mix(in srgb,var(--a
 html[data-paranormal="base"] #r09-dice .die-wire{stroke:#2a2030!important;opacity:1!important;stroke-width:2.4!important}
 html[data-paranormal="base"] #r09-dice .r09-die-num{fill:#17131c!important;font-weight:900!important}
 html[data-paranormal="base"] #r09-dice{filter:drop-shadow(0 0 15px var(--accent,#c7a87b))!important}
-html[data-paranormal="base"] .v101-die{background:color-mix(in srgb,var(--accent,#c7a87b) 28%,#fcebd7)!important;color:#19131e!important}
+html[data-paranormal="base"] .v101-die{background:transparent!important;color:var(--fg)!important}
 html[data-paranormal="base"] .v101-die-face{color:#16131b!important}
 </style><script src="rpg11_campaigns.js"></script><script src="rpg29_scene_editor.js"></script><script src="rpg33_camera.js"></script><script src="rpg31_master_table.js"></script><script src="rpg14_sheet_tabs.js"></script><script src="rpg15_catalog.js"></script><script src="mastermind51_private_books.js"></script><script src="rpg15_theme_fix.js"></script><link rel="stylesheet" href="rpg16_gurps.css"><script src="rpg16_gurps_skills.js"></script><script src="rpg16_gurps_ui.js"></script><script src="rpg17_sheet_pdf.js"></script><link rel="stylesheet" href="rpg18_dnd.css"><script src="rpg18_dnd_ui.js"></script><script src="rpg18_bestiary.js"></script><style id="r29-dice-visibility-fix">
 /* Correcao permanente: contraste alto mesmo com paletas escuras e WebView Android. */
@@ -1646,4 +1646,4 @@ html body #r09-dice .r09-die-num{fill:#201522!important;font:900 29px system-ui,
 .r37-inventory-warning{border-radius:9px;border:1px solid #d29b66;background:#3a2a23;color:#f2d2ac;padding:12px;margin:0;line-height:1.6}
 .r37-inventory-ok{color:#91dabb;font-size:12px;margin:0}
 .r37-over{border-color:#e5aa77!important;color:#e8b88c}
-@media(max-width:450px){.r37-category-grid{grid-template-columns:1fr}}</style><script src="mastermind39_ui.js"></script><script src="mastermind40_canvas_images.js"></script><script src="mastermind42_workspace.js"></script><script src="mastermind59_class_catalog.js"></script><script src="mastermind56_local_powers.js"></script></body></html>
+@media(max-width:450px){.r37-category-grid{grid-template-columns:1fr}}</style><script src="mastermind39_ui.js"></script><script src="mastermind40_canvas_images.js"></script><script src="mastermind42_workspace.js"></script><script src="mastermind59_class_catalog.js"></script><script src="mastermind56_local_powers.js"></script><link rel="stylesheet" href="mastermind60_identity.css"></body></html>

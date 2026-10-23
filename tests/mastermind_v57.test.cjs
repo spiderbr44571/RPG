@@ -14,7 +14,7 @@ const lobby=asset('lan_player.html');
 const server=fs.readFileSync(path.join(base,'java/dev/rpgmesa/demo/LocalCampaignServer.java'),'utf8');
 const gradle=fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8');
 assert.ok(Number(gradle.match(/versionCode (\d+)/)?.[1])>=57);
-assert.match(main,/id="mm-release"[^>]*>v0\.(?:57|58|59)</);
+assert.match(main,/id="mm-release"[^>]*>v0\.(?:57|58|59|60)</);
 const guard="const legacySelect=$('#canvas-creature-select');if(legacySelect)legacySelect.innerHTML=";
 assert.ok(beasts.includes(guard),'standalone bestiary JS must not refer to undefined select');
 assert.ok(main.includes(guard),'Android HTML contains its OWN inlined beast engine and needs the fix too');
