@@ -8,7 +8,7 @@ const lobby=asset('lan_player.html'),scene=asset('lan_scene.html'),live=asset('r
 const camps=asset('rpg11_campaigns.js'),gradle=fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8');
 const pack=JSON.parse(asset('mastermind55_powers.json'));
 assert.ok(Number(gradle.match(/versionCode ([0-9]+)/)?.[1])>=56,'v0.56 regression support');
-assert.match(html,/id="mm-release"[^>]*>v0\.(?:56|57|58)</);
+assert.match(html,/id="mm-release"[^>]*>v0\.(?:56|57|58|59)</);
 assert.match(html,/href="mastermind56_local_powers\.css"/);
 assert.match(html,/src="mastermind56_local_powers\.js"/);
 assert.ok(html.indexOf('src="rpg14_sheet_tabs.js"')<html.indexOf('src="mastermind56_local_powers.js"'),
@@ -30,7 +30,7 @@ assert.match(camps,/sheet\.systemId='ordem-paranormal'/);
 assert.match(live,/!s\.systemId&&s\.class&&s\.attrs\?\.Agilidade!==undefined/);
 assert.match(scene,/MastermindPlayerShell\.init\(\)/);
 assert.match(scene,/MastermindPowerUI\.initLive\(\)/);
-assert.match(css,/#v56-quick-powers/);
+assert.doesNotMatch(script,/v56-quick-powers|v56-go-powers/);
 assert.doesNotThrow(()=>new Function(script),'Power module must parse on Android WebView');
 // A lightweight runtime test of the ACTUAL main-screen power widget, rather than
 // merely checking APK assets or files named after features.
@@ -59,6 +59,7 @@ const windowMock={
  RPG_DEMO:{notify(){},navigate(){}},
  RPG14:{show(){}},confirm(){decisions++;return true}
 };
+vm.runInNewContext(asset('mastermind59_class_catalog.js'),{window:windowMock},{timeout:1000});
 const ctx={window:windowMock,document:documentMock,setTimeout(fn){fn()}};
 vm.runInNewContext(script,ctx,{timeout:1000});
 const ui=windowMock.Mastermind56Powers;
@@ -67,7 +68,7 @@ assert.equal(ui.count,pack.powers.length);
 assert.match(ui.panel.innerHTML,/Poderes &amp; Transcender|Poderes & Transcender/);
 assert.match(ui.panel.innerHTML,/Surto Temporal/);
 assert.match(ui.panel.innerHTML,/Adicionar poder à ficha/);
-assert.ok(elements.get('.rpg05-heading').children.some(x=>x.id==='v56-quick-powers'));
+assert.equal(elements.get('.rpg05-heading').children.length,0,'No redundant powers CTA in the character header');
 ui.learn('Surto Temporal');
 assert.equal(character.powers.length,0,'Temporal Surge cannot bypass Morte 2');
 const death=pack.powers.filter(x=>x.element==='Morte'&&x.name!=='Surto Temporal');
