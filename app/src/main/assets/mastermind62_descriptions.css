@@ -1,0 +1,20 @@
+/* Mastermind v0.62: painel universal, responsivo, segue paleta e tema do app. */
+#mm62-descriptions[hidden]{display:none!important}
+#mm62-descriptions{position:fixed;inset:0;z-index:30000;font:14px/1.55 system-ui,sans-serif;color:var(--fg,var(--text,#f5f2ec))}
+#mm62-descriptions .mm62-backdrop{position:absolute;inset:0;background:#05050ddc;backdrop-filter:blur(6px)}
+#mm62-descriptions .mm62-dialog{position:absolute;inset:4vh max(10px,calc((100vw - 680px)/2));height:min(92vh,800px);overflow:auto;background:var(--panel,#1c1b27);border:1px solid var(--accent,#c9a479);border-radius:18px;box-shadow:0 24px 80px #000b;padding:20px;color:var(--fg,#f8f5f2)}
+#mm62-descriptions header{position:sticky;top:-20px;background:var(--panel,#1c1b27);z-index:1;display:flex;justify-content:space-between;align-items:center;padding:8px 0 14px;border-bottom:1px solid var(--accent,#b79565)}
+#mm62-descriptions button{font:inherit;border-radius:9px;border:1px solid var(--accent,#c3a27f);background:color-mix(in srgb,var(--accent,#c3a27f) 15%,var(--panel,#181824));color:inherit;padding:9px 12px;cursor:pointer;margin:4px}
+#mm62-descriptions h2{font-size:clamp(20px,4vw,29px);margin:20px 0 8px;color:inherit}
+#mm62-descriptions h3{font-size:15px;margin:16px 0 6px;color:var(--accent,#d7b47a)}
+#mm62-descriptions label{display:block;margin:12px 0}
+#mm62-descriptions input,#mm62-descriptions select{display:block;background:var(--bg,#10111b);color:inherit;border:1px solid var(--accent,#c3a27f);border-radius:9px;padding:10px;width:100%;max-width:100%;margin-top:5px}
+#mm62-descriptions .mm62-meta,#mm62-descriptions .mm62-helper{opacity:.83;font-size:12px}
+#mm62-descriptions .mm62-literal{white-space:pre-wrap;padding:14px;border-radius:12px;border:1px solid var(--accent,#997a55);background:var(--bg,#11111b);user-select:text;overflow-wrap:anywhere}
+#mm62-descriptions .mm62-unavailable{padding:12px;border-left:3px solid var(--accent,#d3a46a);background:color-mix(in srgb,var(--accent,#cba66e) 10%,transparent);border-radius:8px}
+#mm62-descriptions .mm62-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:6px}
+#mm62-descriptions .mm62-results button{text-align:left;display:block;margin:0;min-width:0}
+#mm62-descriptions .mm62-results strong,#mm62-descriptions .mm62-results small{display:block}
+#mm62-descriptions .mm62-results small{opacity:.72;font-size:10px;overflow-wrap:anywhere}
+@media(max-width:620px){#mm62-descriptions .mm62-dialog{inset:2vh 8px;height:96vh;padding:13px}#mm62-descriptions header{top:-13px}#mm62-descriptions .mm62-results{grid-template-columns:1fr 1fr}}
+@media(max-width:380px){#mm62-descriptions .mm62-results{grid-template-columns:1fr}}
