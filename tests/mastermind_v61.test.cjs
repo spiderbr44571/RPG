@@ -21,6 +21,6 @@ assert.match(ui,/traitLevelsChanged/);
 assert.match(ui,/g-trait-filter-/);
 assert.doesNotThrow(()=>new Function(ui),'GURPS UI JS syntax');
 assert.doesNotThrow(()=>new Function(read('rpg16_gurps_traits.js')));
-assert.match(fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:61|62|63|64)/);
-assert.match(html,/>v0\.(?:61|62|63|64)<\/small>/);
+assert.match(fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:61|62|63|64|65)/);
+assert.match(html,/>v0\.(?:61|62|63|64|65)<\/small>/);
 console.log('PASS v0.61: 664 basic traits and non-destructive GURPS skill edits; syntax and Android integration');
