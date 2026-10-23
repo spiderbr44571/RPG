@@ -107,7 +107,8 @@ function learn(name){
  const updated=[...(Array.isArray(s.powerChoices)?s.powerChoices:[]),choice];
  const old=Array.isArray(s.powers)?s.powers:[];
  if(!window.confirm('Registrar '+name+' como escolha de NEX '+nex+'% na ficha '+(s.name||'')+'? Confirme os pré-requisitos com o mestre.'))return;
- const ok=pc.update(selected(),{powers:[...old,name],powerChoices:updated});
+ const alreadyKnown=old.some(x=>(typeof x==='string'?x:x?.name)===name);
+ const ok=pc.update(selected(),{powers:alreadyKnown?old:[...old,name],powerChoices:updated});
  if(!ok)return setMessage('Não foi possível salvar a ficha. Nenhum poder foi aprendido.');
  chosen='';note='✓ '+name+' registrado na ficha selecionada (NEX '+nex+'%).';
  app?.notify?.(note);
