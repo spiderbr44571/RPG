@@ -73,6 +73,7 @@ function show(){
  'Poderes do livro básico 1.3 da sua classe, incluindo Treinamento em Perícia. Requisitos são conferidos antes de registrar.')+'</p>'+
  '<div class="v56-powers-list">'+choices.map(p=>card(p,s)).join('')+'</div>'+
  ''+
+ '<button type="button" class="v56-detail" id="v62-power-description" '+(chosen?'':'disabled')+'>📖 Ver descrição do poder selecionado</button>'+ 
  '<button type="button" class="v56-confirm" id="v56-learn" '+(remaining===0?'disabled':'')+'>Adicionar poder à ficha</button>'+
  '<p id="v56-feedback" role="status">'+esc(note)+'</p>'+
  '<div class="v56-acquired"><h4>Poderes já adquiridos</h4>'+
@@ -115,6 +116,7 @@ function learn(name){
  show();
 }
 panel.addEventListener('click',e=>{
+ if(e.target.closest('#v62-power-description')){if(chosen)window.Mastermind62Descriptions?.open?.({systemId:'ordem-paranormal',kind:mode==='class'?'Poder de classe':'Poder paranormal',name:chosen,page:options(current()).find(x=>x.name===chosen)?.page||'',origin:'Ordem Paranormal — Livro de Regras 1.3'});return;}
  const which=e.target.closest('[data-v56-mode]');
  if(which){mode=which.dataset.v56Mode;chosen='';note='';show();return;}
  const select=e.target.closest('[data-v56-select]');
