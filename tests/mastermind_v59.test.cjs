@@ -10,11 +10,11 @@ assert.ok(cat,'Shared power catalog did not initialize');
 for(const [klass,count] of [['Combatente',18],['Especialista',14],['Ocultista',15]]){
  assert.equal(cat.classPowers[klass].length,count,'Incomplete '+klass+' list');
  assert.equal(new Set(cat.classPowers[klass]).size,count,'Duplicate powers for '+klass);
- assert.deepEqual(cat.classPowers[klass],data.classPowers[klass]);
+ assert.equal(JSON.stringify(cat.classPowers[klass]),JSON.stringify(data.classPowers[klass]));
  assert.ok(cat.classPowers[klass].includes('Treinamento em Perícia'));
  assert.ok(!cat.classPowers[klass].includes('Transcender'),'Transcender must be a distinct switch');
 }
-assert.deepEqual(cat.classPowerRules,data.classPowerRules);
+assert.equal(JSON.stringify(cat.classPowerRules),JSON.stringify(data.classPowerRules));
 assert.equal(cat.classPowerRules['Treinamento em Perícia'].repeatable,true);
 assert.equal(cat.classPowerRules['Proteção Pesada'].minNex,30);
 assert.equal(cat.classPowerRules['Fluxo de Poder'].minNex,60);
