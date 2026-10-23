@@ -4,7 +4,7 @@ android {
  useLibrary 'android.test.base'
  namespace 'dev.rpgmesa.demo'
  compileSdk 35
- defaultConfig { applicationId 'dev.rpgmesa.demo'; minSdk 26; targetSdk 28; versionCode 58; versionName '0.58.0-mastermind-integracao'; testInstrumentationRunner 'android.test.InstrumentationTestRunner' }
+ defaultConfig { applicationId 'dev.rpgmesa.demo'; minSdk 26; targetSdk 28; versionCode 59; versionName '0.59.0-mastermind-poderes-livro-basico'; testInstrumentationRunner 'android.test.InstrumentationTestRunner' }
  compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
 }
 
