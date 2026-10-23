@@ -5,7 +5,7 @@ on:
       - feature/mastermind-v061-gurps-traits-edit
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   build-apk:
     runs-on: ubuntu-24.04
@@ -46,3 +46,19 @@ jobs:
             app/build/outputs/apk/debug/app-debug.apk
             apk-sha256.txt
           if-no-files-found: error
+
+      - name: Disponibilizar APK direto no GitHub Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="mastermind-v0.61-gurps"
+          cp app/build/outputs/apk/debug/app-debug.apk Mastermind-v0.61-Android.apk
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" Mastermind-v0.61-Android.apk \
+              --target "${GITHUB_SHA}" \
+              --title "Mastermind v0.61 — GURPS 4ª edição" \
+              --notes "Android debug APK: catálogo GURPS Básico 4e e edição direta de perícias. Atenção: instalação sobre APK prévio depende da mesma assinatura; preserve backup das fichas."
+          else
+            gh release upload "$TAG" Mastermind-v0.61-Android.apk --clobber
+          fi
