@@ -37,14 +37,14 @@ public class BootTest extends InstrumentationTestCase {
   getInstrumentation().runOnMainSync(()->web=find(activity.findViewById(android.R.id.content)));
   assertNotNull("Main activity must contain its real WebView",web);
   waitFor("!!window.Mastermind56Powers && !!window.MastermindCharacters && !!window.RPG14");
-  js("RPG_DEMO.navigate('sheet');document.querySelector('#v56-quick-powers').click()");
+  js("RPG_DEMO.navigate('sheet');document.querySelector('[data-r14-tab=advancement]').click()");
   waitFor("document.querySelector('#v56-powers').getBoundingClientRect().height>0 && !document.querySelector('[data-r14-panel=advancement]').hidden");
   assertEquals("22",js("document.querySelectorAll('[data-v56-select]').length"));
   js("window.confirm=()=>true;MastermindCharacters.update(MastermindCharacters.selectedId(),{nex:45});Mastermind56Powers.learn('Encarar a Morte')");
   waitFor("OP13.state.powerChoices.length===1 && OP13.state.powerChoices[0].nex===15");
   js("location.reload()");
   waitFor("!!window.Mastermind56Powers && OP13.state.powerChoices.length===1");
-  js("RPG_DEMO.navigate('sheet');document.querySelector('#v56-quick-powers').click()");
+  js("RPG_DEMO.navigate('sheet');document.querySelector('[data-r14-tab=advancement]').click()");
   waitFor("document.querySelector('.v56-power-learned').textContent.includes('Encarar a Morte')");
   getInstrumentation().runOnMainSync(()->activity.finish());
  }
