@@ -71,7 +71,7 @@ jobs:
             gh release create "$TAG" Mastermind-v0.65-Android.apk \
               --target "${GITHUB_SHA}" \
               --title "Mastermind v0.65 — Carregamento corrigido" \
-              --notes "Mastermind v0.65: mesa ao vivo com barra de ícones à esquerda, painel recolhível, seções compactas e mapa expandido. Inclui o conteúdo de GURPS, Ordem Paranormal e D&D da versão 0.63. Atenção: instalação sobre APK prévio depende da mesma assinatura; preserve backup das fichas."
+              --notes "Mastermind v0.65: tela de carregamento redesenhada com a logo original do app e título centralizado. Preserva mesa ao vivo, GURPS, Ordem Paranormal e D&D da v0.64. Atenção: instalação sobre APK prévio depende da mesma assinatura; preserve backup das fichas."
           else
             gh release upload "$TAG" Mastermind-v0.65-Android.apk --clobber
           fi
