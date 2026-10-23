@@ -28,7 +28,7 @@
    '<label><span>Classe</span><select data-root="klass">'+opts(Object.entries(E.CLASSES_PT),s.klass)+'</select></label>'+
    input('Nível','level',s.level,'number','min="1" max="20"')+input('Experiência','experience',s.experience,'number','min="0" max="100000000"')+
    input('Alinhamento (opcional)','alignment',s.alignment)+'</div><div class="d18-metrics"><div>Proficiência <strong>'+signed(d.pb)+'</strong></div><div>Iniciativa <strong>'+signed(d.initiative)+'</strong></div><div>Percepção passiva <strong>'+d.passivePerception+'</strong></div><div>Dado de vida <strong>d'+d.hitDie+'</strong></div></div>';
-  if(tab==='skills')return head+'<h3>Perícias e testes de resistência</h3><p>Marque proficiências e, se aplicável, especialização. Os bônus são calculados automaticamente.</p><div class="d18-table"><div class="d18-table-title">Perícias</div>'+Object.entries(skills).map(([key,attr])=>'<div class="d18-skill"><span>'+esc(E.LABELS[key])+' <small>'+attr+'</small></span><label><input type="checkbox" data-prof="'+key+'" '+(s.skillProficiencies.includes(key)?'checked':'')+'>Treinado</label><label><input type="checkbox" data-exp="'+key+'" '+(s.expertise.includes(key)?'checked':'')+'>Especialista</label><button data-roll="skill:'+key+'">'+signed(d.skills[key])+' 🎲</button></div>').join('')+
+  if(tab==='skills')return head+'<h3>Perícias e testes de resistência</h3><p>Marque proficiências e, se aplicável, especialização. Os bônus são calculados automaticamente.</p><div class="d18-table"><div class="d18-table-title">Perícias</div>'+Object.entries(skills).map(([key,attr])=>'<div class="d18-skill"><span>'+esc(E.LABELS[key])+' <small>'+attr+'</small></span><label><input type="checkbox" data-prof="'+key+'" '+(s.skillProficiencies.includes(key)?'checked':'')+'>Treinado</label><label><input type="checkbox" data-exp="'+key+'" '+(s.expertise.includes(key)?'checked':'')+'>Especialista</label><button data-roll="skill:'+key+'">'+signed(d.skills[key])+' 🎲</button><button type="button" data-d62-skill="'+esc(E.LABELS[key])+'">📖</button></div>').join('')+
    '<div class="d18-table-title">Testes de resistência</div>'+attrs.map(key=>'<div class="d18-skill"><span>'+E.LABELS[key]+'</span><label><input data-save="'+key+'" type="checkbox" '+(s.saveProficiencies.includes(key)?'checked':'')+'>Proficiência</label><button data-roll="save:'+key+'">'+signed(d.saves[key])+' 🎲</button></div>').join('')+'</div>';
   if(tab==='combat')return head+'<h3>Combate e condições</h3><div class="d18-metrics">'+
    [['Classe de armadura',d.armorClass],['Iniciativa',signed(d.initiative)],['PV atual',s.hitPointsCurrent],['PV máximo',s.hitPointsMax],['PV temporário',s.hitPointsTemp],['Deslocamento',s.speed+' m']].map(([k,v])=>'<div>'+k+'<strong>'+v+'</strong></div>').join('')+'</div>'+
@@ -50,7 +50,7 @@
  ];
  function listEditor(title,key,columns){
   const s=get(),arr=s[key]||[];
-  return '<section class="d18-list"><h4>'+esc(title)+' <span>'+arr.length+'</span></h4><div class="d18-items">'+arr.map((v,i)=>'<div class="d18-item"><div><strong>'+esc(v.name||v)+'</strong><small>'+esc(v.details||v.notes||(v.bonus!==undefined?'Bônus '+v.bonus+' · '+(v.dice||''):''))+'</small></div><button data-remove="'+key+':'+i+'" aria-label="Excluir">×</button></div>').join('')+'</div><div class="d18-fields">'+
+  return '<section class="d18-list"><h4>'+esc(title)+' <span>'+arr.length+'</span></h4><div class="d18-items">'+arr.map((v,i)=>'<div class="d18-item"><div><strong>'+esc(v.name||v)+'</strong><small>'+esc(v.details||v.notes||(v.bonus!==undefined?'Bônus '+v.bonus+' · '+(v.dice||''):''))+'</small></div><button type="button" data-d62-item="'+key+':'+i+'">📖</button><button data-remove="'+key+':'+i+'" aria-label="Excluir">×</button></div>').join('')+'</div><div class="d18-fields">'+
    columns.map((col,i)=>input(col,'new-'+key+'-'+i,'')).join('')+'</div><button data-add="'+key+'">+ Adicionar</button></section>';
  }
  function render(){
@@ -111,6 +111,8 @@
    arr.push(key==='inventory'?{name:values[0],qty:Math.max(1,Math.min(999,n(values[1],1))),notes:values[2]}:key==='attacks'?{name:values[0],bonus:n(values[1],0),dice:values[2]}:key==='spells'?{name:values[0],level:n(values[1],0),notes:values[2]}:{name:values[0],details:[values[1],values[2]].filter(Boolean).join(' · ')});
    s[key]=arr;save();render();return
   }
+  if(b.dataset.d62Skill){window.Mastermind62Descriptions?.open?.({systemId:'d-d',kind:'Perícia',name:b.dataset.d62Skill,origin:'D&D 5e SRD 5.1'});return;}
+  if(b.dataset.d62Item){const [key,index]=b.dataset.d62Item.split(':'),item=s[key]?.[Number(index)];if(item)window.Mastermind62Descriptions?.open?.({systemId:'d-d',kind:key,name:item.name||String(item),description:item.description||'',notes:item.details||item.notes||'',origin:'Ficha D&D 5e'});return;}
   if(b.dataset.remove){const [key,id]=b.dataset.remove.split(':');if(!Array.isArray(s[key]))return;s[key].splice(+id,1);save();render();return}
   if(b.dataset.roll){const code=b.dataset.roll,mode=$('#d18-roll-mode',host)?.value||'normal',d=E.derive(s);
    let val=0,label=code;
