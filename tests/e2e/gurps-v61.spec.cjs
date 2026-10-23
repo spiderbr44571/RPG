@@ -1,0 +1,52 @@
+const {test,expect}=require('@playwright/test');
+test('GURPS catálogo Básico 4e e edição de perícia preservam a ficha e os índices',async({page})=>{
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.goto('http://127.0.0.1:8123/demo-offline.html');
+  await page.evaluate(()=>{
+    const box=document.createElement('div');box.id='g61-test';document.body.append(box);
+    window.RPG16_GURPS.mount(box);
+  });
+  const root=page.locator('#g61-test #r16-gurps');
+  await root.locator('[data-tab="vantagens"]').click();
+  await expect(root.locator('.g-trait-browser').first()).toContainText('315 entradas');
+  await root.locator('#g-trait-filter-advantages').fill('Combat Reflexes');
+  const option=root.locator('#g-trait-suggest-advantages option').filter({hasText:'Combat Reflexes'});
+  const choice=await option.getAttribute('value');
+  await root.locator('#g-trait-suggest-advantages').selectOption(choice);
+  await expect(root.locator('#g-add-name-advantages')).toHaveValue('Combat Reflexes');
+  await expect(root.locator('#g-add-points-advantages')).toHaveValue('15');
+  await root.locator('[data-add="advantages"]').click();
+  await expect(root.locator('.g-stacked .g-item').first()).toContainText('Combat Reflexes');
+  await root.locator('[data-tab="pericias"]').click();
+  await root.locator('#g-skill-name').fill('Teste de perícia');
+  await root.locator('#g-skill-pts').fill('2');
+  await root.locator('[data-add="skill"]').click();
+  const before=await page.evaluate(()=>{
+    const s=window.RPG16_GURPS.current;
+    s.weapons.push({name:'Item fictício',skillIndex:'0'});
+    return {length:s.skills.length,ref:s.weapons.at(-1).skillIndex,id:s.id,points:window.GURPS4_ENGINE.spent(s).skills};
+  });
+  await root.locator('[data-edit-skill="0"]').click();
+  await expect(root.locator('#g-skill-name')).toHaveValue('Teste de perícia');
+  await root.locator('#g-skill-name').fill('Perícia revisada');
+  await root.locator('#g-skill-attr').selectOption('IQ');
+  await root.locator('#g-skill-diff').selectOption('VH');
+  await root.locator('#g-skill-pts').fill('8');
+  await root.locator('#g-skill-bonus').fill('1');
+  await root.locator('[data-add="skill"]').click();
+  const after=await page.evaluate(()=>{
+    const s=window.RPG16_GURPS.current;
+    return {length:s.skills.length,ref:s.weapons.at(-1).skillIndex,id:s.id,points:window.GURPS4_ENGINE.spent(s).skills,skill:s.skills[0],level:window.GURPS4_ENGINE.skillLevel(s.skills[0],s.attrs)};
+  });
+  expect(after.length).toBe(before.length);
+  expect(after.ref).toBe(before.ref);
+  expect(after.id).toBe(before.id);
+  expect(after.points).toBe(8);
+  expect(after.skill.name).toBe('Perícia revisada');
+  expect(after.level).toBe(11);
+  await page.reload();
+  await page.evaluate(()=>{const box=document.createElement('div');box.id='g61-test';document.body.append(box);RPG16_GURPS.mount(box)});
+  await page.locator('#g61-test [data-tab="pericias"]').click();
+  await expect(page.locator('#g61-test .g-table tbody')).toContainText('Perícia revisada');
+  expect(errors).toEqual([]);
+});
