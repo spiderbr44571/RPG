@@ -68,6 +68,7 @@ function fillTrait(key,index){
  set('g-add-points-'+key,x.points===null?'':x.points);
  set('g-trait-levels-'+key,1);
  set('g-add-details-'+key,(x.reference+' · '+(x.scope||'')+(x.per!==null?' · '+x.per+' pts/nível':'')+(x.points===null?' · custo variável: consulte o livro':'' )).slice(0,320));
+ if(x.attributeManaged)notify('Atenção: esta característica já pode estar contabilizada nos atributos básicos. Não a desconte ou some duas vezes.',true);
 }
 function traitLevelsChanged(key){
  const select=host.querySelector('#g-trait-suggest-'+key);
