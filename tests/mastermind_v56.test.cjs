@@ -8,7 +8,7 @@ const lobby=asset('lan_player.html'),scene=asset('lan_scene.html'),live=asset('r
 const camps=asset('rpg11_campaigns.js'),gradle=fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8');
 const pack=JSON.parse(asset('mastermind55_powers.json'));
 assert.ok(Number(gradle.match(/versionCode ([0-9]+)/)?.[1])>=56,'v0.56 regression support');
-assert.match(html,/id="mm-release"[^>]*>v0\.(?:56|57|58|59|60|61)</);
+assert.match(html,/id="mm-release"[^>]*>v0\.(?:56|57|58|59|60|61|62)</);
 assert.match(html,/href="mastermind56_local_powers\.css"/);
 assert.match(html,/src="mastermind56_local_powers\.js"/);
 assert.ok(html.indexOf('src="rpg14_sheet_tabs.js"')<html.indexOf('src="mastermind56_local_powers.js"'),
