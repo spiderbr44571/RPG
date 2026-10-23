@@ -204,10 +204,12 @@ function open(host,options){
      const effectStat=$('#r36-effect-stat',s.el)?.value||'',effectAmount=$('#r36-effect-amount',s.el)?.value||'0';
      const effectUnit=$('#r31-duration',s.el)?.value||'scene',effectRemaining=$('#r31-rem',s.el)?.value||'3';
      const movementSystem=$('#r35-movement-system',s.el)?.value||'ordem-paranormal';
+     const sideScroll=$('#r31-aside',s.el)?.scrollTop||0;
 
      const x=0,y=0;
       s.revision=d.revision;s.data=d;render();
      const rollInput=$('#r31-formula',s.el),initInput=$('#r32-initiative-formula',s.el),effectInput=$('#r31-effect',s.el);
+     if($('#r31-aside',s.el))$('#r31-aside',s.el).scrollTop=sideScroll;
      if(rollInput)rollInput.value=form;if(initInput)initInput.value=initForm;if(effectInput)effectInput.value=effectName;
      if($('#r36-effect-stat',s.el))$('#r36-effect-stat',s.el).value=effectStat;
      if($('#r36-effect-amount',s.el))$('#r36-effect-amount',s.el).value=effectAmount;
@@ -248,6 +250,7 @@ function open(host,options){
    s.revision=-1;await refresh();
   }catch(error){feedback(error.message);field.disabled=false}
  });
+ s.el.addEventListener('toggle',e=>{const details=e.target.closest?.('[data-r64-group]');if(details&&s.el.contains(details))s.groups[details.dataset.r64Group]=details.open;},true);
  s.el.addEventListener('click',async e=>{
   const token=e.target.closest('[data-token]');if(token){s.selected=token.dataset.token;selection();s.el.querySelectorAll('[data-token]').forEach(t=>t.classList.toggle('active',t===token));return}
   const hp=e.target.closest('[data-hp]'),att=e.target.closest('[data-attack]'),removeInit=e.target.closest('[data-init-remove]'),button=e.target.closest('[data-action]');
@@ -297,7 +300,7 @@ function open(host,options){
     if(action==='zoom-in'){s.camera?.zoom(1.2);return}
     if(action==='zoom-out'){s.camera?.zoom(1/1.2);return}
     if(action==='fit'){s.camera?.fit();return}
-    if(action==='panel'){s.folded=!s.folded;$('#r31-aside',s.el).classList.toggle('folded',s.folded);return}
+    if(action==='panel'){s.folded=!s.folded;$('#r31-aside',s.el)?.classList.toggle('folded',s.folded);$('.body',s.el)?.classList.toggle('r64-panel-folded',s.folded);const label=s.folded?'Mostrar painel':'Ocultar painel';button.setAttribute('title',label);button.setAttribute('aria-label',label);return}
     if(action==='edit'){
       if(!root.RPG29_EDITOR){feedback('Editor indisponível');return}
       s.editing=true;s.el.classList.add('editing');
@@ -308,7 +311,7 @@ function open(host,options){
       catch(error){s.el.removeEventListener('rpg29:closed',onReturn);onReturn();throw error}
       return;
     }
-    if(action==='turn'){await req('/advance','POST',{kind:'turn'});s.revision=-1;await refresh();return}
+    if(action==='turn'){if(s.data?.sessionMode==='interlude'){feedback('Iniciativa pausada no interlúdio.');return}await req('/advance','POST',{kind:'turn'});s.revision=-1;await refresh();return}
     if(action==='scene'){
       if(!confirm('Encerrar a cena? A iniciativa e os efeitos de cena serão encerrados.'))return;
       await req('/advance','POST',{kind:'scene'});
