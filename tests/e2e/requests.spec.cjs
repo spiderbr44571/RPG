@@ -87,3 +87,18 @@ test('switching to interlude invalidates pending turn requests even when combat 
  expect((await gm('/power-request',{id:r.data.request.id,action:'approve'})).status).toBe(400);
  expect((await player('/scenario')).data.initiative.activeId).toBe('t1');
 });
+
+
+test('server rejects other-class powers and records repeatable training without duplicate names',async()=>{
+ const wrong=await player('/power-requests',{type:'class',name:'Mochila de Utilidades'});
+ expect(wrong.status).toBe(400);
+ const request=async()=>{
+  const pending=await player('/power-requests',{type:'class',name:'Treinamento em Perícia'});
+  expect(pending.status).toBe(200);
+  expect((await gm('/power-request',{id:pending.data.request.id,action:'approve'})).status).toBe(200);
+ };
+ await request();await request();
+ const sheet=(await player('')).data.character;
+ expect(sheet.powerChoices.filter(x=>x.name==='Treinamento em Perícia')).toHaveLength(2);
+ expect(sheet.powers.filter(x=>x==='Treinamento em Perícia')).toHaveLength(1);
+});
