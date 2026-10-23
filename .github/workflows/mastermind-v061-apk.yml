@@ -1,0 +1,64 @@
+name: Mastermind v0.61 APK direto
+on:
+  push:
+    branches:
+      - feature/mastermind-v061-gurps-traits-edit
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build-apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Configurar Android SDK
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMANAGER" ]; then SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -path '*/bin/sdkmanager' -type f | sort -V | tail -1)"; fi
+          "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --install "platforms;android-35" "build-tools;35.0.0"
+      - name: Validar scripts e dados GURPS
+        run: |
+          node --check app/src/main/assets/rpg16_gurps_ui.js
+          node --check app/src/main/assets/rpg16_gurps_traits.js
+          node tests/gurps4.test.cjs
+          node tests/mastermind_v61.test.cjs
+      - name: Compilar APK Android
+        run: gradle :app:assembleDebug --no-daemon
+      - name: Validar APK e assinatura
+        run: |
+          python3 tests/verify_apk.py app/build/outputs/apk/debug/app-debug.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-debug.apk
+          sha256sum app/build/outputs/apk/debug/app-debug.apk > apk-sha256.txt
+      - name: Publicar Mastermind v0.61 APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mastermind-v0.61-Android-APK
+          path: |
+            app/build/outputs/apk/debug/app-debug.apk
+            apk-sha256.txt
+          if-no-files-found: error
+
+      - name: Disponibilizar APK direto no GitHub Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="mastermind-v0.61-gurps"
+          cp app/build/outputs/apk/debug/app-debug.apk Mastermind-v0.61-Android.apk
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" Mastermind-v0.61-Android.apk \
+              --target "${GITHUB_SHA}" \
+              --title "Mastermind v0.61 — GURPS 4ª edição" \
+              --notes "Android debug APK: catálogo GURPS Básico 4e e edição direta de perícias. Atenção: instalação sobre APK prévio depende da mesma assinatura; preserve backup das fichas."
+          else
+            gh release upload "$TAG" Mastermind-v0.61-Android.apk --clobber
+          fi
