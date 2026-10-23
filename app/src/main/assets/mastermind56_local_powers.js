@@ -8,11 +8,27 @@ const op=window.OP13,pc=window.MastermindCharacters,app=window.RPG_DEMO;
 const panel=$('[data-r14-panel="advancement"]'),sheet=$('#screen-sheet'),tabs=$('.r14-tabs');
 if(!op||!pc||!panel||!sheet||!tabs)return;
 const milestones=[15,30,45,60,75,90];
-const classPowers={
- Combatente:['Golpe Pesado','Combater com Duas Armas','Saque Rápido','Armamento Pesado','Proteção Pesada'],
- Especialista:['Mochila de Utilidades','Conhecimento Aplicado','Ninja Urbano','Perito em Explosivos'],
- Ocultista:['Ritual Potente','Camuflar Ocultismo','Identificação Paranormal']
-};
+// v0.59: generated from the same curated base-book catalog used by the LAN player.
+const classPowerCatalog=window.MastermindClassCatalog||{classPowers:{},classPowerRules:{},classPowerPage:{}};
+const classPowers=classPowerCatalog.classPowers||{};
+const classPowerRules=classPowerCatalog.classPowerRules||{};
+function trained(s,name){
+ if(Number(s.skills?.[name]||0)>0)return true;
+ const origin=op.pack?.origens?.find(x=>x.nome===(s.origin||s.origem));
+ return !!origin?.pericias?.includes(name);
+}
+function missingClassRequirements(name,s){
+ const rule=classPowerRules[name]||{},missing=[];
+ if(rule.minNex&&Number(s.nex||0)<rule.minNex)missing.push('NEX '+rule.minNex+'%');
+ for(const [attr,minimum] of Object.entries(rule.attrs||{}))
+  if(Number(s.attrs?.[attr]||0)<minimum)missing.push(attr+' '+minimum);
+ for(const skill of rule.skillsAll||[])if(!trained(s,skill))missing.push('Treinado em '+skill);
+ if(rule.skillsAny?.length&&!rule.skillsAny.some(skill=>trained(s,skill)))
+  missing.push('Treinado em '+rule.skillsAny.join(' ou '));
+ if(rule.power&&!new Set(Array.isArray(s.powers)?s.powers.map(x=>typeof x==='string'?x:x?.name):[]).has(rule.power))
+  missing.push('Poder '+rule.power);
+ return missing;
+}
 const powers=(op.pack.poderesParanormais||[]).map(x=>({name:x.nome,element:x.elemento,page:x.paginaLivro}));
 let mode='transcend',chosen='',note='',lastChar='';
 const current=()=>op.state;
@@ -26,15 +42,18 @@ function counts(s){
 }
 function setMessage(msg){note=msg;const tag=$('#v56-feedback');if(tag)tag.textContent=note;}
 function options(s){
- if(mode==='class')return (classPowers[s.class]||[]).map(name=>({name,element:s.class,page:0}));
+ if(mode==='class')return (classPowers[s.class]||[]).map(name=>({name,element:s.class,page:classPowerCatalog.classPowerPage?.[s.class]||0}));
  return powers;
 }
 function card(p,s){
- const existing=learned(s).has(p.name);
+ const repeatable=mode==='class'&&!!classPowerRules[p.name]?.repeatable;
+ const existing=learned(s).has(p.name)&&!repeatable;
  const active=chosen===p.name;
  const prior=p.name==='Surto Temporal'&&mode==='transcend';
- const death=counts(s).Morte||0,allowed=!prior||death>=2;
- const info=prior&&!allowed?'Requer dois poderes de Morte anteriores':p.page?'Livro · página '+p.page:'Validar requisitos com o mestre';
+ const death=counts(s).Morte||0;
+ const missing=mode==='class'?missingClassRequirements(p.name,s):(prior&&death<2?['Dois poderes de Morte anteriores']:[]);
+ const allowed=missing.length===0;
+ const info=!allowed?'Requer '+missing.join(' · '):p.page?'Livro básico · p. '+p.page:'Consultar regras do livro';
  return '<button type="button" data-v56-select="'+esc(p.name)+'" class="v56-power-card'+
  (active?' chosen':'')+'" '+(!allowed||existing?'disabled':'')+'>'+
  '<strong>'+esc(p.name)+'</strong><span>'+esc(p.element)+'</span><small>'+
@@ -51,9 +70,9 @@ function show(){
  '<button data-v56-mode="class" class="'+(mode==='class'?'active':'')+'">Poder de classe</button></div>'+
  '<p class="v56-hint">'+(mode==='transcend'?
  'Você deixará de ganhar SAN nesta evolução. Os pré-requisitos individuais devem ser confirmados com o livro e o mestre.':
- 'Sugestões iniciais da classe. Escolhas específicas exigem conferência com o mestre.')+'</p>'+
+ 'Poderes do livro básico 1.3 da sua classe, incluindo Treinamento em Perícia. Requisitos são conferidos antes de registrar.')+'</p>'+
  '<div class="v56-powers-list">'+choices.map(p=>card(p,s)).join('')+'</div>'+
- (mode==='class'?'<label class="v56-custom">Poder de classe não listado<input id="v56-custom" maxlength="90" placeholder="Nome do livro de regras"></label>':'')+
+ ''+
  '<button type="button" class="v56-confirm" id="v56-learn" '+(remaining===0?'disabled':'')+'>Adicionar poder à ficha</button>'+
  '<p id="v56-feedback" role="status">'+esc(note)+'</p>'+
  '<div class="v56-acquired"><h4>Poderes já adquiridos</h4>'+
@@ -70,9 +89,16 @@ function learn(name){
  const s=current(),prev=records(s),max=slots(s.nex);
  if(prev.length>=max)return setMessage('Não há escolhas disponíveis neste NEX.');
  if(!name||name.length>90)return setMessage('Selecione o nome de um poder válido.');
- if(learned(s).has(name)||prev.some(x=>x.name===name))return setMessage('Esse poder já está na sua ficha.');
+ const repeatable=mode==='class'&&!!classPowerRules[name]?.repeatable;
+ if(!repeatable&&(learned(s).has(name)||prev.some(x=>x.name===name)))
+  return setMessage('Esse poder já está na sua ficha.');
  if(mode==='transcend'&&!powers.some(p=>p.name===name))return setMessage('Escolha um poder paranormal do catálogo.');
- if(mode==='class'&&name.toLowerCase()==='transcender')return setMessage('Para Transcender, use a opção paranormal.');
+ if(mode==='class'&&!(classPowers[s.class]||[]).includes(name))
+  return setMessage('Este poder não pertence à classe selecionada no livro básico.');
+ if(mode==='class'){
+  const requirements=missingClassRequirements(name,s);
+  if(requirements.length)return setMessage('Pré-requisitos não cumpridos: '+requirements.join(', ')+'.');
+ }
  if(mode==='transcend'&&name==='Surto Temporal'&&(counts(s).Morte||0)<2)
   return setMessage('Surto Temporal exige dois poderes paranormais de Morte anteriores.');
  const nex=milestones[prev.length];
@@ -92,27 +118,15 @@ panel.addEventListener('click',e=>{
  if(which){mode=which.dataset.v56Mode;chosen='';note='';show();return;}
  const select=e.target.closest('[data-v56-select]');
  if(select){chosen=select.dataset.v56Select;show();return;}
- if(e.target.closest('#v56-learn')){
-  const x=mode==='class'?$('#v56-custom',panel)?.value.trim():null;
-  learn(x||chosen);
- }
+ if(e.target.closest('#v56-learn'))learn(chosen);
 });
-const jump=document.createElement('button');
-jump.type='button';jump.id='v56-quick-powers';jump.className='rpg05-btn primary';
-jump.textContent='✦ Poderes / Transcender';jump.setAttribute('aria-label','Abrir os poderes da ficha');
+// A única entrada de navegação é a aba r14; nenhum CTA duplicado no cabeçalho.
 const char=$('#rpg05-char-select');
-const header=char?.closest('.rpg05-heading');
-if(header)header.append(jump);
 function open(){
  app?.navigate?.('sheet');window.RPG14?.show?.('advancement');
  panel.scrollIntoView?.({block:'start',behavior:'auto'});
  show();
 }
-jump.addEventListener('click',open);
-const mini=$('#op-poderes');
-if(mini)mini.insertAdjacentHTML('afterbegin',
- '<button type="button" class="rpg05-btn primary" id="v56-go-powers">✦ Aprender poderes / Transcender →</button>');
-mini?.addEventListener('click',e=>{if(e.target.closest('#v56-go-powers'))open()});
 char?.addEventListener('change',()=>setTimeout(()=>{chosen='';show()},45));
 document.addEventListener('rpg:character-selected',()=>setTimeout(()=>{chosen='';show()},0));
 $('#rpg05-new-char')?.addEventListener('click',()=>{chosen='';note='';show()});
