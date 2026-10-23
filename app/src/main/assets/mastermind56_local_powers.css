@@ -1,6 +1,4 @@
 /* v0.56: powers tab in the Android app's actual screen-sheet, not only the LAN guest page. */
-#v56-quick-powers{border:1px solid var(--accent);color:var(--accent-foreground,#201723);
- font-weight:750;min-height:42px;white-space:nowrap}
 #screen-sheet .r14-tabs [data-r14-tab=advancement]{border-color:var(--accent);color:var(--accent);
  font-weight:800;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 25%,transparent)}
 #screen-sheet .r14-tabs [data-r14-tab=advancement][aria-selected=true]{background:var(--accent);color:var(--accent-foreground,#1d1420)}
@@ -42,7 +40,6 @@
 #v56-powers .v56-legacy{overflow-wrap:anywhere}
 #v56-powers .v56-warning{border:1px solid var(--line);border-radius:9px;padding:11px;background:var(--panel2);font-size:11px}
 @media(max-width:650px){
- #v56-quick-powers{flex:1 1 100%;width:100%}
  #v56-powers{padding:12px}
  #v56-powers .v56-powers-list{grid-template-columns:repeat(2,minmax(0,1fr))}
  #v56-powers .v56-power-card{min-height:105px}
