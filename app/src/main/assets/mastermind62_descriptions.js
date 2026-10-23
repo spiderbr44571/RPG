@@ -4,6 +4,9 @@
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR').replace(/[^a-z0-9]+/g,' ').trim();
 const sources=()=>root.OP13?.pack||{};
+const overridesKey='mastermind63-personal-descriptions-v1';
+const getOverrides=()=>{try{return JSON.parse(localStorage.getItem(overridesKey)||'{}')}catch{return {}}};
+const itemKey=x=>[x.systemId||'',norm(x.name),norm(x.kind||''),norm(x.element||'')].join('|');
 function packItems(){
  const p=sources(),arr=[];
  const scan=(value,kind)=>{
@@ -28,14 +31,23 @@ function allEntries(){
  const d=dnd?Object.keys(dnd.SKILLS||{}).map(x=>({systemId:'d-d',kind:'pericia',name:dnd.LABELS?.[x]||x,summary:'Atributo: '+dnd.SKILLS[x],origin:'D&D 5e SRD 5.1'})):[];
  const u=root.RPG18_DND?.current;
  for(const key of ['features','spells','attacks','inventory'])for(const item of Array.isArray(u?.[key])?u[key]:[])d.push({systemId:'d-d',kind:key,name:item.name||String(item),description:item.description||'',summary:item.details||item.notes||'',origin:'Ficha do jogador'});
- return [...packItems(),...g,...skills,...d];
+ const order=root.Mastermind63Order||[],gurps=root.Mastermind63GURPS||[],srd=root.Mastermind63SRD||[];
+ const ptSkill=new Map((root.Mastermind63GURPSSkillPT||[]).map(x=>[norm(x.english),x]));
+ const gskills=Object.entries(root.Mastermind63GURPSSkills||{}).map(([name,x])=>{
+  const pt=ptSkill.get(norm(name)),dif=({E:'fácil',A:'média',H:'difícil',VH:'muito difícil'}[String(x.dif||'').toUpperCase()]||'especial');
+  return {systemId:'gurps',kind:'Perícia',name:pt?.pt||name,english:name,page:pt?.page||'',reference:x.reference||'',origin:'GURPS 4ª edição · catálogo de perícias',
+   description:'Perícia com base em '+(x.attr||'atributo configurado')+' e dificuldade '+dif+'. O nível de habilidade depende do atributo, da dificuldade e dos pontos investidos.',
+   sourceDetail:'mechanics'};
+ });
+ const all=[...order,...gurps,...gskills,...srd,...packItems(),...g,...skills,...d],seen=new Set();
+ return all.filter(x=>{const id=itemKey(x);if(seen.has(id))return false;seen.add(id);return true;});
 }
 function find(name,systemId){
  const q=norm(name);if(!q)return null;
  const opts=allEntries().filter(x=>(!systemId||x.systemId===systemId)&&(norm(x.name)===q||norm(x.english)===q));
  return opts[0]||null;
 }
-let dialog=null,previousFocus=null,searchResults=[];
+let dialog=null,previousFocus=null,searchResults=[],selected=null,lookupId=0;
 function ensure(){
  if(dialog)return dialog;
  dialog=document.createElement('section');dialog.id='mm62-descriptions';dialog.hidden=true;
@@ -69,16 +81,19 @@ function open(data){
  let item=typeof data==='string'?find(data):data;
  if(!item)return showSearch(typeof data==='string'?data:'','');
  const val=find(item.name,item.systemId)||{},o={...val,...item};
+ for(const key of ['description','summary','page','reference','origin','english'])if(!o[key]&&val[key])o[key]=val[key];
+ selected=o;
  const desc=typeof o.description==='string'?o.description.trim():'';
  const summary=typeof o.summary==='string'?o.summary.trim():'';
  const note=typeof o.notes==='string'?o.notes.trim():'';
  const book=o.origin||o.book||o.source||'Conteúdo cadastrado na ficha';
+ const personal=getOverrides()[itemKey(o)]||'';
  const page=o.page||o.reference||'';
  show();
  ensure().querySelector('#mm62-content').innerHTML='<div class="mm62-info" data-mm62-title="'+esc(o.name)+'" data-mm62-system="'+esc(o.systemId||'')+'">'+
  '<h2>'+esc(o.name)+'</h2><div class="mm62-meta">'+esc(o.kind||'Característica')+' · '+esc(book)+(page?' · '+esc(String(page).startsWith('B')?page:'p. '+page):'')+'</div>'+
- (desc?'<h3>Descrição cadastrada</h3><div class="mm62-literal">'+esc(desc)+'</div>':
- '<p class="mm62-unavailable">O texto integral desta característica não está cadastrado no Mastermind. A descrição exata deve ser consultada na fonte original.</p>')+
+ (desc?'<h3>Descrição funcional</h3><div class="mm62-literal">'+esc(desc)+'</div>':
+ '<p class="mm62-unavailable">Esta entrada ainda não tem uma explicação mecânica verificada no índice. Consulte os trechos do seu livro particular abaixo ou adicione suas anotações.</p>')+
  (summary?'<h3>Dados resumidos (não são transcrição)</h3><p>'+esc(summary)+'</p>':'')+
  (note?'<h3>Notas da ficha</h3><p>'+esc(note)+'</p>':'')+
  '<button type="button" data-mm62-book="1">Pesquisar no meu livro ↗</button><button type="button" id="mm62-another">Consultar outra característica</button></div>';
@@ -90,7 +105,7 @@ function showSearch(query='',systemId=''){
  if(q)results=results.filter(x=>norm(x.name).includes(q)||norm(x.english).includes(q));
  if(systemId)results=results.filter(x=>x.systemId===systemId);
  searchResults=results.slice(0,80);
- ensure().querySelector('#mm62-content').innerHTML='<p class="mm62-helper">Pesquise rituais, perícias, magias, habilidades, poderes ou características. O texto exato aparece somente quando a fonte contém a descrição cadastrada.</p>'+
+ ensure().querySelector('#mm62-content').innerHTML='<p class="mm62-helper">Pesquise rituais, perícias, magias, habilidades, poderes ou características. A biblioteca inclui descrições funcionais e os dados das regras cadastradas; trechos originais podem aparecer quando seus PDFs estão indexados.</p>'+
  '<label>Nome<input id="mm62-query" type="search" value="'+esc(query)+'" placeholder="Ex.: Reflexos em Combate"></label>'+
  '<label>Sistema<select id="mm62-system"><option value="">Todos</option>'+
  [['ordem-paranormal','Ordem Paranormal'],['gurps','GURPS 4e'],['d-d','D&D 5e']].map(([id,label])=>'<option value="'+id+'"'+(id===systemId?' selected':'')+'>'+label+'</option>').join('')+
