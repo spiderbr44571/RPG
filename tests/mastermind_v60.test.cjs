@@ -20,7 +20,7 @@ assert.match(html,/>v0\.60<\/small>/);
 assert.match(html,/const svgHome=`<svg class="r09-home-svg"/);
 assert.match(html,/aria-label="Abrir menu principal do Mastermind"/);
 assert.doesNotMatch(html,/const svgDie=`<svg class="r09-poly"/);
-assert.match(html,/r09-dice"[^>]+\$\{svgHome\}/);
+assert.match(html,/r09-dice"[^>]*>\$\{svgHome\}/);
 assert.match(html,/Abrir esta central não realiza rolagens/);
 assert.match(html,/href="mastermind60_identity\.css"/);
 assert.match(style,/background:transparent!important;background-image:none!important/);
