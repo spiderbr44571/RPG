@@ -57,6 +57,13 @@ function ensure(){
   if(e.target.closest('[data-mm62-close]')){close();return}
   const b=e.target.closest('[data-mm62-result]');
   if(b){let x=searchResults[Number(b.dataset.mm62Result)];if(x)open(x);return}
+  if(e.target.closest('[data-mm63-save]')){
+   if(!selected)return;const v=dialog.querySelector('#mm63-user-description')?.value||'';
+   if(v.length>12000)return alert('Limite de 12.000 caracteres.');
+   const store=getOverrides(),key=itemKey(selected);
+   if(v.trim())store[key]=v.trim();else delete store[key];
+   try{localStorage.setItem(overridesKey,JSON.stringify(store));open(selected)}catch{alert('Não foi possível salvar no armazenamento local.')}return
+  }
   if(e.target.closest('[data-mm62-find]')){
    const q=dialog.querySelector('#mm62-query')?.value.trim();const sys=dialog.querySelector('#mm62-system')?.value;
    showSearch(q,sys);return
@@ -76,7 +83,7 @@ function ensure(){
  return dialog;
 }
 function show(){previousFocus=document.activeElement;ensure().hidden=false;document.body.classList.add('mm62-description-open')}
-function close(){if(!dialog)return;dialog.hidden=true;document.body.classList.remove('mm62-description-open');previousFocus?.focus?.();}
+function close(){if(!dialog)return;lookupId++;dialog.hidden=true;document.body.classList.remove('mm62-description-open');previousFocus?.focus?.();}
 function open(data){
  let item=typeof data==='string'?find(data):data;
  if(!item)return showSearch(typeof data==='string'?data:'','');
@@ -96,10 +103,22 @@ function open(data){
  '<p class="mm62-unavailable">Esta entrada ainda não tem uma explicação mecânica verificada no índice. Consulte os trechos do seu livro particular abaixo ou adicione suas anotações.</p>')+
  (summary?'<h3>Dados resumidos (não são transcrição)</h3><p>'+esc(summary)+'</p>':'')+
  (note?'<h3>Notas da ficha</h3><p>'+esc(note)+'</p>':'')+
+ '<div id="mm63-private-excerpts"><p class="mm62-helper">Verificando os livros particulares indexados…</p></div>'+ 
+ '<h3>Anotações pessoais</h3><textarea id="mm63-user-description" rows="4" maxlength="12000" placeholder="Descrição adicional a salvar nesta ficha.">'+esc(personal)+'</textarea><button type="button" data-mm63-save="1">Salvar anotações</button>'+ 
  '<button type="button" data-mm62-book="1">Pesquisar no meu livro ↗</button><button type="button" id="mm62-another">Consultar outra característica</button></div>';
  const b=dialog.querySelector('#mm62-another');b?.addEventListener('click',()=>showSearch('',''));
+ const id=++lookupId;lookupPrivate(o).then(hits=>{
+  if(id!==lookupId||dialog.hidden)return;
+  const target=dialog.querySelector('#mm63-private-excerpts');if(!target)return;
+  target.innerHTML=hits.length?'<h3>Trechos do seu livro</h3>'+
+   hits.slice(0,2).map(h=>'<div class="mm63-excerpt"><small>'+esc(h.book)+' · página '+esc(h.page)+'</small><p>'+esc(h.text)+'</p></div>').join('')+
+   '<p class="mm62-helper">Trechos da fonte pessoal, separados dos resumos do aplicativo.</p>':
+   '<p class="mm62-helper">Nenhum trecho encontrado no índice privado deste sistema. O resumo acima permanece disponível.</p>';
+ }).catch(()=>{if(id===lookupId){const target=dialog?.querySelector('#mm63-private-excerpts');if(target)target.textContent='Não foi possível ler o índice particular.'}});
+
 }
 function showSearch(query='',systemId=''){
+ lookupId++;selected=null;
  show();
  let results=allEntries(),q=norm(query);
  if(q)results=results.filter(x=>norm(x.name).includes(q)||norm(x.english).includes(q));
@@ -114,5 +133,38 @@ function showSearch(query='',systemId=''){
  '<div class="mm62-results">'+searchResults.map((x,i)=>'<button type="button" data-mm62-result="'+i+'"><strong>'+esc(x.name)+'</strong><small>'+esc(x.kind)+' · '+esc(x.origin)+' · '+esc(x.page||x.reference||'')+'</small></button>').join('')+'</div>';
  dialog.querySelector('#mm62-query')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();showSearch(e.target.value,dialog.querySelector('#mm62-system')?.value)}});
 }
-root.Mastermind62Descriptions={open,find,search:showSearch,close,allEntries};
+async function lookupPrivate(item){
+ const hits=[],name=norm(item.name),parts=name.split(' ');
+ if(item.systemId==='ordem-paranormal'&&root.RpgBookBridge?.searchPdf){
+  try{
+   const data=JSON.parse(root.RpgBookBridge.searchPdf(item.name,8,0));
+   if(['ready','indexing','partial'].includes(data.state))
+    for(const h of data.hits||[])if(h.excerpt&&h.page)hits.push({book:data.book||'Livro local de Ordem Paranormal',page:h.page,text:String(h.excerpt).slice(0,280)});
+  }catch{}
+ }
+ if(typeof indexedDB==='undefined')return hits.slice(0,2);
+ const books=await new Promise(resolve=>{
+  const req=indexedDB.open('RPG-Mesa-Private-Search');
+  req.onerror=()=>resolve([]);
+  req.onsuccess=()=>{
+   const db=req.result;if(!db.objectStoreNames.contains('books')){db.close();resolve([]);return;}
+   const q=db.transaction('books','readonly').objectStore('books').getAll();
+   q.onerror=()=>{db.close();resolve([])};
+   q.onsuccess=()=>{const all=q.result||[];db.close();resolve(all)};
+  };
+ });
+ for(const book of books){
+  if(book.systemId!==item.systemId)continue;
+  for(const chunk of book.chunks||[]){
+   if(hits.length>=8)break;
+   const text=String(chunk.text||''),normalized=norm(text);
+   if(!normalized.includes(name)&&!parts.every(w=>w.length<3||normalized.includes(w)))continue;
+   const offset=Math.max(0,normalized.indexOf(parts[0]||'')-30);
+   hits.push({book:book.book?.title||'Índice particular',page:chunk.page||'?',text:text.slice(offset,offset+280).replace(/\s+/g,' ')});
+  }
+ }
+ return hits.slice(0,2);
+}
+
+root.Mastermind62Descriptions={open,find,search:showSearch,close,allEntries,lookupPrivate};
 })(window);
