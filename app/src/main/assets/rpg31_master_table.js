@@ -17,7 +17,7 @@ function close(){
 function open(host,options){
  if(active)close();
  const s={el:document.createElement('div'),oldOverflow:document.body.style.overflow,
-   options,revision:-1,data:null,scene:null,selected:'',cell:48,timer:0,busy:false,folded:false,privateResult:null,editing:false,camera:root.RPG33_CAMERA?.create(),cameraScene:''};
+   options,revision:-1,data:null,scene:null,selected:'',cell:48,timer:0,busy:false,folded:false,groups:{rolls:true,initiative:true,requests:false,pace:false,players:false,movement:false,target:true},lastRequestCount:0,privateResult:null,editing:false,camera:root.RPG33_CAMERA?.create(),cameraScene:''};
  active=s;s.el.className='r31-live';document.body.appendChild(s.el);document.body.style.overflow='hidden';
  try{root.RpgSceneDisplay?.setLandscape(true)}catch(_){}
  const req=(path='',method='GET',payload)=>options.request(options.route+path,method,payload);
@@ -68,6 +68,28 @@ function open(host,options){
   html+='<small>Toque no mapa para reposicionar o token selecionado.</small>';
   el.innerHTML=html;
  }
+
+ const r64Shapes={
+  door:'<path d="M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5"/><path d="M10 12h11m-4-4 4 4-4 4"/>',
+  turn:'<rect x="3" y="4" width="8" height="7" rx="1"/><rect x="13" y="4" width="8" height="7" rx="1"/><rect x="3" y="13" width="8" height="7" rx="1"/><path d="M13 17h8m-4-4v8"/>',
+  map:'<path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15m6-12v15"/>',
+  coffee:'<path d="M4 8h13v7a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M17 9h2a3 3 0 0 1 0 6h-2M7 2v3m5-3v3m-9 16h17"/>',
+  maximize:'<path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/>',
+  sidebar:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',minus:'<path d="M5 12h14"/>',
+  dice:'<rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="8" cy="8" r="1" fill="currentColor" stroke="none"/><circle cx="16" cy="16" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/>',
+  initiative:'<path d="m5 4 15 15M19 4 4 19m4-12-4-3v5m11-5 5-3v5"/><path d="M3 21h6m6 0h6"/>',
+  requests:'<path d="M21 11.5a8 8 0 0 1-8 8H7l-4 3v-6a8 8 0 0 1 5-13h5a8 8 0 0 1 8 8z"/><path d="M8 10h8m-8 4h5"/>',
+  hourglass:'<path d="M5 3h14M5 21h14M7 3c0 6 5 6 5 9s-5 3-5 9m10-18c0 6-5 6-5 9s5 3 5 9"/>',
+  people:'<circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M17 11a3 3 0 1 0-1-5m1 9a5 5 0 0 1 4 5"/>',
+  walk:'<circle cx="13" cy="4" r="2"/><path d="m8 21 3-6-2-4 3-4 4 3 3 1m-6 4 4 6M8 12l-4 2"/>',
+  target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 1v4m0 14v4M1 12h4m14 0h4"/>',
+  chevron:'<path d="m6 9 6 6 6-6"/>',
+  shield:'<path d="m12 3 9 4v5c0 6-4 8-9 10-5-2-9-4-9-10V7z"/>'
+ };
+ const r64Icon=id=>'<svg class="r64-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(r64Shapes[id]||r64Shapes.target)+'</svg>';
+ const r64Action=(action,iconName,label,extra='')=>'<button type="button" data-action="'+action+'" class="r64-action '+extra+'" title="'+label+'" aria-label="'+label+'">'+r64Icon(iconName)+'<span class="r64-action-label">'+label+'</span></button>';
+ const r64Group=(id,iconName,label,badge='')=>'<details class="r64-card r64-'+id+'" data-r64-group="'+id+'" '+(s.groups[id]?'open':'')+'><summary>'+r64Icon(iconName)+'<span>'+label+'</span>'+(badge?'<em>'+badge+'</em>':'')+r64Icon('chevron')+'</summary><div class="r64-card-body">';
  function render(){
   const d=s.data;if(!d)return;const map=(d.scenarios||[]).find(c=>c.id===d.activeScenarioId);
   const activeId=d.initiative?.activeId||'';
@@ -75,14 +97,20 @@ function open(host,options){
   const activeName=activeToken?.name||(d.initiative?.entries||[]).find(t=>t.tokenId===activeId)?.name||'Iniciativa não iniciada';
   const interlude=d.sessionMode==='interlude';
   s.scene=map;
-  s.el.innerHTML='<header><strong>✧ MESTRE</strong><h2>'+esc(map?.name||'Sem cenário publicado')+'</h2>'+
-    '<span class="r35-active-turn" aria-live="polite">'+(interlude?'✦ INTERLÚDIO · movimento livre':'Vez: <b>'+esc(activeName)+'</b> · Rodada '+(d.initiative?.round||1))+'</span>'+
-    '<button data-action="panel">Painel</button>'+
-    '<button data-action="zoom-out" title="Afastar">-</button><button data-action="zoom-in" title="Aproximar">+</button>'+
-    '<button data-action="fit" title="Enquadrar mapa">Enquadrar</button>'+
-    '<button data-action="session-mode" class="r53-mode-button '+(interlude?'interlude':'')+'">'+(interlude?'⚔ Voltar ao combate':'✦ Iniciar interlúdio')+'</button>'+
-    '<button data-action="edit">Editar mapa</button><button data-action="turn" '+(interlude?'disabled title="Iniciativa pausada durante o interlúdio"':'')+'>+ Turno</button><button data-action="close">Sair</button></header>'+
-    '<div class="body"><div id="r31-scroll" class="scroll"><div class="r35-turn-overlay '+(interlude?'r53-interlude-indicator':'')+'">'+
+  if((d.playerRequests||[]).length&&!s.lastRequestCount)s.groups.requests=true;
+  s.lastRequestCount=(d.playerRequests||[]).length;
+  s.el.innerHTML='<header class="r64-head"><div class="r64-brand"><strong>✧ MESTRE</strong><small>'+esc(map?.name||'Sem cenário publicado')+'</small></div>'+
+    '<nav class="r64-commands" aria-label="Ferramentas da mesa">'+
+    r64Action('close','door','Sair','r64-exit')+
+    r64Action('turn','turn','+ Turno',interlude?'r64-disabled':'')+
+    r64Action('edit','map','Editar mapa')+
+    r64Action('session-mode','coffee',interlude?'Voltar ao combate':'Iniciar interlúdio','r64-interlude '+(interlude?'active':''))+
+    r64Action('fit','maximize','Enquadrar')+'</nav>'+
+    '<div class="r64-top-right"><span class="r35-active-turn" aria-live="polite">'+(interlude?'☕ Interlúdio':'Vez: <b>'+esc(activeName)+'</b>')+'<small>Rodada '+(d.initiative?.round||1)+'</small></span>'+
+    '<div class="r64-viewport-actions">'+r64Action('panel','sidebar',s.folded?'Mostrar painel':'Ocultar painel','r64-icon-only')+
+    r64Action('zoom-out','minus','Afastar mapa','r64-icon-only')+
+    r64Action('zoom-in','plus','Aproximar mapa','r64-icon-only')+'</div></div></header>'+
+    '<div class="body '+(s.folded?'r64-panel-folded':'')+'"><div id="r31-scroll" class="scroll"><div class="r35-turn-overlay '+(interlude?'r53-interlude-indicator':'')+'">'+
     (interlude?'✦ INTERLÚDIO <strong>Exploração livre</strong><small>Todos os jogadores podem se mover e rolar dados. Iniciativa preservada.</small>':
     'Vez atual: <strong>'+esc(activeName)+'</strong><small>Rodada '+(d.initiative?.round||1)+'</small>')+'</div><div id="r31-board" class="board"></div></div>'+
     '<aside id="r31-aside" class="'+(s.folded?'folded':'')+'"><section><h3>⚄ Rolagens</h3>'+
