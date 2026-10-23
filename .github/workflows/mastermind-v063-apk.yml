@@ -2,7 +2,7 @@ name: Mastermind v0.63 APK direto
 on:
   push:
     branches:
-      - feature/mastermind-v063-gurps-traducao-descricoes
+      - feature/mastermind-v063-descricoes-preenchidas
   workflow_dispatch:
 permissions:
   contents: write
