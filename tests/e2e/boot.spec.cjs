@@ -7,13 +7,13 @@ test('APK assets boot: visible powers, NEX, persistence and isolated characters'
  const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
  await page.goto('http://127.0.0.1:8123/demo-offline.html');
  await page.evaluate(()=>RPG_DEMO.navigate('sheet'));
- await page.locator('#v56-quick-powers').click();
+ await page.locator('#screen-sheet .r14-tabs [data-r14-tab="advancement"]').click();
  await expect(page.locator('#v56-powers')).toBeVisible();
  await page.evaluate(()=>MastermindCharacters.update(MastermindCharacters.selectedId(),{nex:45}));
- await page.locator('#v56-quick-powers').click();
+ await page.locator('#screen-sheet .r14-tabs [data-r14-tab="advancement"]').click();
  await page.locator('[data-v56-select="Encarar a Morte"]').click();await page.locator('#v56-learn').click();
  await expect(page.locator('.v56-power-learned')).toHaveCount(1);
- await page.reload();await page.evaluate(()=>RPG_DEMO.navigate('sheet'));await page.locator('#v56-quick-powers').click();
+ await page.reload();await page.evaluate(()=>RPG_DEMO.navigate('sheet'));await page.locator('#screen-sheet .r14-tabs [data-r14-tab="advancement"]').click();
  await expect(page.locator('.v56-power-learned')).toHaveCount(1);
  await page.locator('#rpg05-new-char').click();
  await expect(page.locator('.v56-power-learned')).toHaveCount(0);
@@ -35,5 +35,27 @@ test('live real server boot, wheel, powers tab does not overwrite other tabs, th
  await page.goto(server.url+'/play/test');
  await expect(page.locator('body')).toHaveAttribute('data-theme','sangue');await expect(page.locator('body')).toHaveAttribute('data-mode','light');
  await page.locator('[data-tab="powers"]').click();await expect(page.locator('.v55-power-section')).toBeVisible();
+ expect(errors).toEqual([]);
+});
+
+
+test('only existing Powers tab, full base-book class catalog, lock by NEX and class switching',async({page})=>{
+ const errors=[];page.on('pageerror',err=>errors.push(err.message));page.on('dialog',d=>d.accept());
+ await page.goto('http://127.0.0.1:8123/demo-offline.html');
+ await page.evaluate(()=>RPG_DEMO.navigate('sheet'));
+ await expect(page.locator('#v56-quick-powers, #v56-go-powers')).toHaveCount(0);
+ await page.locator('#screen-sheet [data-r14-tab="advancement"]').click();
+ await page.locator('#v56-powers [data-v56-mode="class"]').click();
+ await expect(page.locator('#v56-powers [data-v56-select]')).toHaveCount(18);
+ await expect(page.locator('#v56-powers [data-v56-select="Proteção Pesada"]')).toBeDisabled();
+ await page.evaluate(()=>MastermindCharacters.update(MastermindCharacters.selectedId(),{nex:45}));
+ await page.locator('#screen-sheet [data-r14-tab="advancement"]').click();
+ await expect(page.locator('#v56-powers [data-v56-select="Proteção Pesada"]')).toBeEnabled();
+ await page.evaluate(()=>{MastermindCharacters.update(MastermindCharacters.selectedId(),{class:'Especialista'});Mastermind56Powers.show()});
+ await expect(page.locator('#v56-powers [data-v56-select]')).toHaveCount(14);
+ await expect(page.locator('#v56-powers [data-v56-select="Hacker"]')).toBeVisible();
+ await page.evaluate(()=>{MastermindCharacters.update(MastermindCharacters.selectedId(),{class:'Ocultista'});Mastermind56Powers.show()});
+ await expect(page.locator('#v56-powers [data-v56-select]')).toHaveCount(15);
+ await expect(page.locator('#v56-powers [data-v56-select="Mestre em Elemento"]')).toBeDisabled();
  expect(errors).toEqual([]);
 });

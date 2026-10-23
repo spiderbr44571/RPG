@@ -1230,20 +1230,29 @@ public final class LocalCampaignServer extends NanoHTTPD {
     }
     return n;
   }
+  private JSONObject classPowerRule(String name)throws Exception{
+    return paranormalCatalog().optJSONObject("classPowerRules")==null?null:
+      paranormalCatalog().getJSONObject("classPowerRules").optJSONObject(name);
+  }
+  private boolean repeatableClassPower(String type,String name)throws Exception{
+    JSONObject rule="class".equals(type)?classPowerRule(name):null;
+    return rule!=null&&rule.optBoolean("repeatable",false);
+  }
   private void validateChoice(JSONObject sheet,String type,String name)throws Exception{
     if(!"ordem-paranormal".equals(sheet.optString("systemId","ordem-paranormal")))
       throw new IllegalArgumentException("Este catálogo é específico de Ordem Paranormal.");
     int nex=sheet.optInt("nex",5);
     if(powerSlots(nex)<=usedPowerSlots(sheet))
       throw new IllegalArgumentException("Não há escolhas de poder disponíveis no NEX atual.");
+    boolean repeatable=repeatableClassPower(type,name);
     JSONArray known=sheet.optJSONArray("powers");
-    if(known!=null)for(int i=0;i<known.length();i++){
+    if(!repeatable&&known!=null)for(int i=0;i<known.length();i++){
       Object value=known.opt(i);
       String existing=value instanceof JSONObject?((JSONObject)value).optString("name",((JSONObject)value).optString("nome")):String.valueOf(value);
       if(name.equals(existing))throw new IllegalArgumentException("Este poder já está na ficha.");
     }
     JSONArray prev=choices(sheet);
-    for(int i=0;i<prev.length();i++)
+    if(!repeatable)for(int i=0;i<prev.length();i++)
       if(name.equals(prev.getJSONObject(i).optString("name")))
         throw new IllegalArgumentException("Este poder já foi escolhido.");
     if("transcend".equals(type)){
@@ -1253,7 +1262,38 @@ public final class LocalCampaignServer extends NanoHTTPD {
       if("Surto Temporal".equals(name)&&deathPowers(sheet)<2)
         throw new IllegalArgumentException("Surto Temporal requer dois poderes paranormais de Morte anteriores.");
     }else if("class".equals(type)){
-      if(name.length()<3||name.length()>90||"Transcender".equalsIgnoreCase(name))throw new IllegalArgumentException("Selecione Transcender pela aba paranormal.");
+      if(name.length()<3||name.length()>90||"Transcender".equalsIgnoreCase(name))
+        throw new IllegalArgumentException("Selecione Transcender pela aba paranormal.");
+      JSONObject metadata=paranormalCatalog(),classes=metadata.getJSONObject("classPowers");
+      JSONArray allowed=classes.optJSONArray(sheet.optString("class",""));
+      boolean found=false;
+      if(allowed!=null)for(int i=0;i<allowed.length();i++)
+        if(name.equals(allowed.optString(i)))found=true;
+      if(!found)throw new IllegalArgumentException("Este poder não pertence à classe no livro básico 1.3.");
+      JSONObject rule=metadata.optJSONObject("classPowerRules")==null?null:
+        metadata.getJSONObject("classPowerRules").optJSONObject(name);
+      if(rule!=null){
+        if(rule.optInt("minNex",0)>nex)throw new IllegalArgumentException("NEX insuficiente para "+name+".");
+        JSONObject required=rule.optJSONObject("attrs"),attrs=sheet.optJSONObject("attrs");
+        if(required!=null){
+          java.util.Iterator<String> keys=required.keys();
+          while(keys.hasNext()){
+            String key=keys.next();
+            if(attrs==null||attrs.optInt(key,0)<required.optInt(key,0))
+              throw new IllegalArgumentException("Atributo mínimo não cumprido: "+key+".");
+          }
+        }
+        String priorPower=rule.optString("power","");
+        if(!priorPower.isEmpty()){
+          JSONArray knownPowers=sheet.optJSONArray("powers");
+          boolean hasPrior=false;
+          if(knownPowers!=null)for(int i=0;i<knownPowers.length();i++)
+            if(priorPower.equals(knownPowers.optString(i)))hasPrior=true;
+          if(!hasPrior)throw new IllegalArgumentException("Poder anterior necessário: "+priorPower+".");
+        }
+        // Skills are reviewed by the GM if origin-granted training is not
+        // represented in the sheet's skill map; never fabricate ranks.
+      }
     }else throw new IllegalArgumentException("Escolha de poder inválida.");
   }
   private JSONObject playerRequests(String cid,JSONObject player)throws Exception{
@@ -1382,7 +1422,13 @@ public final class LocalCampaignServer extends NanoHTTPD {
               san.put("current",Math.min(san.optInt("current",0),san.optInt("max",0)));
             }
           }
-          used.put(choice);powers.put(name);
+          used.put(choice);
+          if(!repeatableClassPower(type,name))powers.put(name);
+          else{
+            boolean known=false;
+            for(int k=0;k<powers.length();k++)if(name.equals(powers.optString(k)))known=true;
+            if(!known)powers.put(name);
+          }
         }else{
           JSONObject state=initiativeData(c);
           JSONArray entries=state.optJSONArray("entries");
