@@ -63,3 +63,12 @@
 #r16-gurps .g-empty{padding:18px;text-align:center;background:#12131c;color:var(--g-sub);border-radius:12px}
 @media(max-width:720px){#r16-gurps .g-panel,#r16-gurps .g-hero{padding:13px;border-radius:14px}#r16-gurps .g-split{grid-template-columns:1fr}#r16-gurps .g-hero{align-items:flex-start}#r16-gurps .g-col{grid-template-columns:1fr}#r16-gurps .g-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}#r16-gurps .g-item{align-items:flex-start;flex-direction:column}#r16-gurps .g-heading{align-items:flex-start}}
 @media(prefers-reduced-motion:reduce){#r16-gurps *{animation:none!important;transition:none!important}}
+
+/* v0.61: catálogo pesquisável herda o tema atual; não redesenha a ficha. */
+#r16-gurps .g-trait-browser{border:1px solid var(--g-edge);border-radius:12px;padding:12px;margin:12px 0;background:color-mix(in srgb,var(--accent,#d7c09a) 5%,transparent)}
+#r16-gurps .g-trait-browser h4{font:600 14px system-ui,sans-serif;color:var(--g-ink);margin:0 0 8px}
+#r16-gurps .g-trait-browser select{height:min(260px,34vh);overflow:auto;max-width:100%}
+#r16-gurps .g-trait-browser option{padding:6px 8px}
+#r16-gurps .g-trait-browser select option:checked{background:color-mix(in srgb,var(--accent,#d7c09a) 38%,#191821);color:var(--g-ink)}
+#r16-gurps #g-skill-editor{scroll-margin-top:72px}
+#r16-gurps [data-edit-skill]{color:var(--g-ink);border-color:var(--g-edge)}
