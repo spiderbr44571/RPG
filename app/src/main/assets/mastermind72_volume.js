@@ -8,6 +8,10 @@ const smooth=x=>{x=clamp(x);return x*x*(3-2*x)};
 function deltaAngle(a,b){let d=(a-b+Math.PI)%(2*Math.PI);if(d<0)d+=Math.PI*2;return d-Math.PI;}
 function regionContains(r,x,y){
  if(x<r.x||y<r.y||x>r.x+r.w||y>r.y+r.h)return false;
+ if(r.shape==='cells'){
+  if(!r._closedCellSet)r._closedCellSet=new Set(r.cells||[]);
+  return r._closedCellSet.has(Math.floor(y)*r.gridWidth+Math.floor(x));
+ }
  if(r.shape==='circle'){
   let dx=(x-r.x-r.w/2)/(r.w/2),dy=(y-r.y-r.h/2)/(r.h/2);
   return dx*dx+dy*dy<=1;
@@ -31,6 +35,64 @@ function doorsFor(scene,r){
   if(edge&&(!r.shape||r.shape!=='circle'||Math.abs((cx-.5)**2+ (cy-.5)**2-.25)<.35))out.push(p);
  }
  return out.slice(0,20);
+}
+// v0.75: local master preview uses the same sealed-room topology as the server.
+function automaticRooms(scene){
+ if(!scene?.atmosphere?.doorShadows||!Array.isArray(scene?.layers?.walls))return [];
+ const w=Number(scene.width)||0,h=Number(scene.height)||0;
+ if(w<1||h<1||w*h>10000)return [];
+ const blocked=new Set();
+ for(const m of scene.layers.walls){
+  if(!m||m.kind==='door'&&m.open===true)continue;
+  if(!['wall','door'].includes(m.kind))continue;
+  const x=m.x|0,y=m.y|0;
+  if(x<0||y<0||x>=w||y>=h)continue;
+  if(m.side==='n')blocked.add('H:'+x+':'+y);
+  if(m.side==='s')blocked.add('H:'+x+':'+(y+1));
+  if(m.side==='w')blocked.add('V:'+x+':'+y);
+  if(m.side==='e')blocked.add('V:'+(x+1)+':'+y);
+ }
+ if(!blocked.size)return [];
+ const edge=(x,y,nx,ny)=>nx!==x?'V:'+Math.max(x,nx)+':'+y:'H:'+x+':'+Math.max(y,ny);
+ const count=w*h,open=new Uint8Array(count),queue=[];
+ for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+  const escape=x===0&&!blocked.has('V:0:'+y)||x===w-1&&!blocked.has('V:'+w+':'+y)||
+   y===0&&!blocked.has('H:'+x+':0')||y===h-1&&!blocked.has('H:'+x+':'+h);
+  if(escape){open[y*w+x]=1;queue.push(y*w+x)}
+ }
+ for(let pos=0;pos<queue.length;pos++){
+  const id=queue[pos],x=id%w,y=Math.floor(id/w);
+  for(const [dx,dy] of [[-1,0],[1,0],[0,-1],[0,1]]){
+   const nx=x+dx,ny=y+dy;
+   if(nx<0||ny<0||nx>=w||ny>=h||open[ny*w+nx]||blocked.has(edge(x,y,nx,ny)))continue;
+   open[ny*w+nx]=1;queue.push(ny*w+nx);
+  }
+ }
+ const pending=new Set();
+ for(let id=0;id<count;id++)if(!open[id])pending.add(id);
+ if(pending.size>count*.65)return [];
+ const result=[];
+ while(pending.size){
+  const head=pending.values().next().value,group=[head];pending.delete(head);
+  let minX=w,minY=h,maxX=0,maxY=0;
+  for(let pos=0;pos<group.length;pos++){
+   const id=group[pos],x=id%w,y=Math.floor(id/w);
+   minX=Math.min(x,minX);minY=Math.min(y,minY);maxX=Math.max(x,maxX);maxY=Math.max(y,maxY);
+   for(const [dx,dy] of [[-1,0],[1,0],[0,-1],[0,1]]){
+    const nx=x+dx,ny=y+dy,ni=ny*w+nx;
+    if(nx<0||ny<0||nx>=w||ny>=h||!pending.has(ni)||blocked.has(edge(x,y,nx,ny)))continue;
+    pending.delete(ni);group.push(ni);
+   }
+  }
+  result.push({shape:'cells',gridWidth:w,x:minX,y:minY,w:maxX-minX+1,h:maxY-minY+1,
+   cells:group,hidden:true,intensity:100,fogStyle:'dark',automatic:true});
+ }
+ return result;
+}
+function effectiveRooms(scene){
+ const drawn=(scene?.fog||scene?.rooms||[]).filter(r=>r.hidden!==false&&r.intensity!==0);
+ // The player receives server-curated automatic rooms in fog; never recompute based on filtered walls.
+ return Array.isArray(scene?.fog)?drawn:drawn.concat(automaticRooms(scene));
 }
 function lightSources(scene){
  return (scene?.tokens||[]).filter(t=>t.flashlight===true&&t.hidden!==true).map(t=>({
@@ -77,7 +139,7 @@ function exposedFromCells(r,x,y){
 }
 function drawFrame(canvas,scene,{master=false,cell=48,quality='balanced',animate=true}={},time=0){
  if(!canvas||!scene)return;
- const rooms=(scene.fog||scene.rooms||[]).filter(r=>r.hidden!==false&&r.intensity!==0);
+ const rooms=effectiveRooms(scene);
  if(!rooms.length)return;
  const ctx=canvas.getContext('2d',{alpha:true});if(!ctx)return;
  const res=quality==='economy'?10:quality==='high'?23:16;
@@ -120,7 +182,7 @@ function detach(board){
 function attach(board,scene,options={}){
  if(!board||typeof document==='undefined')return;
  detach(board);
- const rooms=(scene?.fog||scene?.rooms||[]).filter(r=>r.hidden!==false&&r.intensity!==0);
+ const rooms=effectiveRooms(scene);
  if(!rooms.length)return;
  const canvas=document.createElement('canvas');
  canvas.className='m72-volume';canvas.setAttribute('aria-hidden','true');
@@ -141,7 +203,7 @@ function attach(board,scene,options={}){
  frame(0);
  return instance;
 }
-const api={attach,detach,drawFrame,regionContains,doorPos,doorsFor,lightSources,exposureAt,deltaAngle};
+const api={attach,detach,drawFrame,regionContains,doorPos,doorsFor,lightSources,exposureAt,deltaAngle,automaticRooms,effectiveRooms};
 root.Mastermind72Volume=api;
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
