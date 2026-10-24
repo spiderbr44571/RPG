@@ -28,7 +28,7 @@ function open(host,opts){
  if(current)close();
  if(current)return Promise.resolve();
  const s={root:document.createElement('section'),host,opts,scenes:[],assets:[],active:'',selected:'',picked:'char-hero',
-  category:'all',assetSearch:'',paintPack:'Todos',paintLayer:'terrain',paintAsset:'stone',brushSize:1,visibleLayers:{terrain:true,props:true,walls:true},undoByScene:new Map(),redoByScene:new Map(),importKind:'map',fogStyle:'shadow',creatureSystem:'ordem-paranormal',creatureSearch:'',creatureSelection:null,tool:'pan',token:'',showGrid:true,aside:true,dirty:false,
+  category:'all',assetSearch:'',paintPack:'Todos',paintLayer:'terrain',paintAsset:'stone',lightKind:'torch',lightSelected:'',showAtmosphere:true,brushSize:1,visibleLayers:{terrain:true,props:true,walls:true},undoByScene:new Map(),redoByScene:new Map(),importKind:'map',fogStyle:'shadow',creatureSystem:'ordem-paranormal',creatureSearch:'',creatureSelection:null,tool:'pan',token:'',showGrid:true,aside:true,dirty:false,
   scale:1,x:25,y:25,view:null,world:null,gesture:null,pointers:new Map(),pinch:null,priorOverflow:document.body.style.overflow};
  current=s;host.hidden=false;s.root.className='r30-studio';s.root.setAttribute('role','dialog');s.root.setAttribute('aria-label','Estúdio de cenários');
  document.body.appendChild(s.root);document.body.style.overflow='hidden';
@@ -96,7 +96,7 @@ function open(host,opts){
   s.x=cx-(cx-s.x)*ratio;s.y=cy-(cy-s.y)*ratio;s.scale=next;updateTransform();
  }
 
- const paintEngine=root.Mastermind68Map;
+ const paintEngine=root.Mastermind68Map,lightEngine=root.Mastermind69Light;
  const snap=()=>paintEngine?.saveSnapshot(getScene());
  function checkpoint(){
   const m=getScene();if(!m||!paintEngine)return;
@@ -142,7 +142,9 @@ function open(host,opts){
   if(paintEngine&&s.visibleLayers.props)html+=paintEngine.renderLayer(m,'props',48);
   if(s.showGrid)html+='<div class="r30-grid"></div>';
   if(paintEngine&&s.visibleLayers.walls)html+=paintEngine.renderLayer(m,'walls',48);
+  if(lightEngine&&s.showAtmosphere)html+=lightEngine.render(m,48,{master:true});
   html+=m.rooms.map(r=>'<div class="r30-room r35-fog-'+esc(r.fogStyle||'shadow')+' '+(r.shape==='circle'?'circle ':'')+(r.hidden?'hidden':'')+'" style="left:'+(r.x*48)+'px;top:'+(r.y*48)+'px;width:'+(r.w*48)+'px;height:'+(r.h*48)+'px">'+esc(r.name)+'</div>').join('');
+  html+=(m.lighting?.lights||[]).map(src=>'<span class="r69-light-pin" style="left:'+(src.x*48+14)+'px;top:'+(src.y*48+14)+'px" title="'+esc(src.kind||'Luz')+'">✹</span>').join('');
   html+=m.tokens.map(t=>'<div class="r30-token '+(t.id===s.token?'selected':'')+'" data-r30-token="'+esc(t.id)+'" style="left:'+(t.x*48+1)+'px;top:'+(t.y*48+1)+'px">'+tile(getAsset(t.assetId))+'<small>'+esc(t.name)+'</small></div>').join('');
   html+='<div id="r30-preview" class="r30-preview" hidden></div>';
   s.world.innerHTML=html;updateTransform();
@@ -192,7 +194,7 @@ function open(host,opts){
    '<button data-r30="assets">▣ Biblioteca</button><button data-r30="publish" class="'+(m&&m.id===s.active?'active':'')+'">'+(m&&m.id===s.active?'● Publicado':'Publicar')+'</button>'+
    '<button data-r30="save" class="primary">💾 Salvar</button><button data-r30="exit" class="danger">✕ Sair</button></header>'+
    '<div class="r30-body"><nav class="r30-toolbar" aria-label="Ferramentas">'+
-   [['pan','✋','Navegar'],['paint','🖌','Pintar'],['wall','▦','Parede'],['door','🚪','Porta'],['erase-paint','⌫','Borracha'],['token','◉','Tokens'],['rect','▭','Retângulo'],['circle','◯','Círculo'],['erase','✕','Apagar token']].map(([id,ic,name])=>
+   [['pan','✋','Navegar'],['paint','🖌','Pintar'],['wall','▦','Parede'],['door','🚪','Porta'],['erase-paint','⌫','Borracha'],['light','☀','Luz'],['token','◉','Tokens'],['rect','▭','Retângulo'],['circle','◯','Círculo'],['erase','✕','Apagar token']].map(([id,ic,name])=>
    '<button data-r30-tool="'+id+'" title="'+name+'" class="'+(s.tool===id?'active':'')+'">'+ic+'</button><small>'+name+'</small>').join('')+
    '<button data-r30="zoom-in">＋</button><button data-r30="zoom-out">－</button><button data-r30="fit">⊡</button></nav>'+
    '<main id="r30-view" class="r30-view"><div id="r30-world" class="r30-world"></div></main>'+
@@ -217,6 +219,23 @@ function open(host,opts){
    '<input id="r30-file" type="file" accept="image/png,image/jpeg,image/webp">'+
    '<p>A imagem é reduzida no aparelho antes de salvar. PNGs transparentes são aceitos como tokens.</p>'+
    '<label><input id="r30-gridcheck" type="checkbox" '+(s.showGrid?'checked':'')+'> Mostrar grade</label></section>'+
+   '<section class="r69-light-panel r30-section"><h3>Iluminação e névoa <small>v0.69</small></h3>'+
+ '<label><input data-r69-setting="enabled" type="checkbox" '+(m?.lighting?.enabled?'checked':'')+'> Iluminação dinâmica</label>'+
+ '<label><input data-r69-setting="fogEnabled" type="checkbox" '+(m?.lighting?.fogEnabled?'checked':'')+'> Névoa de guerra dos jogadores</label>'+
+ '<label><input id="r69-preview" type="checkbox" '+(s.showAtmosphere?'checked':'')+'> Exibir efeitos no editor</label>'+
+ '<label>Luz ambiente <input data-r69-setting="ambient" type="range" min="0" max="1" step=".05" value="'+(m?.lighting?.ambient??.42)+'"></label>'+
+ '<label>Névoa atmosférica <input data-r69-setting="density" type="range" min="0" max="1" step=".05" value="'+(m?.lighting?.density??.6)+'"></label>'+
+ '<label>Alcance de visão (quadrados) <input data-r69-setting="visionRadius" type="number" min="1" max="20" value="'+(m?.lighting?.visionRadius??8)+'"></label>'+
+ '<label>Qualidade<select data-r69-setting="quality">'+[['low','Econômica'],['medium','Equilibrada'],['high','Alta']].map(([v,n])=>'<option value="'+v+'"'+((m?.lighting?.quality||'medium')===v?' selected':'')+'>'+n+'</option>').join('')+'</select></label>'+
+ '<div class="r69-actions"><label>Nova fonte<select id="r69-kind">'+[['torch','Tocha'],['lantern','Lanterna'],['fire','Fogueira'],['crystal','Cristal'],['spell','Magia'],['custom','Personalizada']].map(([id,n])=>'<option value="'+id+'"'+(id===s.lightKind?' selected':'')+'>'+n+'</option>').join('')+'</select></label><button data-r69="light-mode" type="button">✹ Colocar luz</button></div>'+
+ '<p class="r69-helper">Selecione “Colocar luz” e toque no grid. Edite intensidade, cor e alcance abaixo. As paredes bloqueiam a visão; as fontes de luz produzem halos e animações suaves.</p>'+
+ '<div class="r69-list">'+(m?.lighting?.lights||[]).map((light,i)=>'<div class="r69-light-entry"><strong>✹ '+esc(light.kind||'Luz')+' '+(i+1)+'</strong>'+
+ '<label>Alcance <input type="number" min="1" max="20" value="'+(light.radius??6)+'" data-r69-light="'+esc(light.id)+'" data-r69-field="radius"></label>'+
+ '<label>Intensidade <input type="range" min="0" max="1" step=".05" value="'+(light.intensity??.8)+'" data-r69-light="'+esc(light.id)+'" data-r69-field="intensity"></label>'+
+ '<label>Cor <input type="color" value="'+esc(light.color||'#ffcc83')+'" data-r69-light="'+esc(light.id)+'" data-r69-field="color"></label>'+
+ '<label><input type="checkbox" data-r69-light="'+esc(light.id)+'" data-r69-field="enabled" '+(light.enabled!==false?'checked':'')+'> Ligada</label>'+
+ '<button data-r69-delete="'+esc(light.id)+'">Excluir</button></div>').join('')+'</div>'+
+ '<button data-r69="reset-explored" type="button">Reiniciar exploração</button></section>'+
    '<section class="r30-section" id="r30-details"></section></aside></div>'+
    '<footer class="r30-foot"><span id="r30-zoom">100%</span><span>Arraste no mapa para desenhar ou mover</span><span id="r30-message">Toque em Salvar para publicar alterações.</span></footer>';
   s.view=$('#r30-view',s.root);s.world=$('#r30-world',s.root);
@@ -287,6 +306,11 @@ function open(host,opts){
    s.token=target.dataset.r30Token;s.gesture={kind:'token',id:s.token};
    target.classList.add('selected');return;
   }
+  if(s.tool==='light'){
+   const cfg=lightEngine?.ensure(m);if(cfg){if(cfg.lights.length>=48){signal('Máximo de 48 fontes de luz.');return}
+   const next=lightEngine.newLight(m,{x:Math.floor(p.x/48),y:Math.floor(p.y/48)},s.lightKind);
+   cfg.lights.push(next);cfg.enabled=true;change();render(false);signal('Fonte de luz adicionada. Ajuste no painel lateral.')}return;
+  }
   if(['paint','wall','door','erase-paint'].includes(s.tool)){s.gesture={kind:'paint'};paintAt(p,true);return}
   if(s.tool==='pan'){s.gesture={kind:'pan',x:e.clientX,y:e.clientY,px:s.x,py:s.y};return}
   if(s.tool==='rect'||s.tool==='circle'){
@@ -340,6 +364,20 @@ function open(host,opts){
   if(e.target.id==='r68-layer'){s.paintLayer=e.target.value;s.paintAsset=(paintEngine?.palette||[]).find(x=>x.layer===s.paintLayer)?.id||'stone';s.tool=s.paintLayer==='walls'?'wall':'paint';render(false)}
   if(e.target.id==='r68-pack'){s.paintPack=e.target.value;paintPalette()}
   if(e.target.id==='r68-brush')s.brushSize=Math.max(1,Math.min(5,Number(e.target.value)||1));
+  if(e.target.id==='r69-preview'){s.showAtmosphere=e.target.checked;map()}
+  if(e.target.id==='r69-kind')s.lightKind=e.target.value;
+  if(m&&e.target.dataset.r69Setting){
+    const key=e.target.dataset.r69Setting,l=lightEngine?.ensure(m);
+    if(l){l[key]=e.target.type==='checkbox'?e.target.checked:key==='quality'?e.target.value:Number(e.target.value);
+      change();map();}
+  }
+  if(m&&e.target.dataset.r69Light){
+    const light=(m.lighting?.lights||[]).find(x=>x.id===e.target.dataset.r69Light);
+    if(light){const field=e.target.dataset.r69Field;
+      light[field]=e.target.type==='checkbox'?e.target.checked:field==='color'?e.target.value:Number(e.target.value);
+      change();map();}
+  }
+
   if(e.target.dataset.r68Visible){s.visibleLayers[e.target.dataset.r68Visible]=e.target.checked;map()}
   if(e.target.id==='r31-system'){s.creatureSystem=e.target.value;creatureChoices()}
   if(e.target.id==='r31-search'){s.creatureSearch=e.target.value;creatureChoices()}
@@ -367,6 +405,8 @@ function open(host,opts){
      token.hp=Math.max(0,Math.min(token.maxHp,token.hp+Number(hpbtn.dataset.r31Hp)));change();details();
    }return;
   }
+  const deleteLight=e.target.closest('[data-r69-delete]');
+  if(deleteLight){const m=getScene();if(m?.lighting){m.lighting.lights=m.lighting.lights.filter(x=>x.id!==deleteLight.dataset.r69Delete);change();render(false)}return}
   const doorClick=e.target.closest('[data-r68-door]');
   if(doorClick){const [x,y,side]=doorClick.dataset.r68Door.split(':');
     const m=getScene();if(m&&paintEngine){checkpoint();if(paintEngine.toggleDoor(m,Number(x),Number(y),side)){change();render(false)}}return}
@@ -379,7 +419,13 @@ function open(host,opts){
   if(room){const r=getScene()?.rooms.find(x=>x.id===room.dataset.r30Room);if(r){r.hidden=!r.hidden;change();render(false)}return}
   const del=e.target.closest('[data-r30-delroom]');
   if(del){getScene().rooms=getScene().rooms.filter(x=>x.id!==del.dataset.r30Delroom);change();render(false);return}
-  const b=e.target.closest('[data-r30]');if(!b)return;
+  const r69=e.target.closest('[data-r69]');
+  if(r69){const m=getScene();
+    if(r69.dataset.r69==='light-mode'){s.tool='light';s.root.querySelectorAll('[data-r30-tool]').forEach(b=>b.classList.toggle('active',b.dataset.r30Tool==='light'));signal('Toque no mapa para colocar a luz.')}
+    if(r69.dataset.r69==='reset-explored'&&m&&confirm('Limpar o histórico de exploração dos jogadores neste mapa?')){
+      if(m.lighting){m.lighting.explored={};change();signal('Exploração reiniciada. Salve o mapa para aplicar.')}
+    }return}
+    const b=e.target.closest('[data-r30]');if(!b)return;
   const m=getScene();
   try{
    switch(b.dataset.r30){
