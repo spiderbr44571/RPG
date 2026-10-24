@@ -183,7 +183,7 @@ function open(host,options){
   board.style.backgroundImage=bg?'linear-gradient(#ffffff38 1px,transparent 1px),linear-gradient(90deg,#ffffff38 1px,transparent 1px),url('+bg+')':'';
   board.innerHTML=(root.Mastermind68Map?.renderLayer(map,'terrain',s.cell)||'')+
     (root.Mastermind68Map?.renderLayer(map,'props',s.cell)||'')+
-    (root.Mastermind68Map?.renderLayer(map,'walls',s.cell)||'')+(map.rooms||[]).map(r=>'<div class="room '+(r.hidden?'hidden':'')+' r35-fog-'+esc(r.fogStyle||'shadow')+'" style="left:'+(r.x*s.cell)+'px;top:'+(r.y*s.cell)+'px;width:'+(r.w*s.cell)+'px;height:'+(r.h*s.cell)+'px;border-radius:'+(r.shape==='circle'?'50%':'0')+'"></div>').join('')+
+    (root.Mastermind68Map?.renderLayer(map,'walls',s.cell)||'')+(map.rooms||[]).map(r=>'<div class="room '+(r.hidden?'hidden':'')+' r35-fog-'+esc(r.fogStyle||'mist')+'" style="--r71-intensity:'+(Math.max(0,Math.min(100,r.intensity??100))/100)+';left:'+(r.x*s.cell)+'px;top:'+(r.y*s.cell)+'px;width:'+(r.w*s.cell)+'px;height:'+(r.h*s.cell)+'px;border-radius:'+(r.shape==='circle'?'50%':'0')+'"></div>').join('')+
    (map.tokens||[]).map(t=>{const a=assets.get(t.assetId);
     return '<div data-token="'+esc(t.id)+'" class="token '+(s.selected===t.id?'active':'')+(t.id===activeId?' r35-turn-token':'')+'" style="left:'+(t.x*s.cell)+'px;top:'+(t.y*s.cell)+'px;width:'+s.cell+'px;height:'+s.cell+'px">'+
     (a?.image?'<img alt="" src="'+a.image+'">':'<span>'+esc(readable(t.name).slice(0,2).toUpperCase()||'TK')+'</span>')+'<small>'+esc(t.name||'Token')+'</small></div>';
