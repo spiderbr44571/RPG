@@ -110,7 +110,7 @@ const active=new WeakMap();
 function detach(board){
  const instance=active.get(board);if(!instance)return;
  instance.stopped=true;if(instance.raf&&typeof cancelAnimationFrame==='function')cancelAnimationFrame(instance.raf);
- instance.canvas.remove?.();active.delete(board);
+ instance.canvas.remove?.();board.classList?.remove('m72-active');active.delete(board);
 }
 function attach(board,scene,options={}){
  if(!board||typeof document==='undefined')return;
@@ -120,7 +120,7 @@ function attach(board,scene,options={}){
  const canvas=document.createElement('canvas');
  canvas.className='m72-volume';canvas.setAttribute('aria-hidden','true');
  canvas.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;z-index:14;pointer-events:none;image-rendering:auto;';
- board.appendChild(canvas);
+ board.appendChild(canvas);board.classList?.add('m72-active');
  const instance={canvas,stopped:false,raf:0},master=options.master===true;
  active.set(board,instance);
  const quality=options.quality||'balanced';
@@ -131,7 +131,7 @@ function attach(board,scene,options={}){
    drawFrame(canvas,scene,{master,cell:options.cell||48,quality},time);
    prev=time;
   }
-  if(typeof requestAnimationFrame==='function'&&document.visibilityState!=='hidden')instance.raf=requestAnimationFrame(frame);
+  if(typeof requestAnimationFrame==='function')instance.raf=requestAnimationFrame(frame);
  };
  frame(0);
  return instance;
