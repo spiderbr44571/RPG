@@ -678,6 +678,68 @@ public final class LocalCampaignServer extends NanoHTTPD {
     for(int cy=y;cy<y+h;cy++)for(int cx=x;cx<x+w;cx++)if(cells.contains(cy*width+cx))return true;
     return false;
   }
+  // v0.73 — only actual inventory/known light equipment authorizes player illumination.
+  private static String normalizedLightName(String input){
+    return java.text.Normalizer.normalize(input==null?"":input,java.text.Normalizer.Form.NFD)
+      .replaceAll("\\p{M}+","").toLowerCase(java.util.Locale.ROOT).trim();
+  }
+  private static String lightType(String itemName){
+    String name=normalizedLightName(itemName);
+    if(name.matches(".*\\b(lanterna|flashlight|lantern|lampiao|lampada|lamp)\\b.*"))return "lantern";
+    if(name.matches(".*\\b(tocha|torch|archote|candeia|vela|candle)\\b.*"))return "torch";
+    if(name.matches("^(luz|light|luz magica|luz arcana|produce flame|produzir chamas)$"))return "magic";
+    return "";
+  }
+  private static String lightFromCollection(Object collection){
+    if(!(collection instanceof JSONArray))return "";
+    String found="";
+    JSONArray items=(JSONArray)collection;
+    for(int i=0;i<items.length()&&i<300;i++){
+      Object raw=items.opt(i);String itemName="";
+      if(raw instanceof String)itemName=(String)raw;
+      else if(raw instanceof JSONObject){
+        JSONObject entry=(JSONObject)raw;
+        if(entry.has("quantidade")&&entry.optInt("quantidade",0)<=0)continue;
+        if(entry.has("quantity")&&entry.optInt("quantity",0)<=0)continue;
+        if(entry.has("qty")&&entry.optInt("qty",0)<=0)continue;
+        if(entry.optBoolean("broken",false)||entry.optBoolean("consumed",false))continue;
+        itemName=entry.optString("nome",entry.optString("name",entry.optString("title",entry.optString("item",""))));
+      }
+      String kind=lightType(itemName);
+      if("lantern".equals(kind))return "lantern";
+      if("torch".equals(kind))found="torch";
+      else if("magic".equals(kind)&&found.isEmpty())found="magic";
+    }
+    return found;
+  }
+  private static String lightEquipment(JSONObject character){
+    if(character==null)return "";
+    for(String key:new String[]{"inventory","items","weapons","equipment"}){
+      String kind=lightFromCollection(character.opt(key));
+      if(!kind.isEmpty())return kind;
+    }
+    // Magical light must be explicitly learned/prepared, not inferred from a class.
+    for(String key:new String[]{"spells","rituaisConhecidos"}){
+      String kind=lightFromCollection(character.opt(key));
+      if("magic".equals(kind))return "magic";
+    }
+    return "";
+  }
+  private JSONObject sheetForLight(JSONObject campaign,JSONObject token){
+    String characterId=token.optString("characterId","");
+    if(characterId.isEmpty())return null;
+    JSONArray chars=campaign.optJSONArray("characters");
+    if(chars==null)return null;
+    for(int i=0;i<chars.length();i++){
+      JSONObject item=chars.optJSONObject(i);
+      if(item!=null&&characterId.equals(item.optString("id","")))return item.optJSONObject("sheet");
+    }
+    return null;
+  }
+  private String validTokenLight(JSONObject campaign,JSONObject token){
+    if(token.optString("ownerPlayerId","").isEmpty())return token.optBoolean("flashlight",false)?"lantern":"";
+    return lightEquipment(sheetForLight(campaign,token));
+  }
   // v0.72: lighting belongs to drawn areas, never to the whole map. 0 degrees = east.
   private static double fade(double x){x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);}
   private static double angleSeparation(double a,double b){
