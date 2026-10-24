@@ -65,7 +65,12 @@ function open(host,options){
       '<label>Deslocamento individual<input type="number" min="0" max="60" id="r35-token-speed" value="'+limit+'"></label>'+
       '<button data-action="token-speed">Definir deslocamento</button>';
   }
-  html+='<small>Toque no mapa para reposicionar o token selecionado.</small>';
+  html+='<div class="m72-token-config"><strong>Direção e iluminação</strong>'+
+   '<label>Rotação livre <output id="m72-master-angle-label">'+(t.rotation||0)+'°</output>'+
+   '<input id="m72-master-angle" type="range" min="0" max="359" step="1" value="'+(t.rotation||0)+'"></label>'+
+   '<button type="button" data-action="m72-flashlight">'+(t.flashlight?'Desligar lanterna':'Ligar lanterna')+'</button>'+
+   '<small>O feixe V aponta conforme o ângulo do token, sem travar em 90°.</small></div>'+
+   '<small>Toque no mapa para reposicionar o token selecionado.</small>';
   el.innerHTML=html;
  }
 
@@ -185,10 +190,12 @@ function open(host,options){
     (root.Mastermind68Map?.renderLayer(map,'props',s.cell)||'')+
     (root.Mastermind68Map?.renderLayer(map,'walls',s.cell)||'')+(map.rooms||[]).map(r=>'<div class="room '+(r.hidden?'hidden':'')+' r35-fog-'+esc(r.fogStyle||'mist')+'" style="--r71-intensity:'+(Math.max(0,Math.min(100,r.intensity??100))/100)+';--r71-preview-opacity:'+(0.16+Math.max(0,Math.min(100,r.intensity??100))/100*.34)+';left:'+(r.x*s.cell)+'px;top:'+(r.y*s.cell)+'px;width:'+(r.w*s.cell)+'px;height:'+(r.h*s.cell)+'px;border-radius:'+(r.shape==='circle'?'50%':'0')+'"></div>').join('')+
    (map.tokens||[]).map(t=>{const a=assets.get(t.assetId);
-    return '<div data-token="'+esc(t.id)+'" class="token '+(s.selected===t.id?'active':'')+(t.id===activeId?' r35-turn-token':'')+'" style="left:'+(t.x*s.cell)+'px;top:'+(t.y*s.cell)+'px;width:'+s.cell+'px;height:'+s.cell+'px">'+
-    (a?.image?'<img alt="" src="'+a.image+'">':'<span>'+esc(readable(t.name).slice(0,2).toUpperCase()||'TK')+'</span>')+'<small>'+esc(t.name||'Token')+'</small></div>';
+    return '<div data-token="'+esc(t.id)+'" class="token '+(s.selected===t.id?'active':'')+(t.id===activeId?' r35-turn-token':'')+'" style="--m72-angle:'+(t.rotation||0)+'deg;left:'+(t.x*s.cell)+'px;top:'+(t.y*s.cell)+'px;width:'+s.cell+'px;height:'+s.cell+'px">'+
+    (a?.image?'<img alt="" src="'+a.image+'">':'<span>'+esc(readable(t.name).slice(0,2).toUpperCase()||'TK')+'</span>')+
+    '<i class="m72-heading"></i><small>'+esc(t.name||'Token')+'</small></div>';
    }).join('');
   root.Mastermind69Atmosphere?.attach(board,map,{cell:s.cell,player:false,master:true});
+  root.Mastermind72Volume?.attach(board,map,{cell:s.cell,master:true});
   const sceneChanged=s.cameraScene!==map.id;
   s.cameraScene=map.id;
   s.camera?.attach($('#r31-scroll',s.el),board,map.width*s.cell,map.height*s.cell,sceneChanged);
@@ -226,7 +233,23 @@ function open(host,options){
    }
   }catch(e){feedback(e.message)}finally{s.busy=false}
  }
+ s.el.addEventListener('input',e=>{
+  if(e.target.id==='m72-master-angle'){
+   const t=s.scene?.tokens?.find(t=>t.id===s.selected);
+   if(t){t.rotation=Math.max(0,Math.min(359,Math.round(Number(e.target.value)||0)));
+    const label=$('#m72-master-angle-label',s.el);if(label)label.textContent=t.rotation+'°';
+    const token=$('[data-token="'+t.id+'"]',s.el);if(token)token.style.setProperty('--m72-angle',t.rotation+'deg');
+   }
+  }
+ });
  s.el.addEventListener('change',async e=>{
+  if(e.target.id==='m72-master-angle'){
+   if(!s.selected)return;
+   try{await req('/token','POST',{action:'rotate',tokenId:s.selected,rotation:Math.max(0,Math.min(359,Math.round(Number(e.target.value)||0)))});
+    s.revision=-1;await refresh();feedback('Orientação atualizada em qualquer ângulo.')}
+   catch(err){feedback(err.message)}
+   return;
+  }
   if(e.target.id==='r35-movement-system'){
     const system=e.target.value,defaults={'ordem-paranormal':9,'d-d':6,'gurps':5};
     const input=$('#r35-system-speed',s.el);
@@ -291,6 +314,12 @@ function open(host,options){
       await req('/movement','POST',{systemId,squares});
       feedback('Limite de '+squares+' quadrados para '+systemId+' salvo.');
       s.revision=-1;await refresh();return;
+    }
+    if(action==='m72-flashlight'){
+      if(!s.selected)return;
+      const t=s.scene?.tokens.find(t=>t.id===s.selected);
+      await req('/token','POST',{action:'flashlight',tokenId:s.selected,enabled:!t?.flashlight});
+      s.revision=-1;await refresh();feedback(t?.flashlight?'Lanterna desligada':'Lanterna ativada');return;
     }
     if(action==='token-speed'){
       if(!s.selected){feedback('Selecione um token');return}
