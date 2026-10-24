@@ -42,11 +42,11 @@ const editor=read('rpg29_scene_editor.js'),player=read('rpg31_player_table.js'),
 assert.match(editor,/s\.tool==='rotate'/);
 assert.match(editor,/m72-editor-torch/);assert.match(editor,/m72-editor-angle/);
 assert.match(editor,/Mastermind72Volume\?\.attach/);
-assert.match(player,/sceneUrl\+'\/flashlight'/);assert.match(player,/m72-player-angle/);
+assert.match(player,/sceneUrl\+'\/flashlight'/);assert.match(player,/m73-rotate-arrow/);
 assert.match(player,/Mastermind72Volume\?\.attach/);
 assert.match(master,/action:'rotate'/);assert.match(master,/action:'flashlight'/);
 assert.match(master,/Mastermind72Volume\?\.attach/);
-assert.match(read('lan_scene.html'),/m72-player-controls/);
+assert.match(read('lan_scene.html'),/m73-light-toggle/);
 assert.match(read('lan_scene.html'),/\/volume\.js/);
 assert.match(read('lan_master.html'),/\/volume\.js/);
 assert.match(read('demo-offline.html'),/mastermind72_volume\.js/);
