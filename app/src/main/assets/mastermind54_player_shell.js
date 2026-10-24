@@ -130,17 +130,12 @@
   const stage=$('.stage');if(!stage)return;
   const div=document.createElement('div');
   div.id='r54-wheel';div.className='r54-wheel';
+  const wheelIcon=path=>'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="'+path+'"/></svg>';
+  const shortcuts=[["move","Mover","M8 4l12 8-12 8v-7H3v-2h5z","Voltar a movimentar"],["inspect","Inspec.","M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zm5.2 12.2L21 21","Inspecionar token"],["pin","Marcar","M12 22s7-7.1 7-13A7 7 0 0 0 5 9c0 5.9 7 13 7 13zm0-15v4","Marcar local"],["measure","Medir","M3 7l5-4 13 13-5 5L3 8zm8 2l-2 2m5 1-2 2m5 1-2 2","Medir alcance"],["initiative","Turnos","M4 5h16M4 12h16M4 19h16M8 3v4M8 10v4M8 17v4","Consultar iniciativa"],["actions","Ações","M12 2l2.8 6.9L22 12l-7.2 3.1L12 22l-2.8-6.9L2 12l7.2-3.1z","Poderes e ações"],["sheet","Ficha","M4 3h12l4 4v14H4zM16 3v4h4M8 12h8M8 16h8","Abrir ficha"],["dice","Dados","M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM8 8h.1M16 8h.1M12 12h.1M8 16h.1M16 16h.1","Rolar dados"],["journal","Notas","M5 3h12a2 2 0 0 1 2 2v16H5zM9 8h6M9 12h6M9 16h4","Abrir caderno"]];
   div.innerHTML='<div id="r54-wheel-items" aria-hidden="true" role="group" aria-label="Ferramentas de mesa">'+
-   '<button data-r54-action="sheet" class="r54-petal" style="--ix:0" aria-label="Abrir ficha completa"><span aria-hidden="true">▣</span><small>Ficha</small></button>'+
-   '<button data-r54-action="dice" class="r54-petal" style="--ix:1" aria-label="Abrir rolagem de dados"><span aria-hidden="true">⚄</span><small>Dados</small></button>'+
-   '<button data-r54-action="journal" class="r54-petal" style="--ix:2" aria-label="Abrir caderno de notas"><span aria-hidden="true">✎</span><small>Notas</small></button>'+
-   '<button data-r54-action="measure" class="r54-petal" style="--ix:3" aria-label="Medir alcance no mapa"><span aria-hidden="true">⌁</span><small>Medir</small></button>'+
-   '<button data-r54-action="pin" class="r54-petal" style="--ix:4" aria-label="Marcar pista pessoal no mapa"><span aria-hidden="true">✦</span><small>Marcar</small></button>'+
-   '<button data-r54-action="inspect" class="r54-petal" style="--ix:5" aria-label="Inspecionar criatura ou token"><span aria-hidden="true">⌕</span><small>Inspec.</small></button>'+
-   '<button data-r54-action="initiative" class="r54-petal" style="--ix:6" aria-label="Consultar iniciativa"><span aria-hidden="true">☷</span><small>Turnos</small></button>'+
-   '<button data-r54-action="move" class="r54-petal" style="--ix:7" aria-label="Voltar a movimentar"><span aria-hidden="true">➤</span><small>Mover</small></button>'+
-   '<button data-r54-action="actions" class="r54-petal" style="--ix:8" aria-label="Poderes, passar a vez e atrasar iniciativa"><span aria-hidden="true">✧</span><small>Ações</small></button>'+
-   '</div><button type="button" id="r54-toggle" class="r54-toggle" aria-label="Abrir ferramentas" aria-controls="r54-wheel-items" aria-expanded="false"><span aria-hidden="true">✦</span><small>Ferramentas</small></button>';
+    shortcuts.map(([id,label,path,title])=>'<button type="button" data-r54-action="'+id+'" class="r54-petal" title="'+title+'" aria-label="'+title+'">'+wheelIcon(path)+'<small>'+label+'</small></button>').join('')+
+    '</div><button type="button" id="r54-toggle" class="r54-toggle" aria-label="Abrir ferramentas" aria-controls="r54-wheel-items" aria-expanded="false">'+
+    wheelIcon('M4 5h16M4 12h16M4 19h16')+'<small>Ferramentas</small></button>';
   stage.append(div);
   div.querySelector('#r54-toggle').onclick=toggleWheel;
   div.querySelector('#r54-wheel-items').addEventListener('click',e=>{
