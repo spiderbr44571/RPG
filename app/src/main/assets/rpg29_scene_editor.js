@@ -145,7 +145,7 @@ function open(host,opts){
   if(paintEngine&&s.visibleLayers.props)html+=paintEngine.renderLayer(m,'props',48);
   if(s.showGrid)html+='<div class="r30-grid"></div>';
   if(paintEngine&&s.visibleLayers.walls)html+=paintEngine.renderLayer(m,'walls',48);
-  html+=m.rooms.map(r=>'<div class="r30-room r35-fog-'+esc(r.fogStyle||'mist')+' '+(r.shape==='circle'?'circle ':'')+(r.hidden?'hidden':'')+'" style="--r71-intensity:'+(Math.max(0,Math.min(100,r.intensity??100))/100)+';left:'+(r.x*48)+'px;top:'+(r.y*48)+'px;width:'+(r.w*48)+'px;height:'+(r.h*48)+'px">'+esc(r.name)+'</div>').join('');
+  html+=m.rooms.map(r=>'<div class="r30-room r35-fog-'+esc(r.fogStyle||'mist')+' '+(r.shape==='circle'?'circle ':'')+(r.hidden?'hidden':'')+'" style="--r71-intensity:'+(Math.max(0,Math.min(100,r.intensity??100))/100)+';--r71-preview-opacity:'+(0.16+Math.max(0,Math.min(100,r.intensity??100))/100*.34)+';left:'+(r.x*48)+'px;top:'+(r.y*48)+'px;width:'+(r.w*48)+'px;height:'+(r.h*48)+'px">'+esc(r.name)+'</div>').join('');
   html+=m.tokens.map(t=>'<div class="r30-token '+(t.id===s.token?'selected':'')+'" data-r30-token="'+esc(t.id)+'" style="left:'+(t.x*48+1)+'px;top:'+(t.y*48+1)+'px">'+tile(getAsset(t.assetId))+'<small>'+esc(t.name)+'</small></div>').join('');
   html+='<div id="r30-preview" class="r30-preview" hidden></div>';
   s.world.innerHTML=html;updateTransform();
