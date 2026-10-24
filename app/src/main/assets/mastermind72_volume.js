@@ -34,7 +34,8 @@ function doorsFor(scene,r){
 }
 function lightSources(scene){
  return (scene?.tokens||[]).filter(t=>t.flashlight===true&&t.hidden!==true).map(t=>({
-  x:Number(t.x)+.5,y:Number(t.y)+.5,rotation:clamp(t.rotation,0,359),radius:Math.max(1,Math.min(15,Number(t.flashlightRadius)||8))
+  x:Number(t.x)+.5,y:Number(t.y)+.5,rotation:clamp(t.rotation,0,359),
+  kind:t.lightKind||'lantern',radius:t.lightKind==='torch'||t.lightKind==='magic'?3:Math.max(1,Math.min(15,Number(t.flashlightRadius)||8))
  }));
 }
 function exposureAt(x,y,doors,lights){
@@ -47,13 +48,17 @@ function exposureAt(x,y,doors,lights){
  for(const t of lights){
   const dx=x-t.x,dy=y-t.y,d=Math.hypot(dx,dy),radius=t.radius||8;
   if(d>=radius)continue;
-  const angle=Math.atan2(dy,dx),diff=Math.abs(deltaAngle(angle,(t.rotation||0)*DEG));
-  // 62-degree forward V, 10-degree feathered penumbra; close hotspot at the torch.
-  const angular=1-smooth((diff-0.38)/.18);
-  const falloff=1-smooth(d/radius);
-  const beam=Math.pow(falloff,.68)*angular*.99;
-  const closeHalo=(1-smooth(d/.90))*.65;
-  value=Math.max(value,beam,closeHalo);
+  if(t.kind==='torch'||t.kind==='magic'){
+   // Torch: a soft omnidirectional 3-square circle, unaffected by rotation.
+   value=Math.max(value,(1-smooth(d/3))*.99);
+  }else{
+   const angle=Math.atan2(dy,dx),diff=Math.abs(deltaAngle(angle,(t.rotation||0)*DEG));
+   const angular=1-smooth((diff-.38)/.18);
+   const falloff=1-smooth(d/radius);
+   const beam=Math.pow(falloff,.68)*angular*.99;
+   const closeHalo=(1-smooth(d/.90))*.65;
+   value=Math.max(value,beam,closeHalo);
+  }
  }
  return clamp(value);
 }
