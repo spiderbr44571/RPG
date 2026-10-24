@@ -22,7 +22,7 @@ assert.match(player,/\[-15,15\]/);
 assert.match(player,/showRotation=true;mountRotationButtons\(\)/);
 assert.match(player,/kind=own\?\.lightKind\|\|''/);
 assert.match(player,/torch\.hidden=!kind/);
-assert.match(player,/setLight\(\{rotation\}\)/);
+assert.match(player,/setLight\(\{rotation:drag.current\}\)/);
 const java=fs.readFileSync(path.resolve(__dirname,'../app/src/main/java/dev/rpgmesa/demo/LocalCampaignServer.java'),'utf8');
 for(const code of ['private static String lightEquipment(', 'private static String lightFromCollection(', 'return "lantern";', 'return "torch";',
  'if(input.getBoolean("flashlight")&&lightEquipment(sheetForLight(c,t)).isEmpty())',
@@ -30,6 +30,6 @@ for(const code of ['private static String lightEquipment(', 'private static Stri
  'if("torch".equals(type)||"magic".equals(type))','result=Math.max(result,(1-fade(dist/3.0))*.99)',
  'if(own)visible.put("lightKind",validTokenLight(c,t))','if(token.has("flashlightRadius"))gridNumber(token,"flashlightRadius",1,15)'])
  assert.ok(java.includes(code),'Missing server authority: '+code);
-assert.match(src('demo-offline.html'),/>v0\.(?:73|74)<\/small>/);
-assert.match(fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:73|74)/);
+assert.match(src('demo-offline.html'),/>v0\.(?:73|74|75)<\/small>/);
+assert.match(fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:73|74|75)/);
 console.log('PASS v0.73: on-token 15 degree arrows, no bottom HUD slider, inventory-gated torch/lantern/magic and 3-square radial torch');
