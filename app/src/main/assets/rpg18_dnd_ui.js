@@ -37,10 +37,7 @@
    '<div class="d18-actions"><button data-roll="initiative">🎲 Iniciativa</button><button data-roll="d20">🎲 d20 livre</button></div><div class="d18-actions"><label>Fórmula de dados <input id="d18-damage" value="1d8+2" placeholder="Ex.: 2d6+3"></label><button data-roll="dice">🎲 Rolar fórmula</button></div>'+
    listEditor('Ações e ataques','attacks',['Nome','Bônus','Dados / detalhes'])+
    listEditor('Condições','conditions',['Nome','Detalhes']);
-  if(tab==='spells')return head+'<h3>Magias e recursos de conjuração</h3><p>Espaços e recursos são inseridos manualmente; o aplicativo ainda não automatiza todas as magias, subclasses ou descansos.</p>'+
-   '<div class="d18-fields"><label><span>Atributo de conjuração</span><select data-root="spellcastingAbility">'+opts([['','Não definido'],...attrs.map(k=>[k,E.LABELS[k]])],s.spellcastingAbility)+'</select></label></div>'+
-   '<div class="d18-metrics"><div>CD de magia <strong>'+(d.spellDC??'—')+'</strong></div><div>Ataque mágico <strong>'+(d.spellAttack===null?'—':signed(d.spellAttack))+'</strong></div></div>'+
-   '<div class="d18-slots">'+Array.from({length:9},(_,i)=>{const k=String(i+1);const slot=s.spellSlots?.[k]||{max:0,current:0};return '<label>Nível '+k+'<input type="number" data-slot-max="'+k+'" min="0" max="30" value="'+(Number(slot.max)||0)+'" aria-label="Espaços máximos '+k+'"><input type="number" data-slot-current="'+k+'" min="0" max="30" value="'+(Number(slot.current)||0)+'" aria-label="Espaços atuais '+k+'"></label>'}).join('')+'</div><small>Em cada linha: espaços máximos e espaços restantes.</small>'+listEditor('Magias conhecidas / preparadas','spells',['Nome','Nível','Observações']);
+  if(tab==='spells')return head+(window.Mastermind66GrimoireUI?.render(s,d)||'<p>Grimório indisponível.</p>');
   if(tab==='items')return head+'<h3>Inventário e itens</h3>'+listEditor('Inventário do personagem','inventory',['Nome','Quantidade','Notas']);
   if(tab==='features')return head+'<h3>Características do personagem</h3>'+listEditor('Habilidades, talentos e características','features',['Nome','Origem','Efeito / notas'])+listEditor('Idiomas','languages',['Nome','Notas']);
   return head+'<h3>História e personagem</h3><div class="d18-fields">'+['description','history','notes'].map(k=>'<label class="d18-textarea"><span>'+({description:'Descrição',history:'História',notes:'Anotações'}[k])+'</span><textarea data-root="'+k+'" rows="5" maxlength="12000">'+esc(s[k]||'')+'</textarea></label>').join('')+'</div>';
@@ -71,9 +68,12 @@
   if(t.id==='d18-json-import'){const f=t.files?.[0];if(!f)return;if(f.size>1500000)return alert('Arquivo muito grande.');
    f.text().then(v=>{importObject(JSON.parse(v));alert('Ficha importada como novo personagem.')}).catch(err=>alert(err.message));return}
   if(t.dataset.attr){s.attrs[t.dataset.attr]=Math.min(30,Math.max(1,n(t.value,10)));save();render();return}
+  if(window.Mastermind66GrimoireUI?.change(t,render))return;
   if(t.dataset.root){
-   const k=t.dataset.root;if(k.startsWith('new-'))return; // Draft fields are applied only by the Add button.
+   const k=t.dataset.root;
+   const previousClass=k==='klass'?s.klass:null;if(k.startsWith('new-'))return; // Draft fields are applied only by the Add button.
    if(['level','experience','hitPointsMax','hitPointsCurrent','hitPointsTemp','initiativeBonus','armorClass','speed'].includes(k)){s[k]=k==='armorClass'&&t.value.trim()===''?null:n(t.value,0)}else{s[k]=String(t.value).slice(0,12000)}
+   if(k==='klass'&&(!s.spellcastingAbility||s.spellcastingAbility===window.Mastermind66Grimoire?.ABILITY[previousClass]))s.spellcastingAbility=window.Mastermind66Grimoire?.ABILITY[s.klass]||'';
    if(k==='level')s.level=Math.min(20,Math.max(1,s.level));if(k==='hitPointsMax')s.hitPointsMax=Math.max(1,s.hitPointsMax);
    if(['hitPointsCurrent','hitPointsMax'].includes(k))s.hitPointsCurrent=Math.min(Math.max(0,s.hitPointsCurrent),s.hitPointsMax);
    if(k==='hitPointsTemp')s.hitPointsTemp=Math.max(0,s.hitPointsTemp);
@@ -96,6 +96,7 @@
  }
  function action(e){
   const b=e.target.closest('button');if(!b)return;const s=get();
+  if(window.Mastermind66GrimoireUI?.action(b,s,save,render))return;
   if(b.dataset.tab){tab=b.dataset.tab;render();return}
   if(b.dataset.action){
    const a=b.dataset.action;
@@ -130,7 +131,7 @@
   }
  }
  function mount(container){
-  if(!container)return;load();const box=document.createElement('section');box.id='r18-dnd';container.append(box);host=box;host.addEventListener('click',action);host.addEventListener('change',change);render();return box;
+  if(!container)return;load();const box=document.createElement('section');box.id='r18-dnd';container.append(box);host=box;host.addEventListener('click',action);host.addEventListener('change',change);host.addEventListener('input',e=>window.Mastermind66GrimoireUI?.input(e.target,host));render();return box;
  }
  const sheet=document.querySelector('#screen-sheet'),anchor=sheet?.querySelector('.page-row');
  if(anchor){
