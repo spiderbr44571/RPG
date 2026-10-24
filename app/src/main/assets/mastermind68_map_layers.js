@@ -60,11 +60,11 @@ function get(id){return BY_ID.get(id)||null}
 function paint(scene,layer,id,x,y,size=1){
  const spec=get(id);
  if(!spec||spec.layer!==layer||!['terrain','props'].includes(layer))return false;
- const l=ensure(scene),w=toInt(scene.width,6,60),h=toInt(scene.height,6,60),radius=toInt(size,1,5)-1;
+ const l=ensure(scene),w=toInt(scene.width,6,60),h=toInt(scene.height,6,60),brush=toInt(size,1,5),before=Math.floor((brush-1)/2),after=brush-1-before;
  x=Math.floor(x);y=Math.floor(y);if(x<0||y<0||x>=w||y>=h)return false;
  let changed=false;const existing=new Map(l[layer].map(a=>[a.y*w+a.x,a]));
- for(let cy=Math.max(0,y-radius);cy<=Math.min(h-1,y+radius);cy++)
- for(let cx=Math.max(0,x-radius);cx<=Math.min(w-1,x+radius);cx++){
+ for(let cy=Math.max(0,y-before);cy<=Math.min(h-1,y+after);cy++)
+ for(let cx=Math.max(0,x-before);cx<=Math.min(w-1,x+after);cx++){
   const key=cy*w+cx,prev=existing.get(key);
   if(prev?.id===id)continue;
   existing.set(key,{x:cx,y:cy,id});changed=true;
@@ -74,9 +74,9 @@ function paint(scene,layer,id,x,y,size=1){
 }
 function erase(scene,layer,x,y,size=1){
  if(!['terrain','props','walls'].includes(layer))return false;
- const l=ensure(scene),radius=toInt(size,1,5)-1;
+ const l=ensure(scene),brush=toInt(size,1,5),before=Math.floor((brush-1)/2),after=brush-1-before;
  x=Math.floor(x);y=Math.floor(y);const old=l[layer].length;
- if(layer==='walls')l.walls=l.walls.filter(a=>Math.abs(a.x-x)>radius||Math.abs(a.y-y)>radius);
+ if(layer==='walls')l.walls=l.walls.filter(a=>a.x<x-before||a.x>x+after||a.y<y-before||a.y>y+after);
  else l[layer]=l[layer].filter(a=>Math.abs(a.x-x)>radius||Math.abs(a.y-y)>radius);
  return l[layer].length!==old;
 }
