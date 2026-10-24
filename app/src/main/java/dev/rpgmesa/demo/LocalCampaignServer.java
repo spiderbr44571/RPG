@@ -840,7 +840,44 @@ public final class LocalCampaignServer extends NanoHTTPD {
     }
     return opacity;
   }
-  private java.util.HashMap<Integer,Integer> illuminatedCells(JSONObject campaign,JSONObject scene,JSONArray safeFog)throws JSONException{
+  private static void addAutomaticShadows(JSONObject scene,java.util.Set<Integer> isolated,
+      JSONArray lights,java.util.Set<String> blockers,JSONArray fog,java.util.HashMap<Integer,Integer> power)throws JSONException{
+    if(isolated.isEmpty())return;
+    int w=scene.optInt("width"),h=scene.optInt("height");
+    java.util.HashSet<Integer> pending=new java.util.HashSet<>(isolated);
+    while(!pending.isEmpty()){
+      int start=pending.iterator().next();
+      java.util.ArrayDeque<Integer> queue=new java.util.ArrayDeque<>();
+      java.util.ArrayList<Integer> component=new java.util.ArrayList<>();
+      pending.remove(start);queue.add(start);
+      int minX=w,minY=h,maxX=0,maxY=0;
+      while(!queue.isEmpty()){
+        int cell=queue.removeFirst(),x=cell%w,y=cell/w;component.add(cell);
+        minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);
+        for(int dir=0;dir<4;dir++){
+          int nx=x+(dir==0?-1:dir==1?1:0),ny=y+(dir==2?-1:dir==3?1:0);
+          int ni=ny*w+nx;
+          if(nx<0||ny<0||nx>=w||ny>=h||!pending.contains(ni)||blockers.contains(edgeKey(x,y,nx,ny)))continue;
+          pending.remove(ni);queue.addLast(ni);
+        }
+      }
+      JSONArray selected=new JSONArray(),lightCells=new JSONArray();
+      for(int cell:component){
+        int x=cell%w,y=cell/w;
+        selected.put(cell);
+        int illumination=(int)Math.round(areaLightAt(x+.5,y+.5,new JSONArray(),lights,blockers)*100);
+        if(illumination>1){
+          lightCells.put(new JSONObject().put("x",x).put("y",y).put("power",illumination));
+          power.put(cell,Math.max(power.getOrDefault(cell,0),illumination));
+        }
+      }
+      fog.put(new JSONObject().put("x",minX).put("y",minY)
+        .put("w",maxX-minX+1).put("h",maxY-minY+1).put("shape","cells")
+        .put("gridWidth",w).put("cells",selected).put("hidden",true)
+        .put("intensity",100).put("fogStyle","dark").put("lightCells",lightCells));
+    }
+  }
+  private java.util.HashMap<Integer,Integer> illuminatedCells(JSONObject campaign,JSONObject scene,JSONArray safeFog,java.util.Set<Integer> automatic)throws JSONException{
     java.util.HashMap<Integer,Integer> value=new java.util.HashMap<>();
     JSONArray rooms=scene.optJSONArray("rooms"),tokens=scene.optJSONArray("tokens");
     if(rooms==null||tokens==null)return value;
@@ -875,11 +912,13 @@ public final class LocalCampaignServer extends NanoHTTPD {
         .put("intensity",room.optInt("intensity",100))
         .put("entrances",doors).put("lightCells",lights));
     }
+    addAutomaticShadows(scene,automatic,permitted,blockers,safeFog,value);
     return value;
   }
-  private static boolean isVisibleInFog(JSONObject map,int x,int y,java.util.Map<Integer,Integer> illuminated){
-    int intensity=areaOpacity(map,x,y);
-    return intensity<=35||illuminated.getOrDefault(y*map.optInt("width",1)+x,0)>=38;
+  private static boolean isVisibleInFog(JSONObject map,int x,int y,java.util.Map<Integer,Integer> illuminated,java.util.Set<Integer> automatic){
+    int cell=y*map.optInt("width",1)+x;
+    int intensity=Math.max(areaOpacity(map,x,y),automatic.contains(cell)?100:0);
+    return intensity<=35||illuminated.getOrDefault(cell,0)>=38;
   }
   private static boolean covered(JSONObject map,int x,int y) throws JSONException{
     JSONArray rooms=map.optJSONArray("rooms");if(rooms==null)return false;
@@ -1066,10 +1105,12 @@ public final class LocalCampaignServer extends NanoHTTPD {
         .put("theme",original.optString("theme","stone"));
       // v0.71: no global fog/blackout. Optional wall/door shadows are server-authored.
       JSONObject atmo=original.optJSONObject("atmosphere");
-      boolean fogOfWarActive=atmo!=null&&atmo.optBoolean("doorShadows",false);
+      boolean automaticShadows=atmo!=null&&atmo.optBoolean("doorShadows",false);
+      // Closed rooms, not a radius around the player, control ambient darkness.
+      boolean fogOfWarActive=false;
       scene.put("atmosphere",new JSONObject()
         .put("mode",atmo!=null&&"night".equals(atmo.optString("mode"))?"night":"day")
-        .put("doorShadows",fogOfWarActive));
+        .put("doorShadows",automaticShadows));
       int mapWidth=original.getInt("width"),mapHeight=original.getInt("height");
       java.util.HashSet<Integer> currentVision=new java.util.HashSet<>(),explored=new java.util.HashSet<>();
       if(fogOfWarActive){
@@ -1110,7 +1151,8 @@ public final class LocalCampaignServer extends NanoHTTPD {
       }
       JSONArray fog=new JSONArray(),visibleRooms=new JSONArray(),visibleTokens=new JSONArray();
       // Exposure is calculated and authorized here, not trusted from player-side CSS.
-      java.util.HashMap<Integer,Integer> lightCells=illuminatedCells(c,original,fog);
+      java.util.HashSet<Integer> automatic=automaticShadows?closedUnlitRooms(original):new java.util.HashSet<>();
+      java.util.HashMap<Integer,Integer> lightCells=illuminatedCells(c,original,fog,automatic);
       JSONArray rooms=original.getJSONArray("rooms");
       for(int i=0;i<rooms.length();i++){
         JSONObject room=rooms.getJSONObject(i);
@@ -1129,7 +1171,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
         boolean own=t.optString("ownerPlayerId").equals(player.optString("id"))&&
           !player.optString("characterId","").isEmpty()&&t.optString("characterId").equals(player.optString("characterId"));
         if(t.optBoolean("hidden",false)||
-           (!own&&!isVisibleInFog(original,x,y,lightCells))||
+           (!own&&!isVisibleInFog(original,x,y,lightCells,automatic))||
            (fogOfWarActive&&!currentVision.contains(y*mapWidth+x)&&!own))continue;
         JSONObject visible=new JSONObject().put("id",t.getString("id")).put("name",t.getString("name"))
           .put("kind",t.getString("kind")).put("x",x).put("y",y).put("movable",own)
@@ -1166,7 +1208,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
           JSONObject mark=marks.getJSONObject(pi);
           int mx=mark.optInt("x",-1),my=mark.optInt("y",-1);
           if(mx<0||my<0||mx>=original.optInt("width")||my>=original.optInt("height"))continue;
-          if(!isVisibleInFog(original,mx,my,lightCells))continue;
+          if(!isVisibleInFog(original,mx,my,lightCells,automatic))continue;
           if(fogOfWarActive&&!(("terrain".equals(layer)?explored:currentVision).contains(my*mapWidth+mx)))continue;
           filteredMarks.put(new JSONObject(mark.toString()));
         }
@@ -1276,11 +1318,13 @@ public final class LocalCampaignServer extends NanoHTTPD {
       if(!interlude&&already+steps>limit)
         throw new IllegalArgumentException("Deslocamento excedido: "+(limit-already)+" de "+limit+" quadrados restantes neste turno");
       // Occlusion stays impassable unless a valid open door/flashlight reveals the route.
-      java.util.HashMap<Integer,Integer> lit=illuminatedCells(c,map,new JSONArray());
+      java.util.HashMap<Integer,Integer> lit=illuminatedCells(c,map,new JSONArray(),map.optJSONObject("atmosphere")!=null&&
+        map.optJSONObject("atmosphere").optBoolean("doorShadows",false)?closedUnlitRooms(map):new java.util.HashSet<Integer>());
       for(int step=0;step<=steps;step++){
         double p=steps==0?0:((double)step/steps);
         int sx=(int)Math.round(oldX+(x-oldX)*p),sy=(int)Math.round(oldY+(y-oldY)*p);
-        if(!isVisibleInFog(map,sx,sy,lit))throw new IllegalArgumentException("Área escura demais para enxergar o caminho");
+        if(!isVisibleInFog(map,sx,sy,lit,map.optJSONObject("atmosphere")!=null&&
+          map.optJSONObject("atmosphere").optBoolean("doorShadows",false)?closedUnlitRooms(map):new java.util.HashSet<Integer>()))throw new IllegalArgumentException("Área escura demais para enxergar o caminho");
       }
       t.put("x",x).put("y",y);
       if(!interlude)spent.put(id,already+steps);
