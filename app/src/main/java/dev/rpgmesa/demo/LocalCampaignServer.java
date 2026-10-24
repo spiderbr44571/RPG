@@ -787,6 +787,22 @@ public final class LocalCampaignServer extends NanoHTTPD {
       }
       if("d-d".equals(sceneSystem)){scene.put("gridScale",5).put("gridUnit","ft");}
       else if("gurps".equals(sceneSystem)){scene.put("gridScale",1).put("gridUnit","m");}
+      // O jogador recebe somente os desenhos de células que já foram reveladas.
+      // Importante: não expor dados de salas ocultas nem mesmo no JSON da rede.
+      JSONObject sourcePaint=original.optJSONObject("layers"),visiblePaint=new JSONObject();
+      for(String layer:new String[]{"terrain","props","walls"}){
+        JSONArray filteredMarks=new JSONArray();
+        JSONArray marks=sourcePaint==null?null:sourcePaint.optJSONArray(layer);
+        if(marks!=null)for(int pi=0;pi<marks.length();pi++){
+          JSONObject mark=marks.getJSONObject(pi);
+          int mx=mark.optInt("x",-1),my=mark.optInt("y",-1);
+          if(mx<0||my<0||mx>=original.optInt("width")||my>=original.optInt("height"))continue;
+          if(covered(original,mx,my))continue;
+          filteredMarks.put(new JSONObject(mark.toString()));
+        }
+        visiblePaint.put(layer,filteredMarks);
+      }
+      scene.put("layers",visiblePaint);
       scene.put("rooms",visibleRooms).put("fog",fog).put("tokens",visibleTokens);
       response.put("initiative",initiativeForPlayer(c,visibleTokens));
       response.put("movement",playerMovement(c,player,visibleTokens));
