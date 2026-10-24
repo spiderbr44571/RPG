@@ -122,6 +122,7 @@ function render(){
  }).join('');
  h+=(s.fog||[]).map(f=>'<div class="fog r35-fog-'+esc(f.fogStyle||'shadow')+'" style="left:'+(f.x*cell)+'px;top:'+(f.y*cell)+'px;width:'+(f.w*cell)+'px;height:'+(f.h*cell)+'px;border-radius:'+(f.shape==='circle'?'50%':'0')+'"></div>').join('');
  board.innerHTML=h;
+ root.Mastermind69Atmosphere?.attach(board,s,{cell,player:true});
  const sceneChanged=cameraScene!==s.id;cameraScene=s.id;
  camera?.attach($('#scroll'),board,s.width*cell,s.height*cell,sceneChanged);
  if(!s.tokens.some(t=>t.id===selected&&t.movable))selected=s.tokens.find(t=>t.movable)?.id||'';
