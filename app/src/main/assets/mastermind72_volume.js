@@ -92,7 +92,7 @@ function drawFrame(canvas,scene,{master=false,cell=48,quality='balanced',animate
    // Smooth breathing swirls in color, not in unlit opacity; dense fog stays fully sealed.
    const wave=Math.sin(x*1.45+y*.65+t*.48)*Math.sin(y*1.15-x*.75-t*.32);
    const plumes=Math.sin(x*.6-y*.83+t*.21);
-   const density=opacity*(1-light*(mist?.81:.985));
+   const density=opacity*(master?.36:1)*(1-light*(mist?.81:.985));
    const o=(py*w+px)*4,old=pixels[o+3]/255,a=clamp(density);
    const mix=Math.max(old,a);
    const noise=wave*9+plumes*7;
