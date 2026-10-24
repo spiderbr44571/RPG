@@ -2,7 +2,7 @@ name: Mastermind v0.68 APK direto
 on:
   push:
     branches:
-      - feature/mastermind-v068-grimorio-inteligente
+      - feature/mastermind-v068-advanced-map-builder
   workflow_dispatch:
 permissions:
   contents: write
