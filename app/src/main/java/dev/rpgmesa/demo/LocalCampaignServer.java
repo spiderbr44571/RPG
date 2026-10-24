@@ -519,7 +519,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
             throw new IllegalArgumentException("Modo de iluminação inválido");
           if(!java.util.Arrays.asList("economy","balanced","high").contains(atmosphere.optString("quality","balanced")))
             throw new IllegalArgumentException("Qualidade de iluminação inválida");
-          for(String key:new String[]{"enabled","fogOfWar"})if(atmosphere.has(key)&&!(atmosphere.opt(key) instanceof Boolean))
+          for(String key:new String[]{"enabled","fogOfWar","doorShadows"})if(atmosphere.has(key)&&!(atmosphere.opt(key) instanceof Boolean))
             throw new IllegalArgumentException("Estado de atmosfera inválido");
           for(String key:new String[]{"ambient","fogDensity"})if(atmosphere.has(key)){
             double v=atmosphere.optDouble(key,Double.NaN);
@@ -569,6 +569,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
             throw new IllegalArgumentException("Formato da sala inválido");
           if(!java.util.Arrays.asList("shadow","dark","mist","void").contains(room.optString("fogStyle","shadow")))
             throw new IllegalArgumentException("Estilo de ocultação inválido");
+          if(room.has("intensity"))gridNumber(room,"intensity",0,100);
         }
         for(int j=0;j<tokens.length();j++){
           JSONObject token=tokens.getJSONObject(j);
@@ -678,18 +679,19 @@ public final class LocalCampaignServer extends NanoHTTPD {
     JSONArray rooms=map.optJSONArray("rooms");if(rooms==null)return false;
     for(int i=0;i<rooms.length();i++){
       JSONObject r=rooms.getJSONObject(i);
-      if(r.optBoolean("hidden",false)&&regionContains(r,x+0.5,y+0.5))return true;
+      if(r.optBoolean("hidden",false)&&r.optInt("intensity",100)>0&&regionContains(r,x+0.5,y+0.5))return true;
     }
     return false;
   }
   /** Trata nevoa diretamente sobre a imagem antes de envia-la ao navegador.
    * Ocultar so com CSS permitiria retirar a camada e revelar o mapa do mestre.
    */
-  private String maskedBackground(JSONObject map,JSONObject original) {
+  private String maskedBackground(JSONObject map,JSONObject original,java.util.Set<Integer> vision) {
     try {
       String data=original.optString("image","");
       JSONArray rooms=map.getJSONArray("rooms");
-      String key=map.optString("id")+"|"+rooms.toString()+"|"+data.hashCode();
+      String key=map.optString("id")+"|"+rooms.toString()+"|"+data.hashCode()+"|"+
+          (vision==null?"open":new java.util.TreeSet<Integer>(vision).toString());
       if(key.equals(cachedMaskedKey))return cachedMaskedImage;
       int comma=data.indexOf(',');
       if(comma<0||comma>90)return "";
@@ -707,9 +709,16 @@ public final class LocalCampaignServer extends NanoHTTPD {
       paint.setStyle(android.graphics.Paint.Style.FILL);paint.setColor(android.graphics.Color.rgb(10,10,19));
       float unitX=(float)output.getWidth()/map.optInt("width",1);
       float unitY=(float)output.getHeight()/map.optInt("height",1);
+      if(vision!=null){
+        int mw=Math.max(1,map.optInt("width",1)),mh=Math.max(1,map.optInt("height",1));
+        for(int cy=0;cy<mh;cy++)for(int cx=0;cx<mw;cx++){
+          if(vision.contains(cy*mw+cx))continue;
+          canvas.drawRect(cx*unitX,cy*unitY,(cx+1)*unitX+.3f,(cy+1)*unitY+.3f,paint);
+        }
+      }
       for(int i=0;i<rooms.length();i++){
         JSONObject r=rooms.getJSONObject(i);
-        if(!r.optBoolean("hidden",false))continue;
+        if(!r.optBoolean("hidden",false)||r.optInt("intensity",100)==0)continue;
         float left=r.optInt("x")*unitX,top=r.optInt("y")*unitY;
         float right=left+r.optInt("w")*unitX,bottom=top+r.optInt("h")*unitY;
         if("circle".equals(r.optString("shape","rect"))){
@@ -836,15 +845,12 @@ public final class LocalCampaignServer extends NanoHTTPD {
         .put("systemId",sceneSystem).put("gridScale",1.5).put("gridUnit","m")
         .put("width",original.getInt("width")).put("height",original.getInt("height"))
         .put("theme",original.optString("theme","stone"));
-      // Fog of war is calculated by the server. A client cannot disable it to
-      // inspect hidden tokens, scenery, lights or unrevealed background images.
+      // v0.71: no global fog/blackout. Optional wall/door shadows are server-authored.
       JSONObject atmo=original.optJSONObject("atmosphere");
-      // Densidade/escuridão máxima também é bloqueio real da visão, não só CSS.
-      // Nenhum token, asset, pintura ou imagem completa é enviado nessa situação.
-      boolean atmosphereBlackout=atmo!=null&&atmo.optBoolean("enabled",false)&&
-        (atmo.optDouble("fogDensity",0)>=.999||atmo.optDouble("ambient",0)>=.999);
-      boolean fogOfWarActive=atmo!=null&&atmo.optBoolean("fogOfWar",false)||atmosphereBlackout;
-      if(atmo!=null)scene.put("atmosphere",new JSONObject(atmo.toString()));
+      boolean fogOfWarActive=atmo!=null&&atmo.optBoolean("doorShadows",false);
+      scene.put("atmosphere",new JSONObject()
+        .put("mode",atmo!=null&&"night".equals(atmo.optString("mode"))?"night":"day")
+        .put("doorShadows",fogOfWarActive));
       int mapWidth=original.getInt("width"),mapHeight=original.getInt("height");
       java.util.HashSet<Integer> currentVision=new java.util.HashSet<>(),explored=new java.util.HashSet<>();
       if(fogOfWarActive){
@@ -852,7 +858,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
         java.util.HashSet<String> blockers=opaqueBoundaries(original);
         JSONArray ownTokens=original.getJSONArray("tokens");
         String pid=player.optString("id",""),characterId=player.optString("characterId","");
-        for(int oi=0;!atmosphereBlackout&&oi<ownTokens.length();oi++){
+        for(int oi=0;oi<ownTokens.length();oi++){
           JSONObject src=ownTokens.getJSONObject(oi);
           if(!pid.equals(src.optString("ownerPlayerId"))||characterId.isEmpty()||
              !characterId.equals(src.optString("characterId"))||src.optBoolean("hidden",false))continue;
@@ -868,7 +874,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
         JSONObject exploredByScene=player.optJSONObject("mapExploration");
         if(exploredByScene==null){exploredByScene=new JSONObject();player.put("mapExploration",exploredByScene);}
         JSONArray past=exploredByScene.optJSONArray(original.getString("id"));
-        if(past!=null&&!atmosphereBlackout)for(int ri=0;ri<past.length();ri++){
+        if(past!=null)for(int ri=0;ri<past.length();ri++){
           int n=past.optInt(ri,-1);if(n>=0&&n<mapWidth*mapHeight)explored.add(n);
         }
         boolean changed=explored.addAll(currentVision);
@@ -883,25 +889,17 @@ public final class LocalCampaignServer extends NanoHTTPD {
         for(int cell:explored)history.put(cell);
         scene.put("visibleCells",now).put("seenCells",history);
       }
-      if(original.optJSONArray("lights")!=null){
-        JSONArray visibleLights=new JSONArray(),sourceLights=original.getJSONArray("lights");
-        for(int i=0;i<sourceLights.length();i++){
-          JSONObject l=sourceLights.getJSONObject(i);
-          int lx=l.optInt("x",-1),ly=l.optInt("y",-1);
-          if(!fogOfWarActive||currentVision.contains(ly*mapWidth+lx))
-            visibleLights.put(new JSONObject(l.toString()));
-        }
-        scene.put("lights",visibleLights);
-      }
-
+      // Legacy global light emitters are not sent or used.
       JSONArray fog=new JSONArray(),visibleRooms=new JSONArray(),visibleTokens=new JSONArray();
       JSONArray rooms=original.getJSONArray("rooms");
       for(int i=0;i<rooms.length();i++){
         JSONObject room=rooms.getJSONObject(i);
-        if(room.optBoolean("hidden",false)){
-          if(!fogOfWarActive)fog.put(new JSONObject().put("x",room.getInt("x")).put("y",room.getInt("y"))
+        if(room.optBoolean("hidden",false)&&room.optInt("intensity",100)>0){
+          fog.put(new JSONObject().put("x",room.getInt("x")).put("y",room.getInt("y"))
             .put("w",room.getInt("w")).put("h",room.getInt("h"))
-            .put("shape",room.optString("shape","rect")).put("fogStyle",room.optString("fogStyle","shadow")));
+            .put("shape",room.optString("shape","rect"))
+            .put("fogStyle",room.optString("fogStyle","shadow"))
+            .put("intensity",room.optInt("intensity",100)));
         }else if(!fogOfWarActive||roomVisible(room,currentVision,mapWidth))visibleRooms.put(new JSONObject().put("name",room.getString("name"))
           .put("x",room.getInt("x")).put("y",room.getInt("y")).put("w",room.getInt("w")).put("h",room.getInt("h")));
       }
@@ -929,10 +927,8 @@ public final class LocalCampaignServer extends NanoHTTPD {
         JSONObject a=allAssets.getJSONObject(i);
         if(allowedAssetIds.contains(a.optString("id"))){
           JSONObject visible=new JSONObject(a.toString());
-          if(a.optString("id").equals(background)&&fogOfWarActive)
-            visible.put("image",""); // A imagem completa revelaria salas escondidas pelo JSON.
-          else if(a.optString("id").equals(background)&&fog.length()>0)
-            visible.put("image",maskedBackground(original,a));
+          if(a.optString("id").equals(background)&&(fogOfWarActive||fog.length()>0))
+            visible.put("image",maskedBackground(original,a,fogOfWarActive?currentVision:null));
           filteredAssets.put(visible);
         }
       }
