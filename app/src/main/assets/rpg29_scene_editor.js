@@ -177,6 +177,10 @@ function open(host,opts){
     '<option value="'+id+'" '+((r.fogStyle||'shadow')===id?'selected':'')+'>'+label+'</option>').join('')+
    '</select><button data-r30-delroom="'+esc(r.id)+'" class="danger">×</button></div>').join('');
   if(!m.rooms.length)html+='<p>Selecione Retângulo ou Círculo e arraste para marcar uma área.</p>';
+  const doorMarks=(m.layers?.walls||[]).filter(x=>x.kind==='door');
+  html+='<h3>Portas ('+doorMarks.length+')</h3>'+
+   (doorMarks.length?doorMarks.slice(0,40).map((door,i)=>'<div class="r30-line"><span>Porta '+(i+1)+' · ('+(door.x+1)+', '+(door.y+1)+')</span>'+
+     '<button type="button" data-r68-door="'+door.x+':'+door.y+':'+door.side+'">'+(door.open?'Fechar':'Abrir')+'</button></div>').join(''):'<p>Use a ferramenta Porta e toque na borda de uma célula.</p>');
   target.innerHTML=html;
  }
  function render(shouldFit=false){
@@ -363,7 +367,10 @@ function open(host,opts){
      token.hp=Math.max(0,Math.min(token.maxHp,token.hp+Number(hpbtn.dataset.r31Hp)));change();details();
    }return;
   }
-  const brushAsset=e.target.closest('[data-r68-asset]');if(brushAsset){const item=paintEngine?.get(brushAsset.dataset.r68Asset);if(item){s.paintAsset=item.id;s.paintLayer=item.layer;s.tool='paint';render(false);signal(item.name+' selecionado. Arraste pelo mapa para pintar.')}return}
+  const doorClick=e.target.closest('[data-r68-door]');
+  if(doorClick){const [x,y,side]=doorClick.dataset.r68Door.split(':');
+    const m=getScene();if(m&&paintEngine){checkpoint();if(paintEngine.toggleDoor(m,Number(x),Number(y),side)){change();render(false)}}return}
+    const brushAsset=e.target.closest('[data-r68-asset]');if(brushAsset){const item=paintEngine?.get(brushAsset.dataset.r68Asset);if(item){s.paintAsset=item.id;s.paintLayer=item.layer;s.tool='paint';render(false);signal(item.name+' selecionado. Arraste pelo mapa para pintar.')}return}
   const a=e.target.closest('[data-r30-asset]');
   if(a){s.picked=a.dataset.r30Asset;library();return}
   const tool=e.target.closest('[data-r30-tool]');
