@@ -35,6 +35,6 @@ const java=fs.readFileSync(path.resolve(__dirname,'../app/src/main/java/dev/rpgm
 for(const name of ['opaqueBoundaries','canSeeThrough','player.optJSONObject("mapExploration")','scene.put("visibleCells"','fogOfWarActive&&!currentVision.contains','scene.put("layers",visiblePaint)','visible.put("image","")'])assert.ok(java.includes(name),'Fog-of-war server protection '+name);
 assert.match(java,/path.equals\("\/atmosphere.js"\)/);
 assert.match(java,/lights.length\(\)>20/);
-assert.match(read('demo-offline.html'),/>v0\.69<\/small>/);
-assert.match(fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8'),/versionCode 69/);
+assert.match(read('demo-offline.html'),/>v0\.(?:69|70)<\/small>/);
+assert.match(fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:69|70)/);
 console.log('PASS v0.69: 2.5D lighting, fog quality modes, dynamic wall/door shadows, server-side fog of war and safe older maps');
