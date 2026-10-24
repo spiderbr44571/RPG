@@ -14,7 +14,7 @@ function creatureRecords(system){
  const result=new Map();for(const item of originals.concat(own)){if(item?.id&&item?.name)result.set(item.id,item)}
  return [...result.values()];
 }
-const presets=[['map-ruins','Ruínas','map','🪨'],['map-forest','Floresta','map','🌲'],['map-cave','Caverna','map','🕯️'],['char-hero','Herói','character','🛡️'],['char-scout','Explorador','character','🧭'],['char-mage','Mago','character','🪄'],['mob-wolf','Lobo','creature','🐺'],['mob-golem','Construto','creature','🗿'],['mob-shadow','Sombra','creature','👁️'],['item-chest','Baú','item','🧰'],['item-key','Chave','item','🗝️'],['item-door','Porta','object','🚪']].map(([id,name,kind,emoji])=>({id,name,kind,emoji,image:''}));
+const presets=[['map-ruins','Ruínas','map','🪨'],['map-forest','Floresta','map','🌲'],['map-cave','Caverna','map','🕯️'],['char-hero','Herói','character','🛡️'],['char-scout','Explorador','character','🧭'],['char-mage','Mago','character','🪄'],['mob-wolf','Lobo','creature','🐺'],['mob-golem','Construto','creature','🗿'],['mob-shadow','Sombra','creature','👁️'],['item-chest','Baú','item','🧰'],['item-key','Chave','item','🗝️'],['item-door','Porta','object','🚪'],["map-dungeon","Masmorra","map","🧱"],["map-town","Cidade","map","🏘️"],["map-tavern","Taverna","map","🍻"],["map-desert","Deserto","map","🏜️"],["map-snow","Neve","map","❄️"],["map-swamp","Pântano","map","🪷"],["map-temple","Templo","map","⛩️"],["map-castle","Castelo","map","🏰"],["char-warrior","Guerreiro","character","⚔️"],["char-archer","Arqueira","character","🏹"],["char-rogue","Ladino","character","🗡️"],["char-cleric","Clériga","character","✨"],["mob-goblin","Goblin","creature","👺"],["mob-orc","Orc","creature","👹"],["mob-slime","Lodo","creature","🟢"],["mob-skeleton","Esqueleto","creature","🩻"],["mob-spider","Aranha","creature","🕷️"],["item-potion","Poção","item","🧪"],["item-scroll","Pergaminho","item","📜"],["item-torch","Tocha","item","🔥"],["item-crystal","Cristal","item","💎"],["obj-tree","Árvore","object","🌳"],["obj-rock","Rocha","object","🪨"],["obj-pillar","Pilar","object","🗿"],["obj-wall","Muro","object","🧱"],["obj-table","Mesa","object","🪑"],["obj-barrel","Barril","object","🛢️"],["obj-stairs","Escada","object","🪜"]].map(([id,name,kind,emoji])=>({id,name,kind,emoji,image:''}));
 const stylesheet=document.createElement('link');stylesheet.rel='stylesheet';stylesheet.href=location.protocol==='file:'?'rpg30_studio.css':'/scene-editor.css';document.head.appendChild(stylesheet);
 let current=null;
 function close(force=false){
@@ -28,7 +28,7 @@ function open(host,opts){
  if(current)close();
  if(current)return Promise.resolve();
  const s={root:document.createElement('section'),host,opts,scenes:[],assets:[],active:'',selected:'',picked:'char-hero',
-  category:'all',importKind:'map',fogStyle:'shadow',creatureSystem:'ordem-paranormal',creatureSearch:'',creatureSelection:null,tool:'pan',token:'',showGrid:true,aside:true,dirty:false,
+  category:'all',assetSearch:'',paintPack:'Todos',paintLayer:'terrain',paintAsset:'stone',brushSize:1,visibleLayers:{terrain:true,props:true,walls:true},undoByScene:new Map(),redoByScene:new Map(),importKind:'map',fogStyle:'shadow',creatureSystem:'ordem-paranormal',creatureSearch:'',creatureSelection:null,tool:'pan',token:'',showGrid:true,aside:true,dirty:false,
   scale:1,x:25,y:25,view:null,world:null,gesture:null,pointers:new Map(),pinch:null,priorOverflow:document.body.style.overflow};
  current=s;host.hidden=false;s.root.className='r30-studio';s.root.setAttribute('role','dialog');s.root.setAttribute('aria-label','Estúdio de cenários');
  document.body.appendChild(s.root);document.body.style.overflow='hidden';
@@ -95,13 +95,53 @@ function open(host,opts){
   const next=Math.max(.12,Math.min(3,s.scale*factor)),ratio=next/s.scale;
   s.x=cx-(cx-s.x)*ratio;s.y=cy-(cy-s.y)*ratio;s.scale=next;updateTransform();
  }
+
+ const paintEngine=root.Mastermind68Map;
+ const snap=()=>paintEngine?.saveSnapshot(getScene());
+ function checkpoint(){
+  const m=getScene();if(!m||!paintEngine)return;
+  const list=s.undoByScene.get(m.id)||[],old=snap();
+  if(old&&list[list.length-1]!==old)list.push(old);
+  if(list.length>24)list.shift();s.undoByScene.set(m.id,list);s.redoByScene.set(m.id,[]);
+ }
+ function restoreStep(redo=false){
+  const m=getScene();if(!m||!paintEngine)return;
+  const from=(redo?s.redoByScene:s.undoByScene).get(m.id)||[];
+  if(!from.length){signal('Sem alteração para '+(redo?'refazer.':'desfazer.'));return}
+  const to=(redo?s.undoByScene:s.redoByScene).get(m.id)||[];
+  to.push(snap());if(to.length>24)to.shift();
+  (redo?s.undoByScene:s.redoByScene).set(m.id,to);
+  paintEngine.restore(m,from.pop());change();mapPaintRefresh();
+ }
+ function paintPalette(){
+  const target=$('#r68-palette',s.root);if(!target||!paintEngine)return;
+  const q=(s.assetSearch||'').toLocaleLowerCase('pt-BR');
+  const list=paintEngine.palette.filter(x=>x.layer===s.paintLayer&&(s.paintPack==='Todos'||s.paintPack===x.pack)&&(!q||x.name.toLocaleLowerCase('pt-BR').includes(q)));
+  target.innerHTML=list.map(x=>'<button type="button" data-r68-asset="'+esc(x.id)+'" title="'+esc(x.name)+'" class="'+(s.paintAsset===x.id?'active':'')+'">'+paintEngine.glyph(x.id)+'<small>'+esc(x.name)+'</small></button>').join('')||'<small>Nenhum asset encontrado.</small>';
+ }
+ function mapPaintRefresh(){map();paintPalette()}
+ function paintAt(point,first=false){
+  const m=getScene(),M=paintEngine;if(!m||!M)return false;
+  const x=Math.floor(point.x/48),y=Math.floor(point.y/48);
+  if(x<0||y<0||x>=m.width||y>=m.height)return false;
+  if(first)checkpoint();
+  let applied=false;
+  if(s.tool==='paint')applied=M.paint(m,s.paintLayer,s.paintAsset,x,y,s.brushSize);
+  else if(s.tool==='wall'||s.tool==='door'){const edge=M.edgeFromPoint(point.x,point.y);applied=M.wall(m,s.tool,edge.x,edge.y,edge.side)}
+  else if(s.tool==='erase-paint')applied=M.erase(m,s.paintLayer,x,y,s.brushSize);
+  if(applied){change();mapPaintRefresh()}
+  return applied;
+ }
  function tile(a){return a?.image?'<img alt="" src="'+esc(a.image)+'">':'<span class="emoji">'+esc(a?.emoji||'✧')+'</span>'}
  function map(){
   const m=getScene();s.view=$('#r30-view',s.root);s.world=$('#r30-world',s.root);if(!m||!s.world)return;
   s.world.dataset.theme=m.theme||'stone';s.world.style.width=(m.width*48)+'px';s.world.style.height=(m.height*48)+'px';
   let html='',bg=getAsset(m.backgroundAssetId);
   if(bg?.image)html+='<img class="r30-bg" alt="" src="'+esc(bg.image)+'">';
+  if(paintEngine&&s.visibleLayers.terrain)html+=paintEngine.renderLayer(m,'terrain',48);
+  if(paintEngine&&s.visibleLayers.props)html+=paintEngine.renderLayer(m,'props',48);
   if(s.showGrid)html+='<div class="r30-grid"></div>';
+  if(paintEngine&&s.visibleLayers.walls)html+=paintEngine.renderLayer(m,'walls',48);
   html+=m.rooms.map(r=>'<div class="r30-room r35-fog-'+esc(r.fogStyle||'shadow')+' '+(r.shape==='circle'?'circle ':'')+(r.hidden?'hidden':'')+'" style="left:'+(r.x*48)+'px;top:'+(r.y*48)+'px;width:'+(r.w*48)+'px;height:'+(r.h*48)+'px">'+esc(r.name)+'</div>').join('');
   html+=m.tokens.map(t=>'<div class="r30-token '+(t.id===s.token?'selected':'')+'" data-r30-token="'+esc(t.id)+'" style="left:'+(t.x*48+1)+'px;top:'+(t.y*48+1)+'px">'+tile(getAsset(t.assetId))+'<small>'+esc(t.name)+'</small></div>').join('');
   html+='<div id="r30-preview" class="r30-preview" hidden></div>';
@@ -109,13 +149,14 @@ function open(host,opts){
  }
  function library(){
   const target=$('#r30-assets',s.root);if(!target)return;
-  target.innerHTML=s.assets.filter(a=>s.category==='all'||a.kind===s.category).map(a=>
+  const q=(s.assetSearch||'').toLocaleLowerCase('pt-BR');
+  target.innerHTML=s.assets.filter(a=>(s.category==='all'||a.kind===s.category)&&(!q||a.name.toLocaleLowerCase('pt-BR').includes(q))).map(a=>
    '<button data-r30-asset="'+esc(a.id)+'" title="'+esc(a.name)+'" class="'+(s.picked===a.id?'active':'')+'">'+tile(a)+'<small>'+esc(a.name)+'</small></button>').join('');
  }
  function details(){
   const target=$('#r30-details',s.root),m=getScene();if(!target||!m)return;
   const t=m.tokens.find(t=>t.id===s.token);
-  let html='<h3>Selecionado</h3>';
+  let html='<h3>Mapa atual</h3><label>Nome<input data-r68-map-name maxlength="80" value="'+esc(m.name)+'"></label><div class="r30-line"><button data-r30="duplicate">Duplicar mapa</button><button data-r30="clear-layers">Limpar desenhos</button></div><h3>Selecionado</h3>';
   if(t){
    html+='<label>Nome<input data-r30-change="name" maxlength="70" value="'+esc(t.name)+'"></label>'+
      (t.kind==='creature'?'<h3>Ficha: '+esc(t.systemId||'')+'</h3><p>PV '+t.hp+'/'+t.maxHp+' · Defesa '+t.defense+'</p>'+
@@ -147,13 +188,22 @@ function open(host,opts){
    '<button data-r30="assets">▣ Biblioteca</button><button data-r30="publish" class="'+(m&&m.id===s.active?'active':'')+'">'+(m&&m.id===s.active?'● Publicado':'Publicar')+'</button>'+
    '<button data-r30="save" class="primary">💾 Salvar</button><button data-r30="exit" class="danger">✕ Sair</button></header>'+
    '<div class="r30-body"><nav class="r30-toolbar" aria-label="Ferramentas">'+
-   [['pan','✋','Navegar'],['token','◉','Tokens'],['rect','▭','Retângulo'],['circle','◯','Círculo'],['erase','⌫','Apagar']].map(([id,ic,name])=>
+   [['pan','✋','Navegar'],['paint','🖌','Pintar'],['wall','▦','Parede'],['door','🚪','Porta'],['erase-paint','⌫','Borracha'],['token','◉','Tokens'],['rect','▭','Retângulo'],['circle','◯','Círculo'],['erase','✕','Apagar token']].map(([id,ic,name])=>
    '<button data-r30-tool="'+id+'" title="'+name+'" class="'+(s.tool===id?'active':'')+'">'+ic+'</button><small>'+name+'</small>').join('')+
    '<button data-r30="zoom-in">＋</button><button data-r30="zoom-out">－</button><button data-r30="fit">⊡</button></nav>'+
    '<main id="r30-view" class="r30-view"><div id="r30-world" class="r30-world"></div></main>'+
    '<aside class="r30-side '+(s.aside?'':'folded')+'"><section class="r30-section"><h3>Biblioteca de assets</h3>'+
    '<select id="r30-category">'+[['all','Todos'],['map','Fundos'],['character','Personagens'],['creature','Criaturas'],['item','Itens'],['object','Objetos']].map(([k,n])=>'<option value="'+k+'" '+(k===s.category?'selected':'')+'>'+n+'</option>').join('')+'</select>'+
    '<div class="r30-assets" id="r30-assets"></div>'+
+   '<section class="r68-paint-panel r30-section"><h3>Construtor de mapas</h3>'+
+ '<div class="r68-actions"><button data-r30="undo" title="Desfazer desenho">↶ Desfazer</button><button data-r30="redo" title="Refazer desenho">↷ Refazer</button></div>'+
+ '<label>Camada<select id="r68-layer">'+[['terrain','Terreno'],['props','Decoração'],['walls','Paredes / portas']].map(([k,n])=>'<option value="'+k+'"'+(s.paintLayer===k?' selected':'')+'>'+n+'</option>').join('')+'</select></label>'+
+ '<div class="r68-layer-vis">'+[['terrain','Terreno'],['props','Objetos'],['walls','Paredes']].map(([k,n])=>'<label><input type="checkbox" data-r68-visible="'+k+'"'+(s.visibleLayers[k]?' checked':'')+'>'+n+'</label>').join('')+'</div>'+
+ '<label>Pacote de assets<select id="r68-pack">'+(paintEngine?.PACKS||['Todos']).map(n=>'<option value="'+esc(n)+'"'+(s.paintPack===n?' selected':'')+'>'+esc(n)+'</option>').join('')+'</select></label>'+
+ '<label>Pesquisar<input id="r68-search" value="'+esc(s.assetSearch)+'" placeholder="Pedra, água, árvore..."></label>'+
+ '<label>Tamanho do pincel<select id="r68-brush">'+[1,2,3,4,5].map(n=>'<option value="'+n+'"'+(n===s.brushSize?' selected':'')+'>'+n+' × '+n+'</option>').join('')+'</select></label>'+
+ '<div id="r68-palette" class="r68-palette"></div>'+
+ '<p class="r68-caption">Arraste para pintar o terreno e a decoração. Paredes e portas encaixam na borda da célula. A borracha limpa a camada selecionada.</p></section>'+
    '<h3>Bestiário e fichas por sistema</h3><select id="r31-system">'+
    [...new Map([['ordem-paranormal','Ordem Paranormal'],['d-d','D&D 5e'],['gurps','GURPS']].concat((window.RPG15_SYSTEMS?.systems||[]).map(x=>[x.id,x.title||x.id])))].map(([id,name])=>
      '<option value="'+esc(id)+'" '+(s.creatureSystem===id?'selected':'')+'>'+esc(name)+'</option>').join('')+
@@ -166,7 +216,7 @@ function open(host,opts){
    '<section class="r30-section" id="r30-details"></section></aside></div>'+
    '<footer class="r30-foot"><span id="r30-zoom">100%</span><span>Arraste no mapa para desenhar ou mover</span><span id="r30-message">Toque em Salvar para publicar alterações.</span></footer>';
   s.view=$('#r30-view',s.root);s.world=$('#r30-world',s.root);
-  s.scale=scale;s.x=ox;s.y=oy;library();creatureChoices();details();map();
+  s.scale=scale;s.x=ox;s.y=oy;library();paintPalette();creatureChoices();details();map();
   if(shouldFit)requestAnimationFrame(fit);
  }
  async function save(){
@@ -176,6 +226,7 @@ function open(host,opts){
  async function load(){
   const data=await opts.request(opts.route+'/scenarios');if(current!==s)return;
   s.scenes=data.scenarios||[];s.assets=presets.concat((data.assets||[]).filter(a=>!presets.some(x=>x.id===a.id)));
+  if(!s.scenes.length)s.scenes=[{id:uid(),name:'Novo cenário',width:28,height:18,theme:'stone',backgroundAssetId:'',rooms:[],tokens:[]}];
   s.active=data.activeScenarioId||'';s.selected=s.scenes[0]?.id||'';render(true);
  }
  function upload(f){
