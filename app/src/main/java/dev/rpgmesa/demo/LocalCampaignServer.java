@@ -682,7 +682,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
     java.util.HashSet<String> closed=opaqueBoundaries(map);
     if(closed.isEmpty())return result;
     final int count=width*height;
-    boolean[] outside=new boolean[count];int[] queue=new int[count],head=0,tail=0;
+    boolean[] outside=new boolean[count];int[] queue=new int[count];int head=0,tail=0;
     for(int y=0;y<height;y++)for(int x=0;x<width;x++){
       boolean exit=(x==0&&!closed.contains("V:0:"+y))||
         (x==width-1&&!closed.contains("V:"+width+":"+y))||
