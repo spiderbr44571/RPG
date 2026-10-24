@@ -6,7 +6,7 @@ const readable=x=>String(x??'').replace(/cen\uFFFD+rio/gi,'cenário')
   .replace(/Her\uFFFD+i/gi,'Herói').replace(/\uFFFD+/g,'').trim();
 const esc=x=>readable(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const cid=location.pathname.split('/')[2],url='/api/play/'+cid,sceneUrl=url+'/scenario';
-let state=null,revision=-1,cell=48,selected='',showRotation=false,busy=false,tab='',noticeTimeout,camera=window.RPG33_CAMERA?.create(),cameraScene='';
+let state=null,revision=-1,cell=48,selected='',showRotation=false,rotateGesture=null,busy=false,tab='',noticeTimeout,camera=window.RPG33_CAMERA?.create(),cameraScene='';
 const msg=t=>{const n=$('#notice');n.hidden=false;n.textContent=t;clearTimeout(noticeTimeout);noticeTimeout=setTimeout(()=>n.hidden=true,3900)};
 async function api(path,method='GET',payload){
  const r=await fetch(path,{method,credentials:'same-origin',headers:{'Content-Type':'application/json'},cache:'no-store',body:payload===undefined?undefined:JSON.stringify(payload)});
@@ -151,12 +151,14 @@ function mountRotationButtons(){
  const el=token?board.querySelector('[data-id="'+token.id+'"]'):null;
  if(!el)return;
  const group=document.createElement('div');
- group.className='m73-turn-controls';group.setAttribute('role','group');group.setAttribute('aria-label','Girar personagem');
+ group.className='m73-turn-controls m75-rotary-dial';
+ group.setAttribute('role','group');group.setAttribute('aria-label','Arraste as setas para girar em qualquer ângulo');
+ group.style.setProperty('--m75-dial-angle',(token.rotation||0)+'deg');
  const icon=dir=>'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+(dir<0?'M5 10a8 8 0 1 1 2 8M5 4v6h6':'M19 10a8 8 0 1 0-2 8M19 4v6h-6')+'"/></svg>';
  for(const n of [-15,15]){
-  const b=document.createElement('button');b.type='button';b.className='m73-rotate-arrow';
-  b.dataset.m73Rotate=String(n);b.setAttribute('aria-label',n<0?'Girar 15 graus para esquerda':'Girar 15 graus para direita');
-  b.title=n<0?'Girar à esquerda':'Girar à direita';b.innerHTML=icon(n);group.appendChild(b);
+  const b=document.createElement('button');b.type='button';b.className='m73-rotate-arrow m75-rotate-grip';
+  b.dataset.m75Grip=String(n);b.setAttribute('aria-label',n<0?'Arrastar alça esquerda para girar':'Arrastar alça direita para girar');
+  b.title='Arraste ao redor do token';b.innerHTML=icon(n);group.appendChild(b);
  }
  el.appendChild(group);
 }
@@ -188,15 +190,53 @@ function mount(){
   const token=state?.scene?.tokens?.find(t=>t.id===selected&&t.movable&&t.lightKind);
   if(token)setLight({flashlight:!token.flashlight});
  };
+ // Pointer-captured analog dial: continuous visual feedback and a single save on release.
+ const scroll=$('#scroll');
+ const pointerDegrees=(e,el)=>{
+  const box=el.getBoundingClientRect();
+  return Math.atan2(e.clientY-(box.top+box.height/2),e.clientX-(box.left+box.width/2))*180/Math.PI;
+ };
+ const normalizeDegrees=value=>((Math.round(value)%360)+360)%360;
+ scroll.addEventListener('pointerdown',e=>{
+  const grip=e.target.closest('[data-m75-grip]');
+  if(!grip||rotateGesture||!showRotation)return;
+  const own=state?.scene?.tokens?.find(t=>t.id===selected&&t.movable);
+  const el=own?$('#board [data-id="'+own.id+'"]'):null;
+  if(!el)return;
+  e.preventDefault();e.stopPropagation();
+  rotateGesture={pointerId:e.pointerId,grip,el,tokenId:own.id,original:own.rotation||0,
+   started:pointerDegrees(e,el),current:own.rotation||0,moved:false,initialX:e.clientX,initialY:e.clientY};
+  grip.setPointerCapture?.(e.pointerId);
+  el.classList.add('m75-rotating');
+ },true);
+ scroll.addEventListener('pointermove',e=>{
+  const drag=rotateGesture;
+  if(!drag||e.pointerId!==drag.pointerId)return;
+  e.preventDefault();e.stopPropagation();
+  if(!drag.moved&&Math.hypot(e.clientX-drag.initialX,e.clientY-drag.initialY)<3)return;
+  drag.moved=true;
+  const next=normalizeDegrees(drag.original+pointerDegrees(e,drag.el)-drag.started);
+  drag.current=next;
+  drag.el.style.setProperty('--m72-angle',next+'deg');
+  drag.el.querySelector('.m75-rotary-dial')?.style.setProperty('--m75-dial-angle',next+'deg');
+ },true);
+ const finishRotation=e=>{
+  const drag=rotateGesture;
+  if(!drag||e.pointerId!==drag.pointerId)return;
+  e.preventDefault();e.stopPropagation();
+  rotateGesture=null;drag.el.classList.remove('m75-rotating');
+  try{drag.grip.releasePointerCapture?.(e.pointerId)}catch{}
+  if(drag.moved&&drag.current!==drag.original)setLight({rotation:drag.current});
+ };
+ scroll.addEventListener('pointerup',finishRotation,true);
+ scroll.addEventListener('pointercancel',e=>{
+  const drag=rotateGesture;if(!drag||e.pointerId!==drag.pointerId)return;
+  drag.el.style.setProperty('--m72-angle',drag.original+'deg');
+  drag.el.querySelector('.m75-rotary-dial')?.style.setProperty('--m75-dial-angle',drag.original+'deg');
+  rotateGesture=null;drag.el.classList.remove('m75-rotating');
+ },true);
  $('#scroll').addEventListener('click',async e=>{
-  const rotate=e.target.closest('[data-m73-rotate]');
-  if(rotate){
-   e.preventDefault();e.stopPropagation();
-   const own=state?.scene?.tokens?.find(t=>t.id===selected&&t.movable);
-   if(!own)return;
-   const rotation=((Math.round(Number(own.rotation)||0)+Number(rotate.dataset.m73Rotate))%360+360)%360;
-   await setLight({rotation});return;
-  }
+  if(e.target.closest('[data-m75-grip]')){e.preventDefault();return;}
   const target=e.target.closest('[data-id]');
   if(target){if(target.dataset.movable==='true'){selected=target.dataset.id;showRotation=true;mountRotationButtons();msg('Use as setas para girar e toque no destino para mover.')}return}
   showRotation=false;mountRotationButtons();
