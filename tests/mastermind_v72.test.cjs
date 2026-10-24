@@ -56,6 +56,6 @@ for(const needle of ['illuminatedCells(c,original,fog,automatic)','areaEntrances
  'maskedBackground(original,a,fogOfWarActive?currentVision:null,lightCells,automatic)','if(!isVisibleInFog(original,mx,my,lightCells,automatic))continue;',
  '/volume.js'])assert.ok(java.includes(needle),'Missing secure server integration: '+needle);
 assert.match(java,/gridNumber\(token,"rotation",0,359\)/);
-assert.match(read('demo-offline.html'),/>v0\.(?:72|73|74|75)<\/small>/);
-assert.match(fs.readFileSync(path.join(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:72|73|74|75)/);
+assert.match(read('demo-offline.html'),/>v0\.(?:72|73|74|75|76)<\/small>/);
+assert.match(fs.readFileSync(path.join(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:72|73|74|75|76)/);
 console.log('PASS v0.72: opaque animated fog, only open-door falloff, directional V, rotation, player/master controls and server visibility');
