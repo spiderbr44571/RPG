@@ -92,7 +92,7 @@ function open(host,options){
   chevron:'<path d="m6 9 6 6 6-6"/>',
   shield:'<path d="m12 3 9 4v5c0 6-4 8-9 10-5-2-9-4-9-10V7z"/>'
  };
- const r64Icon=id=>'<svg class="r64-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(r64Shapes[id]||r64Shapes.target)+'</svg>';
+ const r64Icon=id=>root.Mastermind74Icons?.render(id==='hourglass'?'clock':id,'r64-icon')||'<svg class="r64-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(r64Shapes[id]||r64Shapes.target)+'</svg>';
  const r64Action=(action,iconName,label,extra='')=>'<button type="button" data-action="'+action+'" class="r64-action '+extra+'" title="'+label+'" aria-label="'+label+'">'+r64Icon(iconName)+'<span class="r64-action-label">'+label+'</span></button>';
  const r64Group=(id,iconName,label,badge='')=>'<details class="r64-card r64-'+id+'" data-r64-group="'+id+'" '+(s.groups[id]?'open':'')+'><summary>'+r64Icon(iconName)+'<span>'+label+'</span>'+(badge?'<em>'+badge+'</em>':'')+r64Icon('chevron')+'</summary><div class="r64-card-body">';
  function render(){
