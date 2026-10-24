@@ -931,13 +931,15 @@ public final class LocalCampaignServer extends NanoHTTPD {
   /** Trata nevoa diretamente sobre a imagem antes de envia-la ao navegador.
    * Ocultar so com CSS permitiria retirar a camada e revelar o mapa do mestre.
    */
-  private String maskedBackground(JSONObject map,JSONObject original,java.util.Set<Integer> vision,java.util.Map<Integer,Integer> exposed) {
+  private String maskedBackground(JSONObject map,JSONObject original,java.util.Set<Integer> vision,
+      java.util.Map<Integer,Integer> exposed,java.util.Set<Integer> automatic) {
     try {
       String data=original.optString("image","");
       JSONArray rooms=map.getJSONArray("rooms");
       String key=map.optString("id")+"|"+rooms.toString()+"|"+data.hashCode()+"|"+
           (vision==null?"open":new java.util.TreeSet<Integer>(vision).toString())+"|"+new java.util.TreeMap<Integer,Integer>(exposed).toString()+"|"+
-          (map.optJSONObject("layers")==null?"":map.optJSONObject("layers").optJSONArray("walls"));
+          (map.optJSONObject("layers")==null?"":map.optJSONObject("layers").optJSONArray("walls"))+"|"+
+          new java.util.TreeSet<Integer>(automatic).toString();
       if(key.equals(cachedMaskedKey))return cachedMaskedImage;
       int comma=data.indexOf(',');
       if(comma<0||comma>90)return "";
@@ -981,6 +983,14 @@ public final class LocalCampaignServer extends NanoHTTPD {
           canvas.drawRect(x*unitX,y*unitY,(x+1)*unitX+.4f,(y+1)*unitY+.4f,paint);
         }
         canvas.restore();
+      }
+      paint.setAlpha(255);
+      for(int cell:automatic){
+        int x=cell%mw,y=cell/mw;
+        int exposure=exposed.getOrDefault(cell,0);
+        int alpha=Math.round(255f*(1f-.985f*exposure/100f));
+        paint.setAlpha(Math.max(0,Math.min(255,alpha)));
+        canvas.drawRect(x*unitX,y*unitY,(x+1)*unitX+.4f,(y+1)*unitY+.4f,paint);
       }
       paint.setAlpha(255);
       ByteArrayOutputStream out=new ByteArrayOutputStream();
@@ -1192,7 +1202,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
         if(allowedAssetIds.contains(a.optString("id"))){
           JSONObject visible=new JSONObject(a.toString());
           if(a.optString("id").equals(background)&&(fogOfWarActive||fog.length()>0))
-            visible.put("image",maskedBackground(original,a,fogOfWarActive?currentVision:null,lightCells));
+            visible.put("image",maskedBackground(original,a,fogOfWarActive?currentVision:null,lightCells,automatic));
           filteredAssets.put(visible);
         }
       }
