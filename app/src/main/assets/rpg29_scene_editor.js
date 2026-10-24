@@ -233,6 +233,8 @@ function open(host,opts){
  '<label>Alcance <input type="number" min="1" max="20" value="'+(light.radius??6)+'" data-r69-light="'+esc(light.id)+'" data-r69-field="radius"></label>'+
  '<label>Intensidade <input type="range" min="0" max="1" step=".05" value="'+(light.intensity??.8)+'" data-r69-light="'+esc(light.id)+'" data-r69-field="intensity"></label>'+
  '<label>Cor <input type="color" value="'+esc(light.color||'#ffcc83')+'" data-r69-light="'+esc(light.id)+'" data-r69-field="color"></label>'+
+ '<label>Vincular luz ao token <select data-r69-light="'+esc(light.id)+'" data-r69-field="attachedTokenId">'+
+ '<option value="">Luz fixa no mapa</option>'+(m?.tokens||[]).filter(t=>t.kind==='character'||t.kind==='creature').map(t=>'<option value="'+esc(t.id)+'"'+(light.attachedTokenId===t.id?' selected':'')+'>'+esc(t.name)+'</option>').join('')+'</select></label>'+
  '<label><input type="checkbox" data-r69-light="'+esc(light.id)+'" data-r69-field="enabled" '+(light.enabled!==false?'checked':'')+'> Ligada</label>'+
  '<button data-r69-delete="'+esc(light.id)+'">Excluir</button></div>').join('')+'</div>'+
  '<button data-r69="reset-explored" type="button">Reiniciar exploração</button></section>'+
@@ -375,7 +377,7 @@ function open(host,opts){
   if(m&&e.target.dataset.r69Light){
     const light=(m.lighting?.lights||[]).find(x=>x.id===e.target.dataset.r69Light);
     if(light){const field=e.target.dataset.r69Field;
-      light[field]=e.target.type==='checkbox'?e.target.checked:field==='color'?e.target.value:Number(e.target.value);
+      light[field]=e.target.type==='checkbox'?e.target.checked:field==='color'||field==='attachedTokenId'?e.target.value:Number(e.target.value);
       change();map();}
   }
 
