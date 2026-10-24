@@ -224,3 +224,7 @@ body.r54-clean .r54-wheel #r54-toggle svg{
  body.r54-clean .r54-wheel #r54-wheel-items .r54-petal{height:62px!important;min-height:62px!important}
  body.r54-clean .r54-wheel #r54-wheel-items .r54-petal small{font-size:9px}
 }
+
+/* v0.74 — original Tabler vectors keep the correct 24px viewbox in the tool dock. */
+body.r54-clean .r54-wheel #r54-wheel-items .r54-petal .r74-wheel-icon{width:24px!important;height:24px!important;min-width:24px;min-height:24px;stroke:var(--r54-accent);fill:none;display:block;flex:0 0 24px;transform:none}
+body.r54-clean .r54-wheel #r54-toggle .r74-wheel-icon{width:24px!important;height:24px!important;stroke:currentColor;fill:none;display:block;flex:none;transform:none}
