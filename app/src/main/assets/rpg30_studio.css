@@ -77,3 +77,24 @@
 .r30-studio .r30-world[data-theme=cave]{background:#2c2436}
 #r31-board .token,#board .token{z-index:12}
 @media(max-width:790px){.r30-studio .r68-palette{grid-template-columns:repeat(2,minmax(0,1fr))}.r30-studio .r68-paint-panel{padding:7px}.r30-studio .r68-palette button{min-height:67px}.r30-studio .r68-palette .m68-asset-svg{width:36px;height:36px}}
+
+
+/* Mastermind v0.69: torch lighting, 2.5D mist and GM controls */
+.r30-studio .r69-light-panel{padding:11px;margin:10px 0;background:linear-gradient(140deg,#29202c,#181625);border:1px solid #8a6c81;border-radius:13px}
+.r30-studio .r69-light-panel h3{color:#f2c9e3;font-size:15px;margin:2px 0 10px}
+.r30-studio .r69-light-panel label{display:grid;gap:5px;margin:7px 0;color:#d2bdce;font-size:11px}
+.r30-studio .r69-light-panel label:has(>input[type=checkbox]){display:flex;align-items:center}
+.r30-studio .r69-light-panel input,.r30-studio .r69-light-panel select{width:100%;min-height:33px}
+.r30-studio .r69-light-panel input[type=checkbox]{width:18px;min-height:18px;accent-color:#d8a3cf}
+.r30-studio .r69-light-panel input[type=range]{accent-color:#c59bbc}
+.r30-studio .r69-light-panel input[type=color]{height:35px;padding:3px;border-radius:8px}
+.r30-studio .r69-actions{display:grid;grid-template-columns:1fr auto;gap:7px;align-items:end}
+.r30-studio .r69-actions button{min-height:34px;padding:7px 10px}
+.r30-studio .r69-helper{font-size:10px;line-height:1.45;color:#c8b7cd}
+.r30-studio .r69-list{display:grid;gap:8px}
+.r30-studio .r69-light-entry{border:1px solid #685772;border-radius:10px;padding:8px;background:#24202f;display:grid;gap:6px}
+.r30-studio .r69-light-entry strong{font-size:12px;color:#ffd6a4}
+.r30-studio .r69-light-entry button{justify-self:start}
+.r30-studio .r69-light-pin{position:absolute;z-index:16;display:grid;place-items:center;width:20px;height:20px;color:#ffdf91;background:#291f25d0;box-shadow:0 0 8px #e9bb726a;border-radius:50%;pointer-events:none;font-size:17px}
+.r30-studio .r30-world .mm69-atmosphere{z-index:10}
+.r31-live .mm69-atmosphere,.r31-live .m68-layer{pointer-events:none}
