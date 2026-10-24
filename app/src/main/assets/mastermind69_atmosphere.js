@@ -128,7 +128,14 @@ function attach(board,scene,options={}){
       const grad=ctx.createRadialGradient(x,y,0,x,y,r);
       grad.addColorStop(0,'rgba(0,0,0,'+Math.min(1,l.intensity*pulse)+')');
       grad.addColorStop(.65,'rgba(0,0,0,'+(l.intensity*.7)+')');grad.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=grad;ctx.fillRect(Math.max(0,x-r),Math.max(0,y-r),2*r,2*r);ctx.restore();
+      ctx.fillStyle=grad;ctx.fillRect(Math.max(0,x-r),Math.max(0,y-r),2*r,2*r);
+      ctx.globalCompositeOperation='source-over';
+      const tint=ctx.createRadialGradient(x,y,0,x,y,r);
+      tint.addColorStop(0,hexRgba(l.color||'#ffc982',.17*l.intensity));
+      tint.addColorStop(.65,hexRgba(l.color||'#ffc982',.06*l.intensity));
+      tint.addColorStop(1,hexRgba(l.color||'#ffc982',0));
+      ctx.fillStyle=tint;ctx.fillRect(Math.max(0,x-r),Math.max(0,y-r),2*r,2*r);
+      ctx.globalCompositeOperation='destination-out';ctx.restore();
      }
      ctx.globalCompositeOperation='source-over';
     }
