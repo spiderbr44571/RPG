@@ -839,7 +839,11 @@ public final class LocalCampaignServer extends NanoHTTPD {
       // Fog of war is calculated by the server. A client cannot disable it to
       // inspect hidden tokens, scenery, lights or unrevealed background images.
       JSONObject atmo=original.optJSONObject("atmosphere");
-      boolean fogOfWarActive=atmo!=null&&atmo.optBoolean("fogOfWar",false);
+      // Densidade/escuridão máxima também é bloqueio real da visão, não só CSS.
+      // Nenhum token, asset, pintura ou imagem completa é enviado nessa situação.
+      boolean atmosphereBlackout=atmo!=null&&atmo.optBoolean("enabled",false)&&
+        (atmo.optDouble("fogDensity",0)>=.999||atmo.optDouble("ambient",0)>=.999);
+      boolean fogOfWarActive=atmo!=null&&atmo.optBoolean("fogOfWar",false)||atmosphereBlackout;
       if(atmo!=null)scene.put("atmosphere",new JSONObject(atmo.toString()));
       int mapWidth=original.getInt("width"),mapHeight=original.getInt("height");
       java.util.HashSet<Integer> currentVision=new java.util.HashSet<>(),explored=new java.util.HashSet<>();
@@ -848,7 +852,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
         java.util.HashSet<String> blockers=opaqueBoundaries(original);
         JSONArray ownTokens=original.getJSONArray("tokens");
         String pid=player.optString("id",""),characterId=player.optString("characterId","");
-        for(int oi=0;oi<ownTokens.length();oi++){
+        for(int oi=0;!atmosphereBlackout&&oi<ownTokens.length();oi++){
           JSONObject src=ownTokens.getJSONObject(oi);
           if(!pid.equals(src.optString("ownerPlayerId"))||characterId.isEmpty()||
              !characterId.equals(src.optString("characterId"))||src.optBoolean("hidden",false))continue;
@@ -864,7 +868,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
         JSONObject exploredByScene=player.optJSONObject("mapExploration");
         if(exploredByScene==null){exploredByScene=new JSONObject();player.put("mapExploration",exploredByScene);}
         JSONArray past=exploredByScene.optJSONArray(original.getString("id"));
-        if(past!=null)for(int ri=0;ri<past.length();ri++){
+        if(past!=null&&!atmosphereBlackout)for(int ri=0;ri<past.length();ri++){
           int n=past.optInt(ri,-1);if(n>=0&&n<mapWidth*mapHeight)explored.add(n);
         }
         boolean changed=explored.addAll(currentVision);
