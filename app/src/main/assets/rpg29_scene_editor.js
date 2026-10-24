@@ -160,7 +160,7 @@ function open(host,opts){
  function details(){
   const target=$('#r30-details',s.root),m=getScene();if(!target||!m)return;
   const t=m.tokens.find(t=>t.id===s.token);
-  let html='<h3>Mapa atual</h3><label>Nome<input data-r68-map-name maxlength="80" value="'+esc(m.name)+'"></label><div class="r30-line"><button data-r30="duplicate">Duplicar mapa</button><button data-r30="clear-layers">Limpar desenhos</button></div><h3>Selecionado</h3>';
+  let html='<details class="r71-inner-details"><summary>Mapa / token</summary><h3>Mapa atual</h3><label>Nome<input data-r68-map-name maxlength="80" value="'+esc(m.name)+'"></label><div class="r30-line"><button data-r30="duplicate">Duplicar mapa</button><button data-r30="clear-layers">Limpar desenhos</button></div><h3>Selecionado</h3>';
   if(t){
    html+='<label>Nome<input data-r30-change="name" maxlength="70" value="'+esc(t.name)+'"></label>'+
      (t.kind==='creature'?'<h3>Ficha: '+esc(t.systemId||'')+'</h3><p>PV '+t.hp+'/'+t.maxHp+' · Defesa '+t.defense+'</p>'+
@@ -170,7 +170,7 @@ function open(host,opts){
      (t.kind==='character'?(opts.players||[]).filter(p=>p.characterId).map(p=>'<option value="'+esc(p.id)+'" '+(p.id===t.ownerPlayerId?'selected':'')+'>'+esc(p.nickname)+'</option>').join(''):'')+'</select></label>'+
      '<label><input data-r30-change="hidden" type="checkbox" '+(t.hidden?'checked':'')+'> Token oculto</label><button data-r30="delete-token" class="danger">Excluir token</button>';
   }else html+='<p>Selecione um token para renomeá-lo, ocultá-lo ou vincular uma ficha.</p>';
-  html+='<h3>Bloqueios por área ('+m.rooms.length+')</h3>'+
+  html+='</details><h3>Bloqueios por área ('+m.rooms.length+')</h3>'+
     '<div class="r71-new-area"><label>Tipo<select id="r35-new-fog">'+
     [['mist','Névoa volumétrica'],['dark','Escuridão volumétrica']].map(([id,name])=>
      '<option value="'+id+'"'+(s.fogStyle===id?' selected':'')+'>'+name+'</option>').join('')+
@@ -195,61 +195,54 @@ function open(host,opts){
  }
  function render(shouldFit=false){
   const m=getScene(),scale=s.scale,ox=s.x,oy=s.y;
-  s.root.innerHTML='<header class="r30-head"><strong class="r30-name">✦ Estúdio</strong><select id="r30-scenes" aria-label="Cenário">'+
-   s.scenes.map(x=>'<option value="'+esc(x.id)+'" '+(x.id===s.selected?'selected':'')+'>'+esc(x.name)+'</option>').join('')+'</select>'+
-   '<button data-r30="new">＋ Cenário</button><button data-r30="settings">⚙ Mapa</button>'+
-   '<small id="r30-state">'+(s.dirty?'● Não salvo':'✓ Salvo')+'</small><span class="r30-spacer"></span>'+
-   '<button data-r30="assets">▣ Biblioteca</button><button data-r30="publish" class="'+(m&&m.id===s.active?'active':'')+'">'+(m&&m.id===s.active?'● Publicado':'Publicar')+'</button>'+
-   '<button data-r30="save" class="primary">💾 Salvar</button><button data-r30="exit" class="danger">✕ Sair</button></header>'+
-   '<div class="r30-body"><nav class="r30-toolbar" aria-label="Ferramentas">'+
-   [['pan','✋','Navegar'],['paint','🖌','Pintar'],['wall','▦','Parede'],['door','🚪','Porta'],['light','☀','Luz'],['erase-paint','⌫','Borracha'],['token','◉','Tokens'],['rect','▭','Retângulo'],['circle','◯','Círculo'],['erase','✕','Apagar token']].map(([id,ic,name])=>
-   '<button data-r30-tool="'+id+'" title="'+name+'" class="'+(s.tool===id?'active':'')+'">'+ic+'</button><small>'+name+'</small>').join('')+
-   '<button data-r30="zoom-in">＋</button><button data-r30="zoom-out">－</button><button data-r30="fit">⊡</button></nav>'+
-   '<main id="r30-view" class="r30-view"><div id="r30-world" class="r30-world"></div></main>'+
-   '<aside class="r30-side '+(s.aside?'':'folded')+'"><section class="r30-section"><h3>Biblioteca de assets</h3>'+
-   '<select id="r30-category">'+[['all','Todos'],['map','Fundos'],['character','Personagens'],['creature','Criaturas'],['item','Itens'],['object','Objetos']].map(([k,n])=>'<option value="'+k+'" '+(k===s.category?'selected':'')+'>'+n+'</option>').join('')+'</select>'+
-   '<div class="r30-assets" id="r30-assets"></div>'+
-   '<section class="r68-paint-panel r30-section"><h3>Construtor de mapas</h3>'+
- '<div class="r68-actions"><button data-r30="undo" title="Desfazer desenho">↶ Desfazer</button><button data-r30="redo" title="Refazer desenho">↷ Refazer</button></div>'+
- '<label>Camada<select id="r68-layer">'+[['terrain','Terreno'],['props','Decoração'],['walls','Paredes / portas']].map(([k,n])=>'<option value="'+k+'"'+(s.paintLayer===k?' selected':'')+'>'+n+'</option>').join('')+'</select></label>'+
- '<div class="r68-layer-vis">'+[['terrain','Terreno'],['props','Objetos'],['walls','Paredes']].map(([k,n])=>'<label><input type="checkbox" data-r68-visible="'+k+'"'+(s.visibleLayers[k]?' checked':'')+'>'+n+'</label>').join('')+'</div>'+
- '<label>Pacote de assets<select id="r68-pack">'+(paintEngine?.PACKS||['Todos']).map(n=>'<option value="'+esc(n)+'"'+(s.paintPack===n?' selected':'')+'>'+esc(n)+'</option>').join('')+'</select></label>'+
- '<label>Pesquisar<input id="r68-search" value="'+esc(s.assetSearch)+'" placeholder="Pedra, água, árvore..."></label>'+
- '<label>Tamanho do pincel<select id="r68-brush">'+[1,2,3,4,5].map(n=>'<option value="'+n+'"'+(n===s.brushSize?' selected':'')+'>'+n+' × '+n+'</option>').join('')+'</select></label>'+
- '<div id="r68-palette" class="r68-palette"></div>'+
- '<p class="r68-caption">Arraste para pintar o terreno e a decoração. Paredes e portas encaixam na borda da célula. A borracha limpa a camada selecionada.</p></section>'+
- 
- '<section class="r69-light-panel r30-section"><h3>Iluminação e Névoa <small>2.5D</small></h3>'+
- '<label class="r69-switch"><input id="r69-enabled" type="checkbox" '+(m?.atmosphere?.enabled?'checked':'')+'> Ativar atmosfera dinâmica</label>'+
- '<label>Ambiente<select id="r69-mode">'+[['day','Dia'],['dusk','Crepúsculo'],['night','Noite'],['dark','Escuridão'],['mist','Neblina'],['paranormal','Névoa paranormal']].map(([id,n])=>'<option value="'+id+'" '+((m?.atmosphere?.mode||'day')===id?'selected':'')+'>'+n+'</option>').join('')+'</select></label>'+
- '<label>Escuridão global <input id="r69-ambient" type="range" min="0" max="100" value="'+Math.round((m?.atmosphere?.ambient??.08)*100)+'"></label>'+
- '<label>Densidade da névoa <input id="r69-fog-density" type="range" min="0" max="100" value="'+Math.round((m?.atmosphere?.fogDensity||0)*100)+'"></label>'+
- '<div class="r69-flex"><label>Cor da névoa <input id="r69-fog-color" type="color" value="'+(m?.atmosphere?.fogColor||'#a9c2ba')+'"></label>'+
- '<label>Velocidade <select id="r69-fog-speed">'+[[0,'Parada'],[.5,'Lenta'],[1,'Normal'],[2,'Rápida']].map(([v,n])=>'<option value="'+v+'"'+(Number(m?.atmosphere?.fogSpeed??1)===v?' selected':'')+'>'+n+'</option>').join('')+'</select></label></div>'+
- '<label>Qualidade<select id="r69-quality">'+[['economy','Econômica'],['balanced','Equilibrada'],['high','Alta']].map(([id,n])=>'<option value="'+id+'"'+((m?.atmosphere?.quality||'balanced')===id?' selected':'')+'>'+n+'</option>').join('')+'</select></label>'+
- '<label class="r69-switch"><input id="r69-fow" type="checkbox" '+(m?.atmosphere?.fogOfWar?'checked':'')+'> Névoa de guerra para jogadores</label>'+
- '<label>Visão dos personagens (quadrados)<input id="r69-vision" type="number" min="1" max="20" value="'+(m?.atmosphere?.visionRadius||7)+'"></label>'+
- '<h4>Fontes de luz <small>'+(m?.lights?.length||0)+'/20</small></h4>'+
- '<label>Tipo<select id="r69-light-type">'+[['torch','Tocha'],['lantern','Lanterna'],['magic','Mágica'],['cold','Fria']].map(([id,n])=>'<option value="'+id+'"'+(id===s.newLightType?' selected':'')+'>'+n+'</option>').join('')+'</select></label>'+
- '<div class="r69-flex"><label>Alcance<input id="r69-light-radius" type="number" min="1" max="20" value="'+s.newLightRadius+'"></label>'+
- '<label>Cor <input id="r69-light-color" type="color" value="'+s.newLightColor+'"></label></div>'+
- '<button type="button" data-r69-add-light>☀ Posicionar luz no mapa</button>'+
- '<div class="r69-light-list">'+(m?.lights||[]).map((l,i)=>'<div class="r69-light-entry"><span>☀ '+(i+1)+' · ('+(l.x+1)+','+(l.y+1)+')'+(l.enabled===false?' · desligada':'')+'</span>'+
- '<button type="button" data-r69-toggle="'+esc(l.id)+'" aria-label="Ligar ou desligar luz">'+(l.enabled===false?'Ligar':'Desligar')+'</button>'+
- '<button type="button" data-r69-delete="'+esc(l.id)+'" aria-label="Remover luz">×</button></div>').join('')+'</div>'+
- '<p class="r68-caption">Com névoa ou escuridão em 100%, os jogadores não enxergam o mapa. A prévia do mestre continua visível para editar. Paredes e portas fechadas bloqueiam a visão.</p></section>'+
-
-   '<h3>Bestiário e fichas por sistema</h3><select id="r31-system">'+
-   [...new Map([['ordem-paranormal','Ordem Paranormal'],['d-d','D&D 5e'],['gurps','GURPS']].concat((window.RPG15_SYSTEMS?.systems||[]).map(x=>[x.id,x.title||x.id])))].map(([id,name])=>
-     '<option value="'+esc(id)+'" '+(s.creatureSystem===id?'selected':'')+'>'+esc(name)+'</option>').join('')+
-   '</select><input id="r31-search" placeholder="Buscar no bestiário" value="'+esc(s.creatureSearch)+'">'+
-   '<div id="r31-creature-list" class="r31-creature-list"></div>'+
-   '<label>Importar PNG ou JPEG</label><select id="r30-import-kind">'+[['map','Fundo do mapa'],['character','Personagem'],['creature','Criatura'],['item','Item'],['object','Objeto']].map(([k,n])=>'<option value="'+k+'" '+(k===s.importKind?'selected':'')+'>'+n+'</option>').join('')+'</select>'+
-   '<input id="r30-file" type="file" accept="image/png,image/jpeg,image/webp">'+
-   '<p>A imagem é reduzida no aparelho antes de salvar. PNGs transparentes são aceitos como tokens.</p>'+
-   '<label><input id="r30-gridcheck" type="checkbox" '+(s.showGrid?'checked':'')+'> Mostrar grade</label></section>'+
-   '<section class="r30-section" id="r30-details"></section></aside></div>'+
-   '<footer class="r30-foot"><span id="r30-zoom">100%</span><span>Arraste no mapa para desenhar ou mover</span><span id="r30-message">Toque em Salvar para publicar alterações.</span></footer>';
+  const group=(id,title,body)=>'<details class="r71-group" data-r71-panel="'+id+'"'+(s.panelOpen[id]?' open':'')+'><summary>'+title+'</summary>'+body+'</details>';
+  const toolRows=[['pan','pan','Navegar'],['paint','paint','Pintar'],['wall','wall','Parede'],['door','door','Porta'],
+   ['erase-paint','erase','Borracha'],['token','token','Tokens'],['rect','rect','Retângulo'],['circle','circle','Círculo'],['erase','delete','Apagar token']];
+  const tools=toolRows.map(([id,ico,name])=>'<button type="button" data-r30-tool="'+id+'" title="'+name+'" aria-label="'+name+'" class="'+(s.tool===id?'active':'')+'">'+uiIcon(ico)+'</button>').join('');
+  s.root.innerHTML='<header class="r30-head r71-head"><strong class="r30-name">Mastermind · Estúdio</strong><select id="r30-scenes" aria-label="Cenário">'+
+    s.scenes.map(x=>'<option value="'+esc(x.id)+'" '+(x.id===s.selected?'selected':'')+'>'+esc(x.name)+'</option>').join('')+'</select>'+
+    '<button data-r30="new" title="Novo cenário">'+uiIcon('plus')+'<span>Novo</span></button>'+
+    '<button data-r30="settings" title="Configurar mapa">'+uiIcon('settings')+'</button>'+
+    '<small id="r30-state">'+(s.dirty?'● Não salvo':'✓ Salvo')+'</small><span class="r30-spacer"></span>'+
+    '<button data-r30="assets" title="Abrir ou recolher editor">'+uiIcon('assets')+'<span>Painel</span></button>'+
+    '<button data-r30="publish" class="'+(m&&m.id===s.active?'active':'')+'">'+uiIcon('upload')+'<span>'+(m&&m.id===s.active?'Publicado':'Publicar')+'</span></button>'+
+    '<button data-r30="save" class="primary">'+uiIcon('save')+'<span>Salvar</span></button>'+
+    '<button data-r30="exit" class="danger" title="Sair">'+uiIcon('close')+'</button></header>'+
+    '<div class="r30-body r71-body"><nav class="r30-toolbar r71-toolbar" aria-label="Ferramentas de mapa">'+tools+
+      '<button data-r30="zoom-in" title="Aproximar">'+uiIcon('zoomin')+'</button>'+
+      '<button data-r30="zoom-out" title="Afastar">'+uiIcon('zoomout')+'</button>'+
+      '<button data-r30="fit" title="Ajustar mapa">'+uiIcon('fit')+'</button></nav>'+
+    '<main id="r30-view" class="r30-view"><div id="r30-world" class="r30-world"></div></main>'+
+    '<aside class="r30-side r71-side '+(s.aside?'':'folded')+'">'+
+    group('areas','Ocultações por área','<section class="r30-section" id="r30-details"></section>')+
+    group('sky','Dia / noite e portas','<section class="r69-light-panel r30-section">'+
+      '<label>Ciclo de iluminação<select id="r71-daynight">'+
+      [['day','Dia'],['night','Noite']].map(([id,title])=>
+       '<option value="'+id+'"'+((m?.atmosphere?.mode||'day')===id?' selected':'')+'>'+title+'</option>').join('')+'</select></label>'+
+      '<label class="r69-switch"><input type="checkbox" id="r71-door-shadows"'+(m?.atmosphere?.doorShadows?' checked':'')+'> Escurecer regiões atrás de portas e paredes fechadas</label>'+
+      '<p class="r71-help">Opcional. Desligado, só as áreas que você desenhar ficam ocultas.</p></section>')+
+    group('paint','Construtor de mapas','<section class="r68-paint-panel r30-section">'+
+      '<div class="r68-actions"><button data-r30="undo" title="Desfazer desenho">↶ Desfazer</button><button data-r30="redo" title="Refazer desenho">↷ Refazer</button></div>'+
+      '<label>Camada<select id="r68-layer">'+[['terrain','Terreno'],['props','Decoração'],['walls','Paredes / portas']].map(([k,n])=>'<option value="'+k+'"'+(s.paintLayer===k?' selected':'')+'>'+n+'</option>').join('')+'</select></label>'+
+      '<div class="r68-layer-vis">'+[['terrain','Terreno'],['props','Objetos'],['walls','Paredes']].map(([k,n])=>'<label><input type="checkbox" data-r68-visible="'+k+'"'+(s.visibleLayers[k]?' checked':'')+'>'+n+'</label>').join('')+'</div>'+
+      '<label>Pacote de assets<select id="r68-pack">'+(paintEngine?.PACKS||['Todos']).map(n=>'<option value="'+esc(n)+'"'+(s.paintPack===n?' selected':'')+'>'+esc(n)+'</option>').join('')+'</select></label>'+
+      '<label>Pesquisar<input id="r68-search" value="'+esc(s.assetSearch)+'" placeholder="Pedra, árvore, água..."></label>'+
+      '<label>Pincel<select id="r68-brush">'+[1,2,3,4,5].map(n=>'<option value="'+n+'"'+(n===s.brushSize?' selected':'')+'>'+n+' × '+n+'</option>').join('')+'</select></label>'+
+      '<div id="r68-palette" class="r68-palette"></div></section>')+
+    group('assets','Biblioteca de assets','<section class="r30-section"><select id="r30-category">'+
+      [['all','Todos'],['map','Fundos'],['character','Personagens'],['creature','Criaturas'],['item','Itens'],['object','Objetos']].map(([k,n])=>'<option value="'+k+'"'+(k===s.category?' selected':'')+'>'+n+'</option>').join('')+'</select>'+
+      '<div class="r30-assets" id="r30-assets"></div></section>')+
+    group('bestiary','Fichas e criaturas','<section class="r30-section"><select id="r31-system">'+
+      [...new Map([['ordem-paranormal','Ordem Paranormal'],['d-d','D&D 5e'],['gurps','GURPS']].concat((window.RPG15_SYSTEMS?.systems||[]).map(x=>[x.id,x.title||x.id])))].map(([id,name])=>
+      '<option value="'+esc(id)+'"'+(s.creatureSystem===id?' selected':'')+'>'+esc(name)+'</option>').join('')+'</select>'+
+      '<input id="r31-search" placeholder="Buscar criatura" value="'+esc(s.creatureSearch)+'">'+
+      '<div id="r31-creature-list" class="r31-creature-list"></div></section>')+
+    group('import','Importar / visualização','<section class="r30-section"><label>Importar imagem<select id="r30-import-kind">'+
+      [['map','Fundo do mapa'],['character','Personagem'],['creature','Criatura'],['item','Item'],['object','Objeto']].map(([k,n])=>
+      '<option value="'+k+'"'+(k===s.importKind?' selected':'')+'>'+n+'</option>').join('')+'</select></label>'+
+      '<input id="r30-file" type="file" accept="image/png,image/jpeg,image/webp">'+
+      '<label><input id="r30-gridcheck" type="checkbox"'+(s.showGrid?' checked':'')+'> Mostrar grade</label></section>')+
+    '</aside></div><footer class="r30-foot"><span id="r30-zoom">100%</span><span>Arraste para desenhar · pinça para zoom</span><span id="r30-message">Salve para publicar suas alterações.</span></footer>';
   s.view=$('#r30-view',s.root);s.world=$('#r30-world',s.root);
   s.scale=scale;s.x=ox;s.y=oy;library();paintPalette();creatureChoices();details();map();
   if(shouldFit)requestAnimationFrame(fit);
