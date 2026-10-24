@@ -690,6 +690,26 @@ public final class LocalCampaignServer extends NanoHTTPD {
     }catch(Exception ex){return "";}
   }
 
+  private static boolean syncAttachedLights(JSONObject map)throws JSONException{
+    if(map==null)return false;
+    JSONObject settings=map.optJSONObject("lighting");JSONArray tokens=map.optJSONArray("tokens");
+    JSONArray lights=settings==null?null:settings.optJSONArray("lights");
+    if(tokens==null||lights==null)return false;
+    boolean changed=false;
+    for(int k=0;k<lights.length();k++){
+      JSONObject light=lights.getJSONObject(k);String tokenId=light.optString("attachedTokenId","");
+      if(tokenId.isEmpty())continue;
+      for(int j=0;j<tokens.length();j++){
+        JSONObject token=tokens.getJSONObject(j);
+        if(!tokenId.equals(token.optString("id")))continue;
+        int x=token.optInt("x"),y=token.optInt("y");
+        if(x!=light.optInt("x")||y!=light.optInt("y")){
+          light.put("x",x).put("y",y);changed=true;
+        }
+        break;
+      }
+    }return changed;
+  }
   // v0.69. Server-side visibility: never rely on CSS to protect hidden content.
   private static String lightEdgeKey(int ax,int ay,int bx,int by){return ax+":"+ay+":"+bx+":"+by;}
   private static java.util.HashSet<String> blockingEdges(JSONObject map)throws JSONException{
@@ -885,6 +905,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
     synchronized(lock){
       JSONObject c=campaign(cid);
       if(ensurePlayerTokens(c))persist();
+      if(syncAttachedLights(activeScene(c)))persist();
       JSONObject original=activeScene(c),response=new JSONObject()
         .put("revision",revision.get()).put("scene",JSONObject.NULL)
         .put("playerId",player.optString("id",""))
