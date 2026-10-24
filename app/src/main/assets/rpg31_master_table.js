@@ -189,9 +189,9 @@ function open(host,options){
   board.innerHTML=(root.Mastermind68Map?.renderLayer(map,'terrain',s.cell)||'')+
     (root.Mastermind68Map?.renderLayer(map,'props',s.cell)||'')+
     (root.Mastermind68Map?.renderLayer(map,'walls',s.cell)||'')+(map.rooms||[]).map(r=>'<div class="room '+(r.hidden?'hidden':'')+' r35-fog-'+esc(r.fogStyle||'mist')+'" style="--r71-intensity:'+(Math.max(0,Math.min(100,r.intensity??100))/100)+';--r71-preview-opacity:'+(0.16+Math.max(0,Math.min(100,r.intensity??100))/100*.34)+';left:'+(r.x*s.cell)+'px;top:'+(r.y*s.cell)+'px;width:'+(r.w*s.cell)+'px;height:'+(r.h*s.cell)+'px;border-radius:'+(r.shape==='circle'?'50%':'0')+'"></div>').join('')+
-   (map.tokens||[]).map(t=>{const a=assets.get(t.assetId);
+   (map.tokens||[]).map(t=>{const a=assets.get(t.assetId);const character=(d.characters||[]).find(c=>c.id===t.characterId);const photo=character?.sheet?.tokenImage||character?.sheet?.photo||'';const portrait=typeof photo==='string'&&photo.startsWith('data:image/')&&photo.length<200000?photo:'';
     return '<div data-token="'+esc(t.id)+'" class="token '+(s.selected===t.id?'active':'')+(t.id===activeId?' r35-turn-token':'')+'" style="--m72-angle:'+(t.rotation||0)+'deg;left:'+(t.x*s.cell)+'px;top:'+(t.y*s.cell)+'px;width:'+s.cell+'px;height:'+s.cell+'px">'+
-    (a?.image?'<img alt="" src="'+a.image+'">':'<span>'+esc(readable(t.name).slice(0,2).toUpperCase()||'TK')+'</span>')+
+    (a?.image||portrait?'<img alt="" src="'+(a?.image||portrait)+'">':'<span>'+esc(readable(t.name).slice(0,2).toUpperCase()||'TK')+'</span>')+
     '<i class="m72-heading"></i><small>'+esc(t.name||'Token')+'</small></div>';
    }).join('');
   root.Mastermind69Atmosphere?.attach(board,map,{cell:s.cell,player:false,master:true});
