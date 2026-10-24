@@ -781,12 +781,18 @@ public final class LocalCampaignServer extends NanoHTTPD {
       double dx=x-tx,dy=y-ty,dist=Math.hypot(dx,dy);
       double radius=Math.max(1,Math.min(15,token.optInt("flashlightRadius",8)));
       if(dist>radius||!canSeeThrough(blockers,tx,ty,x,y))continue;
-      double rotation=Math.toRadians(token.optDouble("rotation",0));
-      double dAngle=angleSeparation(Math.atan2(dy,dx),rotation);
-      double angular=1-fade((dAngle-.38)/.18);
-      double beam=Math.pow(1-fade(dist/radius),.68)*angular*.99;
-      double halo=(1-fade(dist/.90))*.65;
-      result=Math.max(result,Math.max(beam,halo));
+      String type=token.optString("lightKind","lantern");
+      if("torch".equals(type)||"magic".equals(type)){
+        // Torch and carried light radiate in a 3-square circle; rotation is irrelevant.
+        result=Math.max(result,(1-fade(dist/3.0))*.99);
+      }else{
+        double rotation=Math.toRadians(token.optDouble("rotation",0));
+        double dAngle=angleSeparation(Math.atan2(dy,dx),rotation);
+        double angular=1-fade((dAngle-.38)/.18);
+        double beam=Math.pow(1-fade(dist/radius),.68)*angular*.99;
+        double halo=(1-fade(dist/.90))*.65;
+        result=Math.max(result,Math.max(beam,halo));
+      }
     }
     return Math.max(0,Math.min(1,result));
   }
@@ -801,10 +807,20 @@ public final class LocalCampaignServer extends NanoHTTPD {
     }
     return opacity;
   }
-  private static java.util.HashMap<Integer,Integer> illuminatedCells(JSONObject scene,JSONArray safeFog)throws JSONException{
+  private java.util.HashMap<Integer,Integer> illuminatedCells(JSONObject campaign,JSONObject scene,JSONArray safeFog)throws JSONException{
     java.util.HashMap<Integer,Integer> value=new java.util.HashMap<>();
     JSONArray rooms=scene.optJSONArray("rooms"),tokens=scene.optJSONArray("tokens");
     if(rooms==null||tokens==null)return value;
+    JSONArray permitted=new JSONArray();
+    for(int i=0;i<tokens.length();i++){
+      JSONObject original=tokens.optJSONObject(i);
+      if(original==null||!original.optBoolean("flashlight",false))continue;
+      String light=validTokenLight(campaign,original);
+      if(light.isEmpty())continue;
+      JSONObject safe=new JSONObject(original.toString());
+      safe.put("lightKind",light).put("flashlightRadius","lantern".equals(light)?8:3);
+      permitted.put(safe);
+    }
     java.util.Set<String> blockers=opaqueBoundaries(scene);
     int width=scene.optInt("width",1),height=scene.optInt("height",1);
     for(int i=0;i<rooms.length();i++){
@@ -815,7 +831,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       int x1=Math.min(width,x0+room.optInt("w")),y1=Math.min(height,y0+room.optInt("h"));
       for(int y=y0;y<y1;y++)for(int x=x0;x<x1;x++){
         if(!regionContains(room,x+.5,y+.5))continue;
-        int power=(int)Math.round(areaLightAt(x+.5,y+.5,doors,tokens,blockers)*100);
+        int power=(int)Math.round(areaLightAt(x+.5,y+.5,doors,permitted,blockers)*100);
         if(power<=1)continue;
         lights.put(new JSONObject().put("x",x).put("y",y).put("power",power));
         int idx=y*width+x;value.put(idx,Math.max(value.getOrDefault(idx,0),power));
@@ -1061,7 +1077,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       }
       JSONArray fog=new JSONArray(),visibleRooms=new JSONArray(),visibleTokens=new JSONArray();
       // Exposure is calculated and authorized here, not trusted from player-side CSS.
-      java.util.HashMap<Integer,Integer> lightCells=illuminatedCells(original,fog);
+      java.util.HashMap<Integer,Integer> lightCells=illuminatedCells(c,original,fog);
       JSONArray rooms=original.getJSONArray("rooms");
       for(int i=0;i<rooms.length();i++){
         JSONObject room=rooms.getJSONObject(i);
@@ -1085,8 +1101,10 @@ public final class LocalCampaignServer extends NanoHTTPD {
         JSONObject visible=new JSONObject().put("id",t.getString("id")).put("name",t.getString("name"))
           .put("kind",t.getString("kind")).put("x",x).put("y",y).put("movable",own)
           .put("assetId",t.optString("assetId",""))
-          .put("rotation",t.optInt("rotation",0)).put("flashlight",t.optBoolean("flashlight",false))
-          .put("flashlightRadius",Math.max(1,Math.min(15,t.optInt("flashlightRadius",8))));
+          .put("rotation",t.optInt("rotation",0))
+          .put("flashlight",t.optBoolean("flashlight",false)&&!validTokenLight(c,t).isEmpty())
+          .put("flashlightRadius",("lantern".equals(validTokenLight(c,t))?8:3));
+        if(own)visible.put("lightKind",validTokenLight(c,t));
         if("creature".equals(t.optString("kind"))){
           visible.put("hp",t.optInt("hp",0)).put("maxHp",t.optInt("maxHp",0));
         }
@@ -1225,7 +1243,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       if(!interlude&&already+steps>limit)
         throw new IllegalArgumentException("Deslocamento excedido: "+(limit-already)+" de "+limit+" quadrados restantes neste turno");
       // Occlusion stays impassable unless a valid open door/flashlight reveals the route.
-      java.util.HashMap<Integer,Integer> lit=illuminatedCells(map,new JSONArray());
+      java.util.HashMap<Integer,Integer> lit=illuminatedCells(c,map,new JSONArray());
       for(int step=0;step<=steps;step++){
         double p=steps==0?0:((double)step/steps);
         int sx=(int)Math.round(oldX+(x-oldX)*p),sy=(int)Math.round(oldY+(y-oldY)*p);
@@ -1255,9 +1273,11 @@ public final class LocalCampaignServer extends NanoHTTPD {
       if(input.has("rotation"))t.put("rotation",gridNumber(input,"rotation",0,359));
       if(input.has("flashlight")){
         if(!(input.opt("flashlight") instanceof Boolean))throw new IllegalArgumentException("Estado da lanterna inválido");
+        if(input.getBoolean("flashlight")&&lightEquipment(sheetForLight(c,t)).isEmpty())
+          throw new IllegalArgumentException("Equipe uma lanterna, tocha ou fonte de luz válida no inventário.");
         t.put("flashlight",input.getBoolean("flashlight"));
       }
-      if(input.has("flashlightRadius"))t.put("flashlightRadius",gridNumber(input,"flashlightRadius",1,15));
+      if(input.has("flashlightRadius"))throw new IllegalArgumentException("Alcance definido pelo equipamento do personagem");
       if(!input.has("rotation")&&!input.has("flashlight")&&!input.has("flashlightRadius"))
         throw new IllegalArgumentException("Nenhum ajuste de orientação");
       persist();
