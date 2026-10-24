@@ -675,6 +675,98 @@ public final class LocalCampaignServer extends NanoHTTPD {
     for(int cy=y;cy<y+h;cy++)for(int cx=x;cx<x+w;cx++)if(cells.contains(cy*width+cx))return true;
     return false;
   }
+  // v0.72: lighting belongs to drawn areas, never to the whole map. 0 degrees = east.
+  private static double fade(double x){x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);}
+  private static double angleSeparation(double a,double b){
+    double diff=Math.atan2(Math.sin(a-b),Math.cos(a-b));return Math.abs(diff);
+  }
+  private static JSONArray areaEntrances(JSONObject scene,JSONObject region)throws JSONException{
+    JSONArray points=new JSONArray();
+    JSONObject layer=scene.optJSONObject("layers");
+    JSONArray marks=layer==null?null:layer.optJSONArray("walls");
+    if(marks==null)return points;
+    double rx=region.optInt("x"),ry=region.optInt("y"),rw=region.optInt("w"),rh=region.optInt("h");
+    for(int i=0;i<marks.length()&&points.length()<20;i++){
+      JSONObject door=marks.optJSONObject(i);
+      if(door==null||!"door".equals(door.optString("kind"))||!door.optBoolean("open",false))continue;
+      double x=door.optInt("x"),y=door.optInt("y");String side=door.optString("side");
+      if("n".equals(side))x+=.5;
+      else if("s".equals(side)){x+=.5;y++;}
+      else if("w".equals(side))y+=.5;
+      else if("e".equals(side)){x++;y+=.5;}
+      else continue;
+      boolean onBoundary=((Math.abs(x-rx)<.05||Math.abs(x-rx-rw)<.05)&&y>=ry&&y<=ry+rh)||
+        ((Math.abs(y-ry)<.05||Math.abs(y-ry-rh)<.05)&&x>=rx&&x<=rx+rw);
+      if(!onBoundary)continue;
+      points.put(new JSONObject().put("x",x).put("y",y));
+    }
+    return points;
+  }
+  private static double areaLightAt(double x,double y,JSONArray doors,JSONArray tokens,java.util.Set<String> blockers)throws JSONException {
+    double result=0;
+    for(int i=0;i<doors.length();i++){
+      JSONObject d=doors.getJSONObject(i);
+      double dist=Math.hypot(x-d.optDouble("x"),y-d.optDouble("y"));
+      result=Math.max(result,.92*(1-fade(dist/3.9)));
+    }
+    for(int i=0;i<tokens.length();i++){
+      JSONObject token=tokens.getJSONObject(i);
+      if(!token.optBoolean("flashlight",false)||token.optBoolean("hidden",false))continue;
+      double tx=token.optDouble("x")+.5,ty=token.optDouble("y")+.5;
+      double dx=x-tx,dy=y-ty,dist=Math.hypot(dx,dy);
+      double radius=Math.max(1,Math.min(15,token.optInt("flashlightRadius",8)));
+      if(dist>radius||!canSeeThrough(blockers,tx,ty,x,y))continue;
+      double rotation=Math.toRadians(token.optDouble("rotation",0));
+      double dAngle=angleSeparation(Math.atan2(dy,dx),rotation);
+      double angular=1-fade((dAngle-.38)/.18);
+      double beam=Math.pow(1-fade(dist/radius),.68)*angular*.99;
+      double halo=(1-fade(dist/.90))*.65;
+      result=Math.max(result,Math.max(beam,halo));
+    }
+    return Math.max(0,Math.min(1,result));
+  }
+  private static boolean inOccludedArea(JSONObject area,int x,int y){
+    return area.optBoolean("hidden",false)&&area.optInt("intensity",100)>0&&regionContains(area,x+.5,y+.5);
+  }
+  private static int areaOpacity(JSONObject scene,int x,int y){
+    int opacity=0;JSONArray rooms=scene.optJSONArray("rooms");if(rooms==null)return 0;
+    for(int i=0;i<rooms.length();i++){
+      JSONObject a=rooms.optJSONObject(i);if(a!=null&&inOccludedArea(a,x,y))
+        opacity=Math.max(opacity,Math.max(0,Math.min(100,a.optInt("intensity",100))));
+    }
+    return opacity;
+  }
+  private static java.util.HashMap<Integer,Integer> illuminatedCells(JSONObject scene,JSONArray safeFog)throws JSONException{
+    java.util.HashMap<Integer,Integer> value=new java.util.HashMap<>();
+    JSONArray rooms=scene.optJSONArray("rooms"),tokens=scene.optJSONArray("tokens");
+    if(rooms==null||tokens==null)return value;
+    java.util.Set<String> blockers=opaqueBoundaries(scene);
+    int width=scene.optInt("width",1),height=scene.optInt("height",1);
+    for(int i=0;i<rooms.length();i++){
+      JSONObject room=rooms.getJSONObject(i);
+      if(!room.optBoolean("hidden",false)||room.optInt("intensity",100)<=0)continue;
+      JSONArray doors=areaEntrances(scene,room),lights=new JSONArray();
+      int x0=Math.max(0,room.optInt("x")),y0=Math.max(0,room.optInt("y"));
+      int x1=Math.min(width,x0+room.optInt("w")),y1=Math.min(height,y0+room.optInt("h"));
+      for(int y=y0;y<y1;y++)for(int x=x0;x<x1;x++){
+        if(!regionContains(room,x+.5,y+.5))continue;
+        int power=(int)Math.round(areaLightAt(x+.5,y+.5,doors,tokens,blockers)*100);
+        if(power<=1)continue;
+        lights.put(new JSONObject().put("x",x).put("y",y).put("power",power));
+        int idx=y*width+x;value.put(idx,Math.max(value.getOrDefault(idx,0),power));
+      }
+      safeFog.put(new JSONObject().put("x",room.optInt("x")).put("y",room.optInt("y"))
+        .put("w",room.optInt("w")).put("h",room.optInt("h")).put("shape",room.optString("shape","rect"))
+        .put("fogStyle",room.optString("fogStyle","mist"))
+        .put("intensity",room.optInt("intensity",100))
+        .put("entrances",doors).put("lightCells",lights));
+    }
+    return value;
+  }
+  private static boolean isVisibleInFog(JSONObject map,int x,int y,java.util.Map<Integer,Integer> illuminated){
+    int intensity=areaOpacity(map,x,y);
+    return intensity<=35||illuminated.getOrDefault(y*map.optInt("width",1)+x,0)>=38;
+  }
   private static boolean covered(JSONObject map,int x,int y) throws JSONException{
     JSONArray rooms=map.optJSONArray("rooms");if(rooms==null)return false;
     for(int i=0;i<rooms.length();i++){
