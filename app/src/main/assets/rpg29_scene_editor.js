@@ -28,7 +28,7 @@ function open(host,opts){
  if(current)close();
  if(current)return Promise.resolve();
  const s={root:document.createElement('section'),host,opts,scenes:[],assets:[],active:'',selected:'',picked:'char-hero',
-  category:'all',assetSearch:'',paintPack:'Todos',paintLayer:'terrain',paintAsset:'stone',brushSize:1,visibleLayers:{terrain:true,props:true,walls:true},undoByScene:new Map(),redoByScene:new Map(),importKind:'map',fogStyle:'shadow',creatureSystem:'ordem-paranormal',creatureSearch:'',creatureSelection:null,tool:'pan',token:'',showGrid:true,aside:true,dirty:false,
+  category:'all',assetSearch:'',paintPack:'Todos',paintLayer:'terrain',paintAsset:'stone',brushSize:1,lightSelection:'',newLightType:'torch',newLightColor:'#ffc982',newLightRadius:6,visibleLayers:{terrain:true,props:true,walls:true},undoByScene:new Map(),redoByScene:new Map(),importKind:'map',fogStyle:'shadow',creatureSystem:'ordem-paranormal',creatureSearch:'',creatureSelection:null,tool:'pan',token:'',showGrid:true,aside:true,dirty:false,
   scale:1,x:25,y:25,view:null,world:null,gesture:null,pointers:new Map(),pinch:null,priorOverflow:document.body.style.overflow};
  current=s;host.hidden=false;s.root.className='r30-studio';s.root.setAttribute('role','dialog');s.root.setAttribute('aria-label','Estúdio de cenários');
  document.body.appendChild(s.root);document.body.style.overflow='hidden';
@@ -97,6 +97,7 @@ function open(host,opts){
  }
 
  const paintEngine=root.Mastermind68Map;
+ const atmosphereEngine=root.Mastermind69Atmosphere;
  const snap=()=>paintEngine?.saveSnapshot(getScene());
  function checkpoint(){
   const m=getScene();if(!m||!paintEngine)return;
@@ -146,6 +147,7 @@ function open(host,opts){
   html+=m.tokens.map(t=>'<div class="r30-token '+(t.id===s.token?'selected':'')+'" data-r30-token="'+esc(t.id)+'" style="left:'+(t.x*48+1)+'px;top:'+(t.y*48+1)+'px">'+tile(getAsset(t.assetId))+'<small>'+esc(t.name)+'</small></div>').join('');
   html+='<div id="r30-preview" class="r30-preview" hidden></div>';
   s.world.innerHTML=html;updateTransform();
+  atmosphereEngine?.attach(s.world,m,{cell:48,quality:atmosphereEngine.settings(m).quality});
  }
  function library(){
   const target=$('#r30-assets',s.root);if(!target)return;
@@ -192,7 +194,7 @@ function open(host,opts){
    '<button data-r30="assets">▣ Biblioteca</button><button data-r30="publish" class="'+(m&&m.id===s.active?'active':'')+'">'+(m&&m.id===s.active?'● Publicado':'Publicar')+'</button>'+
    '<button data-r30="save" class="primary">💾 Salvar</button><button data-r30="exit" class="danger">✕ Sair</button></header>'+
    '<div class="r30-body"><nav class="r30-toolbar" aria-label="Ferramentas">'+
-   [['pan','✋','Navegar'],['paint','🖌','Pintar'],['wall','▦','Parede'],['door','🚪','Porta'],['erase-paint','⌫','Borracha'],['token','◉','Tokens'],['rect','▭','Retângulo'],['circle','◯','Círculo'],['erase','✕','Apagar token']].map(([id,ic,name])=>
+   [['pan','✋','Navegar'],['paint','🖌','Pintar'],['wall','▦','Parede'],['door','🚪','Porta'],['light','☀','Luz'],['erase-paint','⌫','Borracha'],['token','◉','Tokens'],['rect','▭','Retângulo'],['circle','◯','Círculo'],['erase','✕','Apagar token']].map(([id,ic,name])=>
    '<button data-r30-tool="'+id+'" title="'+name+'" class="'+(s.tool===id?'active':'')+'">'+ic+'</button><small>'+name+'</small>').join('')+
    '<button data-r30="zoom-in">＋</button><button data-r30="zoom-out">－</button><button data-r30="fit">⊡</button></nav>'+
    '<main id="r30-view" class="r30-view"><div id="r30-world" class="r30-world"></div></main>'+
@@ -208,6 +210,27 @@ function open(host,opts){
  '<label>Tamanho do pincel<select id="r68-brush">'+[1,2,3,4,5].map(n=>'<option value="'+n+'"'+(n===s.brushSize?' selected':'')+'>'+n+' × '+n+'</option>').join('')+'</select></label>'+
  '<div id="r68-palette" class="r68-palette"></div>'+
  '<p class="r68-caption">Arraste para pintar o terreno e a decoração. Paredes e portas encaixam na borda da célula. A borracha limpa a camada selecionada.</p></section>'+
+ 
+ '<section class="r69-light-panel r30-section"><h3>Iluminação e Névoa <small>2.5D</small></h3>'+
+ '<label class="r69-switch"><input id="r69-enabled" type="checkbox" '+(m?.atmosphere?.enabled?'checked':'')+'> Ativar atmosfera dinâmica</label>'+
+ '<label>Ambiente<select id="r69-mode">'+[['day','Dia'],['dusk','Crepúsculo'],['night','Noite'],['dark','Escuridão'],['mist','Neblina'],['paranormal','Névoa paranormal']].map(([id,n])=>'<option value="'+id+'" '+((m?.atmosphere?.mode||'day')===id?'selected':'')+'>'+n+'</option>').join('')+'</select></label>'+
+ '<label>Escuridão global <input id="r69-ambient" type="range" min="0" max="100" value="'+Math.round((m?.atmosphere?.ambient??.08)*100)+'"></label>'+
+ '<label>Densidade da névoa <input id="r69-fog-density" type="range" min="0" max="100" value="'+Math.round((m?.atmosphere?.fogDensity||0)*100)+'"></label>'+
+ '<div class="r69-flex"><label>Cor da névoa <input id="r69-fog-color" type="color" value="'+(m?.atmosphere?.fogColor||'#a9c2ba')+'"></label>'+
+ '<label>Velocidade <select id="r69-fog-speed">'+[[0,'Parada'],[.5,'Lenta'],[1,'Normal'],[2,'Rápida']].map(([v,n])=>'<option value="'+v+'"'+(Number(m?.atmosphere?.fogSpeed??1)===v?' selected':'')+'>'+n+'</option>').join('')+'</select></label></div>'+
+ '<label>Qualidade<select id="r69-quality">'+[['economy','Econômica'],['balanced','Equilibrada'],['high','Alta']].map(([id,n])=>'<option value="'+id+'"'+((m?.atmosphere?.quality||'balanced')===id?' selected':'')+'>'+n+'</option>').join('')+'</select></label>'+
+ '<label class="r69-switch"><input id="r69-fow" type="checkbox" '+(m?.atmosphere?.fogOfWar?'checked':'')+'> Névoa de guerra para jogadores</label>'+
+ '<label>Visão dos personagens (quadrados)<input id="r69-vision" type="number" min="1" max="20" value="'+(m?.atmosphere?.visionRadius||7)+'"></label>'+
+ '<h4>Fontes de luz <small>'+(m?.lights?.length||0)+'/20</small></h4>'+
+ '<label>Tipo<select id="r69-light-type">'+[['torch','Tocha'],['lantern','Lanterna'],['magic','Mágica'],['cold','Fria']].map(([id,n])=>'<option value="'+id+'"'+(id===s.newLightType?' selected':'')+'>'+n+'</option>').join('')+'</select></label>'+
+ '<div class="r69-flex"><label>Alcance<input id="r69-light-radius" type="number" min="1" max="20" value="'+s.newLightRadius+'"></label>'+
+ '<label>Cor <input id="r69-light-color" type="color" value="'+s.newLightColor+'"></label></div>'+
+ '<button type="button" data-r69-add-light>☀ Posicionar luz no mapa</button>'+
+ '<div class="r69-light-list">'+(m?.lights||[]).map((l,i)=>'<div class="r69-light-entry"><span>☀ '+(i+1)+' · ('+(l.x+1)+','+(l.y+1)+')'+(l.enabled===false?' · desligada':'')+'</span>'+
+ '<button type="button" data-r69-toggle="'+esc(l.id)+'" aria-label="Ligar ou desligar luz">'+(l.enabled===false?'Ligar':'Desligar')+'</button>'+
+ '<button type="button" data-r69-delete="'+esc(l.id)+'" aria-label="Remover luz">×</button></div>').join('')+'</div>'+
+ '<p class="r68-caption">Paredes e portas fechadas projetam sombras. Portas abertas deixam a luz passar. A névoa volumétrica é simulada em 2.5D para funcionar em celulares.</p></section>'+
+
    '<h3>Bestiário e fichas por sistema</h3><select id="r31-system">'+
    [...new Map([['ordem-paranormal','Ordem Paranormal'],['d-d','D&D 5e'],['gurps','GURPS']].concat((window.RPG15_SYSTEMS?.systems||[]).map(x=>[x.id,x.title||x.id])))].map(([id,name])=>
      '<option value="'+esc(id)+'" '+(s.creatureSystem===id?'selected':'')+'>'+esc(name)+'</option>').join('')+
@@ -288,6 +311,7 @@ function open(host,opts){
    target.classList.add('selected');return;
   }
   if(['paint','wall','door','erase-paint'].includes(s.tool)){s.gesture={kind:'paint'};paintAt(p,true);return}
+  if(s.tool==='light'){if(atmosphereEngine){const mx=Math.floor(p.x/48),my=Math.floor(p.y/48);if(mx>=0&&my>=0&&mx<m.width&&my<m.height){try{atmosphereEngine.ensureLight(m,mx,my,{type:s.newLightType,radius:s.newLightRadius,color:s.newLightColor});change();render(false)}catch(err){signal(err.message)}}}return}
   if(s.tool==='pan'){s.gesture={kind:'pan',x:e.clientX,y:e.clientY,px:s.x,py:s.y};return}
   if(s.tool==='rect'||s.tool==='circle'){
    s.gesture={kind:'shape',shape:s.tool==='circle'?'circle':'rect',start:p};
@@ -335,6 +359,22 @@ function open(host,opts){
  s.root.addEventListener('input',e=>{if(e.target.id==='r68-search'){s.assetSearch=e.target.value;paintPalette()}});
  s.root.addEventListener('change',e=>{
   const m=getScene(),t=m?.tokens.find(x=>x.id===s.token);
+  if(e.target.id.startsWith('r69-')){const m=getScene();if(m&&atmosphereEngine){
+    atmosphereEngine.normalize(m);const c=m.atmosphere,id=e.target.id;
+    if(id==='r69-enabled')c.enabled=e.target.checked;
+    else if(id==='r69-mode'){const v=atmosphereEngine.THEMES[e.target.value];if(v){c.mode=e.target.value;c.ambient=v.ambient;c.fogDensity=v.fog;c.fogColor=v.color;}}
+    else if(id==='r69-ambient')c.ambient=Number(e.target.value)/100;
+    else if(id==='r69-fog-density')c.fogDensity=Number(e.target.value)/100;
+    else if(id==='r69-fog-color')c.fogColor=e.target.value;
+    else if(id==='r69-fog-speed')c.fogSpeed=Number(e.target.value);
+    else if(id==='r69-quality')c.quality=e.target.value;
+    else if(id==='r69-fow')c.fogOfWar=e.target.checked;
+    else if(id==='r69-vision')c.visionRadius=Math.max(1,Math.min(20,Number(e.target.value)||7));
+    else if(id==='r69-light-type')s.newLightType=e.target.value;
+    else if(id==='r69-light-radius')s.newLightRadius=Math.max(1,Math.min(20,Number(e.target.value)||6));
+    else if(id==='r69-light-color')s.newLightColor=e.target.value;
+    change();render(false);
+   }return}
   if(e.target.id==='r30-scenes'){s.selected=e.target.value;s.token='';render(true)}
   if(e.target.id==='r30-category'){s.category=e.target.value;library()}
   if(e.target.id==='r68-layer'){s.paintLayer=e.target.value;s.paintAsset=(paintEngine?.palette||[]).find(x=>x.layer===s.paintLayer)?.id||'stone';s.tool=s.paintLayer==='walls'?'wall':'paint';render(false)}
@@ -358,6 +398,9 @@ function open(host,opts){
   if(t&&e.target.dataset.r30Change==='hidden'){t.hidden=e.target.checked;change();details()}
  });
  s.root.addEventListener('click',async e=>{
+  const addLight=e.target.closest('[data-r69-add-light]');if(addLight){s.tool='light';s.root.querySelectorAll('[data-r30-tool]').forEach(b=>b.classList.toggle('active',b.dataset.r30Tool==='light'));signal('Toque no mapa para posicionar a luz.');return}
+  const toggleLight=e.target.closest('[data-r69-toggle]');if(toggleLight){const m=getScene(),l=m?.lights?.find(x=>x.id===toggleLight.dataset.r69Toggle);if(l){l.enabled=l.enabled===false;change();render(false)}return}
+  const deleteLight=e.target.closest('[data-r69-delete]');if(deleteLight){const m=getScene();if(m){m.lights=(m.lights||[]).filter(x=>x.id!==deleteLight.dataset.r69Delete);change();render(false)}return}
   const monster=e.target.closest('[data-r31-creature]');
   if(monster){const creature=creatureRecords(s.creatureSystem).find(x=>x.id===monster.dataset.r31Creature);if(creature)chooseTokenAsset(creature,true);return}
   const sheetBtn=e.target.closest('[data-r31-sheet]');
