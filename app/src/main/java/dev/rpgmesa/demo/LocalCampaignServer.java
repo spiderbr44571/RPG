@@ -511,6 +511,48 @@ public final class LocalCampaignServer extends NanoHTTPD {
             }
           }
         }
+        // 0.69: strict limits on user-created light/fog data, no arbitrary HTML or colors.
+        JSONObject atmosphere=map.optJSONObject("atmosphere");
+        if(map.has("atmosphere")&&atmosphere==null)throw new IllegalArgumentException("Atmosfera inválida");
+        if(atmosphere!=null){
+          if(!java.util.Arrays.asList("day","dusk","night","dark","mist","paranormal").contains(atmosphere.optString("mode","day")))
+            throw new IllegalArgumentException("Modo de iluminação inválido");
+          if(!java.util.Arrays.asList("economy","balanced","high").contains(atmosphere.optString("quality","balanced")))
+            throw new IllegalArgumentException("Qualidade de iluminação inválida");
+          for(String key:new String[]{"enabled","fogOfWar"})if(atmosphere.has(key)&&!(atmosphere.opt(key) instanceof Boolean))
+            throw new IllegalArgumentException("Estado de atmosfera inválido");
+          for(String key:new String[]{"ambient","fogDensity"})if(atmosphere.has(key)){
+            double v=atmosphere.optDouble(key,Double.NaN);
+            if(!Double.isFinite(v)||v<0||v>1)throw new IllegalArgumentException("Densidade de atmosfera inválida");
+          }
+          if(atmosphere.has("fogSpeed")){
+            double v=atmosphere.optDouble("fogSpeed",Double.NaN);
+            if(!Double.isFinite(v)||v<0||v>3)throw new IllegalArgumentException("Velocidade de névoa inválida");
+          }
+          if(atmosphere.has("visionRadius"))gridNumber(atmosphere,"visionRadius",1,20);
+          if(!atmosphere.optString("fogColor","#a9c2ba").matches("#[0-9a-fA-F]{6}"))
+            throw new IllegalArgumentException("Cor da névoa inválida");
+        }
+        JSONArray lights=map.optJSONArray("lights");
+        if(map.has("lights")&&lights==null)throw new IllegalArgumentException("Lista de luzes inválida");
+        if(lights!=null){
+          if(lights.length()>20)throw new IllegalArgumentException("Máximo de 20 luzes por cenário");
+          java.util.HashSet<String> lightIds=new java.util.HashSet<>();
+          for(int li=0;li<lights.length();li++){
+            JSONObject light=lights.getJSONObject(li);String lightId=sceneId(light,"id");
+            if(!lightIds.add(lightId))throw new IllegalArgumentException("Luz duplicada");
+            gridNumber(light,"x",0,width-1);gridNumber(light,"y",0,height-1);
+            double r=light.optDouble("radius",Double.NaN),intensity=light.optDouble("intensity",Double.NaN);
+            if(!Double.isFinite(r)||r<1||r>20||!Double.isFinite(intensity)||intensity<0||intensity>1)
+              throw new IllegalArgumentException("Alcance/intensidade inválidos");
+            if(!light.optString("color","#ffc982").matches("#[0-9a-fA-F]{6}"))
+              throw new IllegalArgumentException("Cor da luz inválida");
+            if(!java.util.Arrays.asList("torch","lantern","magic","cold").contains(light.optString("type","torch")))
+              throw new IllegalArgumentException("Tipo de luz inválido");
+            for(String key:new String[]{"enabled","flicker"})if(light.has(key)&&!(light.opt(key) instanceof Boolean))
+              throw new IllegalArgumentException("Configuração de luz inválida");
+          }
+        }
         JSONArray rooms=map.optJSONArray("rooms"),tokens=map.optJSONArray("tokens");
         if(rooms==null||tokens==null||rooms.length()>75||tokens.length()>250)
           throw new IllegalArgumentException("Quantidade de salas ou tokens inválida");
@@ -583,6 +625,54 @@ public final class LocalCampaignServer extends NanoHTTPD {
     if(!"circle".equals(r.optString("shape","rect")))return true;
     double dx=(x-(rx+rw/2.0))/(rw/2.0),dy=(y-(ry+rh/2.0))/(rh/2.0);
     return dx*dx+dy*dy<=1.0;
+  }
+
+  // Crossing a closed wall/door prevents vision. Canonical boundary IDs allow
+  // either adjacent cell to contribute the same segment.
+  private static String edgeKey(int x,int y,int nx,int ny){
+    if(x!=nx)return "V:"+Math.max(x,nx)+":"+y;
+    return "H:"+x+":"+Math.max(y,ny);
+  }
+  private static java.util.HashSet<String> opaqueBoundaries(JSONObject map){
+    java.util.HashSet<String> edges=new java.util.HashSet<>();
+    JSONObject layers=map.optJSONObject("layers");JSONArray marks=layers==null?null:layers.optJSONArray("walls");
+    if(marks==null)return edges;
+    for(int i=0;i<marks.length();i++){
+      JSONObject m=marks.optJSONObject(i);if(m==null)continue;
+      if("door".equals(m.optString("kind"))&&m.optBoolean("open",false))continue;
+      int x=m.optInt("x",-1),y=m.optInt("y",-1);String side=m.optString("side","");
+      if(x<0||y<0)continue;
+      if("n".equals(side))edges.add("H:"+x+":"+y);
+      if("s".equals(side))edges.add("H:"+x+":"+(y+1));
+      if("w".equals(side))edges.add("V:"+x+":"+y);
+      if("e".equals(side))edges.add("V:"+(x+1)+":"+y);
+    }
+    return edges;
+  }
+  private static boolean canSeeThrough(java.util.Set<String> edges,double ax,double ay,double bx,double by){
+    int steps=(int)Math.ceil(Math.max(Math.abs(bx-ax),Math.abs(by-ay))*9);
+    if(steps<1)return true;
+    int prevX=(int)Math.floor(ax),prevY=(int)Math.floor(ay);
+    for(int i=1;i<=steps;i++){
+      double t=i/(double)steps;int x=(int)Math.floor(ax+(bx-ax)*t),y=(int)Math.floor(ay+(by-ay)*t);
+      if(x!=prevX||y!=prevY){
+        if(x!=prevX){
+          if(edges.contains(edgeKey(prevX,prevY,x,prevY)))return false;
+          if(y!=prevY&&edges.contains(edgeKey(prevX,y,x,y)))return false;
+        }
+        if(y!=prevY){
+          if(edges.contains(edgeKey(prevX,prevY,prevX,y)))return false;
+          if(x!=prevX&&edges.contains(edgeKey(x,prevY,x,y)))return false;
+        }
+      }
+      prevX=x;prevY=y;
+    }
+    return true;
+  }
+  private static boolean roomVisible(JSONObject room,java.util.Set<Integer> cells,int width){
+    int x=room.optInt("x"),y=room.optInt("y"),w=room.optInt("w"),h=room.optInt("h");
+    for(int cy=y;cy<y+h;cy++)for(int cx=x;cx<x+w;cx++)if(cells.contains(cy*width+cx))return true;
+    return false;
   }
   private static boolean covered(JSONObject map,int x,int y) throws JSONException{
     JSONArray rooms=map.optJSONArray("rooms");if(rooms==null)return false;
@@ -1783,6 +1873,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       if(method.equals("GET")){
         if(path.equals("/")||path.equals("/master"))return html("lan_master.html");
         if(path.equals("/map-layers.js"))return publishedScript("mastermind68_map_layers.js");
+        if(path.equals("/atmosphere.js"))return publishedScript("mastermind69_atmosphere.js");
         if(path.equals("/scene-editor.js"))return sceneEditorScript();
         if(path.equals("/scene-editor.css"))return sceneEditorStyle();
         if(path.equals("/scene-bestiary.js"))return publishedScript("rpg19_order_creatures.js");
