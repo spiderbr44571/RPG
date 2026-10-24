@@ -99,16 +99,32 @@ function renderCanvases(){const portrait=$('#m76-portrait-canvas'),token=$('#m76
  renderPortrait(portrait.getContext('2d'),portrait.width,portrait.height,state.appearance);
  renderToken(token.getContext('2d'),portrait,state.appearance,token.width);
 }
-function tile(item,selected){const imageRect=item.rect||[0,0,100,100];const scale=900/1448;
- // CSS background-position is based on the original image coordinates, mapped to 900x675.
- const [x,y,w,h]=imageRect;
- const bgSize='900px 675px';
- return '<button type="button" class="m76-tile'+(selected?' active':'')+'" data-m76-choice="'+escapeHtml(item.id)+'" title="'+escapeHtml(item.name)+'" aria-pressed="'+(selected?'true':'false')+'">'+
-  '<span class="m76-tile-image" style="--tile-img:url('+atlases[item.pack]+');--tile-x:'+(-x*scale)+'px;--tile-y:'+(-y*675/1086)+'px;--tile-w:'+Math.max(40,w*scale)+'px;--tile-h:'+Math.max(40,h*675/1086)+'px"></span>'+
-  '<small>'+escapeHtml(item.name)+'</small></button>';
+function tile(entry,selected){
+ return '<button type="button" class="m76-tile'+(selected?' active':'')+'" data-m76-choice="'+escapeHtml(entry.id)+'" title="'+escapeHtml(entry.name)+'" aria-pressed="'+(selected?'true':'false')+'">'+
+ '<canvas class="m76-tile-image" data-m76-thumbnail="'+escapeHtml(entry.id)+'" width="116" height="108" aria-hidden="true"></canvas>'+
+ '<small>'+escapeHtml(entry.name)+'</small></button>';
+}
+function renderThumbnails(){
+ const group=$('#m76-pieces');if(!group)return;
+ const collection=itemsFor(state.selected,state.appearance.gender);
+ for(const canvas of group.querySelectorAll('[data-m76-thumbnail]')){
+  const entry=collection.find(x=>x.id===canvas.dataset.m76Thumbnail);
+  if(!entry)continue;
+  const ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(state.selected==='frame'){
+    const source=$('#m76-portrait-canvas');
+    if(source)renderToken(ctx,source,{...state.appearance,frame:entry.id},Math.min(canvas.width,canvas.height));
+    continue;
+  }
+  const [, ,width,height]=entry.rect||[0,0,120,120];
+  const scale=Math.min(108/Math.max(1,width),105/Math.max(1,height));
+  const w=width*scale,h=height*scale;
+  crop(ctx,entry,(canvas.width-w)/2,(canvas.height-h)/2,w,h);
+ }
 }
 function chooseCategory(category){state.selected=category;const group=$('#m76-pieces');if(!group)return;
  const sel=state.appearance[category];group.innerHTML=itemsFor(category,state.appearance.gender).map(i=>tile(i,i.id===sel)).join('');
+ renderThumbnails();
  DOC.querySelectorAll('[data-m76-category]').forEach(b=>b.classList.toggle('active',b.dataset.m76Category===category));
  $('#m76-piece-heading').textContent=categoryLabels[category];
 }
@@ -150,7 +166,7 @@ function persistAppearance(){const api=root.MastermindCharacters;const char=fetc
 function downloadCanvas(cv,name){cv.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob);const a=DOC.createElement('a');a.href=url;a.download=name+'.png';DOC.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000)},'image/png')}
 function draw(){renderCanvases();saveStorage();renderStatus('Prévia atualizada. Salve na ficha quando estiver satisfeito.');}
 function init(){if(state.initialized)return;const screen=$('#screen-atelier');if(!screen)return;state.initialized=true;
- for(const src of Object.keys(atlases)){const im=image(src);im.onload=()=>{if(state.initialized)renderCanvases()};}
+ for(const src of Object.keys(atlases)){const im=image(src);im.onload=()=>{if(state.initialized){renderCanvases();renderThumbnails()}};}
  screen.addEventListener('click',event=>{
   const tab=event.target.closest('[data-m76-category]');if(tab){chooseCategory(tab.dataset.m76Category);return}
   const chosen=event.target.closest('[data-m76-choice]');if(chosen){state.appearance[state.selected]=chosen.dataset.m76Choice;state.edited=true;chooseCategory(state.selected);draw();return}
