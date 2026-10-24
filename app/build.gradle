@@ -4,7 +4,7 @@ android {
  useLibrary 'android.test.base'
  namespace 'dev.rpgmesa.demo'
  compileSdk 35
- defaultConfig { applicationId 'dev.rpgmesa.demo'; minSdk 26; targetSdk 28; versionCode 75; versionName '0.75.0-mastermind-salas-iluminadas-rotação-analogica'; testInstrumentationRunner 'android.test.InstrumentationTestRunner' }
+ defaultConfig { applicationId 'dev.rpgmesa.demo'; minSdk 26; targetSdk 28; versionCode 76; versionName '0.76.0-mastermind-atelier-fantasia'; testInstrumentationRunner 'android.test.InstrumentationTestRunner' }
  compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
 }
 
