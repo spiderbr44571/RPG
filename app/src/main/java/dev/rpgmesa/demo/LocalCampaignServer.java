@@ -1162,11 +1162,12 @@ public final class LocalCampaignServer extends NanoHTTPD {
       int already=spent.optInt(id,0),limit=movementLimit(c,t);
       if(!interlude&&already+steps>limit)
         throw new IllegalArgumentException("Deslocamento excedido: "+(limit-already)+" de "+limit+" quadrados restantes neste turno");
-      // Não permitir atravessar salas ocultas, nem por movimentação diagonal.
+      // Occlusion stays impassable unless a valid open door/flashlight reveals the route.
+      java.util.HashMap<Integer,Integer> lit=illuminatedCells(map,new JSONArray());
       for(int step=0;step<=steps;step++){
         double p=steps==0?0:((double)step/steps);
         int sx=(int)Math.round(oldX+(x-oldX)*p),sy=(int)Math.round(oldY+(y-oldY)*p);
-        if(covered(map,sx,sy))throw new IllegalArgumentException("Área ainda não revelada pelo mestre");
+        if(!isVisibleInFog(map,sx,sy,lit))throw new IllegalArgumentException("Área escura demais para enxergar o caminho");
       }
       t.put("x",x).put("y",y);
       if(!interlude)spent.put(id,already+steps);
@@ -1178,6 +1179,30 @@ public final class LocalCampaignServer extends NanoHTTPD {
   }
 
 
+
+  public JSONObject playerFlashlight(String cid,JSONObject player,JSONObject input)throws Exception{
+    synchronized(lock){
+      JSONObject c=campaign(cid),map=activeScene(c);
+      if(map==null)throw new IllegalArgumentException("Nenhuma mesa publicada");
+      String id=sceneId(input,"tokenId");
+      JSONObject t=entry(map.getJSONArray("tokens"),id,"Token");
+      String ch=player.optString("characterId","");
+      if(ch.isEmpty()||!player.optString("id").equals(t.optString("ownerPlayerId"))||
+         !ch.equals(t.optString("characterId"))||t.optBoolean("hidden",false))
+        throw new SecurityException("Somente o dono pode controlar a lanterna ou direção deste token");
+      if(input.has("rotation"))t.put("rotation",gridNumber(input,"rotation",0,359));
+      if(input.has("flashlight")){
+        if(!(input.opt("flashlight") instanceof Boolean))throw new IllegalArgumentException("Estado da lanterna inválido");
+        t.put("flashlight",input.getBoolean("flashlight"));
+      }
+      if(input.has("flashlightRadius"))t.put("flashlightRadius",gridNumber(input,"flashlightRadius",1,15));
+      if(!input.has("rotation")&&!input.has("flashlight")&&!input.has("flashlightRadius"))
+        throw new IllegalArgumentException("Nenhum ajuste de orientação");
+      persist();
+      return new JSONObject().put("ok",true).put("rotation",t.optInt("rotation",0))
+        .put("flashlight",t.optBoolean("flashlight",false)).put("revision",revision.get());
+    }
+  }
 
   // Iniciativa pertence a cada campanha. Apenas o mestre modifica a ordem e o turno.
   private JSONObject initiativeData(JSONObject c)throws JSONException {
@@ -1375,6 +1400,12 @@ public final class LocalCampaignServer extends NanoHTTPD {
         if(max<1)throw new IllegalArgumentException("Criatura sem PV cadastrado");
         int delta=gridNumber(input,"delta",-100000,100000);
         token.put("hp",Math.max(0,Math.min(max,token.optInt("hp",max)+delta)));
+      }else if(action.equals("rotate")){
+        token.put("rotation",gridNumber(input,"rotation",0,359));
+      }else if(action.equals("flashlight")){
+        if(!(input.opt("enabled") instanceof Boolean))throw new IllegalArgumentException("Estado da lanterna inválido");
+        token.put("flashlight",input.getBoolean("enabled"));
+        if(input.has("radius"))token.put("flashlightRadius",gridNumber(input,"radius",1,15));
       }else if(action.equals("speed")){
         token.put("movementSquares",gridNumber(input,"squares",0,60));
         movementSpent(c).put(token.getString("id"),0);
@@ -2041,6 +2072,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
         if(path.equals("/")||path.equals("/master"))return html("lan_master.html");
         if(path.equals("/map-layers.js"))return publishedScript("mastermind68_map_layers.js");
         if(path.equals("/atmosphere.js"))return publishedScript("mastermind69_atmosphere.js");
+        if(path.equals("/volume.js"))return publishedScript("mastermind72_volume.js");
         if(path.equals("/scene-editor.js"))return sceneEditorScript();
         if(path.equals("/scene-editor.css"))return sceneEditorStyle();
         if(path.equals("/scene-bestiary.js"))return publishedScript("rpg19_order_creatures.js");
@@ -2194,6 +2226,12 @@ public final class LocalCampaignServer extends NanoHTTPD {
           res.put("current",next);persist();
           return response(200,new JSONObject().put("current",next));
         }
+      }
+      if(p.length==6&&p[1].equals("api")&&p[2].equals("play")&&p[4].equals("scenario")&&p[5].equals("flashlight")&&method.equals("POST")){
+        JSONObject pl=checkPlayer(p[3],cookie(s,"rpg_guest"));
+        if(pl==null)return json(403,"error","Sessão inválida");
+        try{return response(200,playerFlashlight(p[3],pl,b));}
+        catch(SecurityException denied){return json(403,"error","Este token não pertence ao jogador");}
       }
       if(p.length==6&&p[1].equals("api")&&p[2].equals("play")&&p[4].equals("scenario")&&p[5].equals("move")&&method.equals("POST")){
         JSONObject pl=checkPlayer(p[3],cookie(s,"rpg_guest"));
