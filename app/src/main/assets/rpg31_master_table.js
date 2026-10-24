@@ -188,7 +188,7 @@ function open(host,options){
     return '<div data-token="'+esc(t.id)+'" class="token '+(s.selected===t.id?'active':'')+(t.id===activeId?' r35-turn-token':'')+'" style="left:'+(t.x*s.cell)+'px;top:'+(t.y*s.cell)+'px;width:'+s.cell+'px;height:'+s.cell+'px">'+
     (a?.image?'<img alt="" src="'+a.image+'">':'<span>'+esc(readable(t.name).slice(0,2).toUpperCase()||'TK')+'</span>')+'<small>'+esc(t.name||'Token')+'</small></div>';
    }).join('');
-  root.Mastermind69Atmosphere?.attach(board,map,{cell:s.cell,player:false});
+  root.Mastermind69Atmosphere?.attach(board,map,{cell:s.cell,player:false,master:true});
   const sceneChanged=s.cameraScene!==map.id;
   s.cameraScene=map.id;
   s.camera?.attach($('#r31-scroll',s.el),board,map.width*s.cell,map.height*s.cell,sceneChanged);
