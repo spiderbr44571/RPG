@@ -1,0 +1,43 @@
+/* Mastermind v0.76 Ateliê — parchment fantasy aesthetic, responsive, theme-sensitive. */
+#m76-screen{display:block}
+#screen-atelier{--m76-gold:#d8ad70;--m76-panel:#231f2b;--m76-line:#8a735f;color:var(--fg,#f4e5e2)}
+#screen-atelier *{box-sizing:border-box}
+#screen-atelier .m76-header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+#screen-atelier .m76-header h1{font:600 clamp(30px,4vw,48px)/1.1 Georgia,serif;margin:3px 0;color:#f2dec7}
+#screen-atelier .m76-kicker{color:#d5ae82;font:700 11px system-ui;letter-spacing:.16em;text-transform:uppercase}
+#screen-atelier .m76-sub{max-width:780px;color:#c0b2bd;font-size:12px;line-height:1.6}
+#screen-atelier .m76-top-actions{display:flex;align-items:center;gap:7px}
+#screen-atelier .m76-layout{display:grid;grid-template-columns:minmax(145px,190px) minmax(190px,1fr) minmax(240px,420px);gap:12px;align-items:start}
+#screen-atelier .m76-panel{border:1px solid color-mix(in srgb,var(--accent,#c7a87b) 38%,#675364);background:linear-gradient(160deg,#28202c,#171520 95%);border-radius:15px;box-shadow:0 14px 36px #05030b56;overflow:hidden;min-width:0}
+#screen-atelier .m76-panel h2{font:600 20px Georgia,serif;color:#f1d7b8;margin:0}
+#screen-atelier .m76-panel-head{padding:11px 12px;background:linear-gradient(125deg,#634a37,#332631 80%);border-bottom:1px solid #98734e;display:flex;justify-content:space-between;align-items:center;gap:8px}
+#screen-atelier .m76-panel-content{padding:10px}
+#screen-atelier .m76-cat{width:100%;display:flex;align-items:center;gap:9px;padding:11px 9px;text-align:left;border:1px solid transparent;border-radius:8px;background:transparent;color:#e3d4d1;margin:2px 0;font:600 12px system-ui;cursor:pointer}
+#screen-atelier .m76-cat svg{width:19px;height:19px;flex:none}
+#screen-atelier .m76-cat.active{background:linear-gradient(115deg,#186066,#2a3846);border-color:#7ab0ad;color:#fff3d4}
+#screen-atelier .m76-count{color:#b99f91;font-size:10px;font-weight:400;margin-left:auto}
+#screen-atelier .m76-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px;max-height:min(68vh,690px);overflow-y:auto}
+#screen-atelier .m76-tile{padding:5px 4px;min-height:130px;background:#1b1a25;border:1px solid #6f5964;border-radius:10px;color:#e9d4bf;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;cursor:pointer;overflow:hidden}
+#screen-atelier .m76-tile:hover{border-color:#d4af83}
+#screen-atelier .m76-tile.active{border-color:#ffd38d;box-shadow:0 0 0 2px #ce986644 inset;background:#30403d}
+#screen-atelier .m76-tile-image{display:block;width:100%;max-width:116px;height:108px;border-radius:6px;background-image:var(--tile-img);background-position:var(--tile-x) var(--tile-y);background-repeat:no-repeat;background-size:900px 675px;transform:scale(.8);transform-origin:0 0;align-self:flex-start;flex:none;margin-bottom:-12px}
+#screen-atelier .m76-tile small{font:600 10px/1.2 system-ui;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#screen-atelier .m76-preview-pane{padding:11px;display:flex;flex-direction:column;gap:10px}
+#screen-atelier .m76-preview-area{display:grid;grid-template-columns:minmax(0,1fr) 102px;gap:8px;align-items:end;min-width:0}
+#screen-atelier #m76-portrait-canvas{width:100%;max-width:340px;height:auto;aspect-ratio:420/520;border:2px solid #b39472;border-radius:10px;box-shadow:0 15px 25px #0008;background:#12101c;object-fit:contain;display:block}
+#screen-atelier #m76-token-canvas{width:100px;height:100px;border-radius:50%;background:#25212c;box-shadow:0 0 0 1px #d0a56677}
+#screen-atelier .m76-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#screen-atelier .m76-form label{font:600 10px system-ui;color:#cebbaa;display:grid;gap:4px}
+#screen-atelier .m76-form select,#screen-atelier .m76-form input[type=color]{width:100%;min-height:34px;border:1px solid #7e6771;background:#272230;color:#f6e5d7;border-radius:7px;padding:4px 6px;min-width:0}
+#screen-atelier .m76-form label.m76-checkbox{display:flex;align-items:center;gap:6px;color:#ded1c9;font-size:10px}
+#screen-atelier .m76-form input[type=checkbox]{accent-color:#d2af8a}
+#screen-atelier .m76-swatches{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+#screen-atelier .m76-swatch{width:27px;height:27px;border-radius:50%;border:2px solid #e5c7a1;box-shadow:0 0 0 1px #000;cursor:pointer}
+#screen-atelier .m76-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+#screen-atelier .m76-btn{border-radius:8px;border:1px solid #b58d69;background:#352b37;color:#f3ddc7;font:600 11px system-ui;padding:10px 8px;min-height:36px;cursor:pointer}
+#screen-atelier .m76-btn.primary{background:linear-gradient(105deg,#216a6b,#32635c);border-color:#8cc8c3;color:#fff6e6}
+#screen-atelier .m76-btn:focus-visible,#screen-atelier button:focus-visible{outline:3px solid #f0ca91;outline-offset:2px}
+#screen-atelier .m76-status{color:#d0bdac;font:11px/1.5 system-ui;min-height:30px}
+#screen-atelier .m76-note{color:#b29faa;font-size:10px;line-height:1.5;border-top:1px solid #6a5562;padding:9px 2px 0}
+@media(max-width:1000px){#screen-atelier .m76-layout{grid-template-columns:minmax(130px,168px) minmax(190px,1fr)}#screen-atelier .m76-preview{grid-column:1/-1}#screen-atelier .m76-preview-area{grid-template-columns:minmax(180px,330px) 110px}}
+@media(max-width:650px){#screen-atelier .m76-layout{grid-template-columns:1fr}#screen-atelier .m76-cats .m76-panel-content{display:flex;gap:5px;overflow-x:auto}#screen-atelier .m76-cats .m76-cat{width:auto;min-width:100px;flex:none;padding:9px;font-size:10px}#screen-atelier .m76-preview{grid-column:1}#screen-atelier .m76-grid{grid-template-columns:repeat(3,minmax(0,1fr));max-height:270px}#screen-atelier .m76-preview-area{grid-template-columns:minmax(0,1fr) 80px}#screen-atelier #m76-token-canvas{width:78px;height:78px}#screen-atelier .m76-preview-pane{padding:8px}#screen-atelier .m76-tile{min-height:110px}}
