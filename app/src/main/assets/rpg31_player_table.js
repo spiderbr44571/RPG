@@ -112,7 +112,9 @@ function render(){
  board.style.setProperty('--cell',cell+'px');board.style.width=(s.width*cell)+'px';board.style.height=(s.height*cell)+'px';
  board.dataset.theme=s.theme;board.style.backgroundImage=bg?'linear-gradient(#ffffff34 1px,transparent 1px),linear-gradient(90deg,#ffffff34 1px,transparent 1px),url('+bg+')':'';
  board.style.backgroundSize=bg?cell+'px '+cell+'px,'+cell+'px '+cell+'px,100% 100%':'';
- let h=s.tokens.map(t=>{const a=assets.get(t.assetId);
+ let h=(root.Mastermind68Map?.renderLayer(s,'terrain',cell)||'')+
+  (root.Mastermind68Map?.renderLayer(s,'props',cell)||'')+
+  (root.Mastermind68Map?.renderLayer(s,'walls',cell)||'')+s.tokens.map(t=>{const a=assets.get(t.assetId);
   return '<div data-id="'+esc(t.id)+'" data-movable="'+Boolean(t.movable)+'" class="token '+(t.movable?'own':'')+
     (t.id===state.initiative?.activeId?' r35-turn-token':'')+'" style="left:'+(t.x*cell+1)+'px;top:'+(t.y*cell+1)+'px;width:'+(cell-2)+'px;height:'+(cell-2)+'px">'+
    (a?.image?'<img src="'+a.image+'" alt="">':'<span>'+esc((t.name||'TK').slice(0,2).toUpperCase())+'</span>')+
