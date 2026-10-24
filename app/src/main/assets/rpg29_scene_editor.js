@@ -147,7 +147,7 @@ function open(host,opts){
   html+=m.tokens.map(t=>'<div class="r30-token '+(t.id===s.token?'selected':'')+'" data-r30-token="'+esc(t.id)+'" style="left:'+(t.x*48+1)+'px;top:'+(t.y*48+1)+'px">'+tile(getAsset(t.assetId))+'<small>'+esc(t.name)+'</small></div>').join('');
   html+='<div id="r30-preview" class="r30-preview" hidden></div>';
   s.world.innerHTML=html;updateTransform();
-  atmosphereEngine?.attach(s.world,m,{cell:48,quality:atmosphereEngine.settings(m).quality});
+  atmosphereEngine?.attach(s.world,m,{cell:48,quality:atmosphereEngine.settings(m).quality,master:true});
  }
  function library(){
   const target=$('#r30-assets',s.root);if(!target)return;
@@ -229,7 +229,7 @@ function open(host,opts){
  '<div class="r69-light-list">'+(m?.lights||[]).map((l,i)=>'<div class="r69-light-entry"><span>☀ '+(i+1)+' · ('+(l.x+1)+','+(l.y+1)+')'+(l.enabled===false?' · desligada':'')+'</span>'+
  '<button type="button" data-r69-toggle="'+esc(l.id)+'" aria-label="Ligar ou desligar luz">'+(l.enabled===false?'Ligar':'Desligar')+'</button>'+
  '<button type="button" data-r69-delete="'+esc(l.id)+'" aria-label="Remover luz">×</button></div>').join('')+'</div>'+
- '<p class="r68-caption">Paredes e portas fechadas projetam sombras. Portas abertas deixam a luz passar. A névoa volumétrica é simulada em 2.5D para funcionar em celulares.</p></section>'+
+ '<p class="r68-caption">Com névoa ou escuridão em 100%, os jogadores não enxergam o mapa. A prévia do mestre continua visível para editar. Paredes e portas fechadas bloqueiam a visão.</p></section>'+
 
    '<h3>Bestiário e fichas por sistema</h3><select id="r31-system">'+
    [...new Map([['ordem-paranormal','Ordem Paranormal'],['d-d','D&D 5e'],['gurps','GURPS']].concat((window.RPG15_SYSTEMS?.systems||[]).map(x=>[x.id,x.title||x.id])))].map(([id,name])=>
