@@ -231,8 +231,8 @@ function open(host,opts){
       '<label>Ciclo de iluminação<select id="r71-daynight">'+
       [['day','Dia'],['night','Noite']].map(([id,title])=>
        '<option value="'+id+'"'+((m?.atmosphere?.mode||'day')===id?' selected':'')+'>'+title+'</option>').join('')+'</select></label>'+
-      '<label class="r69-switch"><input type="checkbox" id="r71-door-shadows"'+(m?.atmosphere?.doorShadows?' checked':'')+'> Escurecer regiões atrás de portas e paredes fechadas</label>'+
-      '<p class="r71-help">Opcional. Desligado, só as áreas que você desenhar ficam ocultas.</p></section>')+
+      '<label class="r69-switch"><input type="checkbox" id="r71-door-shadows"'+(m?.atmosphere?.doorShadows?' checked':'')+'> Escurecer somente salas fechadas sem iluminação</label>'+
+      '<p class="r71-help">Opcional: regiões completamente isoladas por paredes ou portas fechadas ficam escuras apenas onde não houver luz. Corredores e áreas abertas continuam visíveis; os bloqueios desenhados pelo mestre são independentes.</p></section>')+
     group('paint','Construtor de mapas','<section class="r68-paint-panel r30-section">'+
       '<div class="r68-actions"><button data-r30="undo" title="Desfazer desenho">↶ Desfazer</button><button data-r30="redo" title="Refazer desenho">↷ Refazer</button></div>'+
       '<label>Camada<select id="r68-layer">'+[['terrain','Terreno'],['props','Decoração'],['walls','Paredes / portas']].map(([k,n])=>'<option value="'+k+'"'+(s.paintLayer===k?' selected':'')+'>'+n+'</option>').join('')+'</select></label>'+
