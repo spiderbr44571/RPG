@@ -113,3 +113,15 @@
 .r31-live .room.hidden.r35-fog-dark::before{background:radial-gradient(ellipse at 38% 44%,#42465b92,transparent 40%),radial-gradient(ellipse at 68% 64%,#000000f4,transparent 50%);animation-duration:29s}
 @keyframes r71-master-cloud{to{transform:translate(8%,-6%)}}
 @media(prefers-reduced-motion:reduce){.r31-live .room.hidden::before{animation:none}}
+
+/* v0.72: remove the flat overlays; allow master to see semi-transparent animated preview. */
+.r31-live #r31-board.m72-active>.room.hidden{background:transparent!important;opacity:1!important;border:2px dashed #9ba5b8;z-index:16;pointer-events:none}
+.r31-live #r31-board>.m72-volume{z-index:14!important;pointer-events:none!important}
+.r31-live #r31-board>.token{z-index:18!important}
+.r31-live .token img,.r31-live .token span{transform:rotate(var(--m72-angle,0deg));transition:transform .08s linear}
+.r31-live .m72-heading{position:absolute;top:50%;left:50%;height:2px;width:18px;transform-origin:0 50%;transform:rotate(var(--m72-angle,0deg));background:#ffe1a1;box-shadow:0 0 7px #ffe5ad;pointer-events:none}
+.r31-live .m72-heading:after{content:'';position:absolute;right:-1px;top:-3px;border-left:6px solid #ffe1a1;border-top:4px solid transparent;border-bottom:4px solid transparent}
+.r31-live .m72-token-config{padding:9px;border:1px solid #6e586b;border-radius:9px;background:#231b28;display:grid;gap:5px}
+.r31-live .m72-token-config label{font-size:11px}
+.r31-live .m72-token-config input[type=range]{width:100%;min-height:24px;accent-color:#ffe0a0}
+.r31-live .m72-token-config output{float:right;color:#ffe8bc}
