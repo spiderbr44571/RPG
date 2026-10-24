@@ -1193,6 +1193,22 @@ public final class LocalCampaignServer extends NanoHTTPD {
         if("creature".equals(t.optString("kind"))){
           visible.put("hp",t.optInt("hp",0)).put("maxHp",t.optInt("maxHp",0));
         }
+        // Studio portrait is bound to the character, not to a global preview.
+        if(!t.optString("characterId","").isEmpty()){
+          JSONArray characters=c.optJSONArray("characters");
+          if(characters!=null)for(int ci=0;ci<characters.length();ci++){
+            JSONObject character=characters.optJSONObject(ci);
+            if(character==null||!t.optString("characterId").equals(character.optString("id")))continue;
+            JSONObject sheet=character.optJSONObject("sheet");
+            if(sheet!=null){
+              String photo=sheet.optString("tokenImage",sheet.optString("photo",""));
+              if(photo.length()<180000&&(photo.startsWith("data:image/webp;base64,")||
+                photo.startsWith("data:image/png;base64,")||photo.startsWith("data:image/jpeg;base64,")))
+                visible.put("photo",photo);
+            }
+            break;
+          }
+        }
         visibleTokens.put(visible);
         if(!t.optString("assetId","").isEmpty())allowedAssetIds.add(t.getString("assetId"));
       }
