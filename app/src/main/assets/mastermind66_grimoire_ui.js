@@ -31,7 +31,7 @@ function slots(sheet){
 }
 function catalog(sheet){
  const p=E.policy(sheet),known=new Set((sheet.spells||[]).map(x=>x.sourceId||x.id||norm(x.name)));
- const entries=E.catalogFor(official(),customs(),sheet.klass).filter(x=>state.level==='all'||String(x.level)===state.level).filter(x=>!state.query||norm(x.name+' '+x.school).includes(norm(state.query))).filter(x=>!state.onlyEligible||x.level<=p.maxSpellLevel);
+ const entries=E.catalogFor(official(),customs(),sheet.klass).filter(x=>state.level==='all'||String(x.level)===state.level).filter(x=>!state.onlyEligible||x.level<=p.maxSpellLevel);
  return '<section class="d66-pane"><div class="d66-pane-header"><h4>Catálogo de '+esc(sheet.klass)+'</h4><span>'+entries.length+' magias</span></div>'+
  '<p class="d66-note">Filtrado pela lista original da classe no SRD 5.1. Magias não presentes no SRD e exceções de subclasses são separadas.</p>'+
  '<div class="d66-filters"><label>Buscar<input id="d66-search" type="search" placeholder="Nome ou escola" value="'+esc(state.query)+'"></label>'+
@@ -39,7 +39,7 @@ function catalog(sheet){
  '<label class="d66-check"><input id="d66-eligible" type="checkbox" '+(state.onlyEligible?'checked':'')+'> Só liberadas</label></div>'+
  '<div class="d66-catalog">'+entries.slice(0,250).map(x=>{
  const already=known.has(x.id)||(sheet.spells||[]).some(y=>norm(y.name)===norm(x.name)),locked=x.level>p.maxSpellLevel;
- return '<div class="d66-card" data-d66-name="'+esc(norm(x.name+' '+x.school))+'"><div><strong>'+esc(x.name)+'</strong>'+(x.homebrew?'<em>Homebrew</em>':'')+'<small>'+info(x)+'</small></div>'+
+ return '<div class="d66-card" data-d66-name="'+esc(norm(x.name+' '+x.school))+'" '+(state.query&&!norm(x.name+' '+x.school).includes(norm(state.query))?'hidden':'')+'><div><strong>'+esc(x.name)+'</strong>'+(x.homebrew?'<em>Homebrew</em>':'')+'<small>'+info(x)+'</small></div>'+
  '<div class="d66-card-actions"><button type="button" data-d66-action="detail" data-d66-id="'+esc(x.id)+'">📖</button>'+
  '<button type="button" data-d66-action="learn" data-d66-id="'+esc(x.id)+'" '+(already||locked?'disabled':'')+'>'+(already?'✓':locked?'🔒':p.mode==='prepared'?'Preparar':'Aprender')+'</button></div></div>';
  }).join('')+'</div>'+(!entries.length?'<p class="d66-note">Nenhuma magia encontrada.</p>':'')+'</section>';
