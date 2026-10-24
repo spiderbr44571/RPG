@@ -306,7 +306,7 @@ function open(host,opts){
   s.pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});viewport.setPointerCapture(e.pointerId);e.preventDefault();
   if(s.pointers.size>1){s.gesture=null;return}
   const p=coords(e);
-  if(target&&s.tool!=='pan'&&s.tool!=='erase'){
+  if(target&&s.tool==='token'){
    s.token=target.dataset.r30Token;s.gesture={kind:'token',id:s.token};
    target.classList.add('selected');return;
   }
