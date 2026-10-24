@@ -1939,6 +1939,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       if(method.equals("GET")){
         if(path.equals("/")||path.equals("/master"))return html("lan_master.html");
         if(path.equals("/map-layers.js"))return publishedScript("mastermind68_map_layers.js");
+        if(path.equals("/light-fog.js"))return publishedScript("mastermind69_lighting.js");
         if(path.equals("/scene-editor.js"))return sceneEditorScript();
         if(path.equals("/scene-editor.css"))return sceneEditorStyle();
         if(path.equals("/scene-bestiary.js"))return publishedScript("rpg19_order_creatures.js");
