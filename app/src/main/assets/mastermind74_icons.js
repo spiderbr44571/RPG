@@ -1,0 +1,18 @@
+/* Mastermind v0.74 — Tabler Icons (MIT), copyright (c) 2018–2026 Tabler contributors.
+Source: https://github.com/tabler/tabler-icons . SVGs distributed locally; no network required.
+Permission: use, copy, modify, merge, publish, distribute, sublicense and sell
+provided this notice and permission are included. Provided "AS IS", without warranty.
+See LICENSE-TABLER-ICONS.txt. */
+(function(root){
+'use strict';
+const ICONS={"clock":"<path d=\"M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0\" /> <path d=\"M12 7v5l3 3\" />","arrows-maximize":"<path d=\"M16 4l4 0l0 4\" /> <path d=\"M14 10l6 -6\" /> <path d=\"M8 20l-4 0l0 -4\" /> <path d=\"M4 20l6 -6\" /> <path d=\"M16 20l4 0l0 -4\" /> <path d=\"M14 14l6 6\" /> <path d=\"M8 4l-4 0l0 4\" /> <path d=\"M4 4l6 6\" />","list-numbers":"<path d=\"M11 6h9\" /> <path d=\"M11 12h9\" /> <path d=\"M12 18h8\" /> <path d=\"M4 16a2 2 0 1 1 4 0c0 .591 -.5 1 -1 1.5l-3 2.5h4\" /> <path d=\"M6 10v-6l-2 2\" />","door-exit":"<path d=\"M13 12v.01\" /> <path d=\"M3 21h18\" /> <path d=\"M5 21v-16a2 2 0 0 1 2 -2h7.5m2.5 10.5v7.5\" /> <path d=\"M14 7h7m-3 -3l3 3l-3 3\" />","map-2":"<path d=\"M12 18.5l-3 -1.5l-6 3v-13l6 -3l6 3l6 -3v7.5\" /> <path d=\"M9 4v13\" /> <path d=\"M15 7v5.5\" /> <path d=\"M21.121 20.121a3 3 0 1 0 -4.242 0c.418 .419 1.125 1.045 2.121 1.879c1.051 -.89 1.759 -1.516 2.121 -1.879\" /> <path d=\"M19 18v.01\" />","coffee":"<path d=\"M3 14c.83 .642 2.077 1.017 3.5 1c1.423 .017 2.67 -.358 3.5 -1c.83 -.642 2.077 -1.017 3.5 -1c1.423 -.017 2.67 .358 3.5 1\" /> <path d=\"M8 3a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2\" /> <path d=\"M12 3a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2\" /> <path d=\"M3 10h14v5a6 6 0 0 1 -6 6h-2a6 6 0 0 1 -6 -6v-5\" /> <path d=\"M16.746 16.726a3 3 0 1 0 .252 -5.555\" />","layout-sidebar-right":"<path d=\"M4 6a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2l0 -12\" /> <path d=\"M15 4l0 16\" />","plus":"<path d=\"M12 5l0 14\" /> <path d=\"M5 12l14 0\" />","minus":"<path d=\"M5 12l14 0\" />","dice-5":"<path d=\"M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14\" /> <path d=\"M8 8.5a.5 .5 0 1 0 1 0a.5 .5 0 1 0 -1 0\" fill=\"currentColor\" /> <path d=\"M15 8.5a.5 .5 0 1 0 1 0a.5 .5 0 1 0 -1 0\" fill=\"currentColor\" /> <path d=\"M15 15.5a.5 .5 0 1 0 1 0a.5 .5 0 1 0 -1 0\" fill=\"currentColor\" /> <path d=\"M8 15.5a.5 .5 0 1 0 1 0a.5 .5 0 1 0 -1 0\" fill=\"currentColor\" /> <path d=\"M11.5 12a.5 .5 0 1 0 1 0a.5 .5 0 1 0 -1 0\" fill=\"currentColor\" />","message-circle":"<path d=\"M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1\" />","users":"<path d=\"M5 7a4 4 0 1 0 8 0a4 4 0 1 0 -8 0\" /> <path d=\"M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2\" /> <path d=\"M16 3.13a4 4 0 0 1 0 7.75\" /> <path d=\"M21 21v-2a4 4 0 0 0 -3 -3.85\" />"};
+const ALIASES={turn:'list-numbers',initiative:'list-numbers',door:'door-exit',map:'map-2',fit:'arrows-maximize',
+ maximize:'arrows-maximize',sidebar:'layout-sidebar-right',requests:'message-circle',people:'users',dice:'dice-5'};
+function render(name,cls='r74-icon'){
+ const key=ALIASES[name]||name;
+ const body=ICONS[key]||ICONS['clock'];
+ return '<svg class="'+String(cls).replace(/[^a-zA-Z0-9_ -]/g,'')+'" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+body+'</svg>';
+}
+root.Mastermind74Icons={render,names:()=>Object.keys(ICONS)};
+if(typeof module!=='undefined'&&module.exports)module.exports=root.Mastermind74Icons;
+})(typeof window!=='undefined'?window:globalThis);
