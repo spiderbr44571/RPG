@@ -58,6 +58,6 @@ assert.match(java,/maskedBackground\(original,a,fogOfWarActive\?currentVision:nu
 assert.match(java,/if\(covered\(original,xx,yy\)\)continue/);
 assert.match(java,/if\(covered\(original,mx,my\)\)continue/);
 assert.match(java,/if\(a\.optString\("id"\)\.equals\(background\)&&\(fogOfWarActive\|\|fog\.length\(\)>0\)\)/);
-assert.match(read('demo-offline.html'),/>v0\.(?:71|72|73|74)<\/small>/);
-assert.match(fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:71|72|73|74)/);
+assert.match(read('demo-offline.html'),/>v0\.(?:71|72|73|74|75)<\/small>/);
+assert.match(fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:71|72|73|74|75)/);
 console.log('PASS v0.71: drawn volumetric areas, individual intensity, compact icons, optional door shadows, day/night only and server image masking');
