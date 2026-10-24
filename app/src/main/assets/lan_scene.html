@@ -79,6 +79,33 @@ body,.drawer,.entry{font-family:system-ui,Arial,"Segoe UI",sans-serif!important}
 #board .m73-rotate-arrow svg{display:block;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 #board .m73-rotate-arrow:active{transform:scale(.92)}
 @media(max-width:570px){#board .m73-rotate-arrow{width:38px;height:38px;min-height:38px}}
+
+/* v0.75 — tactile rotary analog. Drag either handle around the token. */
+#board .m75-rotary-dial{
+ position:absolute;top:50%;left:50%;width:114px;height:114px;
+ border-radius:50%;border:1.5px dashed #ffe5a8b2;background:#0b0c160c;
+ transform:translate(-50%,-50%) rotate(var(--m75-dial-angle,0deg));
+ transition:none!important;pointer-events:none;z-index:50;
+ box-shadow:0 0 0 1px #fff2 inset;
+}
+#board .m75-rotary-dial .m75-rotate-grip{
+ position:absolute;top:50%;width:39px;height:39px;min-height:39px;
+ padding:8px;margin:0;border-radius:50%;display:grid;place-items:center;
+ transform:translateY(-50%)!important;touch-action:none!important;user-select:none;
+ background:#21182de8;border:2px solid var(--accent,#d6a8ce);color:#ffecca;
+ pointer-events:auto!important;box-shadow:0 3px 14px #000b;
+}
+#board .m75-rotary-dial .m75-rotate-grip[data-m75-grip="-15"]{
+ left:-19.5px!important;right:auto!important;
+}
+#board .m75-rotary-dial .m75-rotate-grip[data-m75-grip="15"]{
+ left:auto!important;right:-19.5px!important;
+}
+#board .m75-rotary-dial .m75-rotate-grip:active,
+#board .token.m75-rotating .m75-rotate-grip{background:#58405e;border-color:#ffe2a7;box-shadow:0 0 15px #f1d68f66}
+#board .m75-rotary-dial .m75-rotate-grip svg{width:22px;height:22px;pointer-events:none}
+@media(max-width:520px){#board .m75-rotary-dial{width:106px;height:106px}}
+
 </style><link rel="stylesheet" href="/player-immersion.css"><link rel="stylesheet" href="/player-shell.css"><link rel="stylesheet" href="/powers-ui.css"></head><body>
 <header class="top"><small>AO VIVO</small><strong id="scene-title">Sua mesa</strong><small id="scene-turn"></small><button id="landscape">Paisagem</button><button id="open-initiative">Iniciativa</button><button id="open-sheet">Ficha</button><button id="open-dice" class="primary">Rolar</button></header>
 <main class="stage"><div class="scroll" id="scroll"><div class="board" id="board"></div></div><div id="empty" class="notice">Aguardando o mestre publicar o mapa.</div><div class="tools"><button id="zoom-in">+</button><button id="zoom-out">-</button><button id="zoom-fit">Centralizar</button></div><div class="feed" id="feed"></div><div class="notice" id="notice" hidden></div>
