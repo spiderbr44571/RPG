@@ -283,6 +283,7 @@ function open(host,opts){
    s.token=target.dataset.r30Token;s.gesture={kind:'token',id:s.token};
    target.classList.add('selected');return;
   }
+  if(['paint','wall','door','erase-paint'].includes(s.tool)){s.gesture={kind:'paint'};paintAt(p,true);return}
   if(s.tool==='pan'){s.gesture={kind:'pan',x:e.clientX,y:e.clientY,px:s.x,py:s.y};return}
   if(s.tool==='rect'||s.tool==='circle'){
    s.gesture={kind:'shape',shape:s.tool==='circle'?'circle':'rect',start:p};
@@ -307,6 +308,7 @@ function open(host,opts){
    s.pinch={d};return;
   }
   const g=s.gesture,m=getScene();if(!g||!m)return;
+  if(g.kind==='paint')paintAt(coords(e));
   if(g.kind==='pan'){s.x=g.px+e.clientX-g.x;s.y=g.py+e.clientY-g.y;updateTransform()}
   if(g.kind==='shape')preview(dimensions(g.start,coords(e),m),g.shape);
   if(g.kind==='token'){
@@ -326,15 +328,21 @@ function open(host,opts){
   e.preventDefault();const rect=s.view.getBoundingClientRect();
   zoom(e.deltaY<0?1.12:1/1.12,e.clientX-rect.left,e.clientY-rect.top);
  },{passive:false});
+ s.root.addEventListener('input',e=>{if(e.target.id==='r68-search'){s.assetSearch=e.target.value;paintPalette()}});
  s.root.addEventListener('change',e=>{
   const m=getScene(),t=m?.tokens.find(x=>x.id===s.token);
   if(e.target.id==='r30-scenes'){s.selected=e.target.value;s.token='';render(true)}
   if(e.target.id==='r30-category'){s.category=e.target.value;library()}
+  if(e.target.id==='r68-layer'){s.paintLayer=e.target.value;s.paintAsset=(paintEngine?.palette||[]).find(x=>x.layer===s.paintLayer)?.id||'stone';s.tool=s.paintLayer==='walls'?'wall':'paint';render(false)}
+  if(e.target.id==='r68-pack'){s.paintPack=e.target.value;paintPalette()}
+  if(e.target.id==='r68-brush')s.brushSize=Math.max(1,Math.min(5,Number(e.target.value)||1));
+  if(e.target.dataset.r68Visible){s.visibleLayers[e.target.dataset.r68Visible]=e.target.checked;map()}
   if(e.target.id==='r31-system'){s.creatureSystem=e.target.value;creatureChoices()}
   if(e.target.id==='r31-search'){s.creatureSearch=e.target.value;creatureChoices()}
   if(e.target.id==='r35-new-fog')s.fogStyle=e.target.value;
   if(e.target.dataset.r35RoomFog){const room=m?.rooms.find(r=>r.id===e.target.dataset.r35RoomFog);
     if(room){room.fogStyle=e.target.value;change();map()}}
+  if(e.target.dataset.r68MapName){const m=getScene();if(m){m.name=e.target.value.trim().slice(0,80)||m.name;change();render(false)}}
   if(e.target.id==='r30-import-kind')s.importKind=e.target.value;
   if(e.target.id==='r30-gridcheck'){s.showGrid=e.target.checked;map()}
   if(e.target.id==='r30-file')upload(e.target.files?.[0]);
@@ -355,6 +363,7 @@ function open(host,opts){
      token.hp=Math.max(0,Math.min(token.maxHp,token.hp+Number(hpbtn.dataset.r31Hp)));change();details();
    }return;
   }
+  const brushAsset=e.target.closest('[data-r68-asset]');if(brushAsset){const item=paintEngine?.get(brushAsset.dataset.r68Asset);if(item){s.paintAsset=item.id;s.paintLayer=item.layer;s.tool='paint';render(false);signal(item.name+' selecionado. Arraste pelo mapa para pintar.')}return}
   const a=e.target.closest('[data-r30-asset]');
   if(a){s.picked=a.dataset.r30Asset;library();return}
   const tool=e.target.closest('[data-r30-tool]');
@@ -369,6 +378,10 @@ function open(host,opts){
    switch(b.dataset.r30){
     case 'exit':close();break;
     case 'save':await save();break;
+    case 'undo':restoreStep(false);break;
+    case 'redo':restoreStep(true);break;
+    case 'clear-layers':if(m&&confirm('Apagar terreno, decoração, paredes e portas desenhados?')){checkpoint();m.layers={terrain:[],props:[],walls:[]};change();mapPaintRefresh()}break;
+    case 'duplicate':if(m){if(s.scenes.length>=16){signal('Limite de 16 cenários.');break}const copy=JSON.parse(JSON.stringify(m));copy.id=uid();copy.name=m.name+' (cópia)';copy.tokens=(copy.tokens||[]).map(t=>({...t,id:uid()}));copy.rooms=(copy.rooms||[]).map(r=>({...r,id:uid()}));s.scenes.push(copy);s.selected=copy.id;s.token='';change();render(true)}break;
     case 'new':{
      if(s.scenes.length>=16){signal('Limite de 16 cenários.');break}
      const map={id:uid(),name:'Novo cenário',width:28,height:18,theme:'stone',backgroundAssetId:'',rooms:[],tokens:[]};
@@ -388,7 +401,7 @@ function open(host,opts){
      m.name=name.trim().slice(0,80)||m.name;
      m.width=clamp(Number(w)||m.width,6,60);m.height=clamp(Number(h)||m.height,6,60);
      m.rooms=m.rooms.filter(r=>r.x+r.w<=m.width&&r.y+r.h<=m.height);
-     m.tokens=m.tokens.filter(t=>t.x<m.width&&t.y<m.height);change();render(true);break;
+     m.tokens=m.tokens.filter(t=>t.x<m.width&&t.y<m.height);if(m.layers){for(const layer of ['terrain','props','walls'])if(Array.isArray(m.layers[layer]))m.layers[layer]=m.layers[layer].filter(t=>t.x<m.width&&t.y<m.height)}change();render(true);break;
     }
    }
   }catch(err){signal('Erro: '+err.message)}
