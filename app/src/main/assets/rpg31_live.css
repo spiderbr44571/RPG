@@ -125,3 +125,18 @@
 .r31-live .m72-token-config label{font-size:11px}
 .r31-live .m72-token-config input[type=range]{width:100%;min-height:24px;accent-color:#ffe0a0}
 .r31-live .m72-token-config output{float:right;color:#ffe8bc}
+
+/* v0.74 — all tabletop icons use Tabler 24x24 grid, consistent optical size. */
+.r31-live .r64-icon{display:inline-block!important;width:20px!important;height:20px!important;min-width:20px!important;min-height:20px!important;flex:0 0 20px!important;vertical-align:middle!important;stroke:currentColor!important;fill:none!important;overflow:visible!important;transform:none!important}
+.r31-live header.r64-head button.r64-action{min-width:38px;min-height:38px;height:38px;display:inline-flex!important;justify-content:center!important;align-items:center!important;gap:5px;padding:7px;line-height:1}
+.r31-live header.r64-head button.r64-icon-only{width:38px!important;height:38px!important;min-width:38px!important;padding:8px!important}
+.r31-live header.r64-head .r64-icon{width:20px!important;height:20px!important}
+.r31-live .r64-card>summary>.r64-icon:first-child{width:19px!important;height:19px!important;min-width:19px!important;min-height:19px!important;flex:0 0 19px!important}
+.r31-live .r64-card>summary>.r64-icon:last-child{width:16px!important;height:16px!important;min-width:16px!important;min-height:16px!important;flex:0 0 16px!important}
+.r31-live .r64-card .r64-dice-entry svg.r64-icon{width:19px!important;height:19px!important;min-width:19px!important;min-height:19px!important}
+.r31-live .r64-card .actions button svg.r64-icon{width:18px!important;height:18px!important;min-width:18px!important;min-height:18px!important;flex:0 0 18px!important}
+@media(max-width:780px){
+ .r31-live header.r64-head button.r64-action{width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important}
+ .r31-live .r64-commands{gap:4px}
+ .r31-live .r64-viewport-actions{gap:3px}
+}
