@@ -511,6 +511,42 @@ public final class LocalCampaignServer extends NanoHTTPD {
             }
           }
         }
+
+        // v0.69: settings are opt-in. Existing scenes keep their original rendering.
+        JSONObject lightConfig=map.optJSONObject("lighting");
+        if(map.has("lighting")&&lightConfig==null)throw new IllegalArgumentException("Configuração de iluminação inválida");
+        if(lightConfig!=null){
+          if(lightConfig.has("enabled")&&!(lightConfig.opt("enabled") instanceof Boolean))throw new IllegalArgumentException("Iluminação inválida");
+          if(lightConfig.has("fogEnabled")&&!(lightConfig.opt("fogEnabled") instanceof Boolean))throw new IllegalArgumentException("Névoa de guerra inválida");
+          for(String key:new String[]{"ambient","density"}){
+            if(lightConfig.has(key)){double v=lightConfig.optDouble(key,Double.NaN);
+              if(!Double.isFinite(v)||v<0||v>1)throw new IllegalArgumentException("Intensidade inválida");}
+          }
+          if(lightConfig.has("visionRadius"))gridNumber(lightConfig,"visionRadius",1,20);
+          if(!java.util.Arrays.asList("low","medium","high").contains(lightConfig.optString("quality","medium")))
+            throw new IllegalArgumentException("Qualidade gráfica inválida");
+          JSONArray lightSources=lightConfig.optJSONArray("lights");
+          if(lightConfig.has("lights")&&lightSources==null)throw new IllegalArgumentException("Fontes de luz inválidas");
+          if(lightSources!=null){if(lightSources.length()>48)throw new IllegalArgumentException("Excesso de fontes de luz");
+            HashSet<String> ids=new HashSet<>();
+            for(int k=0;k<lightSources.length();k++){
+              JSONObject src=lightSources.getJSONObject(k);
+              if(!ids.add(sceneId(src,"id")))throw new IllegalArgumentException("Luz duplicada");
+              gridNumber(src,"x",0,width-1);gridNumber(src,"y",0,height-1);
+              gridNumber(src,"radius",1,20);
+              double intensity=src.optDouble("intensity",.8);
+              if(!Double.isFinite(intensity)||intensity<0||intensity>1)throw new IllegalArgumentException("Intensidade de luz inválida");
+              if(!src.optString("color","#ffcc83").matches("#[0-9a-fA-F]{6}"))throw new IllegalArgumentException("Cor da luz inválida");
+              if(!java.util.Arrays.asList("torch","lantern","fire","crystal","spell","custom").contains(src.optString("kind","torch")))
+                throw new IllegalArgumentException("Tipo de luz inválido");
+              if(src.has("flicker")&&!(src.opt("flicker") instanceof Boolean))throw new IllegalArgumentException("Animação da luz inválida");
+              if(src.has("enabled")&&!(src.opt("enabled") instanceof Boolean))throw new IllegalArgumentException("Estado da luz inválido");
+              if(src.optString("attachedTokenId","").length()>60)throw new IllegalArgumentException("Vínculo da luz inválido");
+            }
+          }
+          // Hidden exploration memory is owned exclusively by the host, not editable by clients.
+          lightConfig.remove("explored");
+        }
         JSONArray rooms=map.optJSONArray("rooms"),tokens=map.optJSONArray("tokens");
         if(rooms==null||tokens==null||rooms.length()>75||tokens.length()>250)
           throw new IllegalArgumentException("Quantidade de salas ou tokens inválida");
@@ -634,6 +670,96 @@ public final class LocalCampaignServer extends NanoHTTPD {
       return masked;
     }catch(Exception ex){return "";}
   }
+
+  // v0.69. Server-side visibility: never rely on CSS to protect hidden content.
+  private static String lightEdgeKey(int ax,int ay,int bx,int by){return ax+":"+ay+":"+bx+":"+by;}
+  private static java.util.HashSet<String> blockingEdges(JSONObject map)throws JSONException{
+    HashSet<String> edges=new HashSet<>();JSONObject layers=map.optJSONObject("layers");
+    JSONArray walls=layers==null?null:layers.optJSONArray("walls");if(walls==null)return edges;
+    for(int i=0;i<walls.length();i++){
+      JSONObject w=walls.optJSONObject(i);if(w==null||("door".equals(w.optString("kind"))&&w.optBoolean("open")))continue;
+      int x=w.optInt("x"),y=w.optInt("y"),bx=x,by=y;
+      switch(w.optString("side")){
+        case "n":by=y-1;break;case "s":by=y+1;break;
+        case "e":bx=x+1;break;case "w":bx=x-1;break;
+        default:continue;
+      }
+      edges.add(lightEdgeKey(x,y,bx,by));edges.add(lightEdgeKey(bx,by,x,y));
+    }return edges;
+  }
+  private static boolean lightLOS(int sx,int sy,int tx,int ty,Set<String> edges){
+    int x=sx,y=sy,dx=tx-sx,dy=ty-sy,steps=Math.max(Math.abs(dx),Math.abs(dy))*4;
+    if(steps==0)return true;
+    for(int i=1;i<=steps;i++){
+      int nx=(int)Math.floor(sx+.5+(double)dx*i/steps),ny=(int)Math.floor(sy+.5+(double)dy*i/steps);
+      if(nx==x&&ny==y)continue;
+      if(nx!=x&&edges.contains(lightEdgeKey(x,y,nx,y)))return false;
+      if(ny!=y&&edges.contains(lightEdgeKey(nx,y,nx,ny)))return false;
+      x=nx;y=ny;
+    }return true;
+  }
+  private static boolean[] playerSight(JSONObject scene,JSONObject player)throws JSONException{
+    int w=scene.getInt("width"),h=scene.getInt("height");
+    boolean[] visible=new boolean[w*h];JSONObject lighting=scene.optJSONObject("lighting");
+    if(lighting==null||!lighting.optBoolean("enabled")||!lighting.optBoolean("fogEnabled")){
+      java.util.Arrays.fill(visible,true);return visible;
+    }
+    int radius=Math.max(1,Math.min(20,lighting.optInt("visionRadius",8)));
+    JSONArray tokens=scene.optJSONArray("tokens");if(tokens==null)return visible;
+    Set<String> blocked=blockingEdges(scene);
+    String pid=player.optString("id"),cid=player.optString("characterId");
+    for(int k=0;k<tokens.length();k++){
+      JSONObject actor=tokens.getJSONObject(k);
+      if(pid.isEmpty()||cid.isEmpty()||!pid.equals(actor.optString("ownerPlayerId"))||!cid.equals(actor.optString("characterId")))continue;
+      int sx=actor.optInt("x"),sy=actor.optInt("y");
+      for(int y=Math.max(0,sy-radius);y<=Math.min(h-1,sy+radius);y++)
+      for(int x=Math.max(0,sx-radius);x<=Math.min(w-1,sx+radius);x++){
+        int dx=x-sx,dy=y-sy;if(dx*dx+dy*dy>radius*radius||covered(scene,x,y)&&!(x==sx&&y==sy))continue;
+        if(lightLOS(sx,sy,x,y,blocked))visible[y*w+x]=true;
+      }
+    }
+    return visible;
+  }
+  private static String visionBits(boolean[] v){
+    StringBuilder out=new StringBuilder(v.length);
+    for(boolean bit:v)out.append(bit?'1':'0');
+    return out.toString();
+  }
+  private static boolean[] bitsVision(String bits,int size){
+    boolean[] v=new boolean[size];if(bits.length()!=size)return v;
+    for(int i=0;i<size;i++)v[i]=bits.charAt(i)=='1';return v;
+  }
+  private static JSONArray visionIndices(boolean[] v){
+    JSONArray a=new JSONArray();for(int i=0;i<v.length;i++)if(v[i])a.put(i);return a;
+  }
+  private String maskedBackgroundVision(JSONObject map,JSONObject asset,boolean[] explored){
+    try{
+      String data=asset.optString("image",""),key=map.optString("id")+"|"+visionBits(explored).hashCode()+"|"+data.hashCode();
+      if(key.equals(cachedMaskedKey))return cachedMaskedImage;
+      int comma=data.indexOf(',');if(comma<0||comma>90)return "";
+      byte[] dataBytes=android.util.Base64.decode(data.substring(comma+1),android.util.Base64.DEFAULT);
+      android.graphics.Bitmap source=android.graphics.BitmapFactory.decodeByteArray(dataBytes,0,dataBytes.length);
+      if(source==null)return "";
+      if(source.getWidth()>4096||source.getHeight()>4096){source.recycle();return "";}
+      android.graphics.Bitmap output=source.copy(android.graphics.Bitmap.Config.ARGB_8888,true);
+      if(output==null){source.recycle();return "";}
+      android.graphics.Canvas canvas=new android.graphics.Canvas(output);
+      android.graphics.Paint paint=new android.graphics.Paint();
+      paint.setColor(android.graphics.Color.rgb(9,9,16));
+      int w=map.optInt("width",1),h=map.optInt("height",1);
+      float unitX=(float)output.getWidth()/w,unitY=(float)output.getHeight()/h;
+      for(int y=0;y<h;y++)for(int x=0;x<w;x++){
+        if(explored[y*w+x]&&!covered(map,x,y))continue;
+        canvas.drawRect(x*unitX,y*unitY,(x+1)*unitX+1,(y+1)*unitY+1,paint);
+      }
+      ByteArrayOutputStream stream=new ByteArrayOutputStream();
+      output.compress(android.graphics.Bitmap.CompressFormat.JPEG,74,stream);
+      output.recycle();source.recycle();
+      String masked="data:image/jpeg;base64,"+android.util.Base64.encodeToString(stream.toByteArray(),android.util.Base64.NO_WRAP);
+      cachedMaskedKey=key;cachedMaskedImage=masked;return masked;
+    }catch(Exception error){return "";}
+  }
+
   private JSONObject activeScene(JSONObject c)throws JSONException{
     String active=c.optString("activeScenarioId","");
     JSONArray all=scenarioArray(c);
