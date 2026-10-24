@@ -4,6 +4,7 @@
 const $=(q,r=document)=>r.querySelector(q);
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const svgPaths={"pan":"<path d=\"M6 13V9a1 1 0 0 1 2 0v3-6a1 1 0 0 1 2 0v6-8a1 1 0 0 1 2 0v8-6a1 1 0 0 1 2 0v7-4a1 1 0 0 1 2 0v7c0 3-2 5-5 5h-2a6 6 0 0 1-5-3l-2-3a1 1 0 0 1 2-1l2 2\"/>","paint":"<path d=\"m4 17 8-8 3 3-8 8H4zM12 9l5-5 3 3-5 5M4 21h6\"/>","wall":"<rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"1\"/><path d=\"M3 10h18M3 16h18M9 4v6M15 10v6M9 16v4\"/>","door":"<path d=\"M5 21V3h14v18M9 21V6l7-1v16z\"/><circle cx=\"14\" cy=\"13\" r=\".7\" fill=\"currentColor\"/>","erase":"<path d=\"m4 15 9-10a3 3 0 0 1 4 0l4 4a3 3 0 0 1 0 4l-6 7H9zM10 9l7 7M4 21h17\"/>","token":"<circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"9\" r=\"3\"/><path d=\"M6 19c1-5 11-5 12 0\"/>","rect":"<rect x=\"4\" y=\"5\" width=\"16\" height=\"14\" rx=\"1\"/>","circle":"<circle cx=\"12\" cy=\"12\" r=\"9\"/>","delete":"<path d=\"M4 7h16M8 7V4h8v3m3 0-1 13H6L5 7M10 10v7M14 10v7\"/>","plus":"<path d=\"M12 5v14M5 12h14\"/>","settings":"<circle cx=\"12\" cy=\"12\" r=\"8\"/><path d=\"M12 9v6M9 12h6\"/>","assets":"<rect x=\"3\" y=\"3\" width=\"8\" height=\"8\" rx=\"1\"/><rect x=\"13\" y=\"3\" width=\"8\" height=\"8\" rx=\"1\"/><rect x=\"3\" y=\"13\" width=\"8\" height=\"8\" rx=\"1\"/><rect x=\"13\" y=\"13\" width=\"8\" height=\"8\" rx=\"1\"/>","save":"<path d=\"M5 3h13l3 3v15H3V3zM7 3v6h10V3M7 21v-9h10v9\"/>","upload":"<path d=\"M12 16V3M7 8l5-5 5 5M4 17v4h16v-4\"/>","close":"<path d=\"M5 5l14 14M19 5 5 19\"/>","zoomin":"<circle cx=\"10\" cy=\"10\" r=\"7\"/><path d=\"M10 7v6M7 10h6m3 6 5 5\"/>","zoomout":"<circle cx=\"10\" cy=\"10\" r=\"7\"/><path d=\"M7 10h6m3 6 5 5\"/>","fit":"<path d=\"M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5\"/>"};
+svgPaths.rotate='<path d="M20 8V3h-5M20 3a9 9 0 1 0 2 11M12 7v5l4 3"/>';
 const uiIcon=name=>'<svg class="r71-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(svgPaths[name]||svgPaths.circle)+'</svg>';
 const uid=()=>('s'+(crypto.randomUUID?.()||Math.random().toString(36).slice(2)).replace(/-/g,'')).slice(0,28);
 function creatureRecords(system){
@@ -146,10 +147,11 @@ function open(host,opts){
   if(s.showGrid)html+='<div class="r30-grid"></div>';
   if(paintEngine&&s.visibleLayers.walls)html+=paintEngine.renderLayer(m,'walls',48);
   html+=m.rooms.map(r=>'<div class="r30-room r35-fog-'+esc(r.fogStyle||'mist')+' '+(r.shape==='circle'?'circle ':'')+(r.hidden?'hidden':'')+'" style="--r71-intensity:'+(Math.max(0,Math.min(100,r.intensity??100))/100)+';--r71-preview-opacity:'+(0.16+Math.max(0,Math.min(100,r.intensity??100))/100*.34)+';left:'+(r.x*48)+'px;top:'+(r.y*48)+'px;width:'+(r.w*48)+'px;height:'+(r.h*48)+'px">'+esc(r.name)+'</div>').join('');
-  html+=m.tokens.map(t=>'<div class="r30-token '+(t.id===s.token?'selected':'')+'" data-r30-token="'+esc(t.id)+'" style="left:'+(t.x*48+1)+'px;top:'+(t.y*48+1)+'px">'+tile(getAsset(t.assetId))+'<small>'+esc(t.name)+'</small></div>').join('');
+  html+=m.tokens.map(t=>'<div class="r30-token '+(t.id===s.token?'selected':'')+'" data-r30-token="'+esc(t.id)+'" style="--m72-angle:'+(t.rotation||0)+'deg;left:'+(t.x*48+1)+'px;top:'+(t.y*48+1)+'px">'+tile(getAsset(t.assetId))+'<i class="m72-heading"></i><small>'+esc(t.name)+'</small></div>').join('');
   html+='<div id="r30-preview" class="r30-preview" hidden></div>';
   s.world.innerHTML=html;updateTransform();
   atmosphereEngine?.attach(s.world,m,{cell:48,quality:atmosphereEngine.settings(m).quality,master:true});
+  root.Mastermind72Volume?.attach(s.world,m,{cell:48,quality:'balanced',master:true});
  }
  function library(){
   const target=$('#r30-assets',s.root);if(!target)return;
@@ -168,7 +170,13 @@ function open(host,opts){
         '<div class="r30-line"><button data-r31-hp="-1">−1 PV</button><button data-r31-hp="1">+1 PV</button></div>':'')+
      '<label>Jogador que controla<select data-r30-change="owner"><option value="">Somente mestre</option>'+
      (t.kind==='character'?(opts.players||[]).filter(p=>p.characterId).map(p=>'<option value="'+esc(p.id)+'" '+(p.id===t.ownerPlayerId?'selected':'')+'>'+esc(p.nickname)+'</option>').join(''):'')+'</select></label>'+
-     '<label><input data-r30-change="hidden" type="checkbox" '+(t.hidden?'checked':'')+'> Token oculto</label><button data-r30="delete-token" class="danger">Excluir token</button>';
+     '<label><input data-r30-change="hidden" type="checkbox" '+(t.hidden?'checked':'')+'> Token oculto</label>'+
+     '<div class="m72-token-config"><strong>Lanterna e rotação omnidirecional</strong>'+
+     '<label>Direção <output id="m72-editor-angle-label">'+(t.rotation||0)+'°</output>'+
+     '<input type="range" id="m72-editor-angle" min="0" max="359" step="1" value="'+(t.rotation||0)+'"></label>'+
+     '<label><input type="checkbox" id="m72-editor-torch"'+(t.flashlight?' checked':'')+'> Lanterna ativada (cone em V)</label>'+
+     '<label>Alcance da lanterna<input type="range" id="m72-editor-range" min="2" max="15" value="'+(t.flashlightRadius||8)+'"></label></div>'+
+     '<button data-r30="delete-token" class="danger">Excluir token</button>';
   }else html+='<p>Selecione um token para renomeá-lo, ocultá-lo ou vincular uma ficha.</p>';
   html+='</details><h3>Bloqueios por área ('+m.rooms.length+')</h3>'+
     '<div class="r71-new-area"><label>Tipo<select id="r35-new-fog">'+
@@ -197,7 +205,7 @@ function open(host,opts){
   const m=getScene(),scale=s.scale,ox=s.x,oy=s.y;
   const group=(id,title,body)=>'<details class="r71-group" data-r71-panel="'+id+'"'+(s.panelOpen[id]?' open':'')+'><summary>'+title+'</summary>'+body+'</details>';
   const toolRows=[['pan','pan','Navegar'],['paint','paint','Pintar'],['wall','wall','Parede'],['door','door','Porta'],
-   ['erase-paint','erase','Borracha'],['token','token','Tokens'],['rect','rect','Retângulo'],['circle','circle','Círculo'],['erase','delete','Apagar token']];
+   ['erase-paint','erase','Borracha'],['token','token','Tokens'],['rotate','rotate','Girar 360°'],['rect','rect','Retângulo'],['circle','circle','Círculo'],['erase','delete','Apagar token']];
   const tools=toolRows.map(([id,ico,name])=>'<button type="button" data-r30-tool="'+id+'" title="'+name+'" aria-label="'+name+'" class="'+(s.tool===id?'active':'')+'">'+uiIcon(ico)+'</button>').join('');
   s.root.innerHTML='<header class="r30-head r71-head"><strong class="r30-name">Mastermind · Estúdio</strong><select id="r30-scenes" aria-label="Cenário">'+
     s.scenes.map(x=>'<option value="'+esc(x.id)+'" '+(x.id===s.selected?'selected':'')+'>'+esc(x.name)+'</option>').join('')+'</select>'+
@@ -297,6 +305,7 @@ function open(host,opts){
  function finish(e){
   const m=getScene(),g=s.gesture;s.gesture=null;if(!g||!m)return;
   const p=coords(e);
+  if(g.kind==='rotate'){details();map();return}
   if(g.kind==='shape'){
    if(m.rooms.length>=75){signal('Máximo de 75 áreas.');map();return}
    const area=dimensions(g.start,p,m),name=(g.shape==='circle'?'Círculo ':'Sala ')+(m.rooms.length+1);
@@ -311,8 +320,9 @@ function open(host,opts){
   s.pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});viewport.setPointerCapture(e.pointerId);e.preventDefault();
   if(s.pointers.size>1){s.gesture=null;return}
   const p=coords(e);
-  if(target&&s.tool==='token'){
-   s.token=target.dataset.r30Token;s.gesture={kind:'token',id:s.token};
+  if(target&&(s.tool==='token'||s.tool==='rotate')){
+   s.token=target.dataset.r30Token;
+   s.gesture={kind:s.tool==='rotate'?'rotate':'token',id:s.token};
    target.classList.add('selected');return;
   }
   if(['paint','wall','door','erase-paint'].includes(s.tool)){s.gesture={kind:'paint'};paintAt(p,true);return}
@@ -347,6 +357,16 @@ function open(host,opts){
    const target=$('.r30-token[data-r30-token="'+g.id+'"]',s.root);
    if(target){const c=cells(coords(e),m);target.style.left=(c.x*48+1)+'px';target.style.top=(c.y*48+1)+'px'}
   }
+  if(g.kind==='rotate'){
+   const t=m.tokens.find(x=>x.id===g.id);
+   if(t){
+    const p=coords(e),angle=Math.atan2(p.y/48-(t.y+.5),p.x/48-(t.x+.5))*180/Math.PI;
+    t.rotation=Math.round((angle+360)%360);
+    const el=$('.r30-token[data-r30-token="'+g.id+'"]',s.root);
+    if(el)el.style.setProperty('--m72-angle',t.rotation+'deg');
+    change();
+   }
+  }
  });
  function release(e){
   if(!s.pointers.has(e.pointerId))return;
@@ -362,6 +382,17 @@ function open(host,opts){
  },{passive:false});
  s.root.addEventListener('input',e=>{
   if(e.target.id==='r68-search'){s.assetSearch=e.target.value;paintPalette();return}
+  if(e.target.id==='m72-editor-angle'){
+   const t=getScene()?.tokens.find(x=>x.id===s.token);if(t){
+    t.rotation=Math.max(0,Math.min(359,Math.round(Number(e.target.value)||0)));
+    const out=$('#m72-editor-angle-label',s.root);if(out)out.textContent=t.rotation+'°';
+    change();map();
+   }return;
+  }
+  if(e.target.id==='m72-editor-range'){
+   const t=getScene()?.tokens.find(x=>x.id===s.token);if(t){t.flashlightRadius=Math.max(2,Math.min(15,Math.round(Number(e.target.value)||8)));change();map()}
+   return;
+  }
   if(e.target.id==='r71-new-intensity'){
    s.fogIntensity=Math.max(0,Math.min(100,Number(e.target.value)||0));
    const out=$('#r71-new-intensity-label',s.root);if(out)out.textContent=s.fogIntensity+'%';
@@ -380,6 +411,9 @@ function open(host,opts){
  },true);
  s.root.addEventListener('change',e=>{
   const m=getScene(),t=m?.tokens.find(x=>x.id===s.token);
+  if(e.target.id==='m72-editor-torch'){
+   if(t){t.flashlight=e.target.checked;change();map()}return;
+  }
   if(e.target.id==='r71-daynight'||e.target.id==='r71-door-shadows'){
    if(m&&atmosphereEngine){
     atmosphereEngine.normalize(m);
