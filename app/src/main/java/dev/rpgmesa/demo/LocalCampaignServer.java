@@ -836,15 +836,69 @@ public final class LocalCampaignServer extends NanoHTTPD {
         .put("systemId",sceneSystem).put("gridScale",1.5).put("gridUnit","m")
         .put("width",original.getInt("width")).put("height",original.getInt("height"))
         .put("theme",original.optString("theme","stone"));
+      // Fog of war is calculated by the server. A client cannot disable it to
+      // inspect hidden tokens, scenery, lights or unrevealed background images.
+      JSONObject atmo=original.optJSONObject("atmosphere");
+      boolean fogOfWarActive=atmo!=null&&atmo.optBoolean("fogOfWar",false);
+      if(atmo!=null)scene.put("atmosphere",new JSONObject(atmo.toString()));
+      int mapWidth=original.getInt("width"),mapHeight=original.getInt("height");
+      java.util.HashSet<Integer> currentVision=new java.util.HashSet<>(),explored=new java.util.HashSet<>();
+      if(fogOfWarActive){
+        int radius=Math.max(1,Math.min(20,atmo.optInt("visionRadius",7)));
+        java.util.HashSet<String> blockers=opaqueBoundaries(original);
+        JSONArray ownTokens=original.getJSONArray("tokens");
+        String pid=player.optString("id",""),characterId=player.optString("characterId","");
+        for(int oi=0;oi<ownTokens.length();oi++){
+          JSONObject src=ownTokens.getJSONObject(oi);
+          if(!pid.equals(src.optString("ownerPlayerId"))||characterId.isEmpty()||
+             !characterId.equals(src.optString("characterId"))||src.optBoolean("hidden",false))continue;
+          int sx=src.optInt("x",-1),sy=src.optInt("y",-1);
+          if(sx<0||sy<0||sx>=mapWidth||sy>=mapHeight)continue;
+          for(int yy=Math.max(0,sy-radius);yy<=Math.min(mapHeight-1,sy+radius);yy++)
+          for(int xx=Math.max(0,sx-radius);xx<=Math.min(mapWidth-1,sx+radius);xx++){
+            if((xx-sx)*(xx-sx)+(yy-sy)*(yy-sy)>radius*radius)continue;
+            if(covered(original,xx,yy))continue;
+            if(canSeeThrough(blockers,sx+.5,sy+.5,xx+.5,yy+.5))currentVision.add(yy*mapWidth+xx);
+          }
+        }
+        JSONObject exploredByScene=player.optJSONObject("mapExploration");
+        if(exploredByScene==null){exploredByScene=new JSONObject();player.put("mapExploration",exploredByScene);}
+        JSONArray past=exploredByScene.optJSONArray(original.getString("id"));
+        if(past!=null)for(int ri=0;ri<past.length();ri++){
+          int n=past.optInt(ri,-1);if(n>=0&&n<mapWidth*mapHeight)explored.add(n);
+        }
+        boolean changed=explored.addAll(currentVision);
+        if(changed){
+          JSONArray updated=new JSONArray();
+          for(int cell:explored)updated.put(cell);
+          exploredByScene.put(original.getString("id"),updated);
+          persist();
+        }
+        JSONArray now=new JSONArray(),history=new JSONArray();
+        for(int cell:currentVision)now.put(cell);
+        for(int cell:explored)history.put(cell);
+        scene.put("visibleCells",now).put("seenCells",history);
+      }
+      if(original.optJSONArray("lights")!=null){
+        JSONArray visibleLights=new JSONArray(),sourceLights=original.getJSONArray("lights");
+        for(int i=0;i<sourceLights.length();i++){
+          JSONObject l=sourceLights.getJSONObject(i);
+          int lx=l.optInt("x",-1),ly=l.optInt("y",-1);
+          if(!fogOfWarActive||currentVision.contains(ly*mapWidth+lx))
+            visibleLights.put(new JSONObject(l.toString()));
+        }
+        scene.put("lights",visibleLights);
+      }
+
       JSONArray fog=new JSONArray(),visibleRooms=new JSONArray(),visibleTokens=new JSONArray();
       JSONArray rooms=original.getJSONArray("rooms");
       for(int i=0;i<rooms.length();i++){
         JSONObject room=rooms.getJSONObject(i);
         if(room.optBoolean("hidden",false)){
-          fog.put(new JSONObject().put("x",room.getInt("x")).put("y",room.getInt("y"))
+          if(!fogOfWarActive)fog.put(new JSONObject().put("x",room.getInt("x")).put("y",room.getInt("y"))
             .put("w",room.getInt("w")).put("h",room.getInt("h"))
             .put("shape",room.optString("shape","rect")).put("fogStyle",room.optString("fogStyle","shadow")));
-        }else visibleRooms.put(new JSONObject().put("name",room.getString("name"))
+        }else if(!fogOfWarActive||roomVisible(room,currentVision,mapWidth))visibleRooms.put(new JSONObject().put("name",room.getString("name"))
           .put("x",room.getInt("x")).put("y",room.getInt("y")).put("w",room.getInt("w")).put("h",room.getInt("h")));
       }
       java.util.HashSet<String> allowedAssetIds=new java.util.HashSet<>();
@@ -853,7 +907,8 @@ public final class LocalCampaignServer extends NanoHTTPD {
       JSONArray tokens=original.getJSONArray("tokens");
       for(int i=0;i<tokens.length();i++){
         JSONObject t=tokens.getJSONObject(i);int x=t.getInt("x"),y=t.getInt("y");
-        if(t.optBoolean("hidden",false)||covered(original,x,y))continue;
+        if(t.optBoolean("hidden",false)||covered(original,x,y)||
+           (fogOfWarActive&&!currentVision.contains(y*mapWidth+x)))continue;
         boolean own=t.optString("ownerPlayerId").equals(player.optString("id"))&&
           !player.optString("characterId","").isEmpty()&&t.optString("characterId").equals(player.optString("characterId"));
         JSONObject visible=new JSONObject().put("id",t.getString("id")).put("name",t.getString("name"))
@@ -870,7 +925,9 @@ public final class LocalCampaignServer extends NanoHTTPD {
         JSONObject a=allAssets.getJSONObject(i);
         if(allowedAssetIds.contains(a.optString("id"))){
           JSONObject visible=new JSONObject(a.toString());
-          if(a.optString("id").equals(background)&&fog.length()>0)
+          if(a.optString("id").equals(background)&&fogOfWarActive)
+            visible.put("image",""); // A imagem completa revelaria salas escondidas pelo JSON.
+          else if(a.optString("id").equals(background)&&fog.length()>0)
             visible.put("image",maskedBackground(original,a));
           filteredAssets.put(visible);
         }
@@ -888,6 +945,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
           int mx=mark.optInt("x",-1),my=mark.optInt("y",-1);
           if(mx<0||my<0||mx>=original.optInt("width")||my>=original.optInt("height"))continue;
           if(covered(original,mx,my))continue;
+          if(fogOfWarActive&&!(("terrain".equals(layer)?explored:currentVision).contains(my*mapWidth+mx)))continue;
           filteredMarks.put(new JSONObject(mark.toString()));
         }
         visiblePaint.put(layer,filteredMarks);
