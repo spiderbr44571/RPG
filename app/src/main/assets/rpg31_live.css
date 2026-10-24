@@ -73,7 +73,7 @@
 .r31-live .r64-card>summary{display:flex;align-items:center;gap:7px;list-style:none;cursor:pointer;padding:9px;min-height:34px;font-size:12px;font-weight:650;color:#f0c8df;user-select:none}
 .r31-live .r64-card>summary::-webkit-details-marker{display:none}
 .r31-live .r64-card>summary .r64-icon{height:16px;width:16px;flex:none}
-.r31-live .r64-card>summary>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.r31-live .r64-card>summary>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.1;max-height:2.3em}
 .r31-live .r64-card>summary>em{font:600 10px system-ui;font-style:normal;color:#efd9e9;border-radius:99px;padding:2px 5px;background:#3b3043}
 .r31-live .r64-card>summary>.r64-icon:last-child{width:13px;height:13px;color:#a78aaa;transition:transform .15s ease}
 .r31-live .r64-card[open]>summary>.r64-icon:last-child{transform:rotate(180deg)}
