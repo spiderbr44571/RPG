@@ -156,5 +156,10 @@ function renderLayer(scene,layer,cell=48,opts={}){
  }
  return '<div class="m68-layer m68-'+layer+'-layer" aria-hidden="true">'+out.join('')+'</div>';
 }
+if(typeof document!=='undefined'&&document.head&&!document.getElementById('mastermind68-map-style')){
+ const style=document.createElement('style');style.id='mastermind68-map-style';
+ style.textContent='.m68-layer{position:absolute;inset:0;pointer-events:none;z-index:1}.m68-tile{position:absolute;display:block;overflow:hidden;pointer-events:none;opacity:.97}.m68-asset-svg{display:block;width:100%;height:100%;object-fit:contain}.m68-props-layer{z-index:5}.m68-walls-layer{z-index:7}.m68-wall{position:absolute;display:block;background:var(--m68-wall,#b6abb4);border:1px solid #251f29;border-radius:3px;box-shadow:0 1px 6px #000a;transform:translate(-3px,-3px);pointer-events:none}.m68-wall.m68-door{background:repeating-linear-gradient(45deg,var(--m68-wall) 0 6px,#7c5640 6px 9px)}.m68-wall.is-open{opacity:.38;box-shadow:none}';
+ document.head.appendChild(style);
+}
 return {palette,PACKS,get,ensure,saveSnapshot,restore,paint,erase,edgeFromPoint,wall,toggleDoor,renderLayer,glyph};
 });
