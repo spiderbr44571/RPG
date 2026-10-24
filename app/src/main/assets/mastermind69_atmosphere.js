@@ -81,6 +81,11 @@ function ensureLight(scene,x,y,options={}){
   type:['torch','lantern','magic','cold'].includes(options.type)?options.type:'torch',enabled:true,flicker:options.flicker!==false};
  scene.lights.push(l);return l;
 }
+// Continuous fog coverage: 100% means fully opaque, not merely more wisps.
+function fogCoverAlpha(density){
+ const d=num(density,0,1,0);
+ return d>=.999?1:Math.pow(d,2.1);
+}
 const instances=new WeakMap();
 function destroy(board){
  const instance=instances.get(board);if(!instance)return;
@@ -93,6 +98,9 @@ function attach(board,scene,options={}){
  destroy(board);
  const cfg=settings(scene);
  if(!cfg.enabled&&!cfg.fogOfWar)return null;
+ // Mestre pode continuar editando mesmo quando o jogador está em blackout total.
+ const ambient=options.master===true&&cfg.ambient>=.999?.36:cfg.ambient;
+ const fogAmount=options.master===true&&cfg.fogDensity>=.999?.36:cfg.fogDensity;
  const canvas=document.createElement('canvas');canvas.className='m69-atmosphere-canvas';canvas.setAttribute('aria-hidden','true');
  canvas.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:24;width:100%;height:100%;';
  board.appendChild(canvas);
@@ -115,11 +123,11 @@ function attach(board,scene,options={}){
    last=timestamp;ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,canvas.width,canvas.height);
    ctx.setTransform(sx,0,0,sy,0,0);
    if(cfg.enabled){
-    const alpha=cfg.ambient;
+    const alpha=ambient;
     if(alpha>0){
      ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(4,6,16,'+alpha+')';ctx.fillRect(0,0,width,height);
      ctx.globalCompositeOperation='destination-out';
-     for(const l of lights){
+     if(alpha<.999)for(const l of lights){
       const x=l.x*cell,y=l.y*cell,r=l.radius*cell;
       const pulse=l.flicker?1+.035*Math.sin(timestamp*.005+(l.x*7+l.y)):1;
       ctx.save();ctx.beginPath();
@@ -139,8 +147,12 @@ function attach(board,scene,options={}){
      }
      ctx.globalCompositeOperation='source-over';
     }
-    if(cfg.fogDensity>.005){
+    if(fogAmount>.005){
      const hue=cfg.fogColor,clouds=quality==='economy'?8:quality==='high'?34:18;
+     // Base uniforme opaca no máximo; as nuvens continuam animadas sobre ela.
+     const cover=fogCoverAlpha(fogAmount);
+     ctx.globalCompositeOperation='source-over';
+     ctx.fillStyle=hexRgba(hue,cover);ctx.fillRect(0,0,width,height);
      ctx.globalCompositeOperation='source-over';
      for(let i=0;i<clouds;i++){
       const seed=i*29.37+7,move=timestamp*.000014*cfg.fogSpeed;
@@ -148,8 +160,9 @@ function attach(board,scene,options={}){
         y=((Math.sin(seed*2.19)*.5+.5)+(Math.sin(timestamp*.0001+seed)*.018))*height,
         r=Math.max(65,Math.min(width,height)*(.11+(i%5)*.034));
       const g=ctx.createRadialGradient(x,y,0,x,y,r);
-      const density=cfg.fogDensity*(quality==='high'?.1:.08);
-      g.addColorStop(0,hexRgba(hue,density));g.addColorStop(1,hexRgba(hue,0));
+      const density=fogAmount*(quality==='high'?.10:.08);
+      const cloudHue=cover>=1?'#ffffff':hue;
+      g.addColorStop(0,hexRgba(cloudHue,density));g.addColorStop(1,hexRgba(cloudHue,0));
       ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(x,y,r,r*.36,0,0,Math.PI*2);ctx.fill();
      }
     }
@@ -175,5 +188,5 @@ function hexRgba(hex,alpha){
  const s=/^#[0-9a-f]{6}$/i.test(hex)?hex:'#9cb0bc';
  return 'rgba('+parseInt(s.slice(1,3),16)+','+parseInt(s.slice(3,5),16)+','+parseInt(s.slice(5,7),16)+','+Math.max(0,Math.min(1,alpha))+')';
 }
-return {DEFAULT,THEMES,settings,normalize,walls,lineOfSight,visibilityPolygon,lightList,ensureLight,attach,destroy};
+return {DEFAULT,THEMES,settings,normalize,walls,lineOfSight,visibilityPolygon,lightList,ensureLight,fogCoverAlpha,attach,destroy};
 });
