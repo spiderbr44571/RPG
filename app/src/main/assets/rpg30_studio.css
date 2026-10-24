@@ -144,3 +144,16 @@
 @media(prefers-reduced-motion:reduce){.r30-studio .r30-room.hidden::after{animation:none}}
 @media(max-width:780px){.r30-studio .r71-body{grid-template-columns:40px minmax(0,1fr)}.r30-studio .r71-side{position:absolute;right:0;top:43px;bottom:29px;width:min(245px,67vw);z-index:15;box-shadow:-10px 0 25px #000b}.r30-studio .r71-side.folded{display:none}.r30-studio .r71-head .r30-name{display:none}}
 @media(max-width:480px){.r30-studio .r71-head #r30-state,.r30-studio .r71-head button span{display:none}.r30-studio .r71-head button{padding:5px}.r30-studio .r71-head select{max-width:105px}}
+
+/* v0.72: animated 2.5D volumetric mask is the source of atmospheric rendering.
+   Keep outlines/edit handles but remove old, static opaque room covers. */
+.r30-studio .r30-world.m72-active>.r30-room.hidden{background:transparent!important;opacity:1!important;color:#fff9d8;border:2px dashed #eed8aa;z-index:16;pointer-events:none}
+.r30-studio .r30-world>.m72-volume{position:absolute!important;inset:0!important;z-index:13!important;pointer-events:none!important}
+.r30-studio .r30-world>.r30-token{z-index:20!important}
+.r30-studio .r30-token img,.r30-studio .r30-token>.emoji{transform:rotate(var(--m72-angle,0deg));transition:transform .08s linear}
+.r30-studio .m72-heading{position:absolute;top:50%;left:50%;height:2px;width:18px;transform-origin:0 50%;transform:rotate(var(--m72-angle,0deg));background:#ffe5a6;box-shadow:0 0 8px #f5cd79;pointer-events:none;z-index:2}
+.r30-studio .m72-heading:after{content:'';position:absolute;right:0;top:-3px;border-left:6px solid #ffe5a6;border-top:4px solid transparent;border-bottom:4px solid transparent}
+.r30-studio .m72-token-config{padding:8px;background:#201a25;border:1px solid #695368;border-radius:9px;display:grid;gap:6px}
+.r30-studio .m72-token-config label{font-size:11px;display:block}
+.r30-studio .m72-token-config input[type=range]{display:block;width:100%;accent-color:#ffd3a0;min-height:24px}
+.r30-studio .m72-token-config output{float:right;color:#ffe4a9}
