@@ -44,6 +44,19 @@ body,.drawer,.entry{font-family:system-ui,Arial,"Segoe UI",sans-serif!important}
 .token.r35-turn-token{border-color:#8cfbc7!important;box-shadow:0 0 0 4px #5cf0a957,0 0 24px #50ffb1ae!important;z-index:3}
 @media(max-width:760px){#scene-turn{max-width:145px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
 
+
+/* v0.71 — fog/darkness ONLY in the selected rectangle/circle.
+   Alpha 1 at 100%; pseudo clouds animate above an opaque backing. */
+.fog{opacity:var(--r71-intensity,1);isolation:isolate;overflow:hidden;transition:opacity .18s ease-out}
+.fog.r35-fog-mist{background:radial-gradient(ellipse at 45% 40%,#a9c4ce 0%,#708b99 51%,#394e62 100%);border-color:#a9cbd5}
+.fog.r35-fog-dark{background:radial-gradient(ellipse at 42% 46%,#161826 0%,#070911 62%,#010103 100%);border-color:#1d2539}
+.fog.r35-fog-mist::before,.fog.r35-fog-dark::before{content:'';position:absolute;inset:-40%;pointer-events:none;
+ background:radial-gradient(ellipse at 20% 45%,#f0ffff94 0%,transparent 38%),radial-gradient(ellipse at 72% 63%,#233a5188 0%,transparent 46%);
+ filter:blur(12px);animation:r71-puff 16s ease-in-out infinite alternate}
+.fog.r35-fog-dark::before{background:radial-gradient(ellipse at 20% 45%,#37384b85 0%,transparent 44%),radial-gradient(ellipse at 68% 67%,#000000ee 0%,transparent 55%);animation-duration:27s}
+@keyframes r71-puff{from{transform:translate(-7%,-2%)}to{transform:translate(8%,6%)}}
+@media(prefers-reduced-motion:reduce){.fog.r35-fog-mist::before,.fog.r35-fog-dark::before{animation:none}}
+
 </style><link rel="stylesheet" href="/player-immersion.css"><link rel="stylesheet" href="/player-shell.css"><link rel="stylesheet" href="/powers-ui.css"></head><body>
 <header class="top"><small>AO VIVO</small><strong id="scene-title">Sua mesa</strong><small id="scene-turn"></small><button id="landscape">Paisagem</button><button id="open-initiative">Iniciativa</button><button id="open-sheet">Ficha</button><button id="open-dice" class="primary">Rolar</button></header>
 <main class="stage"><div class="scroll" id="scroll"><div class="board" id="board"></div></div><div id="empty" class="notice">Aguardando o mestre publicar o mapa.</div><div class="tools"><button id="zoom-in">+</button><button id="zoom-out">-</button><button id="zoom-fit">Centralizar</button></div><div class="feed" id="feed"></div><div class="notice" id="notice" hidden></div>
