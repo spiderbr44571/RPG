@@ -1445,6 +1445,19 @@ public final class LocalCampaignServer extends NanoHTTPD {
       JSONObject c=campaign(cid);
       if(ensurePlayerTokens(c))persist();
       JSONObject result=getScenarios(cid);
+      // The master's preview must use the same authorized light shape as the player.
+      JSONArray previewMaps=result.optJSONArray("scenarios");
+      if(previewMaps!=null)for(int mi=0;mi<previewMaps.length();mi++){
+        JSONObject preview=previewMaps.optJSONObject(mi);if(preview==null)continue;
+        JSONArray viewTokens=preview.optJSONArray("tokens");if(viewTokens==null)continue;
+        for(int ti=0;ti<viewTokens.length();ti++){
+          JSONObject t=viewTokens.optJSONObject(ti);if(t==null)continue;
+          String kind=validTokenLight(c,t);
+          t.put("lightKind",kind);
+          t.put("flashlight",t.optBoolean("flashlight",false)&&!kind.isEmpty());
+          t.put("flashlightRadius","lantern".equals(kind)?8:3);
+        }
+      }
       JSONObject scene=activeScene(c);
       JSONObject limits=new JSONObject();
       if(scene!=null){
