@@ -21,7 +21,7 @@ assert.match(d,/data-d62-item/);
 assert.match(order,/v62-power-description/);
 assert.match(html,/mastermind62_descriptions\.js/);
 assert.match(html,/mm62-descriptions-trigger/);
-assert.match(html,/>v0\.(?:62|63|64|65|66|68|69)<\/small>/);
+assert.match(html,/>v0\.(?:62|63|64|65|66|68|69|70)<\/small>/);
 assert.match(html,/r09-home-door"[^>]*stroke="none"/);
 assert.match(read('mastermind60_identity.css'),/\.r09-home-body,html body #r09-dice \.r09-home-door \{stroke:none!important\}/);
 assert.match(fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:62|63|64|65|66|68|69|70)/);
