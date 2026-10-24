@@ -157,3 +157,10 @@
 .r30-studio .m72-token-config label{font-size:11px;display:block}
 .r30-studio .m72-token-config input[type=range]{display:block;width:100%;accent-color:#ffd3a0;min-height:24px}
 .r30-studio .m72-token-config output{float:right;color:#ffe4a9}
+
+/* v0.74 — editor and grid icons share Tabler stroke and a fixed center. */
+.r30-studio .r71-icon{display:block!important;width:21px!important;height:21px!important;min-width:21px!important;min-height:21px!important;flex:0 0 21px!important;stroke:currentColor!important;fill:none!important;transform:none!important}
+.r30-studio .r71-toolbar button{display:flex!important;align-items:center!important;justify-content:center!important;min-height:40px!important;height:40px!important;width:40px!important;padding:8px!important}
+.r30-studio .r71-head button{gap:5px;min-width:34px;display:inline-flex;align-items:center;justify-content:center}
+.r30-studio .r71-head .r71-icon{width:19px!important;height:19px!important;min-width:19px!important;min-height:19px!important}
+@media(max-width:780px){.r30-studio .r71-toolbar button{height:38px!important;min-height:38px!important;width:36px!important;padding:6px!important}}
