@@ -253,7 +253,11 @@ function open(host,opts){
  }
  async function load(){
   const data=await opts.request(opts.route+'/scenarios');if(current!==s)return;
-  s.scenes=data.scenarios||[];s.assets=presets.concat((data.assets||[]).filter(a=>!presets.some(x=>x.id===a.id)));
+  s.scenes=(data.scenarios||[]).map(m=>{
+   atmosphereEngine?.normalize(m);
+   for(const area of m.rooms||[]){if(!['mist','dark'].includes(area.fogStyle))area.fogStyle='dark';if(!Number.isFinite(area.intensity))area.intensity=100;}
+   return m;
+  });s.assets=presets.concat((data.assets||[]).filter(a=>!presets.some(x=>x.id===a.id)));
   if(!s.scenes.length)s.scenes=[{id:uid(),name:'Novo cenário',width:28,height:18,theme:'stone',backgroundAssetId:'',rooms:[],tokens:[]}];
   s.active=data.activeScenarioId||'';s.selected=s.scenes[0]?.id||'';render(true);
  }
@@ -312,7 +316,6 @@ function open(host,opts){
    target.classList.add('selected');return;
   }
   if(['paint','wall','door','erase-paint'].includes(s.tool)){s.gesture={kind:'paint'};paintAt(p,true);return}
-  if(s.tool==='light'){if(atmosphereEngine){const mx=Math.floor(p.x/48),my=Math.floor(p.y/48);if(mx>=0&&my>=0&&mx<m.width&&my<m.height){try{atmosphereEngine.ensureLight(m,mx,my,{type:s.newLightType,radius:s.newLightRadius,color:s.newLightColor});change();render(false)}catch(err){signal(err.message)}}}return}
   if(s.tool==='pan'){s.gesture={kind:'pan',x:e.clientX,y:e.clientY,px:s.x,py:s.y};return}
   if(s.tool==='rect'||s.tool==='circle'){
    s.gesture={kind:'shape',shape:s.tool==='circle'?'circle':'rect',start:p};
@@ -357,25 +360,35 @@ function open(host,opts){
   e.preventDefault();const rect=s.view.getBoundingClientRect();
   zoom(e.deltaY<0?1.12:1/1.12,e.clientX-rect.left,e.clientY-rect.top);
  },{passive:false});
- s.root.addEventListener('input',e=>{if(e.target.id==='r68-search'){s.assetSearch=e.target.value;paintPalette()}});
+ s.root.addEventListener('input',e=>{
+  if(e.target.id==='r68-search'){s.assetSearch=e.target.value;paintPalette();return}
+  if(e.target.id==='r71-new-intensity'){
+   s.fogIntensity=Math.max(0,Math.min(100,Number(e.target.value)||0));
+   const out=$('#r71-new-intensity-label',s.root);if(out)out.textContent=s.fogIntensity+'%';
+   return;
+  }
+  if(e.target.dataset.r71RoomIntensity){
+   const r=getScene()?.rooms.find(x=>x.id===e.target.dataset.r71RoomIntensity);if(!r)return;
+   r.intensity=Math.max(0,Math.min(100,Math.round(Number(e.target.value)||0)));
+   const out=s.root.querySelector('[data-r71-room-value="'+r.id+'"]');
+   if(out)out.textContent=r.intensity+'%';
+   change();map();
+  }
+ });
+ s.root.addEventListener('toggle',e=>{
+  const panel=e.target.closest('[data-r71-panel]');if(panel===e.target)s.panelOpen[panel.dataset.r71Panel]=panel.open;
+ },true);
  s.root.addEventListener('change',e=>{
   const m=getScene(),t=m?.tokens.find(x=>x.id===s.token);
-  if(e.target.id.startsWith('r69-')){const m=getScene();if(m&&atmosphereEngine){
-    atmosphereEngine.normalize(m);const c=m.atmosphere,id=e.target.id;
-    if(id==='r69-enabled')c.enabled=e.target.checked;
-    else if(id==='r69-mode'){const v=atmosphereEngine.THEMES[e.target.value];if(v){c.mode=e.target.value;c.ambient=v.ambient;c.fogDensity=v.fog;c.fogColor=v.color;}}
-    else if(id==='r69-ambient')c.ambient=Number(e.target.value)/100;
-    else if(id==='r69-fog-density')c.fogDensity=Number(e.target.value)/100;
-    else if(id==='r69-fog-color')c.fogColor=e.target.value;
-    else if(id==='r69-fog-speed')c.fogSpeed=Number(e.target.value);
-    else if(id==='r69-quality')c.quality=e.target.value;
-    else if(id==='r69-fow')c.fogOfWar=e.target.checked;
-    else if(id==='r69-vision')c.visionRadius=Math.max(1,Math.min(20,Number(e.target.value)||7));
-    else if(id==='r69-light-type')s.newLightType=e.target.value;
-    else if(id==='r69-light-radius')s.newLightRadius=Math.max(1,Math.min(20,Number(e.target.value)||6));
-    else if(id==='r69-light-color')s.newLightColor=e.target.value;
-    change();render(false);
-   }return}
+  if(e.target.id==='r71-daynight'||e.target.id==='r71-door-shadows'){
+   if(m&&atmosphereEngine){
+    atmosphereEngine.normalize(m);
+    if(e.target.id==='r71-daynight')m.atmosphere.mode=e.target.value==='night'?'night':'day';
+    else m.atmosphere.doorShadows=e.target.checked;
+    change();map();
+   }
+   return;
+  }
   if(e.target.id==='r30-scenes'){s.selected=e.target.value;s.token='';render(true)}
   if(e.target.id==='r30-category'){s.category=e.target.value;library()}
   if(e.target.id==='r68-layer'){s.paintLayer=e.target.value;s.paintAsset=(paintEngine?.palette||[]).find(x=>x.layer===s.paintLayer)?.id||'stone';s.tool=s.paintLayer==='walls'?'wall':'paint';render(false)}
@@ -399,9 +412,6 @@ function open(host,opts){
   if(t&&e.target.dataset.r30Change==='hidden'){t.hidden=e.target.checked;change();details()}
  });
  s.root.addEventListener('click',async e=>{
-  const addLight=e.target.closest('[data-r69-add-light]');if(addLight){s.tool='light';s.root.querySelectorAll('[data-r30-tool]').forEach(b=>b.classList.toggle('active',b.dataset.r30Tool==='light'));signal('Toque no mapa para posicionar a luz.');return}
-  const toggleLight=e.target.closest('[data-r69-toggle]');if(toggleLight){const m=getScene(),l=m?.lights?.find(x=>x.id===toggleLight.dataset.r69Toggle);if(l){l.enabled=l.enabled===false;change();render(false)}return}
-  const deleteLight=e.target.closest('[data-r69-delete]');if(deleteLight){const m=getScene();if(m){m.lights=(m.lights||[]).filter(x=>x.id!==deleteLight.dataset.r69Delete);change();render(false)}return}
   const monster=e.target.closest('[data-r31-creature]');
   if(monster){const creature=creatureRecords(s.creatureSystem).find(x=>x.id===monster.dataset.r31Creature);if(creature)chooseTokenAsset(creature,true);return}
   const sheetBtn=e.target.closest('[data-r31-sheet]');
