@@ -16,7 +16,7 @@ assert.ok(width>=96&&height>=96&&width===height,'Minimum square image resolution
 assert.match(manifest,/android:icon="@drawable\/mastermind_logo"/);
 assert.match(manifest,/android:roundIcon="@drawable\/mastermind_logo"/);
 assert.match(gradle,/versionCode (?:60|61|62|63|64|65|66|68|69|70)/);
-assert.match(html,/>v0\.(?:60|61|62|63|64|65|66|68|69)<\/small>/);
+assert.match(html,/>v0\.(?:60|61|62|63|64|65|66|68|69|70)<\/small>/);
 assert.match(html,/const svgHome=`<svg class="r09-home-svg"/);
 assert.match(html,/aria-label="Abrir menu principal do Mastermind"/);
 assert.doesNotMatch(html,/const svgDie=`<svg class="r09-poly"/);
