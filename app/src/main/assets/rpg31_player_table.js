@@ -6,7 +6,7 @@ const readable=x=>String(x??'').replace(/cen\uFFFD+rio/gi,'cenário')
   .replace(/Her\uFFFD+i/gi,'Herói').replace(/\uFFFD+/g,'').trim();
 const esc=x=>readable(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const cid=location.pathname.split('/')[2],url='/api/play/'+cid,sceneUrl=url+'/scenario';
-let state=null,revision=-1,cell=48,selected='',busy=false,tab='',noticeTimeout,camera=window.RPG33_CAMERA?.create(),cameraScene='';
+let state=null,revision=-1,cell=48,selected='',showRotation=false,busy=false,tab='',noticeTimeout,camera=window.RPG33_CAMERA?.create(),cameraScene='';
 const msg=t=>{const n=$('#notice');n.hidden=false;n.textContent=t;clearTimeout(noticeTimeout);noticeTimeout=setTimeout(()=>n.hidden=true,3900)};
 async function api(path,method='GET',payload){
  const r=await fetch(path,{method,credentials:'same-origin',headers:{'Content-Type':'application/json'},cache:'no-store',body:payload===undefined?undefined:JSON.stringify(payload)});
@@ -126,19 +126,39 @@ function render(){
  root.Mastermind72Volume?.attach(board,s,{cell,player:true});
  const sceneChanged=cameraScene!==s.id;cameraScene=s.id;
  camera?.attach($('#scroll'),board,s.width*cell,s.height*cell,sceneChanged);
- if(!s.tokens.some(t=>t.id===selected&&t.movable))selected=s.tokens.find(t=>t.movable)?.id||'';
+ if(!s.tokens.some(t=>t.id===selected&&t.movable)){selected=s.tokens.find(t=>t.movable)?.id||'';showRotation=false;}
  const own=s.tokens.find(t=>t.id===selected&&t.movable);
- const controls=$('#m72-player-controls');
- if(controls){
-  controls.hidden=!own;
-  const angle=$('#m72-player-angle'),val=$('#m72-player-angle-value'),button=$('#m72-player-lamp');
-  if(own&&document.activeElement!==angle){angle.value=own.rotation||0;val.textContent=(own.rotation||0)+'°';}
-  if(own)button.textContent=own.flashlight?'🔦 Desligar':'🔦 Ligar lanterna';
+ const torch=$('#m73-light-toggle');
+ if(torch){
+   const kind=own?.lightKind||'';
+   torch.hidden=!kind;
+   torch.classList.toggle('is-on',!!own?.flashlight&&!!kind);
+   torch.setAttribute('aria-label',kind?(own.flashlight?'Desligar '+kind:'Ligar '+kind):'Sem fonte de luz');
+   torch.title=kind?(kind==='torch'?'Tocha · raio de 3 quadrados':kind==='magic'?'Luz mágica · raio de 3 quadrados':'Lanterna · cone direcional'):'';
  }
+ mountRotationButtons();
  $('#feed').innerHTML=(state.rolls||[]).slice(-3).reverse().map(r=>
   '<div class="roll"><strong>'+esc(r.by)+'</strong> - '+esc(r.label)+'<div><b>'+r.total+'</b><small class="dicefaces">'+
  esc(r.formula)+' : ['+esc((r.faces||[]).join(', '))+']'+(r.mode==='highest'?' (maior d20)':'')+'</small></div></div>').join('');
  root.dispatchEvent(new CustomEvent('mastermind:player-live-render',{detail:{sceneId:s.id}}));
+}
+// The arrows are attached only when the user explicitly taps their own token.
+function mountRotationButtons(){
+ const board=$('#board');if(!board)return;
+ board.querySelectorAll('.m73-turn-controls').forEach(el=>el.remove());
+ if(!showRotation)return;
+ const token=state?.scene?.tokens?.find(t=>t.id===selected&&t.movable);
+ const el=token?board.querySelector('[data-id="'+token.id+'"]'):null;
+ if(!el)return;
+ const group=document.createElement('div');
+ group.className='m73-turn-controls';group.setAttribute('role','group');group.setAttribute('aria-label','Girar personagem');
+ const icon=dir=>'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+(dir<0?'M5 10a8 8 0 1 1 2 8M5 4v6h6':'M19 10a8 8 0 1 0-2 8M19 4v6h-6')+'"/></svg>';
+ for(const n of [-15,15]){
+  const b=document.createElement('button');b.type='button';b.className='m73-rotate-arrow';
+  b.dataset.m73Rotate=String(n);b.setAttribute('aria-label',n<0?'Girar 15 graus para esquerda':'Girar 15 graus para direita');
+  b.title=n<0?'Girar à esquerda':'Girar à direita';b.innerHTML=icon(n);group.appendChild(b);
+ }
+ el.appendChild(group);
 }
 async function refresh(){
  if(busy||document.hidden)return;busy=true;
@@ -164,19 +184,22 @@ async function setLight(change){
 }
 function mount(){
  $('#legacy-sheet').href='/play/'+cid;
- $('#m72-player-lamp').onclick=()=>{
-  const token=state?.scene?.tokens?.find(t=>t.id===selected&&t.movable);
+ $('#m73-light-toggle').onclick=()=>{
+  const token=state?.scene?.tokens?.find(t=>t.id===selected&&t.movable&&t.lightKind);
   if(token)setLight({flashlight:!token.flashlight});
  };
- $('#m72-player-angle').addEventListener('input',e=>{
-   $('#m72-player-angle-value').textContent=Number(e.target.value)+'°';
-   const token=document.querySelector('#board [data-id="'+selected+'"]');
-   if(token)token.style.setProperty('--m72-angle',e.target.value+'deg');
- });
- $('#m72-player-angle').addEventListener('change',e=>setLight({rotation:Math.max(0,Math.min(359,Math.round(Number(e.target.value)||0)))}));
  $('#scroll').addEventListener('click',async e=>{
+  const rotate=e.target.closest('[data-m73-rotate]');
+  if(rotate){
+   e.preventDefault();e.stopPropagation();
+   const own=state?.scene?.tokens?.find(t=>t.id===selected&&t.movable);
+   if(!own)return;
+   const rotation=((Math.round(Number(own.rotation)||0)+Number(rotate.dataset.m73Rotate))%360+360)%360;
+   await setLight({rotation});return;
+  }
   const target=e.target.closest('[data-id]');
-  if(target){if(target.dataset.movable==='true'){selected=target.dataset.id;msg('Seu token selecionado. Toque no destino.')}return}
+  if(target){if(target.dataset.movable==='true'){selected=target.dataset.id;showRotation=true;mountRotationButtons();msg('Use as setas para girar e toque no destino para mover.')}return}
+  showRotation=false;mountRotationButtons();
   const s=state?.scene;if(!s||!selected)return;
   const activeId=state?.initiative?.activeId;
   if(state?.sessionMode!=='interlude'&&(state?.initiative?.entries?.length||0)>0&&selected!==activeId){
