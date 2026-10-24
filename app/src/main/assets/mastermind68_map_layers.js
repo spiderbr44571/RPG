@@ -77,7 +77,7 @@ function erase(scene,layer,x,y,size=1){
  const l=ensure(scene),brush=toInt(size,1,5),before=Math.floor((brush-1)/2),after=brush-1-before;
  x=Math.floor(x);y=Math.floor(y);const old=l[layer].length;
  if(layer==='walls')l.walls=l.walls.filter(a=>a.x<x-before||a.x>x+after||a.y<y-before||a.y>y+after);
- else l[layer]=l[layer].filter(a=>Math.abs(a.x-x)>radius||Math.abs(a.y-y)>radius);
+ else l[layer]=l[layer].filter(a=>a.x<x-before||a.x>x+after||a.y<y-before||a.y>y+after);
  return l[layer].length!==old;
 }
 function edgeFromPoint(px,py){
