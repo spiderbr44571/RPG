@@ -1,0 +1,19 @@
+{
+  "version": "0.76.0",
+  "name": "Mastermind Ateliê — Pacote Experimental de Fantasia",
+  "format": "webp",
+  "atlases": [
+    {"source": "atelier_portraits_f.b64", "destination": "atelier/feminino.webp", "width": 900, "height": 675},
+    {"source": "atelier_portraits_m.b64", "destination": "atelier/masculino.webp", "width": 900, "height": 675},
+    {"source": "atelier_outfits.b64", "destination": "atelier/roupas.webp", "width": 900, "height": 675},
+    {"source": "atelier_interface.b64", "destination": "atelier/interface.webp", "width": 900, "height": 675}
+  ],
+  "categories": ["portrait", "hair", "eyes", "brows", "mouth", "outfit", "cape", "accessory", "frame"],
+  "notes": [
+    "As artes são originais e geradas para este projeto.",
+    "As pranchas não foram criadas com coordenadas de encaixe idênticas; por isso a composição modular é experimental.",
+    "Modo retrato mantém arte pronta intacta; modo composição mistura recortes.",
+    "Nenhum sistema de voz é incluído no editor.",
+    "As imagens são empacotadas offline na APK; não são baixadas ao abrir o aplicativo."
+  ]
+}
