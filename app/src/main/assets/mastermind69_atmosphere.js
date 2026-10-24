@@ -53,7 +53,7 @@ function visibilityPolygon(scene,light,count=96,segs){
  for(const [x1,y1,x2,y2] of lines){
   for(const [xx,yy] of [[x1,y1],[x2,y2]]){
    if(Math.hypot(xx-x,yy-y)>r+1)continue;
-   const t=Math.atan2(yy-y,xx-x);rays.push(t-.0001,t,t+.0001);
+   const t=Math.atan2(yy-y,xx-x),wrap=a=>(a%(Math.PI*2)+Math.PI*2)%(Math.PI*2);rays.push(wrap(t-.0001),wrap(t),wrap(t+.0001));
   }
  }
  rays.sort((a,b)=>a-b);
