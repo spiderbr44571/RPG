@@ -105,7 +105,7 @@
 @media(max-width:530px) and (orientation:portrait){.r31-live .body{grid-template-columns:minmax(0,1fr)!important}.r31-live aside.r64-dock:not(.folded){position:absolute;right:0;top:0;bottom:0;width:min(238px,75vw);box-shadow:-12px 0 28px #000b;z-index:4}}
 
 /* v0.71 — subtle master-only previews; never block editing or the token layer. */
-.r31-live .room.hidden{opacity:calc(.2 + var(--r71-intensity,1)*.36);isolation:isolate;overflow:hidden;pointer-events:none}
+.r31-live .room.hidden{opacity:var(--r71-preview-opacity,.5);isolation:isolate;overflow:hidden;pointer-events:none}
 .r31-live .room.hidden.r35-fog-mist{background:linear-gradient(130deg,#a2bbc4,#5d7887 52%,#a9c5d0);border-color:#9bc5d0}
 .r31-live .room.hidden.r35-fog-dark{background:linear-gradient(135deg,#020307,#1e2134 45%,#030306);border-color:#55536a}
 .r31-live .room.hidden.r35-fog-mist::before,.r31-live .room.hidden.r35-fog-dark::before{
