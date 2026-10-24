@@ -7,18 +7,16 @@
 const num=(x,lo,hi,def)=>Number.isFinite(Number(x))?Math.max(lo,Math.min(hi,Number(x))):def;
 const THEMES={day:{ambient:.08,fog:0,color:'#a9c2ba'},dusk:{ambient:.38,fog:.2,color:'#aaa0b9'},night:{ambient:.72,fog:.28,color:'#7486a8'},dark:{ambient:.94,fog:.14,color:'#50536d'},mist:{ambient:.48,fog:.72,color:'#a1b6b9'},paranormal:{ambient:.76,fog:.65,color:'#9b6ab0'}};
 const DEFAULT={mode:'day',enabled:false,ambient:.08,fogDensity:0,fogColor:'#a9c2ba',fogSpeed:1,quality:'balanced',fogOfWar:false,visionRadius:7};
+// v0.71: daytime/nighttime + opt-in shadows behind doors and walls.
+const DEFAULT71={mode:'day',doorShadows:false,quality:'balanced'};
 function settings(scene){
- const cfg=scene?.atmosphere||{},theme=THEMES[cfg.mode]||THEMES.day;
- return {mode:Object.prototype.hasOwnProperty.call(THEMES,cfg.mode)?cfg.mode:'day',enabled:cfg.enabled===true,
-  ambient:num(cfg.ambient,0,1,theme.ambient),fogDensity:num(cfg.fogDensity,0,1,theme.fog),
-  fogColor:/^#[a-f0-9]{6}$/i.test(cfg.fogColor||'')?cfg.fogColor:theme.color,
-  fogSpeed:num(cfg.fogSpeed,0,3,1),quality:['economy','balanced','high'].includes(cfg.quality)?cfg.quality:'balanced',
-  fogOfWar:cfg.fogOfWar===true,visionRadius:num(cfg.visionRadius,1,20,7)};
+ const cfg=scene?.atmosphere||{};
+ return {mode:cfg.mode==='night'?'night':'day',doorShadows:cfg.doorShadows===true,
+   quality:['economy','balanced','high'].includes(cfg.quality)?cfg.quality:'balanced'};
 }
 function normalize(scene){
- const s=scene||{},cfg=settings(s);
- if(!s.atmosphere)s.atmosphere={...cfg};
- if(!Array.isArray(s.lights))s.lights=[];
+ const s=scene||{};s.atmosphere=settings(s);
+ if('lights' in s)delete s.lights;
  return s;
 }
 function walls(scene){
@@ -81,112 +79,35 @@ function ensureLight(scene,x,y,options={}){
   type:['torch','lantern','magic','cold'].includes(options.type)?options.type:'torch',enabled:true,flicker:options.flicker!==false};
  scene.lights.push(l);return l;
 }
-// Continuous fog coverage: 100% means fully opaque, not merely more wisps.
-function fogCoverAlpha(density){
- const d=num(density,0,1,0);
- return d>=.999?1:Math.pow(d,2.1);
-}
 const instances=new WeakMap();
 function destroy(board){
- const instance=instances.get(board);if(!instance)return;
- if(instance.frame&&typeof cancelAnimationFrame==='function')cancelAnimationFrame(instance.frame);
- if(instance.canvas?.parentNode)instance.canvas.parentNode.removeChild(instance.canvas);
+ const old=instances.get(board);if(!old)return;
+ if(old.canvas?.parentNode)old.canvas.parentNode.removeChild(old.canvas);
  instances.delete(board);
 }
 function attach(board,scene,options={}){
  if(!board||typeof document==='undefined'||!scene)return null;
  destroy(board);
- const cfg=settings(scene);
- if(!cfg.enabled&&!cfg.fogOfWar)return null;
- // Mestre pode continuar editando mesmo quando o jogador está em blackout total.
- const ambient=options.master===true&&cfg.ambient>=.999?.36:cfg.ambient;
- const fogAmount=options.master===true&&cfg.fogDensity>=.999?.36:cfg.fogDensity;
- const canvas=document.createElement('canvas');canvas.className='m69-atmosphere-canvas';canvas.setAttribute('aria-hidden','true');
- canvas.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:24;width:100%;height:100%;';
- board.appendChild(canvas);
+ const cfg=settings(scene),player=options.player===true;
+ // Only global day/night tint; fog/darkness is selected on individual areas.
+ if(cfg.mode!=='night'&&!(player&&cfg.doorShadows))return null;
+ const cell=Math.max(1,Number(options.cell)||48),width=Math.max(1,scene.width||1)*cell,height=Math.max(1,scene.height||1)*cell;
+ const canvas=document.createElement('canvas');canvas.className='m69-atmosphere-canvas';
+ canvas.setAttribute('aria-hidden','true');
+ canvas.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:7;width:100%;height:100%;';
+ canvas.width=width;canvas.height=height;board.appendChild(canvas);
  if(typeof getComputedStyle==='function'&&getComputedStyle(board).position==='static')board.style.position='relative';
- const quality=options.quality||cfg.quality,
-   scale=quality==='economy'?.35:quality==='high'?.72:.52;
- const width=Math.max(1,Math.round(Number(scene.width||1)*Number(options.cell||48))),
-   height=Math.max(1,Math.round(Number(scene.height||1)*Number(options.cell||48)));
- const factor=Math.min(scale,1200/Math.max(width,height));
- canvas.width=Math.max(1,Math.round(width*factor));canvas.height=Math.max(1,Math.round(height*factor));
  const ctx=canvas.getContext('2d',{alpha:true});if(!ctx)return null;
- const cell=Number(options.cell)||48, sx=canvas.width/Math.max(width,1),sy=canvas.height/Math.max(height,1);
- const segs=walls(scene), lights=lightList(scene,options).map(l=>({...l,polygon:visibilityPolygon(scene,l,quality==='economy'?28:quality==='high'?100:55,segs)}));
- const fow=cfg.fogOfWar&&options.player===true,seen=new Set(scene.seenCells||[]),visible=new Set(scene.visibleCells||[]);
- const fps=quality==='economy'?8:quality==='high'?22:14,clock=1000/fps;
- let last=0,frame=0,stopped=false;
- function draw(timestamp=0){
-  if(stopped||!canvas.isConnected)return;
-  if(timestamp-last>=clock||last===0){
-   last=timestamp;ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,canvas.width,canvas.height);
-   ctx.setTransform(sx,0,0,sy,0,0);
-   if(cfg.enabled){
-    const alpha=ambient;
-    if(alpha>0){
-     ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(4,6,16,'+alpha+')';ctx.fillRect(0,0,width,height);
-     ctx.globalCompositeOperation='destination-out';
-     if(alpha<.999)for(const l of lights){
-      const x=l.x*cell,y=l.y*cell,r=l.radius*cell;
-      const pulse=l.flicker?1+.035*Math.sin(timestamp*.005+(l.x*7+l.y)):1;
-      ctx.save();ctx.beginPath();
-      l.polygon.forEach(([px,py],i)=>i?ctx.lineTo(px*cell,py*cell):ctx.moveTo(px*cell,py*cell));
-      ctx.closePath();ctx.clip();
-      const grad=ctx.createRadialGradient(x,y,0,x,y,r);
-      grad.addColorStop(0,'rgba(0,0,0,'+Math.min(1,l.intensity*pulse)+')');
-      grad.addColorStop(.65,'rgba(0,0,0,'+(l.intensity*.7)+')');grad.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=grad;ctx.fillRect(Math.max(0,x-r),Math.max(0,y-r),2*r,2*r);
-      ctx.globalCompositeOperation='source-over';
-      const tint=ctx.createRadialGradient(x,y,0,x,y,r);
-      tint.addColorStop(0,hexRgba(l.color||'#ffc982',.17*l.intensity));
-      tint.addColorStop(.65,hexRgba(l.color||'#ffc982',.06*l.intensity));
-      tint.addColorStop(1,hexRgba(l.color||'#ffc982',0));
-      ctx.fillStyle=tint;ctx.fillRect(Math.max(0,x-r),Math.max(0,y-r),2*r,2*r);
-      ctx.globalCompositeOperation='destination-out';ctx.restore();
-     }
-     ctx.globalCompositeOperation='source-over';
-    }
-    if(fogAmount>.005){
-     const hue=cfg.fogColor,clouds=quality==='economy'?8:quality==='high'?34:18;
-     // Base uniforme opaca no máximo; as nuvens continuam animadas sobre ela.
-     const cover=fogCoverAlpha(fogAmount);
-     ctx.globalCompositeOperation='source-over';
-     ctx.fillStyle=hexRgba(hue,cover);ctx.fillRect(0,0,width,height);
-     ctx.globalCompositeOperation='source-over';
-     for(let i=0;i<clouds;i++){
-      const seed=i*29.37+7,move=timestamp*.000014*cfg.fogSpeed;
-      const x=((Math.sin(seed)*.5+.5+move) %1)*(width+300)-150,
-        y=((Math.sin(seed*2.19)*.5+.5)+(Math.sin(timestamp*.0001+seed)*.018))*height,
-        r=Math.max(65,Math.min(width,height)*(.11+(i%5)*.034));
-      const g=ctx.createRadialGradient(x,y,0,x,y,r);
-      const density=fogAmount*(quality==='high'?.10:.08);
-      const cloudHue=cover>=1?'#ffffff':hue;
-      g.addColorStop(0,hexRgba(cloudHue,density));g.addColorStop(1,hexRgba(cloudHue,0));
-      ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(x,y,r,r*.36,0,0,Math.PI*2);ctx.fill();
-     }
-    }
-   }
-   if(fow){
-    ctx.globalCompositeOperation='source-over';
-    const w=Math.floor(Number(scene.width)||0),h=Math.floor(Number(scene.height)||0);
-    for(let y=0;y<h;y++)for(let x=0;x<w;x++){
-     const key=y*w+x;
-     if(visible.has(key))continue;
-     ctx.fillStyle=seen.has(key)?'rgba(4,6,15,.73)':'rgba(1,2,8,1)';
-     ctx.fillRect(x*cell,y*cell,cell+.5,cell+.5);
-    }
-   }
-   ctx.globalCompositeOperation='source-over';
-  }
-  if(typeof requestAnimationFrame==='function')instance.frame=requestAnimationFrame(draw);
+ if(cfg.mode==='night'){ctx.fillStyle='rgba(6,9,25,0.42)';ctx.fillRect(0,0,width,height);}
+ if(player&&cfg.doorShadows){
+  const visible=new Set(Array.isArray(scene.visibleCells)?scene.visibleCells:[]);
+  const mw=Math.max(0,Number(scene.width)||0),mh=Math.max(0,Number(scene.height)||0);
+  ctx.fillStyle='rgba(1,2,7,1)';
+  for(let y=0;y<mh;y++)for(let x=0;x<mw;x++)
+   if(!visible.has(y*mw+x))ctx.fillRect(x*cell,y*cell,cell+.2,cell+.2);
  }
- const instance={canvas,draw,destroy:()=>{stopped=true;destroy(board)},frame:0};
- instances.set(board,instance);draw(0);return instance;
+ const instance={canvas,destroy:()=>destroy(board)};
+ instances.set(board,instance);return instance;
 }
-function hexRgba(hex,alpha){
- const s=/^#[0-9a-f]{6}$/i.test(hex)?hex:'#9cb0bc';
- return 'rgba('+parseInt(s.slice(1,3),16)+','+parseInt(s.slice(3,5),16)+','+parseInt(s.slice(5,7),16)+','+Math.max(0,Math.min(1,alpha))+')';
-}
-return {DEFAULT,THEMES,settings,normalize,walls,lineOfSight,visibilityPolygon,lightList,ensureLight,fogCoverAlpha,attach,destroy};
+return {DEFAULT:DEFAULT71,THEMES,settings,normalize,walls,lineOfSight,visibilityPolygon,lightList,ensureLight,attach,destroy};
 });
