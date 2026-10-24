@@ -112,7 +112,7 @@ function render(){
  board.style.setProperty('--cell',cell+'px');board.style.width=(s.width*cell)+'px';board.style.height=(s.height*cell)+'px';
  board.dataset.theme=s.theme;board.style.backgroundImage=bg?'linear-gradient(#ffffff34 1px,transparent 1px),linear-gradient(90deg,#ffffff34 1px,transparent 1px),url('+bg+')':'';
  board.style.backgroundSize=bg?cell+'px '+cell+'px,'+cell+'px '+cell+'px,100% 100%':'';
- let h=(root.Mastermind68Map?.renderLayer(s,'terrain',cell)||'')+
+ let h=(root.Mastermind69Light?.render(s,cell,{master:false})||'')+(root.Mastermind68Map?.renderLayer(s,'terrain',cell)||'')+
   (root.Mastermind68Map?.renderLayer(s,'props',cell)||'')+
   (root.Mastermind68Map?.renderLayer(s,'walls',cell)||'')+s.tokens.map(t=>{const a=assets.get(t.assetId);
   return '<div data-id="'+esc(t.id)+'" data-movable="'+Boolean(t.movable)+'" class="token '+(t.movable?'own':'')+
