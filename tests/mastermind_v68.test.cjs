@@ -39,10 +39,10 @@ const html=read('demo-offline.html'),lanMaster=read('lan_master.html'),lanScene=
 assert.ok(html.indexOf('mastermind68_map_layers.js')<html.indexOf('rpg29_scene_editor.js'));
 assert.ok(lanMaster.indexOf('/map-layers.js')<lanMaster.indexOf('/scene-editor.js'));
 assert.ok(lanScene.indexOf('/map-layers.js')<lanScene.indexOf('/table-player.js'));
-assert.match(html,/>v0\.(?:68|69|70|71|72|73|74|75)<\/small>/);
+assert.match(html,/>v0\.(?:68|69|70|71|72|73|74|75|76)<\/small>/);
 const java=fs.readFileSync(path.resolve(__dirname,'../app/src/main/java/dev/rpgmesa/demo/LocalCampaignServer.java'),'utf8');
 assert.match(java,/paintLayers=map.optJSONObject\("layers"\)/);
 assert.match(java,/marks.length\(\)> \("walls".equals\(layer\)\?720:3600\)/);
 assert.match(java,/path.equals\("\/map-layers.js"\)/);
-assert.match(fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:68|69|70|71|72|73|74|75)/);
+assert.match(fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:68|69|70|71|72|73|74|75|76)/);
 console.log('PASS v0.68: 36+ SVG assets, painting layers, edges and doors, undo/redo, old maps, both LAN views and validation');
