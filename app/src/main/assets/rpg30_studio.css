@@ -77,3 +77,24 @@
 .r30-studio .r30-world[data-theme=cave]{background:#2c2436}
 #r31-board .token,#board .token{z-index:12}
 @media(max-width:790px){.r30-studio .r68-palette{grid-template-columns:repeat(2,minmax(0,1fr))}.r30-studio .r68-paint-panel{padding:7px}.r30-studio .r68-palette button{min-height:67px}.r30-studio .r68-palette .m68-asset-svg{width:36px;height:36px}}
+
+
+/* Mastermind 0.69 — configurable illumination and volumetric-style mist */
+.r30-studio .r69-light-panel{border:1px solid var(--accent,#c597aa);background:linear-gradient(145deg,#272032,#171521);border-radius:13px;padding:11px;margin:10px 0;}
+.r30-studio .r69-light-panel h3{font-size:15px;margin:2px 0 9px;color:#f1c6df;display:flex;align-items:center;justify-content:space-between;gap:5px}
+.r30-studio .r69-light-panel h3 small{font-size:10px;opacity:.72}
+.r30-studio .r69-light-panel h4{margin:12px 0 7px;font-size:12px;color:#e8bed8}
+.r30-studio .r69-light-panel label{display:grid;gap:6px;font-size:11px;color:var(--muted,#ccb8d4);margin:9px 0}
+.r30-studio .r69-light-panel select,.r30-studio .r69-light-panel input:not([type="checkbox"]):not([type="range"]){min-height:34px;width:100%;border-radius:9px}
+.r30-studio .r69-light-panel input[type="range"]{accent-color:var(--accent,#d7acc5);width:100%;height:18px}
+.r30-studio .r69-light-panel input[type="color"]{height:37px;width:100%;padding:3px}
+.r30-studio .r69-light-panel .r69-switch{display:flex;align-items:center;gap:7px;font-weight:600;color:#ebdae8;background:#2e2536;padding:8px;border-radius:9px}
+.r30-studio .r69-light-panel .r69-flex{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.r30-studio .r69-light-panel .r69-light-entry{display:flex;gap:5px;align-items:center;padding:5px 0;border-bottom:1px solid #58475d}
+.r30-studio .r69-light-panel .r69-light-entry span{flex:1;min-width:0;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.r30-studio .r69-light-panel .r69-light-entry button{min-height:30px;padding:5px 7px;font-size:10px}
+.r30-studio .r69-light-panel [data-r69-add-light]{width:100%;min-height:37px;margin:6px 0;border:1px solid #e9b886;background:#4c3739;color:#ffe5be;border-radius:9px}
+.r30-studio .r69-light-panel .r68-caption{font-size:10px;line-height:1.45;color:#beaebc}
+.r30-studio .r30-world>.m69-atmosphere-canvas{pointer-events:none!important;z-index:24!important}
+#r31-board .m69-atmosphere-canvas,#board .m69-atmosphere-canvas{z-index:24!important;pointer-events:none!important}
+@media(max-width:790px){.r30-studio .r69-light-panel{padding:8px}.r30-studio .r69-light-panel .r69-flex{grid-template-columns:1fr 1fr;gap:6px}}
