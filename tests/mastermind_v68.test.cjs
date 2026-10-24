@@ -44,5 +44,5 @@ const java=fs.readFileSync(path.resolve(__dirname,'../app/src/main/java/dev/rpgm
 assert.match(java,/paintLayers=map.optJSONObject\("layers"\)/);
 assert.match(java,/marks.length\(\)> \("walls".equals\(layer\)\?720:3600\)/);
 assert.match(java,/path.equals\("\/map-layers.js"\)/);
-assert.match(fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:68|69)/);
+assert.match(fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:68|69|70)/);
 console.log('PASS v0.68: 36+ SVG assets, painting layers, edges and doors, undo/redo, old maps, both LAN views and validation');
