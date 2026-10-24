@@ -78,11 +78,11 @@ function open(host,options){
   sidebar:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/>',
   plus:'<path d="M12 5v14M5 12h14"/>',minus:'<path d="M5 12h14"/>',
   dice:'<rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="8" cy="8" r="1" fill="currentColor" stroke="none"/><circle cx="16" cy="16" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/>',
-  initiative:'<path d="m5 4 15 15M19 4 4 19m4-12-4-3v5m11-5 5-3v5"/><path d="M3 21h6m6 0h6"/>',
+  initiative:'<path d="M8 16 16 8"/><path d="M10 8h6v6"/><path d="M6 19h12"/><path d="M9 5H5a2 2 0 0 0-2 2v4"/>',
   requests:'<path d="M21 11.5a8 8 0 0 1-8 8H7l-4 3v-6a8 8 0 0 1 5-13h5a8 8 0 0 1 8 8z"/><path d="M8 10h8m-8 4h5"/>',
   hourglass:'<path d="M5 3h14M5 21h14M7 3c0 6 5 6 5 9s-5 3-5 9m10-18c0 6-5 6-5 9s5 3 5 9"/>',
-  people:'<circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M17 11a3 3 0 1 0-1-5m1 9a5 5 0 0 1 4 5"/>',
-  walk:'<circle cx="13" cy="4" r="2"/><path d="m8 21 3-6-2-4 3-4 4 3 3 1m-6 4 4 6M8 12l-4 2"/>',
+  people:'<circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20v-1a5.5 5.5 0 0 1 11 0v1"/><path d="M14 19a4.5 4.5 0 0 1 7 0v1"/>',
+  walk:'<circle cx="12" cy="4" r="2.2"/><path d="m10 21 1.5-5-2-3 2-3 3 2"/><path d="m8 11 3 2 3-1 2 3"/><path d="m8 21 2-4-3-2-2 2"/>',
   target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 1v4m0 14v4M1 12h4m14 0h4"/>',
   chevron:'<path d="m6 9 6 6 6-6"/>',
   shield:'<path d="m12 3 9 4v5c0 6-4 8-9 10-5-2-9-4-9-10V7z"/>'
@@ -148,7 +148,7 @@ function open(host,options){
      '<b>'+(index+1)+'. '+esc(item.name)+' - '+item.score+'</b>'+
      (item.faces?.length?'<small>'+esc(item.formula)+' : ['+esc(item.faces.join(', '))+']</small>':'')+
      '<button data-init-remove="'+esc(item.tokenId)+'" title="Remover da iniciativa">Remover</button></div>').join('')+
- '</div></details>'+r64Group('players','people','Jogadores e efeitos',String((d.players||[]).length))+
+ '</div></details>'+r64Group('players','people','Jogadores e Efeitos',String((d.players||[]).length))+
       (d.players||[]).map(p=>{
         const c=(d.characters||[]).find(c=>c.id===p.characterId);
         const own=map?.tokens?.find(t=>t.ownerPlayerId===p.id&&t.characterId===p.characterId&&!t.hidden);
@@ -181,7 +181,9 @@ function open(host,options){
   board.style.setProperty('--tile',s.cell+'px');board.style.backgroundSize=bg?s.cell+'px '+s.cell+'px,'+s.cell+'px '+s.cell+'px,100% 100%':s.cell+'px '+s.cell+'px';
   board.style.width=(map.width*s.cell)+'px';board.style.height=(map.height*s.cell)+'px';
   board.style.backgroundImage=bg?'linear-gradient(#ffffff38 1px,transparent 1px),linear-gradient(90deg,#ffffff38 1px,transparent 1px),url('+bg+')':'';
-  board.innerHTML=(map.rooms||[]).map(r=>'<div class="room '+(r.hidden?'hidden':'')+' r35-fog-'+esc(r.fogStyle||'shadow')+'" style="left:'+(r.x*s.cell)+'px;top:'+(r.y*s.cell)+'px;width:'+(r.w*s.cell)+'px;height:'+(r.h*s.cell)+'px;border-radius:'+(r.shape==='circle'?'50%':'0')+'"></div>').join('')+
+  board.innerHTML=(root.Mastermind68Map?.renderLayer(map,'terrain',s.cell)||'')+
+    (root.Mastermind68Map?.renderLayer(map,'props',s.cell)||'')+
+    (root.Mastermind68Map?.renderLayer(map,'walls',s.cell)||'')+(map.rooms||[]).map(r=>'<div class="room '+(r.hidden?'hidden':'')+' r35-fog-'+esc(r.fogStyle||'shadow')+'" style="left:'+(r.x*s.cell)+'px;top:'+(r.y*s.cell)+'px;width:'+(r.w*s.cell)+'px;height:'+(r.h*s.cell)+'px;border-radius:'+(r.shape==='circle'?'50%':'0')+'"></div>').join('')+
    (map.tokens||[]).map(t=>{const a=assets.get(t.assetId);
     return '<div data-token="'+esc(t.id)+'" class="token '+(s.selected===t.id?'active':'')+(t.id===activeId?' r35-turn-token':'')+'" style="left:'+(t.x*s.cell)+'px;top:'+(t.y*s.cell)+'px;width:'+s.cell+'px;height:'+s.cell+'px">'+
     (a?.image?'<img alt="" src="'+a.image+'">':'<span>'+esc(readable(t.name).slice(0,2).toUpperCase()||'TK')+'</span>')+'<small>'+esc(t.name||'Token')+'</small></div>';
