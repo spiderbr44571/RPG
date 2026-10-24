@@ -51,7 +51,7 @@ assert.match(read('lan_scene.html'),/\/volume\.js/);
 assert.match(read('lan_master.html'),/\/volume\.js/);
 assert.match(read('demo-offline.html'),/mastermind72_volume\.js/);
 const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/dev/rpgmesa/demo/LocalCampaignServer.java'),'utf8');
-for(const needle of ['illuminatedCells(original,fog)','areaEntrances(scene,room)','canSeeThrough(blockers,tx,ty,x,y)',
+for(const needle of ['illuminatedCells(c,original,fog)','areaEntrances(scene,room)','canSeeThrough(blockers,tx,ty,x,y)',
  'playerFlashlight(String cid,JSONObject player,JSONObject input)','action.equals("rotate")','action.equals("flashlight")',
  'maskedBackground(original,a,fogOfWarActive?currentVision:null,lightCells)','if(!isVisibleInFog(original,mx,my,lightCells))continue;',
  '/volume.js'])assert.ok(java.includes(needle),'Missing secure server integration: '+needle);
