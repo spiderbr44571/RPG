@@ -24,5 +24,5 @@ assert.match(css,/#mm-loading\{[\s\S]*?min-height:100dvh/);
 assert.match(css,/:root\.mm-ready #mm-loading\{display:none\}/,'Splash must disappear once loaded');
 assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
 assert.match(gradle,/versionCode (?:65|66|68|69|70)/);
-assert.match(html,/>v0\.(?:65|66|68|69)<\/small>/);
+assert.match(html,/>v0\.(?:65|66|68|69|70)<\/small>/);
 console.log('PASS Mastermind v0.65: splash logo, centered title/subtitle, small screens, theme, launcher parity');
