@@ -116,16 +116,25 @@ function render(){
   (root.Mastermind68Map?.renderLayer(s,'props',cell)||'')+
   (root.Mastermind68Map?.renderLayer(s,'walls',cell)||'')+s.tokens.map(t=>{const a=assets.get(t.assetId);
   return '<div data-id="'+esc(t.id)+'" data-movable="'+Boolean(t.movable)+'" class="token '+(t.movable?'own':'')+
-    (t.id===state.initiative?.activeId?' r35-turn-token':'')+'" style="left:'+(t.x*cell+1)+'px;top:'+(t.y*cell+1)+'px;width:'+(cell-2)+'px;height:'+(cell-2)+'px">'+
+    (t.id===state.initiative?.activeId?' r35-turn-token':'')+'" style="--m72-angle:'+(t.rotation||0)+'deg;left:'+(t.x*cell+1)+'px;top:'+(t.y*cell+1)+'px;width:'+(cell-2)+'px;height:'+(cell-2)+'px">'+
    (a?.image?'<img src="'+a.image+'" alt="">':'<span>'+esc((t.name||'TK').slice(0,2).toUpperCase())+'</span>')+
-   '<small>'+esc(t.name)+(t.kind==='creature'&&t.maxHp?' · '+t.hp+'/'+t.maxHp+' PV':'')+'</small></div>';
+   '<i class="m72-heading"></i><small>'+esc(t.name)+(t.kind==='creature'&&t.maxHp?' · '+t.hp+'/'+t.maxHp+' PV':'')+'</small></div>';
  }).join('');
  h+=(s.fog||[]).map(f=>'<div class="fog r35-fog-'+esc(f.fogStyle||'mist')+'" style="--r71-intensity:'+(Math.max(0,Math.min(100,f.intensity??100))/100)+';left:'+(f.x*cell)+'px;top:'+(f.y*cell)+'px;width:'+(f.w*cell)+'px;height:'+(f.h*cell)+'px;border-radius:'+(f.shape==='circle'?'50%':'0')+'"></div>').join('');
  board.innerHTML=h;
  root.Mastermind69Atmosphere?.attach(board,s,{cell,player:true});
+ root.Mastermind72Volume?.attach(board,s,{cell,player:true});
  const sceneChanged=cameraScene!==s.id;cameraScene=s.id;
  camera?.attach($('#scroll'),board,s.width*cell,s.height*cell,sceneChanged);
  if(!s.tokens.some(t=>t.id===selected&&t.movable))selected=s.tokens.find(t=>t.movable)?.id||'';
+ const own=s.tokens.find(t=>t.id===selected&&t.movable);
+ const controls=$('#m72-player-controls');
+ if(controls){
+  controls.hidden=!own;
+  const angle=$('#m72-player-angle'),val=$('#m72-player-angle-value'),button=$('#m72-player-lamp');
+  if(own&&document.activeElement!==angle){angle.value=own.rotation||0;val.textContent=(own.rotation||0)+'°';}
+  if(own)button.textContent=own.flashlight?'🔦 Desligar':'🔦 Ligar lanterna';
+ }
  $('#feed').innerHTML=(state.rolls||[]).slice(-3).reverse().map(r=>
   '<div class="roll"><strong>'+esc(r.by)+'</strong> - '+esc(r.label)+'<div><b>'+r.total+'</b><small class="dicefaces">'+
  esc(r.formula)+' : ['+esc((r.faces||[]).join(', '))+']'+(r.mode==='highest'?' (maior d20)':'')+'</small></div></div>').join('');
@@ -147,8 +156,24 @@ async function dice(){
   revision=-1;await refresh();
  }catch(e){$('#roll-answer').textContent=e.message}
 }
+async function setLight(change){
+ const token=state?.scene?.tokens?.find(t=>t.id===selected&&t.movable);
+ if(!token){msg('Selecione um personagem para usar a lanterna.');return}
+ try{await api(sceneUrl+'/flashlight','POST',{tokenId:token.id,...change});revision=-1;await refresh()}
+ catch(err){msg(err.message)}
+}
 function mount(){
  $('#legacy-sheet').href='/play/'+cid;
+ $('#m72-player-lamp').onclick=()=>{
+  const token=state?.scene?.tokens?.find(t=>t.id===selected&&t.movable);
+  if(token)setLight({flashlight:!token.flashlight});
+ };
+ $('#m72-player-angle').addEventListener('input',e=>{
+   $('#m72-player-angle-value').textContent=Number(e.target.value)+'°';
+   const token=document.querySelector('#board [data-id="'+selected+'"]');
+   if(token)token.style.setProperty('--m72-angle',e.target.value+'deg');
+ });
+ $('#m72-player-angle').addEventListener('change',e=>setLight({rotation:Math.max(0,Math.min(359,Math.round(Number(e.target.value)||0)))}));
  $('#scroll').addEventListener('click',async e=>{
   const target=e.target.closest('[data-id]');
   if(target){if(target.dataset.movable==='true'){selected=target.dataset.id;msg('Seu token selecionado. Toque no destino.')}return}
