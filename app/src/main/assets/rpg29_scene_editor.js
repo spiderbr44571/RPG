@@ -423,7 +423,7 @@ function open(host,opts){
   if(r69){const m=getScene();
     if(r69.dataset.r69==='light-mode'){s.tool='light';s.root.querySelectorAll('[data-r30-tool]').forEach(b=>b.classList.toggle('active',b.dataset.r30Tool==='light'));signal('Toque no mapa para colocar a luz.')}
     if(r69.dataset.r69==='reset-explored'&&m&&confirm('Limpar o histórico de exploração dos jogadores neste mapa?')){
-      if(m.lighting){m.lighting.explored={};change();signal('Exploração reiniciada. Salve o mapa para aplicar.')}
+      if(m.lighting){m.lighting.explored={};m.lighting.resetExplored=true;change();signal('Exploração reiniciada. Salve o mapa para aplicar.')}
     }return}
     const b=e.target.closest('[data-r30]');if(!b)return;
   const m=getScene();
