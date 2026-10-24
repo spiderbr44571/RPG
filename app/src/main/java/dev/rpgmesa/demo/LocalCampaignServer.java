@@ -734,7 +734,19 @@ public final class LocalCampaignServer extends NanoHTTPD {
       for(int y=Math.max(0,sy-radius);y<=Math.min(h-1,sy+radius);y++)
       for(int x=Math.max(0,sx-radius);x<=Math.min(w-1,sx+radius);x++){
         int dx=x-sx,dy=y-sy;if(dx*dx+dy*dy>radius*radius||covered(scene,x,y)&&!(x==sx&&y==sy))continue;
-        if(lightLOS(sx,sy,x,y,blocked))visible[y*w+x]=true;
+        if(!lightLOS(sx,sy,x,y,blocked))continue;
+        // Dim environments restrict natural visibility; placed lights reveal cells
+        // only along a valid, unblocked line from the light to the target.
+        boolean illuminated=lighting.optDouble("ambient",.42)>=.30||dx*dx+dy*dy<=4;
+        JSONArray sources=lighting.optJSONArray("lights");
+        if(!illuminated&&sources!=null)for(int n=0;n<sources.length();n++){
+          JSONObject source=sources.optJSONObject(n);
+          if(source==null||!source.optBoolean("enabled",true)||source.optDouble("intensity",.8)<.12)continue;
+          int lx=source.optInt("x",-1),ly=source.optInt("y",-1),lr=source.optInt("radius",6);
+          int ldx=x-lx,ldy=y-ly;
+          if(ldx*ldx+ldy*ldy<=lr*lr&&lightLOS(lx,ly,x,y,blocked)){illuminated=true;break;}
+        }
+        if(illuminated)visible[y*w+x]=true;
       }
     }
     return visible;
