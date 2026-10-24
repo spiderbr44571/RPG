@@ -673,6 +673,39 @@ public final class LocalCampaignServer extends NanoHTTPD {
     }
     return true;
   }
+  // v0.75: outside is daylit. Only cells fully isolated by CLOSED wall/door
+  // edges belong to automatically shadowed rooms. No radial all-map blackout.
+  private static java.util.HashSet<Integer> closedUnlitRooms(JSONObject map){
+    java.util.HashSet<Integer> result=new java.util.HashSet<>();
+    int width=map.optInt("width",0),height=map.optInt("height",0);
+    if(width<1||height<1||width*height>10000)return result;
+    java.util.HashSet<String> closed=opaqueBoundaries(map);
+    if(closed.isEmpty())return result;
+    final int count=width*height;
+    boolean[] outside=new boolean[count];int[] queue=new int[count],head=0,tail=0;
+    for(int y=0;y<height;y++)for(int x=0;x<width;x++){
+      boolean exit=(x==0&&!closed.contains("V:0:"+y))||
+        (x==width-1&&!closed.contains("V:"+width+":"+y))||
+        (y==0&&!closed.contains("H:"+x+":0"))||
+        (y==height-1&&!closed.contains("H:"+x+":"+height));
+      int id=y*width+x;
+      if(exit&&!outside[id]){outside[id]=true;queue[tail++]=id;}
+    }
+    while(head<tail){
+      int id=queue[head++],x=id%width,y=id/width;
+      for(int dir=0;dir<4;dir++){
+        int nx=x+(dir==0?-1:dir==1?1:0),ny=y+(dir==2?-1:dir==3?1:0);
+        if(nx<0||ny<0||nx>=width||ny>=height)continue;
+        int next=ny*width+nx;
+        if(outside[next]||closed.contains(edgeKey(x,y,nx,ny)))continue;
+        outside[next]=true;queue[tail++]=next;
+      }
+    }
+    for(int i=0;i<count;i++)if(!outside[i])result.add(i);
+    // Defend against an accidental entire-map blackout from imported perimeter lines.
+    if(result.size()>count*.65)result.clear();
+    return result;
+  }
   private static boolean roomVisible(JSONObject room,java.util.Set<Integer> cells,int width){
     int x=room.optInt("x"),y=room.optInt("y"),w=room.optInt("w"),h=room.optInt("h");
     for(int cy=y;cy<y+h;cy++)for(int cx=x;cx<x+w;cx++)if(cells.contains(cy*width+cx))return true;
