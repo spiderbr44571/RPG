@@ -872,6 +872,33 @@ public final class LocalCampaignServer extends NanoHTTPD {
         .put("systemId",sceneSystem).put("gridScale",1.5).put("gridUnit","m")
         .put("width",original.getInt("width")).put("height",original.getInt("height"))
         .put("theme",original.optString("theme","stone"));
+      JSONObject lighting=original.optJSONObject("lighting");
+      boolean dynamicFog=lighting!=null&&lighting.optBoolean("enabled")&&lighting.optBoolean("fogEnabled");
+      boolean[] visibleNow=playerSight(original,player);
+      int mapWidth=original.getInt("width"),mapHeight=original.getInt("height");
+      boolean[] exploredNow=new boolean[mapWidth*mapHeight];
+      boolean changedExploration=false;
+      if(dynamicFog){
+        JSONObject saved=lighting.optJSONObject("explored");
+        if(saved==null){saved=new JSONObject();lighting.put("explored",saved);}
+        String id=player.optString("id");
+        exploredNow=bitsVision(saved.optString(id,""),mapWidth*mapHeight);
+        for(int p=0;p<visibleNow.length;p++)if(visibleNow[p]&&!exploredNow[p]){exploredNow[p]=true;changedExploration=true;}
+        if(changedExploration)saved.put(id,visionBits(exploredNow));
+      }else java.util.Arrays.fill(exploredNow,true);
+      JSONObject sharedLight=new JSONObject().put("enabled",lighting!=null&&lighting.optBoolean("enabled"))
+        .put("fogEnabled",dynamicFog)
+        .put("ambient",lighting==null?.42:lighting.optDouble("ambient",.42))
+        .put("density",lighting==null?0:lighting.optDouble("density",.6))
+        .put("quality",lighting==null?"medium":lighting.optString("quality","medium"));
+      JSONArray allowedLights=new JSONArray(),sources=lighting==null?null:lighting.optJSONArray("lights");
+      if(sources!=null)for(int p=0;p<sources.length();p++){
+        JSONObject source=sources.getJSONObject(p);int lx=source.optInt("x",-1),ly=source.optInt("y",-1);
+        if(lx<0||lx>=mapWidth||ly<0||ly>=mapHeight||!visibleNow[ly*mapWidth+lx]||covered(original,lx,ly))continue;
+        allowedLights.put(new JSONObject(source.toString()));
+      }
+      sharedLight.put("lights",allowedLights);scene.put("lighting",sharedLight);
+      if(dynamicFog)scene.put("vision",new JSONObject().put("visible",visionIndices(visibleNow)).put("explored",visionIndices(exploredNow)));
       JSONArray fog=new JSONArray(),visibleRooms=new JSONArray(),visibleTokens=new JSONArray();
       JSONArray rooms=original.getJSONArray("rooms");
       for(int i=0;i<rooms.length();i++){
@@ -889,7 +916,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       JSONArray tokens=original.getJSONArray("tokens");
       for(int i=0;i<tokens.length();i++){
         JSONObject t=tokens.getJSONObject(i);int x=t.getInt("x"),y=t.getInt("y");
-        if(t.optBoolean("hidden",false)||covered(original,x,y))continue;
+        if(t.optBoolean("hidden",false)||covered(original,x,y)||(dynamicFog&&!visibleNow[y*mapWidth+x]))continue;
         boolean own=t.optString("ownerPlayerId").equals(player.optString("id"))&&
           !player.optString("characterId","").isEmpty()&&t.optString("characterId").equals(player.optString("characterId"));
         JSONObject visible=new JSONObject().put("id",t.getString("id")).put("name",t.getString("name"))
@@ -906,8 +933,10 @@ public final class LocalCampaignServer extends NanoHTTPD {
         JSONObject a=allAssets.getJSONObject(i);
         if(allowedAssetIds.contains(a.optString("id"))){
           JSONObject visible=new JSONObject(a.toString());
-          if(a.optString("id").equals(background)&&fog.length()>0)
-            visible.put("image",maskedBackground(original,a));
+          if(a.optString("id").equals(background)){
+            if(dynamicFog)visible.put("image",maskedBackgroundVision(original,a,exploredNow));
+            else if(fog.length()>0)visible.put("image",maskedBackground(original,a));
+          }
           filteredAssets.put(visible);
         }
       }
@@ -923,7 +952,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
           JSONObject mark=marks.getJSONObject(pi);
           int mx=mark.optInt("x",-1),my=mark.optInt("y",-1);
           if(mx<0||my<0||mx>=original.optInt("width")||my>=original.optInt("height"))continue;
-          if(covered(original,mx,my))continue;
+          if(covered(original,mx,my)||(dynamicFog&&!exploredNow[my*mapWidth+mx]))continue;
           filteredMarks.put(new JSONObject(mark.toString()));
         }
         visiblePaint.put(layer,filteredMarks);
@@ -934,6 +963,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       response.put("movement",playerMovement(c,player,visibleTokens));
       response.put("scene",scene).put("assets",filteredAssets)
         .put("rolls",visibleRolls(c,false)).put("turn",c.optInt("turn",1)).put("sceneName",c.optString("sceneName",""));
+      if(changedExploration)persist();
       // A ficha integral do jogador e entregue apenas ao proprio titular autenticado.
       response.put("character",playerInfo(cid,player).opt("character"));
       return response;
