@@ -120,7 +120,7 @@ function render(){
    (a?.image?'<img src="'+a.image+'" alt="">':'<span>'+esc((t.name||'TK').slice(0,2).toUpperCase())+'</span>')+
    '<small>'+esc(t.name)+(t.kind==='creature'&&t.maxHp?' · '+t.hp+'/'+t.maxHp+' PV':'')+'</small></div>';
  }).join('');
- h+=(s.fog||[]).map(f=>'<div class="fog r35-fog-'+esc(f.fogStyle||'shadow')+'" style="left:'+(f.x*cell)+'px;top:'+(f.y*cell)+'px;width:'+(f.w*cell)+'px;height:'+(f.h*cell)+'px;border-radius:'+(f.shape==='circle'?'50%':'0')+'"></div>').join('');
+ h+=(s.fog||[]).map(f=>'<div class="fog r35-fog-'+esc(f.fogStyle||'mist')+'" style="--r71-intensity:'+(Math.max(0,Math.min(100,f.intensity??100))/100)+';left:'+(f.x*cell)+'px;top:'+(f.y*cell)+'px;width:'+(f.w*cell)+'px;height:'+(f.h*cell)+'px;border-radius:'+(f.shape==='circle'?'50%':'0')+'"></div>').join('');
  board.innerHTML=h;
  root.Mastermind69Atmosphere?.attach(board,s,{cell,player:true});
  const sceneChanged=cameraScene!==s.id;cameraScene=s.id;
