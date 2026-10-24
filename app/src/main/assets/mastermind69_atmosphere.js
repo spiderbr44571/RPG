@@ -89,8 +89,8 @@ function attach(board,scene,options={}){
  if(!board||typeof document==='undefined'||!scene)return null;
  destroy(board);
  const cfg=settings(scene),player=options.player===true;
- // Only global day/night tint; fog/darkness is selected on individual areas.
- if(cfg.mode!=='night'&&!(player&&cfg.doorShadows))return null;
+ // Day/night is global. Closed-room shadows are computed independently per region.
+ if(cfg.mode!=='night')return null;
  const cell=Math.max(1,Number(options.cell)||48),width=Math.max(1,scene.width||1)*cell,height=Math.max(1,scene.height||1)*cell;
  const canvas=document.createElement('canvas');canvas.className='m69-atmosphere-canvas';
  canvas.setAttribute('aria-hidden','true');
@@ -99,13 +99,6 @@ function attach(board,scene,options={}){
  if(typeof getComputedStyle==='function'&&getComputedStyle(board).position==='static')board.style.position='relative';
  const ctx=canvas.getContext('2d',{alpha:true});if(!ctx)return null;
  if(cfg.mode==='night'){ctx.fillStyle='rgba(6,9,25,0.42)';ctx.fillRect(0,0,width,height);}
- if(player&&cfg.doorShadows){
-  const visible=new Set(Array.isArray(scene.visibleCells)?scene.visibleCells:[]);
-  const mw=Math.max(0,Number(scene.width)||0),mh=Math.max(0,Number(scene.height)||0);
-  ctx.fillStyle='rgba(1,2,7,1)';
-  for(let y=0;y<mh;y++)for(let x=0;x<mw;x++)
-   if(!visible.has(y*mw+x))ctx.fillRect(x*cell,y*cell,cell+.2,cell+.2);
- }
  const instance={canvas,destroy:()=>destroy(board)};
  instances.set(board,instance);return instance;
 }
