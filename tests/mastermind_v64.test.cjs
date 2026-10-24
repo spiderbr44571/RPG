@@ -35,7 +35,7 @@ async function run(){
  const live=made.find(e=>e.className==='r31-live');
  assert.ok(live,'Real live overlay should mount');
  let html=live.innerHTML;
- for(const title of ['✧ MESTRE','Sair','+ Turno','Editar mapa','Iniciar interlúdio','Enquadrar','Rolagens','Iniciativa / sessão','Solicitações','Jogadores e efeitos','Movimento por sistema','Alvo selecionado'])assert.ok(html.includes(title),'Missing live control '+title);
+ for(const title of ['✧ MESTRE','Sair','+ Turno','Editar mapa','Iniciar interlúdio','Enquadrar','Rolagens','Iniciativa / sessão','Solicitações','Jogadores e Efeitos','Movimento por sistema','Alvo selecionado'])assert.ok(html.includes(title),'Missing live control '+title);
  const pos=['Sair','+ Turno','Editar mapa','Iniciar interlúdio','Enquadrar'].map(x=>html.indexOf('>'+x+'</span>'));
  assert.ok(pos.every((x,i)=>x>0&&(!i||x>pos[i-1])),'Toolbar buttons must be left-to-right');
  assert.ok(html.indexOf('r64-commands')<html.indexOf('r64-top-right'),'Actions before status, no center crowding');
