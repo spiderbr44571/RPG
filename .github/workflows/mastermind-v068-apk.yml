@@ -80,7 +80,7 @@ jobs:
             gh release create "$TAG" Mastermind-v0.68-Android.apk \
               --target "${GITHUB_SHA}" \
               --title "Mastermind v0.68 — Construtor de mapas" \
-              --notes "Mastermind v0.68: catálogo SRD 5.1 por classe, regras de magias conhecidas e preparadas, espaços de magia e editor Homebrew. Preserva fichas de versões anteriores. Atenção: instalação sobre APK prévio depende da mesma assinatura; preserve backup das fichas."
+              --notes "Mastermind v0.68: pincéis de terreno e decoração, 36 assets vetoriais originais, paredes e portas editáveis, camadas, desfazer/refazer, duplicação de mapas, interface de mestragem revisada e sincronização visual para mestre e jogadores. Preserva recursos anteriores, incluindo grimório D&D. Atenção: a instalação sobre APK prévio depende da assinatura; faça backup de fichas importantes."
           else
             gh release upload "$TAG" Mastermind-v0.68-Android.apk --clobber
           fi
