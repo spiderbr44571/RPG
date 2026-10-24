@@ -545,7 +545,10 @@ public final class LocalCampaignServer extends NanoHTTPD {
             }
           }
           // Hidden exploration memory is owned exclusively by the host, not editable by clients.
+          if(lightConfig.has("resetExplored")&&!(lightConfig.opt("resetExplored") instanceof Boolean))
+            throw new IllegalArgumentException("Reinicialização de exploração inválida");
           lightConfig.remove("explored");
+          // Exploration is host-managed: the client cannot replace it with arbitrary discovered cells.
         }
         JSONArray rooms=map.optJSONArray("rooms"),tokens=map.optJSONArray("tokens");
         if(rooms==null||tokens==null||rooms.length()>75||tokens.length()>250)
@@ -607,6 +610,22 @@ public final class LocalCampaignServer extends NanoHTTPD {
       }
       String active=optionalSceneId(input,"activeScenarioId");
       if(!active.isEmpty()&&!mapIds.contains(active))throw new IllegalArgumentException("Cenário ativo não encontrado");
+      // Preserve exploration data across editor saves, unless the GM explicitly resets it.
+      JSONArray oldScenarios=scenarioArray(c);
+      for(int i=0;i<maps.length();i++){
+        JSONObject fresh=maps.getJSONObject(i),lighting=fresh.optJSONObject("lighting");
+        if(lighting==null)continue;
+        boolean reset=lighting.optBoolean("resetExplored",false);lighting.remove("resetExplored");
+        if(reset)continue;
+        for(int k=0;k<oldScenarios.length();k++){
+          JSONObject old=oldScenarios.getJSONObject(k);
+          if(!fresh.optString("id").equals(old.optString("id")))continue;
+          JSONObject oldLighting=old.optJSONObject("lighting");
+          if(oldLighting!=null&&oldLighting.optJSONObject("explored")!=null)
+            lighting.put("explored",new JSONObject(oldLighting.optJSONObject("explored").toString()));
+          break;
+        }
+      }
       c.put("sceneAssets",new JSONArray(assets.toString()))
        .put("scenarios",new JSONArray(maps.toString())).put("activeScenarioId",active);
       ensurePlayerTokens(c);
