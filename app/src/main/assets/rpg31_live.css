@@ -103,3 +103,13 @@
 @media(max-width:780px){.r31-live header.r64-head{gap:4px;padding:4px 6px}.r31-live .r64-brand{max-width:72px}.r31-live .r64-brand strong{font-size:12px}.r31-live header.r64-head button.r64-action{height:33px;width:33px}.r31-live .r64-top-right .r35-active-turn{min-width:65px;max-width:110px;padding:3px 5px}.r31-live .body{grid-template-columns:minmax(0,1fr) 190px}.r31-live aside.r64-dock{padding:5px;gap:5px}.r31-live .r64-card>summary{padding:7px}}
 @media(max-width:520px) and (orientation:landscape){.r31-live .r64-top-right .r35-active-turn{display:none}}
 @media(max-width:530px) and (orientation:portrait){.r31-live .body{grid-template-columns:minmax(0,1fr)!important}.r31-live aside.r64-dock:not(.folded){position:absolute;right:0;top:0;bottom:0;width:min(238px,75vw);box-shadow:-12px 0 28px #000b;z-index:4}}
+
+/* v0.71 — subtle master-only previews; never block editing or the token layer. */
+.r31-live .room.hidden{opacity:calc(.2 + var(--r71-intensity,1)*.36);isolation:isolate;overflow:hidden;pointer-events:none}
+.r31-live .room.hidden.r35-fog-mist{background:linear-gradient(130deg,#a2bbc4,#5d7887 52%,#a9c5d0);border-color:#9bc5d0}
+.r31-live .room.hidden.r35-fog-dark{background:linear-gradient(135deg,#020307,#1e2134 45%,#030306);border-color:#55536a}
+.r31-live .room.hidden.r35-fog-mist::before,.r31-live .room.hidden.r35-fog-dark::before{
+ content:'';position:absolute;inset:-36%;pointer-events:none;background:radial-gradient(ellipse at 30% 45%,#e8f5ff85,transparent 40%),radial-gradient(ellipse at 68% 64%,#060a24a5,transparent 50%);filter:blur(13px);animation:r71-master-cloud 20s ease-in-out infinite alternate}
+.r31-live .room.hidden.r35-fog-dark::before{background:radial-gradient(ellipse at 38% 44%,#42465b92,transparent 40%),radial-gradient(ellipse at 68% 64%,#000000f4,transparent 50%);animation-duration:29s}
+@keyframes r71-master-cloud{to{transform:translate(8%,-6%)}}
+@media(prefers-reduced-motion:reduce){.r31-live .room.hidden::before{animation:none}}
