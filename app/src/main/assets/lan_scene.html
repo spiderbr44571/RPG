@@ -21,6 +21,26 @@ body,.drawer,.entry{font-family:system-ui,Arial,"Segoe UI",sans-serif!important}
 .fog.r35-fog-dark{background:radial-gradient(ellipse at 50% 35%,#232536 0%,#090a14 75%,#03040a 100%);border-color:#302d3e}
 .fog.r35-fog-mist{background:radial-gradient(ellipse at 20% 40%,#a4afbf 0%,#7f8da2 30%,#424f68 64%,#222c44 100%);border-color:#b4c4d8}
 .fog.r35-fog-void{background:#020205;border-color:#08080d}
+
+/* Névoa/escuridão volumétrica 2.5D dentro de salas bloqueadas.
+   O fundo permanece 100% opaco; a animação é somente uma textura superior. */
+.fog.r35-fog-mist,.fog.r35-fog-dark{overflow:hidden;isolation:isolate}
+.fog.r35-fog-mist::after,.fog.r35-fog-dark::after{
+ content:"";position:absolute;inset:-45%;pointer-events:none;transform:translate3d(-5%,1%,0);
+ animation:m69-room-drift 19s ease-in-out infinite alternate;
+}
+.fog.r35-fog-mist::after{
+ background:radial-gradient(ellipse at 25% 45%,#f3f7ff4d 0%,transparent 40%),
+ radial-gradient(ellipse at 68% 60%,#0c1a3438 0%,transparent 45%);
+ filter:blur(14px);
+}
+.fog.r35-fog-dark::after{
+ background:radial-gradient(ellipse at 30% 40%,#3a3c5535 0%,transparent 45%),
+ radial-gradient(ellipse at 75% 65%,#010107cc 0%,transparent 60%);
+ filter:blur(20px);animation-duration:27s;
+}
+@keyframes m69-room-drift{to{transform:translate3d(8%,-6%,0)}}
+@media(prefers-reduced-motion:reduce){.fog.r35-fog-mist::after,.fog.r35-fog-dark::after{animation:none}}
 .token.r35-turn-token{border-color:#8cfbc7!important;box-shadow:0 0 0 4px #5cf0a957,0 0 24px #50ffb1ae!important;z-index:3}
 @media(max-width:760px){#scene-turn{max-width:145px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
 
