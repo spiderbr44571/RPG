@@ -244,6 +244,7 @@ function open(host,opts){
  }
  async function save(){
   await opts.request(opts.route+'/scenarios','POST',{scenarios:s.scenes,assets:s.assets,activeScenarioId:s.active});
+  for(const scene of s.scenes||[])if(scene.lighting)delete scene.lighting.resetExplored;
   s.dirty=false;const el=$('#r30-state',s.root);if(el)el.textContent='✓ Salvo';signal('Salvo e sincronizado com a campanha.');
  }
  async function load(){
