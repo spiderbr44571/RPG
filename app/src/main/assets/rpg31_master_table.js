@@ -181,7 +181,7 @@ function open(host,options){
   board.style.setProperty('--tile',s.cell+'px');board.style.backgroundSize=bg?s.cell+'px '+s.cell+'px,'+s.cell+'px '+s.cell+'px,100% 100%':s.cell+'px '+s.cell+'px';
   board.style.width=(map.width*s.cell)+'px';board.style.height=(map.height*s.cell)+'px';
   board.style.backgroundImage=bg?'linear-gradient(#ffffff38 1px,transparent 1px),linear-gradient(90deg,#ffffff38 1px,transparent 1px),url('+bg+')':'';
-  board.innerHTML=(root.Mastermind68Map?.renderLayer(map,'terrain',s.cell)||'')+
+  board.innerHTML=(root.Mastermind69Light?.render(map,s.cell,{master:true})||'')+(root.Mastermind68Map?.renderLayer(map,'terrain',s.cell)||'')+
     (root.Mastermind68Map?.renderLayer(map,'props',s.cell)||'')+
     (root.Mastermind68Map?.renderLayer(map,'walls',s.cell)||'')+(map.rooms||[]).map(r=>'<div class="room '+(r.hidden?'hidden':'')+' r35-fog-'+esc(r.fogStyle||'shadow')+'" style="left:'+(r.x*s.cell)+'px;top:'+(r.y*s.cell)+'px;width:'+(r.w*s.cell)+'px;height:'+(r.h*s.cell)+'px;border-radius:'+(r.shape==='circle'?'50%':'0')+'"></div>').join('')+
    (map.tokens||[]).map(t=>{const a=assets.get(t.assetId);
