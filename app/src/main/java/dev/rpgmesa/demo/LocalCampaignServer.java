@@ -484,6 +484,33 @@ public final class LocalCampaignServer extends NanoHTTPD {
         String background=optionalSceneId(map,"backgroundAssetId");
         if(!background.isEmpty()&&!assetIds.contains(background))
           throw new IllegalArgumentException("Imagem de mapa não encontrada");
+        // v0.68: validate added painting layers without rewriting old campaign maps.
+        JSONObject paintLayers=map.optJSONObject("layers");
+        if(map.has("layers")&&paintLayers==null)throw new IllegalArgumentException("Camadas do mapa inválidas");
+        if(paintLayers!=null){
+          for(String layer:new String[]{"terrain","props","walls"}){
+            JSONArray marks=paintLayers.optJSONArray(layer);
+            if(paintLayers.has(layer)&&marks==null)throw new IllegalArgumentException("Camada inválida: "+layer);
+            if(marks==null)continue;
+            if(marks.length()> ("walls".equals(layer)?720:3600))throw new IllegalArgumentException("Camada de mapa excede o limite");
+            java.util.HashSet<String> placements=new java.util.HashSet<>();
+            for(int t=0;t<marks.length();t++){
+              JSONObject mark=marks.getJSONObject(t);
+              int mx=gridNumber(mark,"x",0,width-1),my=gridNumber(mark,"y",0,height-1);
+              if("walls".equals(layer)){
+                String side=mark.optString("side",""),kind=mark.optString("kind","");
+                if(!java.util.Arrays.asList("n","s","e","w").contains(side)||!java.util.Arrays.asList("wall","door").contains(kind))
+                  throw new IllegalArgumentException("Parede ou porta inválida");
+                if(mark.has("open")&&!(mark.opt("open") instanceof Boolean))throw new IllegalArgumentException("Estado da porta inválido");
+                if(!placements.add(mx+":"+my+":"+side))throw new IllegalArgumentException("Parede duplicada");
+              }else{
+                String code=mark.optString("id","");
+                if(!code.matches("[a-z][a-z0-9-]{1,39}"))throw new IllegalArgumentException("Asset de pintura inválido");
+                if(!placements.add(mx+":"+my))throw new IllegalArgumentException("Pintura duplicada na mesma célula");
+              }
+            }
+          }
+        }
         JSONArray rooms=map.optJSONArray("rooms"),tokens=map.optJSONArray("tokens");
         if(rooms==null||tokens==null||rooms.length()>75||tokens.length()>250)
           throw new IllegalArgumentException("Quantidade de salas ou tokens inválida");
@@ -1739,6 +1766,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       }
       if(method.equals("GET")){
         if(path.equals("/")||path.equals("/master"))return html("lan_master.html");
+        if(path.equals("/map-layers.js"))return publishedScript("mastermind68_map_layers.js");
         if(path.equals("/scene-editor.js"))return sceneEditorScript();
         if(path.equals("/scene-editor.css"))return sceneEditorStyle();
         if(path.equals("/scene-bestiary.js"))return publishedScript("rpg19_order_creatures.js");
