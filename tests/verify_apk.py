@@ -12,7 +12,7 @@ with zipfile.ZipFile(sys.argv[1]) as apk:
  assert native, 'Android launcher icon resource was not packaged'
  assert any(apk.read(name).startswith(bytes.fromhex('89504e470d0a1a0a')) for name in native)
  assert b'mastermind60_identity.css' in apk.read('assets/demo-offline.html')
- assert b'>v0.76.1<' in apk.read('assets/demo-offline.html')
+ assert b'>v0.76.2<' in apk.read('assets/demo-offline.html')
  for filename in ('feminino.webp','masculino.webp','roupas.webp','interface.webp'):
   relative='assets/atelier/'+filename
   assert relative in apk.namelist(), f'Missing original Atelier art: {relative}'
