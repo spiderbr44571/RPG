@@ -1,19 +1,56 @@
 {
-  "version": "0.76.0",
-  "name": "Mastermind Ateliê — Pacote Experimental de Fantasia",
+  "version": "0.76.2",
+  "name": "Mastermind Ateliê — retratos completos (montagem modular desativada)",
   "format": "webp",
   "atlases": [
-    {"source": "atelier_portraits_f.b64", "destination": "atelier/feminino.webp", "width": 900, "height": 675},
-    {"source": "atelier_portraits_m.b64", "destination": "atelier/masculino.webp", "width": 900, "height": 675},
-    {"source": "atelier_outfits.b64", "destination": "atelier/roupas.webp", "width": 900, "height": 675},
-    {"source": "atelier_interface.b64", "destination": "atelier/interface.webp", "width": 900, "height": 675}
+    {
+      "source": "atelier_portraits_f.b64",
+      "destination": "atelier/feminino.webp",
+      "width": 900,
+      "height": 675
+    },
+    {
+      "source": "atelier_portraits_m.b64",
+      "destination": "atelier/masculino.webp",
+      "width": 900,
+      "height": 675
+    },
+    {
+      "source": "atelier_outfits.b64",
+      "destination": "atelier/roupas.webp",
+      "width": 900,
+      "height": 675
+    },
+    {
+      "source": "atelier_interface.b64",
+      "destination": "atelier/interface.webp",
+      "width": 900,
+      "height": 675
+    }
   ],
-  "categories": ["portrait", "hair", "eyes", "brows", "mouth", "outfit", "cape", "accessory", "frame"],
+  "categories": [
+    "portrait",
+    "hair",
+    "eyes",
+    "brows",
+    "mouth",
+    "outfit",
+    "cape",
+    "accessory",
+    "frame"
+  ],
   "notes": [
-    "As artes são originais e geradas para este projeto.",
-    "As pranchas não foram criadas com coordenadas de encaixe idênticas; por isso a composição modular é experimental.",
-    "Modo retrato mantém arte pronta intacta; modo composição mistura recortes.",
-    "Nenhum sistema de voz é incluído no editor.",
-    "As imagens são empacotadas offline na APK; não são baixadas ao abrir o aplicativo."
+    "As artes originais foram incorporadas ao APK para uso offline.",
+    "Apenas retratos completos são renderizados para evitar sobreposição de partes sem encaixe.",
+    "Molduras, fundos e cores podem ser editados e salvos por ficha; token PNG gerado automaticamente.",
+    "As peças de cabelo/olho/roupa permanecem arquivadas para o futuro editor v0.77, mas não são montadas nesta versão.",
+    "Nenhum menu de voz é incluído no Ateliê."
+  ],
+  "active_categories": [
+    "portrait",
+    "frame",
+    "background",
+    "token",
+    "finish"
   ]
 }
