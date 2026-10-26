@@ -15,8 +15,8 @@ assert.match(html,/id="rpg05-open-atelier"/,'character sheet offers a direct sho
 assert.match(html,/\$\('#rpg05-open-atelier'\)\.onclick=\(\)=>window\.RPG_DEMO\?\.navigate\('atelier'\)/);
 assert.match(studio,/\[data-r09-tool="atelier"\]/,'studio reloads the selected character from mobile hub');
 assert.match(html,/<section id="screen-atelier"/,'screen must actually exist');
-assert.match(html,/>v0\.76\.1<\/small>/);
+assert.match(html,/>v0\.(?:76\.1|76\.2)<\/small>/);
 const gradle=fs.readFileSync(path.join(__dirname,'../app/build.gradle'),'utf8');
-assert.match(gradle,/versionCode 77/);
-assert.match(gradle,/versionName '0\.76\.1-mastermind-atelier-menu-mobile'/);
+assert.match(gradle,/versionCode (?:77|78)/);
+assert.match(gradle,/versionName '0\.76\.(?:1-mastermind-atelier-menu-mobile|2-mastermind-atelier-retratos-estaveis)'/);
 console.log('PASS v0.76.1: Atelier is accessible from actual Android home hub and Fichas, with full UI and icons');
