@@ -2,7 +2,7 @@ name: Mastermind v0.78 APK direto
 on:
   push:
     branches:
-      - feature/mastermind-v078-real-modular-atelier
+      - feature/mastermind-v078-atelier-art-upgrade
   workflow_dispatch:
 permissions:
   contents: write
