@@ -52,7 +52,7 @@ assert.equal(art.normal({...art.DEFAULTS,version:77}).version,78);
 const garmentKinds=new Set();
 for(let outfit=0;outfit<30;outfit++){const c=ctx();art.draw(c,840,1040,{...art.DEFAULTS,outfit});garmentKinds.add(c.ops.join('\\n'));assert.ok(c.ops.length>70,'Artwork should have layered detail for outfit '+outfit);}
 assert.equal(garmentKinds.size,30,'All 30 outfits should render differently');
-assert.match(html,/>v0\.77<\/small>/);
+assert.match(html,/>v0\.78<\/small>/);
 assert.match(fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8'),/versionCode 80/);
 for(const name of ['mastermind78_assets.js','mastermind78_atelier.js'])assert.doesNotThrow(()=>new Function(read(name)));
 console.log('PASS v0.78: 30 distinct illustrated outfits, linked ears, high-resolution output, migration, colors, and tokens');
