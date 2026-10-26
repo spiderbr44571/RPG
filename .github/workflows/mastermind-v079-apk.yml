@@ -37,7 +37,7 @@ jobs:
           node tests/gurps4.test.cjs
           node tests/mastermind_v74.test.cjs
           node tests/mastermind_v75.test.cjs
-          node tests/mastermind_v78.test.cjs
+          node tests/mastermind_v79.test.cjs
       - name: Compilar APK Android
         run: gradle :app:assembleDebug --no-daemon
       - name: Validar APK e assinatura
