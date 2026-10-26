@@ -197,7 +197,7 @@ html[data-paranormal="medo"] .v10-result:before{border-radius:45% 5% 45% 5%}
 
 </style><link rel="stylesheet" href="rpg15_catalog.css"><script src="rpg37_rules.js"></script><link rel="stylesheet" href="mastermind38_shell.css">
 <link rel="stylesheet" href="mastermind39_ui.css"><link rel="stylesheet" href="mastermind40_canvas_images.css"><link rel="stylesheet" href="mastermind42_workspace.css"><link rel="stylesheet" href="mastermind44_sheet_rules.css"><link rel="stylesheet" href="mastermind45_pdf_search.css"><link rel="stylesheet" href="mastermind56_local_powers.css">
-<link rel="stylesheet" href="mastermind76_atelier.css"></head>
+<link rel="stylesheet" href="mastermind77_atelier.css"></head>
 <body>
 <div id="mm-loading" role="status" aria-label="Preparando o Mastermind" aria-live="polite"><div class="mm-boot-content"><img class="mm-boot-logo" src="mastermind_logo.png" width="112" height="112" alt="" aria-hidden="true" decoding="async"><strong class="mm-boot-title">Mastermind</strong><small class="mm-boot-subtitle">Preparando seu espaço...</small><span class="mm-boot-progress" aria-hidden="true"></span></div></div>
 <svg width="0" height="0" style="position:absolute;overflow:hidden" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
@@ -267,59 +267,49 @@ html[data-paranormal="medo"] .v10-result:before{border-radius:45% 5% 45% 5%}
  <!-- CHAR SHEET -->
  <section id="screen-sheet" class="screen" aria-label="Fichas"><div class="page-row"><div><div class="eyebrow">Motor determinístico</div><h1 class="page-h">Personagens vivos.</h1><p class="page-sub">Tudo editável, com regras independentes do assistente de IA.</p></div><button class="btn-dark" id="export-character"><svg class="icon"><use href="#i-copy"/></svg>Exportar ficha</button></div>
  <div class="sheet-layout"><div><div class="surface-flat sheet-head"><div class="sheet-top"><div class="char-avatar">K</div><div><h2>Kael Vesper</h2><p>Explorador do Limiar · Nível 4 · Exemplo fictício</p></div></div><div class="sheet-meta"><span class="pill">Sistema: Regras de Demonstração</span><span class="pill">Trilha: Vigia</span><span class="pill">Campanha: Ecos do Véu</span></div></div><div class="surface-flat sheet-attributes"><div class="section-head"><h3>Atributos principais</h3><small>Clique para editar</small></div><div class="attr-grid" id="attribute-grid"></div></div><div class="surface-flat sheet-secondary"><div class="section-head"><h3>Perícias &amp; aptidões</h3><span class="tag">Valores de exemplo</span></div><div id="skill-list"></div><div id="sheet-derived" class="rpg-derived"></div></div></div><aside><div class="surface-flat resource-panel"><h3>Recursos do personagem</h3><div id="resource-list"></div><span class="tag">Cálculo independente de IA</span></div><div class="surface-flat roll-card"><div class="dice-glyph">✳</div><h3>Mesa de rolagens</h3><p>Teste rápido com dado de 20 faces.</p><button class="btn-primary" id="roll-dice"><svg class="icon"><use href="#i-dice"/></svg>Rolar 1d20</button><div class="roll-result" id="roll-result">O resultado aparecerá aqui</div></div></aside></div></section>
- <!-- Mastermind v0.76.2 — Ateliê estável: retratos prontos, sem composição por peças -->
-<section id="screen-atelier" class="screen" aria-label="Ateliê de Personagens">
- <div class="m76-header">
-  <div><div class="m76-kicker">Mastermind · Personagens</div><h1>Ateliê</h1>
-   <p class="m76-sub">Escolha uma ilustração completa, personalize o fundo e a moldura e salve o retrato e o token na ficha.</p>
+ <!-- Mastermind v0.77 — Modular character studio: all drawn on the same anchored canvas -->
+<section id="screen-atelier" class="screen" aria-label="Ateliê modular de personagens">
+  <div class="m77-header">
+   <div><div class="m77-kicker">Mastermind · Ateliê v0.77</div><h1>Seu personagem, seus detalhes</h1>
+    <p>Combine corpo, rosto, cabelos, olhos, sobrancelhas, boca, roupas e acessórios. Ajuste as cores livremente e transforme a aparência em token.</p></div>
+   <button type="button" class="m77-button" id="m77-sheet">Abrir ficha</button>
   </div>
-  <button type="button" class="m76-btn" id="m76-open-sheet">Abrir ficha</button>
- </div>
- <nav class="m762-tabs" role="tablist" aria-label="Etapas do Ateliê">
- <button type="button" data-m76-category="portrait" class="m76-cat active" role="tab" aria-selected="true">Retratos</button>
- <button type="button" data-m76-category="frame" class="m76-cat" role="tab" aria-selected="false">Molduras</button>
- <button type="button" data-m76-category="background" class="m76-cat" role="tab" aria-selected="false">Fundos</button>
- <button type="button" data-m76-category="token" class="m76-cat" role="tab" aria-selected="false">Token</button>
- <button type="button" data-m76-category="finish" class="m76-cat" role="tab" aria-selected="false">Finalizar</button>
- </nav>
- <div class="m762-workspace">
-  <section class="m76-panel m76-preview">
-   <div class="m76-panel-head"><h2 id="m76-char-name">Personagem</h2><small>Prévia</small></div>
-   <div class="m762-preview-body">
-    <div class="m762-art-wrap">
-     <canvas id="m76-portrait-canvas" width="420" height="520" aria-label="Retrato completo, sem sobreposição de partes"></canvas>
-     <div class="m762-token-preview"><span>Token</span><canvas id="m76-token-canvas" width="256" height="256" aria-label="Prévia do token"></canvas></div>
+  <nav class="m77-tabs" role="tablist" aria-label="Personalização do personagem"><button type="button" class="m77-tab selected" data-m77-tab="body" role="tab" aria-selected="true">Corpo / gênero</button>
+<button type="button" class="m77-tab" data-m77-tab="face" role="tab" aria-selected="false">Rosto</button>
+<button type="button" class="m77-tab" data-m77-tab="skin" role="tab" aria-selected="false">Pele</button>
+<button type="button" class="m77-tab" data-m77-tab="hairBack" role="tab" aria-selected="false">Cabelo atrás</button>
+<button type="button" class="m77-tab" data-m77-tab="hairFront" role="tab" aria-selected="false">Cabelo frontal</button>
+<button type="button" class="m77-tab" data-m77-tab="eyes" role="tab" aria-selected="false">Olhos</button>
+<button type="button" class="m77-tab" data-m77-tab="brows" role="tab" aria-selected="false">Sobrancelhas</button>
+<button type="button" class="m77-tab" data-m77-tab="mouth" role="tab" aria-selected="false">Boca</button>
+<button type="button" class="m77-tab" data-m77-tab="outfit" role="tab" aria-selected="false">Roupa</button>
+<button type="button" class="m77-tab" data-m77-tab="accessory" role="tab" aria-selected="false">Acessórios</button>
+<button type="button" class="m77-tab" data-m77-tab="colors" role="tab" aria-selected="false">Cores</button>
+<button type="button" class="m77-tab" data-m77-tab="token" role="tab" aria-selected="false">Token</button>
+<button type="button" class="m77-tab" data-m77-tab="finish" role="tab" aria-selected="false">Finalizar</button></nav>
+  <div class="m77-layout">
+   <section class="m77-card" aria-label="Prévia da aparência">
+    <div class="m77-card-head"><h2 id="m77-name">Personagem</h2><span>Retrato e token</span></div>
+    <div class="m77-preview-content">
+     <div class="m77-art"><canvas id="m77-portrait" width="420" height="520" aria-label="Retrato modular do personagem"></canvas>
+      <div class="m77-token-container"><span>Token</span><canvas id="m77-token" width="256" height="256" aria-label="Token atualizado automaticamente"></canvas></div>
+     </div>
+     <div class="m77-preview-actions">
+      <button id="m77-save" class="m77-button primary" type="button">Salvar na ficha</button>
+      <button id="m77-export-token" class="m77-button" type="button">Exportar token PNG</button>
+      <button id="m77-export-portrait" class="m77-button" type="button">Exportar retrato PNG</button>
+     </div>
+     <div class="m77-extra-actions"><button id="m77-shuffle" class="m77-button" type="button">Aleatorizar aparência</button><button id="m77-reset" class="m77-button" type="button">Restaurar padrão</button></div>
+     <p id="m77-status" class="m77-message" role="status" aria-live="polite">Selecione uma categoria para personalizar.</p>
     </div>
-    <div class="m762-controls">
-     <label>Cor do fundo <input type="color" id="m76-background" value="#15151e" aria-label="Cor do fundo"></label>
-     <label>Cor do detalhe <input type="color" id="m76-accent" value="#167a7b" aria-label="Cor do detalhe"></label>
-    </div>
-    <div class="m76-swatches" aria-label="Paletas rápidas">
-     <button type="button" class="m76-swatch" data-m76-palette="#174d53" style="background:#174d53" aria-label="Usar paleta #174d53"></button>
-     <button type="button" class="m76-swatch" data-m76-palette="#ca9d66" style="background:#ca9d66" aria-label="Usar paleta #ca9d66"></button>
-     <button type="button" class="m76-swatch" data-m76-palette="#b4c1a3" style="background:#b4c1a3" aria-label="Usar paleta #b4c1a3"></button>
-     <button type="button" class="m76-swatch" data-m76-palette="#533246" style="background:#533246" aria-label="Usar paleta #533246"></button>
-     <button type="button" class="m76-swatch" data-m76-palette="#744b7c" style="background:#744b7c" aria-label="Usar paleta #744b7c"></button>
-     <button type="button" class="m76-swatch" data-m76-palette="#e2b56f" style="background:#e2b56f" aria-label="Usar paleta #e2b56f"></button>
-    </div>
-    <div class="m76-buttons">
-     <button type="button" id="m76-save" class="m76-btn primary">Salvar na ficha</button>
-     <button type="button" id="m76-export-token" class="m76-btn">Exportar token PNG</button>
-     <button type="button" id="m76-export-portrait" class="m76-btn">Exportar retrato PNG</button>
-    </div>
-    <p id="m76-status" class="m76-status" role="status" aria-live="polite">Escolha uma ilustração completa para seu personagem.</p>
-   </div>
-  </section>
-  <section class="m76-panel m76-items">
-   <div class="m76-panel-head"><h2 id="m76-piece-heading">Retratos</h2><small>6 ilustrações originais</small></div>
-   <div class="m762-list-intro"><p>Os retratos são artes completas — sem olhos, cabelos ou roupas desalinhados.</p>
-    <button id="m762-random" type="button" class="m76-btn">Surpreenda-me</button></div>
-   <div id="m76-pieces" class="m76-grid" aria-label="Escolha uma ilustração"></div>
-   <p class="m76-note m762-disclaimer">Nesta correção, a montagem modular está desativada. O editor modular com peças realmente alinhadas será reconstruído em uma atualização posterior.</p>
-  </section>
- </div>
+   </section>
+   <section class="m77-card" aria-label="Escolha de peças">
+    <div class="m77-card-head"><h2 id="m77-section-name">Corpo / gênero</h2><span>Peças alinhadas</span></div>
+    <div id="m77-options" class="m77-options" aria-live="polite"></div>
+    <div class="m77-footnote">Ilustrações modulares desenhadas na mesma base, sem recortes de outras pranchas. Cada categoria e cor pode ser alterada independentemente, sem aba de voz.</div>
+   </section>
+  </div>
 </section>
-
 <!-- AI SEARCH -->
  <section id="screen-ai" class="screen" aria-label="Consultar livros"><div class="page-row"><div><div class="eyebrow">Busca contextual por regras</div><h1 class="page-h">Pergunte aos livros.</h1><p class="page-sub">Pesquisa local com fontes rastreáveis, sem extrair fichas automaticamente.</p></div><span class="pill">● Demonstração sem LLM</span></div><div class="ai-layout"><div class="surface-flat chat-shell"><div class="chat-heading"><div><strong>Assistente de consulta</strong><small>Contexto: Manual do Limiar · Regras fictícias de demonstração</small></div><span class="tag"><span class="dot"></span>Índice local</span></div><div class="chat-thread" id="chat-thread"><div class="ai-msg"><div class="ai-avatar"><svg class="icon"><use href="#i-spark"/></svg></div><div class="ai-bubble"><p><strong>O que você gostaria de consultar?</strong></p><p>Posso demonstrar como a pesquisa dos livros funcionará. Teste uma pergunta sobre <b>iniciativa</b>, <b>descanso</b>, <b>resistência</b> ou <b>perícias</b>.</p><p style="font-size:10px;color:var(--muted)">As respostas abaixo são simulações locais baseadas em texto fictício, não resultados de um modelo de IA.</p></div></div></div><div class="composer"><div class="suggested"><button data-prompt="Como funciona a iniciativa?">Como funciona a iniciativa?</button><button data-prompt="O que acontece durante um descanso?">Como é o descanso?</button><button data-prompt="Como faço um teste de resistência?">Teste de resistência</button></div><form class="input-row" id="chat-form"><input id="chat-input" autocomplete="off" placeholder="Pergunte sobre uma regra..." aria-label="Perguntar ao assistente"><button class="send-btn" aria-label="Enviar pergunta"><svg class="icon"><use href="#i-send"/></svg></button></form></div></div><div class="surface-flat source-panel"><h3>Fontes selecionadas</h3><div class="source-doc"><svg class="icon"><use href="#i-book"/></svg><div><strong>Manual do Limiar</strong><small>Texto fictício · Indexado</small></div></div><div class="source-doc"><svg class="icon"><use href="#i-scroll"/></svg><div><strong>Regras de Demonstração</strong><small>Motor de fichas · JSON</small></div></div><div class="hint-box"><strong>Por que funciona com modelos leves?</strong>Na versão real, o índice recupera trechos relevantes antes da consulta. Assim, a IA recebe poucas passagens e devolve uma explicação com referência.</div><div style="margin-top:20px"><div class="caps">CONFIGURAÇÃO FUTURA</div><p style="font-size:11px;color:var(--muted);line-height:1.7">Busca textual FTS5, seleção por sistema/edição e suporte opcional a modelos locais ou na nuvem.</p></div></div></div></section>
  <!-- CANVAS -->
@@ -1703,4 +1693,4 @@ html body #r09-dice .r09-die-num{fill:#201522!important;font:900 29px system-ui,
 .r37-inventory-warning{border-radius:9px;border:1px solid #d29b66;background:#3a2a23;color:#f2d2ac;padding:12px;margin:0;line-height:1.6}
 .r37-inventory-ok{color:#91dabb;font-size:12px;margin:0}
 .r37-over{border-color:#e5aa77!important;color:#e8b88c}
-@media(max-width:450px){.r37-category-grid{grid-template-columns:1fr}}</style><script src="mastermind39_ui.js"></script><script src="mastermind40_canvas_images.js"></script><script src="mastermind42_workspace.js"></script><script src="mastermind59_class_catalog.js"></script><script src="mastermind56_local_powers.js"></script><link rel="stylesheet" href="mastermind60_identity.css"><script src="mastermind76_atelier.js"></script></body></html>
+@media(max-width:450px){.r37-category-grid{grid-template-columns:1fr}}</style><script src="mastermind39_ui.js"></script><script src="mastermind40_canvas_images.js"></script><script src="mastermind42_workspace.js"></script><script src="mastermind59_class_catalog.js"></script><script src="mastermind56_local_powers.js"></script><link rel="stylesheet" href="mastermind60_identity.css"><script src="mastermind77_assets.js"></script><script src="mastermind77_atelier.js"></script></body></html>
