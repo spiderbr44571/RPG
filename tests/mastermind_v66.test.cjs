@@ -56,6 +56,6 @@ assert.match(form,/d66-new-description/);assert.match(form,/data-d66-class="wiza
 const html=read('demo-offline.html'),old=read('rpg18_dnd_ui.js'),style=read('rpg18_dnd.css');
 assert.ok(html.indexOf('mastermind66_grimoire_engine.js')<html.indexOf('rpg18_dnd_ui.js'));
 assert.match(old,/Mastermind66GrimoireUI\?\.render/);assert.match(old,/Mastermind66GrimoireUI\?\.action/);
-assert.match(style,/\.d66-catalog/);assert.match(html,/>v0\.(?:66|68|69|70|71|72|73|74|75|76)<\/small>/);
-assert.match(fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:66|68|69|70|71|72|73|74|75|76)/);
+assert.match(style,/\.d66-catalog/);assert.match(html,/>v0\.(?:66|68|69|70|71|72|73|74|75|76|76\.1)<\/small>/);
+assert.match(fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:66|68|69|70|71|72|73|74|75|76|77)/);
 console.log('PASS v0.66: 319 spells / class lists, learn/prep caps, level, homebrew, slots, legacy and Android integration');
