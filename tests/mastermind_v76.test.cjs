@@ -49,6 +49,6 @@ for(const entry of manifest.atlases){
  const data=fs.readFileSync(p,'utf8').trim();
  assert.ok(/^UklGR/.test(data),'Valid RIFF WebP expected');
 }
-assert.match(html,/>v0\.(?:76|76\.1)<\/small>/);
-assert.match(fs.readFileSync(path.join(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:76|77)/);
+assert.match(html,/>v0\.(?:76|76\.1|76\.2)<\/small>/);
+assert.match(fs.readFileSync(path.join(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:76|77|78)/);
 console.log('PASS v0.76: local generated art, 9 editor categories without voice, per-character portrait and playable token integration');
