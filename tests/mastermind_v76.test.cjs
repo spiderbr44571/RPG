@@ -31,8 +31,8 @@ assert.match(js,/MastermindCharacters/);
 assert.match(js,/tokenImage/);
 assert.match(js,/photo,portrait:photo/);
 assert.match(js,/data-m76-choice/);
-assert.match(js,/mode==='portrait'/);
-assert.match(html,/Montagem experimental por peças/); // the UI labels composites as experimental
+assert.match(js,/mode:'portrait'/);
+assert.match(html,/a montagem modular está desativada/); // hotfix disables broken composite workflow
 assert.match(read('rpg31_master_table.js'),/sheet\?\.tokenImage/);
 assert.match(read('rpg31_player_table.js'),/t\.photo/);
 const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/dev/rpgmesa/demo/LocalCampaignServer.java'),'utf8');
