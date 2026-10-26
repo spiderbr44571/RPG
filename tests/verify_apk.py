@@ -12,12 +12,13 @@ with zipfile.ZipFile(sys.argv[1]) as apk:
  assert native, 'Android launcher icon resource was not packaged'
  assert any(apk.read(name).startswith(bytes.fromhex('89504e470d0a1a0a')) for name in native)
  assert b'mastermind60_identity.css' in apk.read('assets/demo-offline.html')
- assert b'>v0.78<' in apk.read('assets/demo-offline.html')
- for asset in ('mastermind78_assets.js','mastermind78_atelier.js','mastermind78_atelier.css'):
+ assert b'>v0.79<' in apk.read('assets/demo-offline.html')
+ for asset in ('mastermind78_assets.js','mastermind79_art.js','mastermind78_atelier.js','mastermind78_atelier.css'):
   assert 'assets/'+asset in apk.namelist(), f'Missing modular character resource: {asset}'
   assert len(apk.read('assets/'+asset))>(500 if asset.endswith('.css') else 2000), f'Empty modular resource: {asset}'
  assert b'mastermind78_atelier.js' in apk.read('assets/demo-offline.html')
  assert b'mastermind78_assets.js' in apk.read('assets/demo-offline.html')
+ assert b'mastermind79_art.js' in apk.read('assets/demo-offline.html')
  assert b'data-m77-tab="hairBack"' in apk.read('assets/demo-offline.html')
- print('PASS: all bundled assets match checkout; enhanced modular art, v0.78 marker and native logo present')
+ print('PASS: all bundled assets match checkout; enhanced modular art, v0.79 marker and native logo present')
  print('SHA-256:',hashlib.sha256(Path(sys.argv[1]).read_bytes()).hexdigest())
