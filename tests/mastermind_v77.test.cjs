@@ -16,6 +16,18 @@ const ctx=()=>{const ops=[];const c={ops,fillStyle:'',strokeStyle:'',lineWidth:1
 const standard=ctx();art.draw(standard,420,520,art.DEFAULTS);assert.ok(standard.ops.length>30);
 const variation=ctx();art.draw(variation,420,520,{...art.DEFAULTS,body:1,face:4,skin:7,hairBack:6,hairFront:7,eyes:6,brows:5,mouth:4,outfit:9,accessory:10,hairColor:6,clothPrimary:8});
 assert.notDeepEqual(variation.ops,standard.ops,'Distinct characters need genuinely different layers');
+
+for(const face of [0,1,2,3,4,5]){
+ const width=face===2?5:face===1?-8:face===4?10:0,left=147-width,right=276+width;
+ const rendered=ctx();art.draw(rendered,420,520,{...art.DEFAULTS,face,accessory:1});
+ const leftEar=rendered.ops.findIndex(s=>s.includes('M'+(left+7)+' 206 Q'+(left-15)+' 195'));
+ const rightEar=rendered.ops.findIndex(s=>s.includes('M'+(right-7)+' 206 Q'+(right+15)+' 195'));
+ const faceShape=rendered.ops.findIndex(s=>s.includes('M'+left+' 169 Q'+(144-width)+' 106'));
+ assert.ok(leftEar>=0&&rightEar>=0,'Ears must follow face '+face+' anchors');
+ assert.ok(leftEar<faceShape&&rightEar<faceShape,'Ear attachment must be hidden under cheeks for face '+face);
+}
+assert.match(read('mastermind77_assets.js'),/for\(const x of \[earLeft-7,earRight\+7\]\)/,'Earrings must follow face anchors');
+
 for(let i=0;i<20;i++){
  const c=ctx(),settings=art.random(art.DEFAULTS);assert.equal(art.draw(c,420,520,settings).version,77);assert.ok(c.ops.length>30);
 }
