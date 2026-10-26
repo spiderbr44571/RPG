@@ -812,7 +812,7 @@ demo.renderCanvas();
 const op=$('#screen-op'), sheet=$('#screen-sheet'), lib=$('#screen-library');
 const oldSheet=$('.sheet-layout',sheet);if(oldSheet)oldSheet.style.display='none';
 const oldSheetIntro=$('.page-row',sheet);if(oldSheetIntro)oldSheetIntro.remove();
-sheet.insertAdjacentHTML('afterbegin',`<div class="page-row"><div><div class="eyebrow">PERSONAGENS · MOTOR POR SISTEMA</div><h1 class="page-h">Fichas <i>de agentes.</i></h1><p class="page-sub">Crie personagens associados a um sistema da Biblioteca. Regras e fórmulas não dependem da IA.</p></div></div><div class="rpg05-band"><div class="rpg05-heading"><label for="rpg05-sys">Sistema RPG</label><select id="rpg05-sys"><option value="sistema-op-v13">Ordem Paranormal RPG · 1.3</option></select><span class="rpg05-pill good">DADOS LOCAIS</span></div><div class="rpg05-heading"><label for="rpg05-char-select">Personagem</label><select id="rpg05-char-select"></select><button class="rpg05-btn primary" id="rpg05-new-char">+ Novo agente</button><button class="rpg05-btn" id="rpg05-del-char">Excluir</button></div><p class="rpg05-note">O sistema é selecionado aqui; o livro fica exclusivamente na Biblioteca. Cada personagem tem inventário e ficha independentes.</p></div><div class="rpg05-sheet-op" id="rpg05-sheet-op"></div>`);
+sheet.insertAdjacentHTML('afterbegin',`<div class="page-row"><div><div class="eyebrow">PERSONAGENS · MOTOR POR SISTEMA</div><h1 class="page-h">Fichas <i>de agentes.</i></h1><p class="page-sub">Crie personagens associados a um sistema da Biblioteca. Regras e fórmulas não dependem da IA.</p></div></div><div class="rpg05-band"><div class="rpg05-heading"><label for="rpg05-sys">Sistema RPG</label><select id="rpg05-sys"><option value="sistema-op-v13">Ordem Paranormal RPG · 1.3</option></select><span class="rpg05-pill good">DADOS LOCAIS</span></div><div class="rpg05-heading"><label for="rpg05-char-select">Personagem</label><select id="rpg05-char-select"></select><button class="rpg05-btn primary" id="rpg05-new-char">+ Novo agente</button><button class="rpg05-btn" id="rpg05-open-atelier" type="button" aria-label="Abrir Ateliê de Personagens">✂ Ateliê</button><button class="rpg05-btn" id="rpg05-del-char">Excluir</button></div><p class="rpg05-note">O sistema é selecionado aqui; o livro fica exclusivamente na Biblioteca. Cada personagem tem inventário e ficha independentes.</p></div><div class="rpg05-sheet-op" id="rpg05-sheet-op"></div>`);
 $('#rpg05-sheet-op').append($('#op-view-ficha'));
 $('#op-view-ficha').hidden=false;
 // livros e índice ficam somente na Biblioteca
@@ -856,6 +856,7 @@ $('#rpg05-char-select').addEventListener('change',e=>{
  if(!characters.some(c=>c.id===destination))return;
  persistCurrent();activateCharacter(destination);
 });
+$('#rpg05-open-atelier').onclick=()=>window.RPG_DEMO?.navigate('atelier');
 $('#rpg05-new-char').onclick=()=>{persistCurrent();const id='a-'+Date.now()+'-'+Math.floor(Math.random()*1000),fresh={...sys.state,name:'Novo agente',photo:'',sheetTheme:'theme-sigilo',description:'',history:'',class:'Combatente',origin:'Acadêmico',trail:'Aniquilador',nex:5,attrs:{Agilidade:1,Força:1,Intelecto:1,Presença:1,Vigor:1},resources:{PV:20,PE:3,SAN:12},skills:{},powers:[],powerChoices:[],rituaisConhecidos:[],effects:[],scene:1,turn:1};characters.push({id,name:fresh.name,character:fresh});save(charsKey,characters);activateCharacter(id);notify('Nova ficha criada no sistema Ordem Paranormal')};
 $('#rpg05-del-char').onclick=()=>{if(characters.length<2){notify('Mantenha ao menos uma ficha. Você pode começar um agente novo.');return}if(!confirm('Excluir esta ficha do dispositivo?'))return;characters=characters.filter(x=>x.id!==selectedChar);activateCharacter(characters[0].id);save(charsKey,characters)};
 const saveOld=window.setInterval; // Sincroniza alterações da ficha sem interferir nos cálculos determinísticos.
@@ -1366,6 +1367,7 @@ const svgHome=`<svg class="r09-home-svg" viewBox="0 0 100 100" aria-hidden="true
 const tools=[
  ['library','Biblioteca','book-open','Livros, sistemas e regras'],
  ['sheet','Fichas','users','Personagens, poderes e retratos'],
+ ['atelier','Ateliê','shirt','Criar retratos e tokens com roupas e cabelos'],
  ['dice','Rolagens','dice','1d20, 3d20, 4d6 e outros'],
  ['canvas','Canvas infinito','map','Notas, mapas e criaturas'],
  ['bestiary','Bestiário','book','Grimório e monstros'],
@@ -1378,6 +1380,7 @@ const icons={
  dice:'<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="7.5" cy="7.5" r="1.1"/><circle cx="16.5" cy="7.5" r="1.1"/><circle cx="12" cy="12" r="1.1"/><circle cx="7.5" cy="16.5" r="1.1"/><circle cx="16.5" cy="16.5" r="1.1"/>',
  'book-open':'<path d="M12 6c-3-2-6-2-10-1v15c4-1 7-1 10 1 3-2 6-2 10-1V5c-4-1-7-1-10 1Z M12 6v15"/>',
  users:'<circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2 M16 6a3 3 0 0 1 0 6m2 3a5 5 0 0 1 3 5"/>',
+ shirt:'<path d="M8 4 12 7 16 4 21 7l-3 6-2-1v8H8v-8l-2 1-3-6 5-3z M8 4l4 6 4-6"/>',
  map:'<path d="M3 5 9 3l6 2 6-2v16l-6 2-6-2-6 2Z M9 3v16M15 5v16"/>',
  book:'<path d="M4 3h15v18H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm0 14h15M7 8h8"/>',
  crown:'<path d="m3 7 5 5 4-8 4 8 5-5-2 12H5Z"/>',
