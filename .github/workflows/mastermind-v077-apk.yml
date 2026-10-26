@@ -1,0 +1,70 @@
+name: Mastermind v0.77 APK direto
+on:
+  push:
+    branches:
+      - feature/mastermind-v077-real-modular-atelier
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build-apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Configurar Android SDK
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMANAGER" ]; then SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -path '*/bin/sdkmanager' -type f | sort -V | tail -1)"; fi
+          "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --install "platforms;android-35" "build-tools;35.0.0"
+      - name: Validar scripts, regras e renderização modular
+        run: |
+          set -euo pipefail
+          node --check app/src/main/assets/mastermind77_assets.js
+          node --check app/src/main/assets/mastermind77_atelier.js
+          node --check app/src/main/assets/rpg29_scene_editor.js
+          node --check app/src/main/assets/rpg31_master_table.js
+          node --check app/src/main/assets/rpg31_player_table.js
+          node tests/gurps4.test.cjs
+          node tests/mastermind_v74.test.cjs
+          node tests/mastermind_v75.test.cjs
+          node tests/mastermind_v77.test.cjs
+      - name: Compilar APK Android
+        run: gradle :app:assembleDebug --no-daemon
+      - name: Validar APK e assinatura
+        run: |
+          python3 tests/verify_apk.py app/build/outputs/apk/debug/app-debug.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-debug.apk
+          sha256sum app/build/outputs/apk/debug/app-debug.apk > apk-sha256.txt
+      - name: Publicar Mastermind v0.76 APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mastermind-v0.77-Android-APK
+          path: |
+            app/build/outputs/apk/debug/app-debug.apk
+            apk-sha256.txt
+          if-no-files-found: error
+
+      - name: Disponibilizar APK direto no GitHub Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="mastermind-v0.77-atelier-modular-real"
+          cp app/build/outputs/apk/debug/app-debug.apk Mastermind-v0.77-Android.apk
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" Mastermind-v0.77-Android.apk \
+              --target "${GITHUB_SHA}" \
+              --title "Mastermind v0.77 — Ateliê Modular Real" \
+              --notes "Mastermind v0.77: Ateliê modular reconstruído com peças vetoriais de base/âncoras comuns. Corpo/gênero, rosto, 10 tons de pele, 10 cabelos traseiros e 10 frontais, 8 olhos, 8 bocas, 8 sobrancelhas, 10 roupas, 12 acessórios, cores individuais de pele/cabelo/olhos e roupa primária/secundária, molduras, aleatorização, token e retrato PNG, aparência salva na ficha e usada na mesa. Sem menu de voz. Base visual 2D vetorial original, sem montar recortes de pranchas incompatíveis."
+          else
+            gh release upload "$TAG" Mastermind-v0.77-Android.apk --clobber
+          fi
