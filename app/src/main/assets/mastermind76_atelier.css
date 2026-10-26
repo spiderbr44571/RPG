@@ -43,3 +43,63 @@
 @media(max-width:650px){#screen-atelier .m76-layout{grid-template-columns:1fr}#screen-atelier .m76-cats .m76-panel-content{display:flex;gap:5px;overflow-x:auto}#screen-atelier .m76-cats .m76-cat{width:auto;min-width:100px;flex:none;padding:9px;font-size:10px}#screen-atelier .m76-preview{grid-column:1}#screen-atelier .m76-grid{grid-template-columns:repeat(3,minmax(0,1fr));max-height:270px}#screen-atelier .m76-preview-area{grid-template-columns:minmax(0,1fr) 80px}#screen-atelier #m76-token-canvas{width:78px;height:78px}#screen-atelier .m76-preview-pane{padding:8px}#screen-atelier .m76-tile{min-height:110px}}
 /* v0.76.1 preview correction: show whole sprite, never an arbitrary atlas corner. */
 #screen-atelier canvas.m76-tile-image{display:block!important;width:min(100%,116px)!important;height:108px!important;max-width:116px!important;max-height:108px!important;object-fit:contain!important;margin:0 auto!important;transform:none!important;align-self:center!important;background-image:none!important;background-color:transparent!important;border:0!important;box-shadow:none!important}
+
+/* v0.76.2: stable portrait-only creator, mobile-first proportions. */
+#screen-atelier{width:100%;min-width:0;overflow:hidden}
+#screen-atelier .m76-header{padding:4px 3px 8px;margin:0 0 8px;align-items:center}
+#screen-atelier .m76-header h1{font-size:clamp(20px,3vw,30px);line-height:1.2;margin:2px 0 4px}
+#screen-atelier .m76-sub{font-size:12px;line-height:1.45;margin:2px 0;max-width:550px}
+#screen-atelier .m762-tabs{display:flex;align-items:center;gap:5px;padding:6px;border:1px solid #615163;background:#211b28;border-radius:13px;overflow-x:auto;scrollbar-width:thin;margin-bottom:10px}
+#screen-atelier .m762-tabs .m76-cat{width:auto;min-width:0;flex:1 0 auto;margin:0;display:flex;align-items:center;justify-content:center;padding:9px 10px;text-align:center;font-size:11px;white-space:nowrap;border-radius:8px}
+#screen-atelier .m762-workspace{display:grid;grid-template-columns:minmax(265px,350px) minmax(0,1fr);gap:12px;align-items:start}
+#screen-atelier .m762-workspace .m76-panel{min-width:0}
+#screen-atelier .m762-workspace .m76-panel-head{padding:10px 12px;min-height:49px}
+#screen-atelier .m762-workspace .m76-panel-head h2{font:600 17px/1.2 Georgia,serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#screen-atelier .m762-preview-body{padding:10px;display:flex;flex-direction:column;gap:9px}
+#screen-atelier .m762-art-wrap{position:relative;width:min(100%,302px);margin:0 auto;isolation:isolate}
+#screen-atelier #m76-portrait-canvas{display:block!important;width:100%!important;max-width:none!important;height:auto!important;aspect-ratio:420/520;object-fit:contain;border:2px solid #bb9871;border-radius:11px;box-shadow:0 10px 23px #0007}
+#screen-atelier .m762-token-preview{position:absolute;bottom:10px;right:-6px;display:flex;align-items:center;flex-direction:column;gap:2px;z-index:2;background:#14101cbb;padding:5px;border-radius:9px}
+#screen-atelier .m762-token-preview span{font:600 9px system-ui;color:#f0dabb}
+#screen-atelier #m76-token-canvas{height:74px!important;width:74px!important;max-height:74px!important;max-width:74px!important;border:0!important;box-shadow:none!important}
+#screen-atelier .m762-controls{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+#screen-atelier .m762-controls label{display:flex;justify-content:space-between;gap:8px;align-items:center;font:600 11px system-ui;color:#ded0c4}
+#screen-atelier .m762-controls input[type=color]{height:33px;width:47px;border-radius:7px;border:1px solid #988071;background:#282431;cursor:pointer}
+#screen-atelier .m76-swatches{gap:6px;justify-content:center}
+#screen-atelier .m76-swatch{width:23px;height:23px}
+#screen-atelier .m76-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+#screen-atelier .m76-buttons #m76-save{grid-column:1/-1;font-size:12px;min-height:40px}
+#screen-atelier .m76-buttons .m76-btn{font-size:10px;min-height:37px}
+#screen-atelier .m76-status{margin:0;font:11px/1.45 system-ui;min-height:20px}
+#screen-atelier .m762-list-intro{padding:10px 12px 0;display:flex;align-items:center;justify-content:space-between;gap:8px}
+#screen-atelier .m762-list-intro p{color:#cdbdc0;font:11px/1.4 system-ui;margin:0;max-width:330px}
+#screen-atelier .m762-list-intro .m76-btn{flex:none;padding:7px 8px;min-height:30px}
+#screen-atelier .m76-grid{grid-template-columns:repeat(3,minmax(0,1fr));max-height:650px;padding:10px;gap:9px}
+#screen-atelier .m76-tile{height:160px;min-height:160px;padding:7px 5px 6px;gap:4px;justify-content:flex-start;min-width:0}
+#screen-atelier .m76-tile canvas.m76-tile-image{width:100%!important;max-width:118px!important;height:110px!important;max-height:110px!important;flex:none}
+#screen-atelier .m76-tile small{font-size:10px;line-height:1.2;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-align:center}
+#screen-atelier .m762-family{font:500 9px/1.1 system-ui;opacity:.74;color:#edc797;text-align:center}
+#screen-atelier .m762-finish-copy{grid-column:1/-1;padding:12px 16px;max-width:440px;margin:auto}
+#screen-atelier .m762-finish-copy h3{font:600 18px Georgia,serif;color:#f2d1a7}
+#screen-atelier .m762-finish-copy p{color:#d5c8d2;font:12px/1.6 system-ui}
+#screen-atelier .m762-disclaimer{margin:0 10px 12px;font:10px/1.5 system-ui;opacity:.86}
+@media(max-width:850px){
+ #screen-atelier .m762-workspace{grid-template-columns:1fr;gap:9px}
+ #screen-atelier .m762-art-wrap{width:min(100%,245px)}
+ #screen-atelier .m762-preview-body{padding:8px}
+ #screen-atelier .m76-grid{grid-template-columns:repeat(3,minmax(0,1fr));max-height:none}
+ #screen-atelier .m76-tile{height:144px;min-height:144px}
+ #screen-atelier .m76-tile canvas.m76-tile-image{height:90px!important;max-height:90px!important}
+ #screen-atelier .m762-preview-body .m76-swatches{display:flex}
+ #screen-atelier .m762-token-preview #m76-token-canvas{width:64px!important;height:64px!important}
+}
+@media(max-width:490px){
+ #screen-atelier .m76-header{flex-wrap:nowrap}
+ #screen-atelier .m76-header h1{font-size:21px}
+ #screen-atelier .m76-header .m76-btn{font-size:10px;padding:8px}
+ #screen-atelier .m76-sub{font-size:10px;line-height:1.4}
+ #screen-atelier .m762-tabs .m76-cat{font-size:10px;padding:9px}
+ #screen-atelier .m76-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:9px}
+ #screen-atelier .m76-tile{height:152px;min-height:152px}
+ #screen-atelier .m76-tile canvas.m76-tile-image{height:102px!important;max-height:102px!important}
+ #screen-atelier .m762-list-intro p{font-size:10px}
+}
