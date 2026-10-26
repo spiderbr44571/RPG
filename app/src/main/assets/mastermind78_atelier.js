@@ -1,4 +1,4 @@
-/* Mastermind v0.78 Ateliê: higher-resolution gallery, 30 outfits, backwards-compatible saves. */
+/* Mastermind v0.79 Ateliê: independent illustrated layers, compatible with v0.77/78 saves. */
 (function(root){'use strict';const DOC=root.document,ART=root.Mastermind77Assets;if(!ART)throw Error('Missing modular art renderer');
 const $=s=>DOC.querySelector(s);
 const TABS=[['body','Corpo / gênero'],['face','Rosto'],['skin','Pele'],['hairBack','Cabelo atrás'],['hairFront','Cabelo frontal'],['eyes','Olhos'],['brows','Sobrancelhas'],['mouth','Boca'],['outfit','Roupa'],['accessory','Acessórios'],['colors','Cores'],['background','Fundo'],['token','Token'],['finish','Finalizar']];
@@ -12,7 +12,7 @@ function draw(){const portrait=$('#m77-portrait'),token=$('#m77-token');if(!port
 function reload(){const selected=current(),id=selected?.id||'draft';if(state.characterId===id)return;state.characterId=id;
  let draft=null;try{draft=JSON.parse(root.localStorage.getItem('mastermind-v077-atelier:'+id)||'null')}catch{};
  const stored=selected?.character?.atelier;
- state.appearance=ART.normal(draft||(stored?.version===78||stored?.version===77?stored:null)||ART.DEFAULTS);
+ state.appearance=ART.normal(draft||(stored?.version===79||stored?.version===78||stored?.version===77?stored:null)||ART.DEFAULTS);
  state.dirty=false;$('#m77-name').textContent=selected?.character?.name||selected?.name||'Personagem sem nome';
  draw();category(state.selected);message(selected?'Personalize os detalhes e salve na ficha.':'Crie uma ficha em Personagens para salvar.');
 }
@@ -23,7 +23,7 @@ function category(tab){if(!TABS.some(x=>x[0]===tab))tab='body';state.selected=ta
  if(tab==='finish'){grid.className='m77-finish';grid.innerHTML='<h3>Personagem pronto</h3><p>Revise o retrato e o token. Ao salvar, todas as peças e cores continuarão editáveis na ficha.</p>';return;}
  if(tab==='colors'){grid.className='m77-color-grid';colors(grid);return;}
  const key=tab==='token'?'frame':tab;grid.className=tab==='skin'?'m77-options m77-options-skin':'m77-options';let options=ART.OPTIONS[key]||[];
- if(key==='outfit'){const row=DOC.createElement('div');row.className='m78-outfit-filter';const title=DOC.createElement('span');title.textContent='Coleção de roupas · '+options.length+' modelos';const select=DOC.createElement('select');select.id='m78-outfit-filter';select.setAttribute('aria-label','Filtrar modelos de roupas');OUTFIT_FILTERS.forEach(([name],i)=>{const opt=DOC.createElement('option');opt.value=String(i);opt.textContent=name;select.append(opt);});select.value=String(state.outfitFilter);row.append(title,select);grid.append(row);}
+ if(key==='outfit'){const row=DOC.createElement('div');row.className='m78-outfit-filter';const title=DOC.createElement('span');title.textContent='Arte ilustrada · '+options.length+' variações de roupas';const select=DOC.createElement('select');select.id='m78-outfit-filter';select.setAttribute('aria-label','Filtrar modelos de roupas');OUTFIT_FILTERS.forEach(([name],i)=>{const opt=DOC.createElement('option');opt.value=String(i);opt.textContent=name;select.append(opt);});select.value=String(state.outfitFilter);row.append(title,select);grid.append(row);}
  for(let i=0;i<options.length;i++){if(key==='outfit'&&(i<OUTFIT_FILTERS[state.outfitFilter][1]||i>=OUTFIT_FILTERS[state.outfitFilter][2]))continue;const item=DOC.createElement('button');item.type='button';item.className='m77-option';item.dataset.m77Choice=String(i);item.dataset.m77Key=key;let selected=state.appearance[key]===i;item.classList.toggle('selected',selected);item.setAttribute('aria-pressed',String(selected));
  if(key==='skin'){let spot=DOC.createElement('span');spot.className='m77-skin-swatch';spot.style.background=ART.COLORS.skin[i];item.append(spot);}
  else if(key==='frame'){let tile=DOC.createElement('canvas');tile.width=108;tile.height=108;tile.className='m77-thumb';ART.token(tile.getContext('2d'),108,$('#m77-portrait'),{...state.appearance,frame:i});item.append(tile);}
@@ -44,7 +44,7 @@ function save(){const ch=current(),api=root.MastermindCharacters;if(!ch||!api?.u
  if(tokenImage.length>145000)tokenImage=compressed($('#m77-token'),192,192,.75);
  if(tokenImage.length>145000)tokenImage=compressed($('#m77-token'),160,160,.65);
  if(photo.length>185000||tokenImage.length>145000){message('Imagem grande demais para sincronizar.');return;}
- if(!api.update(ch.id,{atelier:{...state.appearance,version:78},photo,portrait:photo,tokenImage})){message('Não foi possível salvar na ficha.');return;}
+ if(!api.update(ch.id,{atelier:{...state.appearance,version:79},photo,portrait:photo,tokenImage})){message('Não foi possível salvar na ficha.');return;}
  state.dirty=false;persistDraft();message('Retrato e token salvos na ficha '+(ch.character?.name||ch.name||'')+'.');DOC.dispatchEvent(new CustomEvent('mastermind:portrait-updated',{detail:{characterId:ch.id,photo,tokenImage}}));
 }
 function download(canvas,name){canvas.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob),a=DOC.createElement('a');a.href=url;a.download=name+'.png';DOC.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);},'image/png');}
