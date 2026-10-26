@@ -103,3 +103,15 @@
  #screen-atelier .m76-tile canvas.m76-tile-image{height:102px!important;max-height:102px!important}
  #screen-atelier .m762-list-intro p{font-size:10px}
 }
+
+/* Keep the global house menu accessible, but out of the portrait preview on Android. */
+html body:has(#screen-atelier.active) .r09-dock{
+ left:auto!important;right:12px!important;bottom:calc(14px + env(safe-area-inset-bottom))!important;
+ transform:none!important;width:54px!important;height:54px!important;
+}
+html body:has(#screen-atelier.active) #r09-dice{
+ width:50px!important;height:50px!important;min-width:50px!important;min-height:50px!important;
+ border-radius:14px!important;
+}
+html body:has(#screen-atelier.active) #r09-dice svg{width:40px!important;height:40px!important}
+html body:has(#screen-atelier.active) .r09-dock-label{display:none!important}
