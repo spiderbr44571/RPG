@@ -30,6 +30,6 @@ for(const code of ['private static String lightEquipment(', 'private static Stri
  'if("torch".equals(type)||"magic".equals(type))','result=Math.max(result,(1-fade(dist/3.0))*.99)',
  'if(own)visible.put("lightKind",validTokenLight(c,t))','if(token.has("flashlightRadius"))gridNumber(token,"flashlightRadius",1,15)'])
  assert.ok(java.includes(code),'Missing server authority: '+code);
-assert.match(src('demo-offline.html'),/>v0\.(?:73|74|75|76|76\.1)<\/small>/);
-assert.match(fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:73|74|75|76|77)/);
+assert.match(src('demo-offline.html'),/>v0\.(?:73|74|75|76|76\.1|76\.2)<\/small>/);
+assert.match(fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:73|74|75|76|77|78)/);
 console.log('PASS v0.73: on-token 15 degree arrows, no bottom HUD slider, inventory-gated torch/lantern/magic and 3-square radial torch');
