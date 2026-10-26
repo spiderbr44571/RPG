@@ -1,7 +1,7 @@
 /* v0.77 Ateliê: live modular customization, independent colors, per-sheet saving. */
 (function(root){'use strict';const DOC=root.document,ART=root.Mastermind77Assets;if(!ART)throw Error('Missing modular art renderer');
 const $=s=>DOC.querySelector(s);
-const TABS=[['body','Corpo / gênero'],['face','Rosto'],['skin','Pele'],['hairBack','Cabelo atrás'],['hairFront','Cabelo frontal'],['eyes','Olhos'],['brows','Sobrancelhas'],['mouth','Boca'],['outfit','Roupa'],['accessory','Acessórios'],['colors','Cores'],['token','Token'],['finish','Finalizar']];
+const TABS=[['body','Corpo / gênero'],['face','Rosto'],['skin','Pele'],['hairBack','Cabelo atrás'],['hairFront','Cabelo frontal'],['eyes','Olhos'],['brows','Sobrancelhas'],['mouth','Boca'],['outfit','Roupa'],['accessory','Acessórios'],['colors','Cores'],['background','Fundo'],['token','Token'],['finish','Finalizar']];
 const GROUPS=[['customSkin','Pele','useCustomSkin'],['customHair','Cabelo','useCustomHair'],['customEyes','Olhos','useCustomEyes'],['customPrimary','Cor principal da roupa','useCustomPrimary'],['customSecondary','Cor secundária da roupa','useCustomSecondary']];
 const state={ready:false,selected:'body',characterId:null,appearance:{...ART.DEFAULTS},dirty:false};
 const current=()=>root.MastermindCharacters?.selected?.()||null;
@@ -29,7 +29,7 @@ function category(tab){if(!TABS.some(x=>x[0]===tab))tab='body';state.selected=ta
 }
 function colors(grid){const p=ART.palette(state.appearance),vals={customSkin:p.skin,customHair:p.hair,customEyes:p.eye,customPrimary:p.primary,customSecondary:p.secondary};
  for(const [key,label,flag]of GROUPS){const row=DOC.createElement('label');row.className='m77-color-row';row.innerHTML='<span>'+label+'</span><span class="m77-color-control"><input type="color" data-m77-color="'+key+'" aria-label="'+label+'"><button type="button" data-m77-reset-color="'+key+'">Padrão</button></span>';row.querySelector('input').value=state.appearance[flag]?state.appearance[key]:vals[key];grid.append(row);}
- const presets=[['hairColor','Cabelo',ART.COLORS.hair,'useCustomHair'],['eyeColor','Olhos',ART.COLORS.eye,'useCustomEyes'],['clothPrimary','Roupa principal',ART.COLORS.cloth,'useCustomPrimary'],['clothSecondary','Roupa secundária',ART.COLORS.cloth,'useCustomSecondary']];
+ const presets=[['hairColor','Cabelo',ART.COLORS.hair,'useCustomHair'],['eyeColor','Olhos',ART.COLORS.eye,'useCustomEyes'],['clothPrimary','Roupa principal',ART.COLORS.cloth,'useCustomPrimary'],['clothSecondary','Roupa secundária',ART.COLORS.cloth,'useCustomSecondary'],['trimColor','Acabamentos',ART.COLORS.trim,'useCustomTrim']];
  for(const [key,label,items,flag]of presets){const box=DOC.createElement('div');box.className='m77-palette';const title=DOC.createElement('strong');title.textContent=label;box.append(title);const bar=DOC.createElement('div');bar.className='m77-swatches';
  items.forEach((color,i)=>{const b=DOC.createElement('button');b.type='button';b.dataset.m77Palette=key;b.dataset.m77Index=String(i);b.style.background=color;b.setAttribute('aria-label',label+' '+(i+1));if(state.appearance[key]===i&&!state.appearance[flag])b.classList.add('selected');bar.append(b);});box.append(bar);grid.append(box);}
 }
