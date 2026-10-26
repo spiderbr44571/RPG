@@ -43,7 +43,7 @@ function download(canvas,name){canvas.toBlob(blob=>{if(!blob)return;const url=UR
 function init(){if(state.ready||!$('#screen-atelier'))return;state.ready=true;const screen=$('#screen-atelier');
  screen.addEventListener('click',e=>{const tab=e.target.closest('[data-m77-tab]');if(tab){category(tab.dataset.m77Tab);return;}
  const pick=e.target.closest('[data-m77-choice]');if(pick){const key=pick.dataset.m77Key;state.appearance[key]=Number(pick.dataset.m77Choice);changed();category(state.selected);return;}
- const swatch=e.target.closest('[data-m77-palette]');if(swatch){const key=swatch.dataset.m77Palette,flags={hairColor:'useCustomHair',eyeColor:'useCustomEyes',clothPrimary:'useCustomPrimary',clothSecondary:'useCustomSecondary'};state.appearance[flags[key]]=false;state.appearance[key]=Number(swatch.dataset.m77Index);changed();category('colors');return;}
+ const swatch=e.target.closest('[data-m77-palette]');if(swatch){const key=swatch.dataset.m77Palette,flags={hairColor:'useCustomHair',eyeColor:'useCustomEyes',clothPrimary:'useCustomPrimary',clothSecondary:'useCustomSecondary'};if(flags[key])state.appearance[flags[key]]=false;state.appearance[key]=Number(swatch.dataset.m77Index);changed();category('colors');return;}
  const reset=e.target.closest('[data-m77-reset-color]');if(reset){const flag=GROUPS.find(x=>x[0]===reset.dataset.m77ResetColor)?.[2];if(flag){state.appearance[flag]=false;changed();category('colors');}return;}
  if(e.target.closest('#m77-shuffle')){state.appearance=ART.random(state.appearance);changed();category(state.selected);message('Personagem aleatório gerado. Todas as peças podem ser alteradas.');return;}
  if(e.target.closest('#m77-reset')){state.appearance={...ART.DEFAULTS};changed();category(state.selected);return;}
