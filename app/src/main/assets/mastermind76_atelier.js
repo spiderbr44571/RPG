@@ -10,10 +10,10 @@ const atlases={f:'atelier/feminino.webp',m:'atelier/masculino.webp',o:'atelier/r
 // v0.76.2: complete, already illustrated portrait regions. Never assemble
 // facial parts cut from unrelated characters. No external images or AI calls.
 const portraits=[
- {id:'f1',name:'Exploradora ornamentada',family:'Aventureira',pack:'f',rect:[626,88,437,545]},
- {id:'m1',name:'Viajante místico',family:'Arcano',pack:'m',rect:[611,73,452,535]},
- {id:'f2',name:'Viajante cerimonial',family:'Cerimonial',pack:'o',rect:[490,830,171,255]},
- {id:'f3',name:'Investigadora sombria',family:'Investigadora',pack:'o',rect:[744,826,166,260]},
+ {id:'f1',name:'Exploradora ornamentada',family:'Aventureira',pack:'f',rect:[774,90,294,535]},
+ {id:'m1',name:'Viajante místico',family:'Arcano',pack:'m',rect:[752,80,310,525]},
+ {id:'f2',name:'Viajante cerimonial',family:'Cerimonial',pack:'o',rect:[650,816,200,268]},
+ {id:'f3',name:'Investigadora sombria',family:'Investigadora',pack:'o',rect:[902,816,163,268]},
  {id:'f4',name:'Medalhão de aventureira',family:'Nobre',pack:'u',rect:[762,777,288,277]},
  {id:'f5',name:'Retrato heráldico',family:'Heráldico',pack:'u',rect:[1086,782,304,274]}
 ];
