@@ -186,7 +186,7 @@ function init(){if(state.initialized)return;const screen=$('#screen-atelier');if
   state.edited=true;draw();
  });
  DOC.addEventListener('rpg:character-selected',()=>{state.characterId='';loadCurrent()});
- DOC.addEventListener('click',event=>{if(event.target.closest('[data-screen="atelier"]')){state.characterId='';loadCurrent()}});
+ DOC.addEventListener('click',event=>{if(event.target.closest('[data-screen="atelier"],[data-r09-tool="atelier"],#rpg05-open-atelier')){state.characterId='';loadCurrent()}});
  chooseCategory('portrait');loadCurrent();
 }
 root.MastermindAtelier={init,renderCanvases,persistAppearance,sourceWidth,sourceHeight,itemsFor,defaults,portraits,tokenFrames,atlases};
