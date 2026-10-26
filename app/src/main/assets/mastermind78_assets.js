@@ -98,6 +98,13 @@ function drawWardrobe(ctx,n,c,pal){
   if(variant===2){path(ctx,'M133 364 Q158 343 180 359 L208 384 L237 356 Q269 344 286 370 L288 516 L130 516Z',tint(s,-10),g,3);for(let i=0;i<6;i++)line(ctx,'M156 '+(389+i*16)+' L269 '+(389+i*16),g+'93',1.4);}
   if(variant===3){path(ctx,'M117 366 Q160 337 186 367 L210 398 L237 366 Q268 339 305 366 L284 520 L134 520Z',tint(p,26),g,3);for(let i=0;i<7;i++)ellipse(ctx,153+i*18,422+(i%2)*13,3,4,g);}
  }
+ // Collection-specific heraldry: unique trim motifs for each of the 30 outfits.
+ const crestX=187+(n%6)*6,crestY=433+Math.floor(n/6)*8;
+ path(ctx,'M'+crestX+' '+(crestY-8)+' l9 8 l-9 11 l-9 -11Z',tint(s,n%2?18:-31),g,1.45);
+ line(ctx,'M'+(crestX-5)+' '+crestY+' L'+(crestX+5)+' '+crestY,g+'bb',1.15);
+ if(n%3===0)ellipse(ctx,crestX,crestY,3.5,3.5,g);
+ if(n%3===1)line(ctx,'M'+crestX+' '+(crestY-6)+' l0 12',g,1.5);
+ if(n%3===2)path(ctx,'M'+(crestX-4)+' '+(crestY+4)+' l4 -8 l4 8Z',g,null);
  // Needlework, woven shadows and folds make even base-game outfits read as fabric.
  for(let i=0;i<8;i++){
    const x=153+i*16, drift=(i%3-1)*6;
