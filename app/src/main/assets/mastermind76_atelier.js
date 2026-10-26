@@ -237,6 +237,13 @@ function init(){
   if(palette){state.appearance.accent=palette.dataset.m76Palette;
    const field=$('#m76-accent');if(field)field.value=state.appearance.accent;
    draw();return}
+  if(event.target.closest('#m762-random')){
+   const choices=portraits.filter(x=>x.id!==state.appearance.portrait);
+   const next=choices[Math.floor(Math.random()*choices.length)];
+   if(next){state.appearance.portrait=next.id;state.appearance.mode='portrait';
+    state.edited=true;chooseCategory('portrait');draw();}
+   return;
+  }
   if(event.target.closest('#m76-save')){persistAppearance();return}
   if(event.target.closest('#m76-export-portrait')){downloadCanvas($('#m76-portrait-canvas'),'mastermind-retrato');return}
   if(event.target.closest('#m76-export-token')){downloadCanvas($('#m76-token-canvas'),'mastermind-token');return}
