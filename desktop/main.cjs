@@ -2,7 +2,7 @@
 /* Mastermind Linux — desktop shell over the same RPG HTML/JS used by Android.
  * No remote page ever receives an Electron preload or access to local fichas.
  */
-const {app,BrowserWindow,WebContentsView,View,protocol,net,dialog,ipcMain,shell,Menu,screen,nativeImage}=
+const {app,BrowserWindow,WebContentsView,View,dialog,ipcMain,shell,Menu,screen,nativeImage}=
   require('electron');
 const fs=require('node:fs');
 const fsp=require('node:fs/promises');
@@ -10,22 +10,18 @@ const path=require('node:path');
 const os=require('node:os');
 const {pathToFileURL}=require('node:url');
 const {BookCatalog}=require('./book-catalog.cjs');
+const {createAssetServer,PORT}=require('./local-server.cjs');
 
-protocol.registerSchemesAsPrivileged([
-  {scheme:'mastermind',privileges:{
-    standard:true,secure:true,supportFetchAPI:true,stream:true,corsEnabled:true
-  }}
-]);
 app.commandLine.appendSwitch('ozone-platform-hint','auto');
 app.setName('Mastermind');
 const isSmoke=process.argv.includes('--smoke-test');
-const WEB_ORIGIN='mastermind://app';
+const WEB_ORIGIN='http://127.0.0.1:'+PORT;
 const LYIME_OFFICIAL='https://lyime.itch.io/pixel-portrait-creator';
 const LYIME_FALLBACK='https://html.itch.zone/html/18379448/index.html?v=1785079497';
 const LYIME_REGEX=/https:\/\/html\.itch\.zone\/html\/[0-9]{4,16}\/index\.html(?:\?v=[0-9]{1,16})?/;
 const ALLOWED_EXTENSIONS=new Set(['.html','.js','.mjs','.css','.json','.png','.jpg','.jpeg','.svg','.webp','.woff','.woff2','.pdf','.txt','.gif']);
 let mainWindow=null,gameView=null,gameClip=null,gameLoaded=false,gameZoom=1,gameGeometry=null;
-let userBooks=null,webDir=null,gameUrl=LYIME_FALLBACK,pendingCapture='';
+let userBooks=null,webDir=null,gameUrl=LYIME_FALLBACK,pendingCapture='',assetServer=null;
 let pdfWindows=[];
 function appWebRoot(){return app.isPackaged?path.join(process.resourcesPath,'web'):
   path.resolve(__dirname,'../app/src/main/assets');}
@@ -46,21 +42,6 @@ function mime(ext){
 function validRenderer(event){
   return mainWindow&&!mainWindow.isDestroyed()&&event.sender===mainWindow.webContents
     &&event.senderFrame?.url?.startsWith(WEB_ORIGIN+'/');
-}
-function safeWebURL(urlString){
-  try{
-    const u=new URL(urlString);
-    if(u.hostname!=='app'||u.protocol!=='mastermind:')return null;
-    if(u.pathname.startsWith('/privatepdf/')){
-      const match=u.pathname.match(/^\/privatepdf\/([a-f0-9]{16,32})\.pdf$/);
-      if(!match||!userBooks?.lookup(match[1]))return null;
-      return userBooks.fileFor(match[1]);
-    }
-    const decoded=decodeURIComponent(u.pathname);
-    if(decoded.includes('\0')||decoded.includes('\\')||!ALLOWED_EXTENSIONS.has(path.extname(decoded).toLowerCase()))return null;
-    if(decoded.split('/').includes('..'))return null;
-    return safeInside(webDir,decoded);
-  }catch(_){return null}
 }
 function isTrustedGameHost(raw){
   try{
@@ -424,23 +405,17 @@ function registerIPC(){
     return fsp.readFile(result.filePaths[0],'utf8');
   });
 }
-app.whenReady().then(async()=>{
+const hasLock=app.requestSingleInstanceLock();
+if(!hasLock)app.quit();
+app.on('second-instance',()=>{if(mainWindow&&!mainWindow.isDestroyed()){mainWindow.show();mainWindow.focus();}});
+if(hasLock)app.whenReady().then(async()=>{
   webDir=appWebRoot();
   userBooks=new BookCatalog(app.getPath('userData'),(topic,payload)=>mainNotify(topic,payload));
-  protocol.handle('mastermind',async request=>{
-    const target=safeWebURL(request.url);
-    if(!target)return new Response('Not found',{status:404});
-    try{
-      if(!fs.statSync(target).isFile())return new Response('Not found',{status:404});
-      // Return Electron's original file: response. Wrapping its stream in a new
-      // WHATWG Response can fail on Linux Chromium's custom-protocol handler.
-      return net.fetch(pathToFileURL(target).toString());
-    }catch(_){return new Response('Not found',{status:404})}
-  });
+  assetServer=await createAssetServer(webDir,userBooks);
   registerIPC();
   configureMenu();
   createWindow();
 }).catch(e=>{console.error('FATAL',e);app.exit(1)});
 app.on('activate',()=>{if(BrowserWindow.getAllWindows().length===0)createWindow()});
 app.on('window-all-closed',()=>{app.quit()});
-app.on('before-quit',()=>{try{removeGameOverlay()}catch(_){}});
+app.on('before-quit',()=>{try{removeGameOverlay()}catch(_){} try{assetServer?.close()}catch(_){}});
