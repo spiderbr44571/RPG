@@ -13,6 +13,6 @@ with zipfile.ZipFile(apkfile) as z:
    assert not (name.startswith('assets/pixel83/') or name.startswith('assets/atelier/') or name.startswith('assets/mastermind83_')),name
  assert b'id="screen-sheet"' in ui
  assert b'id="screen-settings"' in ui
- assert b'photo' in ui and b'tokenImage' in ui
+ assert b'id="r09-upload-photo"' in ui and b'id="rpg05-new-char"' in ui
  print('PASS v0.84 APK: atelier scripts and sprite atlas absent; character features preserved')
  print('SHA256:',hashlib.sha256(apkfile.read_bytes()).hexdigest())
