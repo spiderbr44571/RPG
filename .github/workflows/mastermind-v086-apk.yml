@@ -1,0 +1,64 @@
+name: Mastermind v0.86 — Pixel Portrait Creator externo
+on:
+  push:
+    branches:
+      - feature/mastermind-v086-lyime-external
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  android:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Validar codigo, criador externo e RPG
+        run: |
+          set -euo pipefail
+          node --check app/src/main/assets/pixelportrait86_companion.js
+          node tests/pixelportrait86.test.cjs
+          node tests/gurps4.test.cjs
+          node tests/mastermind_v74.test.cjs
+          node tests/mastermind_v75.test.cjs
+      - name: Preparar Android SDK
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMANAGER" ]; then SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -path '*/bin/sdkmanager' -type f | sort -V | tail -1)"; fi
+          "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --install 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Compilar APK Android
+        run: gradle :app:assembleDebug --no-daemon
+      - name: Validar conteudo do APK e assinatura
+        run: |
+          set -euo pipefail
+          python3 tests/verify_apk_v86.py app/build/outputs/apk/debug/app-debug.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-debug.apk
+          sha256sum app/build/outputs/apk/debug/app-debug.apk > mastermind-v086-sha256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Mastermind-v0.86-lyime-APK
+          path: |
+            app/build/outputs/apk/debug/app-debug.apk
+            mastermind-v086-sha256.txt
+          if-no-files-found: error
+      - name: Publicar APK na release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="mastermind-v0.86-lyime-external"
+          cp app/build/outputs/apk/debug/app-debug.apk Mastermind-v0.86-Android.apk
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" Mastermind-v0.86-Android.apk --target "${GITHUB_SHA}" \
+              --title "Mastermind v0.86 — Pixel Portrait Creator (lyime)" \
+              --notes "Ateliê integrado externamente ao Pixel Portrait Creator original do lyime. Abrir versão web e link do aplicativo Windows no navegador externo, importar PNG ou capturas no Android, arrastar e ampliar retrato, gerar token, salvar na ficha e exportar pelo Android. Removido o editor Nonemo e suas assets. Nenhum binário ou sprite do lyime foi incluído no APK; respeita a licença que proíbe redistribuição. A versão web não tem exportação, apenas a de Windows."
+          else
+            gh release upload "$TAG" Mastermind-v0.86-Android.apk --clobber
+          fi
