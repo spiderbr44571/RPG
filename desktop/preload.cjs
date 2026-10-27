@@ -19,3 +19,11 @@ contextBridge.exposeInMainWorld('RpgPixelPortraitBridge',Object.freeze({
  openDownload:()=>action('external','https://lyime.itch.io/pixel-portrait-creator'),
  consumeCapture:()=>sync('capture')
 }));
+
+contextBridge.exposeInMainWorld('RpgLocalHost',Object.freeze({
+ status:()=>sync('campaign-status'),
+ masterKey:()=>sync('campaign-key'),
+ start:()=>action('campaign-start'),
+ stop:()=>action('campaign-stop'),
+ openLocalMaster:()=>action('campaign-panel')
+}));
