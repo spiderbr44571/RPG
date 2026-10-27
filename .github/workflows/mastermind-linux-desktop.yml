@@ -1,4 +1,4 @@
-name: Mastermind Linux Desktop — AppImage e tar.gz
+name: Mastermind Linux Desktop — portável x64
 on:
   push:
     branches:
@@ -41,21 +41,22 @@ jobs:
           timeout 40s xvfb-run -a -s "-screen 0 1440x900x24" \
             desktop/node_modules/.bin/electron desktop --smoke-test --no-sandbox 2>&1 | tee desktop-smoke.log
           grep -q 'LINUX SMOKE' desktop-smoke.log
-      - name: Compilar AppImage e tar.gz x86-64
+      - name: Compilar distribuição Linux executável e gerar pacote portátil
         run: |
           set -euo pipefail
           npm --prefix desktop run dist:linux
-          test -f desktop/dist/Mastermind-Linux-1.0.0-x64.AppImage
-          test -f desktop/dist/Mastermind-Linux-1.0.0-x64.tar.gz
-          sha256sum desktop/dist/Mastermind-Linux-1.0.0-x64.AppImage \
-                    desktop/dist/Mastermind-Linux-1.0.0-x64.tar.gz > desktop/dist/SHA256SUMS
+          test -x desktop/dist/linux-unpacked/mastermind
+          test -f desktop/dist/linux-unpacked/resources/app.asar
+          test -f desktop/dist/linux-unpacked/resources/web/demo-offline.html
+          tar -C desktop/dist -czf desktop/dist/Mastermind-Linux-1.0.0-x64.tar.gz linux-unpacked
+          test -s desktop/dist/Mastermind-Linux-1.0.0-x64.tar.gz
+          sha256sum desktop/dist/Mastermind-Linux-1.0.0-x64.tar.gz > desktop/dist/SHA256SUMS
           ls -lh desktop/dist/Mastermind-Linux-* desktop/dist/SHA256SUMS
       - uses: actions/upload-artifact@v4
         with:
-          name: Mastermind-Linux-v1.0.0-AppImage-TarGz
+          name: Mastermind-Linux-v1.0.0-Portable
           if-no-files-found: error
           path: |
-            desktop/dist/*.AppImage
             desktop/dist/*.tar.gz
             desktop/dist/SHA256SUMS
             desktop-smoke.log
@@ -65,11 +66,11 @@ jobs:
         run: |
           set -euo pipefail
           TAG="mastermind-linux-v1.0.0-beta"
-          ASSETS=(desktop/dist/Mastermind-Linux-1.0.0-x64.AppImage desktop/dist/Mastermind-Linux-1.0.0-x64.tar.gz desktop/dist/SHA256SUMS)
+          ASSETS=(desktop/dist/Mastermind-Linux-1.0.0-x64.tar.gz desktop/dist/SHA256SUMS)
           if ! gh release view "$TAG" >/dev/null 2>&1; then
             gh release create "$TAG" "${ASSETS[@]}" --target "${GITHUB_SHA}" \
               --title "Mastermind Linux 1.0.0 beta — Port Desktop" \
-              --notes "Primeira build Linux x86-64 do Mastermind v0.90: mesmos motores RPG, fichas, biblioteca, busca offline, canvas, mesa, bestiário, configurações e Ateliê lyime incorporado com Godot original. Layouts de desktop, teclado, PDFs pessoais indexados localmente, exportação PNG/PDF, backups JSON. AppImage e tar.gz assinados por SHA256SUMS (hashes de integridade, não assinatura criptográfica). Limitante: o backend completo de hospedagem LAN exclusivo do Android ainda não tem paridade nesta build; PDFs e dados existentes precisam ser importados manualmente. Teste visual em CachyOS/Hyprland recomendado."
+              --notes "Primeira build Linux x86-64 do Mastermind v0.90: mesmos motores RPG, fichas, biblioteca, busca offline, canvas, mesa, bestiário, configurações e Ateliê lyime incorporado com Godot original. Layouts de desktop, teclado, PDFs pessoais indexados localmente, exportação PNG/PDF, backups JSON. Distribuição tar.gz portátil e SHA256SUMS de verificação de integridade (hashes de integridade, não assinatura criptográfica). Limitante: o backend completo de hospedagem LAN exclusivo do Android ainda não tem paridade nesta build; PDFs e dados existentes precisam ser importados manualmente. Teste visual em CachyOS/Hyprland recomendado."
           else
             gh release upload "$TAG" "${ASSETS[@]}" --clobber
           fi
