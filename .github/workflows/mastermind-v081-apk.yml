@@ -23,40 +23,31 @@ jobs:
         run: |
           set -euo pipefail
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
-          if [ ! -x "$SDKMANAGER" ]; then SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -path '*/bin/sdkmanager' -type f | sort -V | tail -1)"; fi
+          if [ ! -x "$SDKMANAGER" ]; then
+            SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -path '*/bin/sdkmanager' -type f | sort -V | tail -1)"
+          fi
           "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --install "platforms;android-35" "build-tools;35.0.0"
-      - name: Preparar artes ilustradas reais
-        run: echo 'New modular rig does not use preset portraits'
-      - name: Validar scripts, regras e renderização modular
+      - name: Validar motor modular e regressões
         run: |
           set -euo pipefail
-          node --check app/src/main/assets/mastermind78_assets.js
-          node --check app/src/main/assets/mastermind78_atelier.js
-          node --check app/src/main/assets/mastermind79_art.js
-          node --check app/src/main/assets/mastermind80_portraits.js
+          node --check app/src/main/assets/mastermind81_rig.js
+          node --check app/src/main/assets/mastermind81_atelier.js
           node --check app/src/main/assets/rpg29_scene_editor.js
           node --check app/src/main/assets/rpg31_master_table.js
           node --check app/src/main/assets/rpg31_player_table.js
           node tests/gurps4.test.cjs
           node tests/mastermind_v74.test.cjs
           node tests/mastermind_v75.test.cjs
-          node --check app/src/main/assets/mastermind81_rig.js
-          node --check app/src/main/assets/mastermind81_atelier.js
+          node tests/mastermind_v81.test.cjs
       - name: Compilar APK Android
         run: gradle :app:assembleDebug --no-daemon
-      - name: Validar APK e assinatura
+      - name: Validar conteudo e assinatura do APK
         run: |
-          python3 - <<'PY'
-import zipfile
-p='app/build/outputs/apk/debug/app-debug.apk'
-with zipfile.ZipFile(p) as z:
- for name in ['assets/mastermind81_rig.js','assets/mastermind81_atelier.js','assets/mastermind81_atelier.css']:
-  assert name in z.namelist(),name
- print('PASS v0.81 rig and editor in APK')
-PY app/build/outputs/apk/debug/app-debug.apk
+          set -euo pipefail
+          python3 tests/verify_apk_v81.py app/build/outputs/apk/debug/app-debug.apk
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-debug.apk
           sha256sum app/build/outputs/apk/debug/app-debug.apk > apk-sha256.txt
-      - name: Publicar Mastermind v0.81 APK
+      - name: Publicar artefato da compilacao
         uses: actions/upload-artifact@v4
         with:
           name: Mastermind-v0.81-Android-APK
@@ -64,8 +55,7 @@ PY app/build/outputs/apk/debug/app-debug.apk
             app/build/outputs/apk/debug/app-debug.apk
             apk-sha256.txt
           if-no-files-found: error
-
-      - name: Disponibilizar APK direto no GitHub Releases
+      - name: Publicar APK direto no GitHub Releases
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -75,8 +65,8 @@ PY app/build/outputs/apk/debug/app-debug.apk
           if ! gh release view "$TAG" >/dev/null 2>&1; then
             gh release create "$TAG" Mastermind-v0.81-Android.apk \
               --target "${GITHUB_SHA}" \
-              --title "Mastermind v0.81 — Galeria de Arte Ilustrada" \
-              --notes "Mastermind v0.81: nove retratos pintados originais inspirados no guia visual aprovado, galeria ilustrada offline para salvar na ficha e nos tokens, sem quadrados artificiais. Editor modular de corpo, rosto, cabelos, olhos, sobrancelhas, boca, 30 roupas, cores e acessórios preservado com alternância para composição completa. Artes prontas não são camadas independentes ainda; os dois modos coexistem. Compatível com fichas anteriores, Android debug assinado."
+              --title "Mastermind v0.81 — Atelie Modular 2D Reconstruido" \
+              --notes "Reconstrucao do atelie 2D com pecas intercambiaveis, rig e ancoras compartilhadas. Corpo, rosto, orelhas, pele, olhos, sobrancelhas, nariz, boca, cabelos, barba, roupas, capas, armaduras, acessorios, cores, fundo e molduras; gera retrato e token salvos na ficha. APK de depuracao."
           else
             gh release upload "$TAG" Mastermind-v0.81-Android.apk --clobber
           fi
