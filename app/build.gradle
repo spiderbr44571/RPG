@@ -4,7 +4,7 @@ android {
  useLibrary 'android.test.base'
  namespace 'dev.rpgmesa.demo'
  compileSdk 35
- defaultConfig { applicationId 'dev.rpgmesa.demo'; minSdk 26; targetSdk 28; versionCode 93; versionName '0.89.0-mastermind-atelier-zoom'; testInstrumentationRunner 'android.test.InstrumentationTestRunner' }
+ defaultConfig { applicationId 'dev.rpgmesa.demo'; minSdk 26; targetSdk 28; versionCode 94; versionName '0.90.0-mastermind-inline-atelier'; testInstrumentationRunner 'android.test.InstrumentationTestRunner' }
  compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
 }
 
