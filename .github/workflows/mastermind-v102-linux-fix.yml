@@ -47,8 +47,9 @@ jobs:
           set -euo pipefail
           test -f dist/Mastermind-v1.0.2-Linux-x86_64.AppImage
           test -f dist/Mastermind-v1.0.2-Linux-x64.tar.gz
-          tar -tzf dist/Mastermind-v1.0.2-Linux-x64.tar.gz | grep -q 'resources/server/mastermind-campaign-server.jar'
-          tar -tzf dist/Mastermind-v1.0.2-Linux-x64.tar.gz | grep -q 'resources/server/assets/lan_master.html'
+          tar -tzf dist/Mastermind-v1.0.2-Linux-x64.tar.gz > /tmp/mastermind-linux-package-files.txt
+          grep -q 'resources/server/mastermind-campaign-server.jar' /tmp/mastermind-linux-package-files.txt
+          grep -q 'resources/server/assets/lan_master.html' /tmp/mastermind-linux-package-files.txt
           test "$(stat -c %s dist/Mastermind-v1.0.2-Linux-x86_64.AppImage)" -gt 60000000
       - name: Gerar instalador pacman CachyOS com servidor embutido
         env:
