@@ -8,10 +8,54 @@
 const {app,BrowserWindow,WebContentsView,ipcMain,dialog,shell,nativeImage,session,Menu}=require('electron');
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),https=require('node:https');
 const {URL}=require('node:url');
+const {createHost}=require('./campaign-server.cjs');
 const assets=path.join(__dirname,'..','app','src','main','assets');
 const creator='https://lyime.itch.io/pixel-portrait-creator';
 const gameFallback='https://html.itch.zone/html/18379448/index.html?v=1785079497';
 let win,gameView,gameStarted=false,gameLoading=false,gameBounds=null,editorZoom=1,editorPan={x:0,y:0},capture=null;
+let gmHost=null,gmWindow=null,godotWindow=null,godotTimer=null,gameLastError='';
+function reportGodot(status,message){
+ if(win&&!win.isDestroyed())win.webContents.send('mastermind:godot-status',{status,message:message||''});
+}
+function sanitizeError(error){return String(error?.message||error||'Erro desconhecido').slice(0,200);}
+async function startGmServer(){
+ if(gmHost?.active)return gmInfo();
+ const host=createHost({assetsDir:assets,dataDir:path.join(app.getPath('userData'),'mastermind-gm'),port:8765,host:'0.0.0.0'});
+ try{await host.start();gmHost=host;}
+ catch(e){throw Error('Não foi possível abrir a porta 8765: '+sanitizeError(e));}
+ return gmInfo();
+}
+function gmInfo(){
+ return gmHost?.active?{active:true,url:gmHost.url,lanUrl:gmHost.lanUrl,ip:gmHost.ip,port:gmHost.port,key:gmHost.key}:
+  {active:false,url:'',lanUrl:'',ip:'',port:0,key:''};
+}
+async function openGmConsole(){
+ const status=await startGmServer();
+ if(gmWindow&&!gmWindow.isDestroyed()){gmWindow.show();gmWindow.focus();return status;}
+ gmWindow=new BrowserWindow({
+   title:'Mastermind · Mestragem e mapas',width:1350,height:900,minWidth:850,minHeight:620,
+   backgroundColor:'#17121d',autoHideMenuBar:true,icon:path.join(assets,'mastermind_logo.png'),
+   webPreferences:{nodeIntegration:false,contextIsolation:true,sandbox:true,webSecurity:true}
+ });
+ gmWindow.webContents.setWindowOpenHandler(({url})=>{
+   if(/^http:\/\/\d{1,3}(?:\.\d{1,3}){3}:8765\//.test(url))shell.openExternal(url).catch(()=>{});
+   return {action:'deny'};
+ });
+ await gmWindow.loadURL(status.url);
+ // Master login remains on the loopback-only, trusted page. Key is never
+ // exposed via the HTTP API or to players, and remains in userData locally.
+ gmWindow.webContents.executeJavaScript(
+  "(function(){const key=document.getElementById('key'),login=document.getElementById('sign');"+
+  "if(key&&login){key.value="+JSON.stringify(status.key)+";login.click();}})()",true).catch(()=>{});
+ gmWindow.on('closed',()=>{gmWindow=null;});
+ return status;
+}
+async function stopGmServer(){
+ if(gmWindow&&!gmWindow.isDestroyed()){gmWindow.close();gmWindow=null;}
+ if(gmHost){await gmHost.close();gmHost=null;}
+ return gmInfo();
+}
+
 const allowedExt=new Set(['.png','.pdf','.json']);
 const stored=()=>path.join(app.getPath('userData'),'mastermind-books');
 function safeName(value,ext){
@@ -250,6 +294,10 @@ app.whenReady().then(()=>{
    case 'list-books':return listBooks();
    case 'search-book':return searchPdf(args[0],args[1],args[2],args[3]);
    case 'open-book':return openPdf(args[0]);
+   case 'gm-start':return startGmServer();
+   case 'gm-status':return gmInfo();
+   case 'gm-open':return openGmConsole();
+   case 'gm-stop':return stopGmServer();
    case 'external':if(args[0]===creator)return shell.openExternal(creator);return false;
    case 'godot-bounds':createGame();gameRect(args[0]);return true;
    case 'godot-action':gameAction(args[0]);return true;
@@ -259,5 +307,9 @@ app.whenReady().then(()=>{
   }
  });
  makeWindow();
+});
+app.on('before-quit',()=>{
+ if(gmHost?.active){gmHost.close().catch(console.error);gmHost=null;}
+ if(godotTimer)clearTimeout(godotTimer);
 });
 app.on('window-all-closed',()=>{app.quit();});
