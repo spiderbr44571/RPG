@@ -1,0 +1,57 @@
+{
+  "name": "mastermind-linux",
+  "productName": "Mastermind",
+  "version": "1.0.0",
+  "description": "Mastermind RPG — aplicação Linux de desktop com ficha, biblioteca, mapas e Ateliê",
+  "private": true,
+  "main": "main.cjs",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "check": "node --check main.cjs && node --check preload.cjs && node --check book-catalog.cjs && node --check desktop-ui.js",
+    "test": "node --test test/*.test.cjs",
+    "dist:linux": "electron-builder --linux AppImage tar.gz --x64 --publish never",
+    "dist:dir": "electron-builder --linux dir --x64 --publish never"
+  },
+  "dependencies": {
+    "pdfjs-dist": "4.10.38"
+  },
+  "devDependencies": {
+    "electron": "36.9.3",
+    "electron-builder": "26.0.12"
+  },
+  "build": {
+    "appId": "dev.mastermind.rpg",
+    "productName": "Mastermind",
+    "artifactName": "Mastermind-Linux-${version}-${arch}.${ext}",
+    "asar": true,
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "book-catalog.cjs",
+      "package.json",
+      "node_modules/**/*"
+    ],
+    "extraResources": [
+      {"from": "../app/src/main/assets", "to": "web", "filter": ["**/*"]},
+      {"from": "desktop-ui.js", "to": "web/mastermind_linux.js"},
+      {"from": "desktop.css", "to": "web/mastermind_linux.css"},
+      {"from": "../server/mesa_lan.py", "to": "server/mesa_lan.py"}
+    ],
+    "linux": {
+      "category": "Game",
+      "executableName": "mastermind",
+      "icon": "icons",
+      "target": [
+        {"target": "AppImage", "arch": ["x64"]},
+        {"target": "tar.gz", "arch": ["x64"]}
+      ]
+    },
+    "appImage": {
+      "category": "Game"
+    }
+  }
+}
