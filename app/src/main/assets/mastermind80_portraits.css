@@ -1,0 +1,10 @@
+/* v0.80 illustrated presets - intentionally separate from the true modular layer picker. */
+#screen-atelier .m80-gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:12px;max-height:min(77vh,850px);overflow-y:auto}
+#screen-atelier .m80-gallery-note{grid-column:1/-1;font:11px/1.55 system-ui;color:#dcc9af;padding:10px 12px;background:linear-gradient(110deg,#49332e,#27222b);border:1px solid #876c56;border-radius:10px;margin:0 0 4px}
+#screen-atelier .m80-gallery-choice{padding:7px 6px 10px;background:linear-gradient(155deg,#25222b,#151923);color:#eedac5;border:1px solid #806a58;border-radius:11px;min-width:0;cursor:pointer;display:flex;flex-direction:column;gap:7px;align-items:center;box-shadow:0 4px 14px #0004}
+#screen-atelier .m80-gallery-choice.selected{border:2px solid #e4b77b;background:#294148;box-shadow:0 0 0 1px #f4d7ad70}
+#screen-atelier .m80-gallery-choice canvas{max-width:100%;width:100%;height:auto;aspect-ratio:420/520;border:1px solid #755743;border-radius:7px;background:#1c1c25;display:block}
+#screen-atelier .m80-gallery-choice small{font:650 11px Georgia,serif;line-height:1.3;text-align:center;color:#e9d4b7}
+#screen-atelier [data-m77-tab=illustrated]{border-color:#af8a59;background:#362b35;color:#eace9c}
+#screen-atelier [data-m77-tab=illustrated].selected{background:#25545b;color:#ffebc8}
+@media(max-width:440px){#screen-atelier .m80-gallery{gap:7px;padding:8px}#screen-atelier .m80-gallery-choice small{font-size:10px}}
