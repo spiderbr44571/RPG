@@ -12,6 +12,13 @@ const block=document.createElement('section');block.id='r11-campaigns';block.inn
 
 const localTools=document.createElement('div');localTools.id='r12-host-controls';
 localTools.innerHTML='<div class="r12-host-head"><div><strong>Servidor neste celular</strong><small>Seu telefone pode hospedar uma campanha sem computador.</small></div><b id="r12-host-state">Verificando…</b></div><div class="r11-tools"><button data-r12="start" class="btn-primary">Iniciar servidor</button><button data-r12="stop">Desligar</button><button data-r12="connect">Conectar como mestre</button><button data-r12="panel">Painel completo</button></div><div id="r12-host-info"></div><small>O anfitrião deve permanecer conectado ao Wi-Fi ou hotspot. Não encaminhe a porta na internet. Se um jogador hospedar, ele terá acesso físico aos dados e à chave local.</small>';
+if(window.MastermindDesktop){
+ block.innerHTML=block.innerHTML.replace('Sem PC: hospede neste celular ou conecte-se a outro anfitrião.',
+ 'Hospede esta campanha no PC Linux e convide jogadores pela rede local.');
+ localTools.innerHTML=localTools.innerHTML.replace('Servidor neste celular','Servidor neste computador')
+ .replace('Seu telefone pode hospedar uma campanha sem computador.','Hospede uma campanha na rede local pelo Mastermind Linux.')
+ .replace('Inicie para criar e compartilhar campanhas sem PC.','Inicie para criar campanhas e usar o canvas de mestragem.');
+}
 block.insertBefore(localTools,block.querySelector('.r11-fields'));
 const scenarioArea=document.createElement('div');scenarioArea.id='r29-scenario-area';scenarioArea.hidden=true;block.appendChild(scenarioArea);
 function hostState(){
@@ -32,9 +39,16 @@ localTools.addEventListener('click',async event=>{
  const b=event.target.closest('[data-r12]');if(!b||!window.RpgLocalHost)return;
  const a=b.dataset.r12;
  try{
- if(a==='start'){window.RpgLocalHost.start();feedback('Iniciando servidor no Android…');setTimeout(hostState,900);setTimeout(hostState,2200)}
- if(a==='stop'){if(!confirm('Desligar servidor? Jogadores perderão a conexão até você ligá-lo novamente.'))return;window.RpgLocalHost.stop();feedback('Desligando servidor…');setTimeout(hostState,800)}
- if(a==='panel')window.RpgLocalHost.openLocalMaster();
+ if(a==='start'){
+  await window.RpgLocalHost.start();
+  feedback(window.MastermindDesktop?'Servidor iniciado neste PC.':'Servidor Android iniciado.');
+  hostState();setTimeout(hostState,800);
+ }
+ if(a==='stop'){
+  if(!confirm('Desligar servidor? Jogadores perderão a conexão até você ligá-lo novamente.'))return;
+  await window.RpgLocalHost.stop();feedback('Servidor desligado.');hostState();
+ }
+ if(a==='panel')await window.RpgLocalHost.openLocalMaster();
  if(a==='connect'){
   const state=JSON.parse(window.RpgLocalHost.status());if(!state.running)throw Error('Inicie o servidor primeiro');
   q('#r11-server').value='http://'+state.ip+':'+state.port+'/';
@@ -48,9 +62,16 @@ setInterval(()=>{if(document.visibilityState==='visible')hostState()},4000);
 
 const style=document.createElement('style');style.textContent='#r11-campaigns{border:1px solid var(--v10-border,var(--line));background:var(--panel);border-radius:16px;padding:18px;margin:18px 0}.r11-head{display:flex;justify-content:space-between;gap:15px;align-items:start}.r11-head h2{font:600 28px Georgia,serif;color:var(--fg);margin:5px 0}.r11-head small{color:var(--accent);letter-spacing:.1em}.r11-head p,.r11-unit small{font-size:11px;color:var(--muted)}#r11-campaign-status{white-space:nowrap;font-size:10px;color:var(--accent)}.r11-fields,.r11-tools,.r11-row{display:flex;gap:9px;align-items:end;flex-wrap:wrap;margin:12px 0}.r11-fields label{flex:1 1 170px;color:var(--muted);font-size:11px}.r11-fields input,#r11-campaigns select,#r11-campaigns textarea,.r11-link{width:100%;display:block;color:var(--fg);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:5px}#r11-campaigns textarea{height:150px;font:11px monospace}.r11-tools button,.r11-row button,.r11-tabs button{background:var(--panel2);color:var(--fg);padding:9px;border:1px solid var(--line);border-radius:9px;cursor:pointer}.r11-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}.r11-tabs button.active{border-color:var(--accent);background:var(--accent-soft)}.r11-card{border:1px solid var(--line);border-radius:10px;padding:12px;margin:9px 0}.r11-card strong{display:block}.r11-card small{display:block;color:var(--muted)}.r11-card select{max-width:260px}.r11-heading{font:500 22px Georgia,serif;margin:18px 0 6px}.r11-row input{flex:1 1 200px;width:100%}.r11-feedback{font-size:12px;color:var(--accent)}@media(max-width:650px){.r11-head{flex-direction:column}#r11-campaigns{padding:12px}}';style.textContent+='#r12-host-controls{border:1px solid var(--v10-border,var(--line));background:var(--panel2);border-radius:12px;padding:16px;margin:18px 0}#r12-host-controls .r12-host-head{display:flex;align-items:start;justify-content:space-between;gap:14px}#r12-host-controls strong{display:block;font-size:14px}#r12-host-controls small{display:block;color:var(--muted);font-size:11px;margin-top:5px}#r12-host-state{font-size:11px;color:var(--accent)}#r12-host-info{font-size:11px;color:var(--muted);overflow-wrap:anywhere;padding:7px 0}#r12-host-controls button:disabled{opacity:.4;cursor:not-allowed}';document.head.append(style);
 const feedback=s=>q('#r11-feedback').textContent=s;
-function addr(v){const u=new URL(v),a=u.hostname.split('.').map(Number);if(u.protocol!=='http:'||a.length!==4||a.some(x=>!Number.isInteger(x)||x<0||x>255)||!(a[0]===10||a[0]===172&&a[1]>=16&&a[1]<=31||a[0]===192&&a[1]===168)||Number(u.port)<1024)throw Error('Use IP e porta da rede local.');return u.origin}
+function addr(v){const u=new URL(v),a=u.hostname.split('.').map(Number);if(u.protocol!=='http:'||a.length!==4||a.some(x=>!Number.isInteger(x)||x<0||x>255)||!(a[0]===10||a[0]===172&&a[1]>=16&&a[1]<=31||a[0]===192&&a[1]===168||window.MastermindDesktop&&a[0]===127&&a[1]===0&&a[2]===0&&a[3]===1)||Number(u.port)<1024)throw Error('Use IP e porta da rede local.');return u.origin}
 async function api(path,method='GET',body){
 if(!path.startsWith('/api/admin/campaigns'))throw Error('Rota inválida');
+if(window.MastermindDesktop?.action){
+ const reply=await window.MastermindDesktop.action('campaign-request',{base,secret,method,route:path,body});
+ if(!reply?.status)throw Error(reply?.error||'Servidor inacessível');
+ let data;try{data=JSON.parse(reply.body||'{}')}catch{throw Error('Resposta inválida do servidor')}
+ if(reply.status>=400)throw Error(data.error||'Falha ao executar comando da campanha');
+ return data;
+}
 if(window.RpgCampaignBridge?.request){
 const r=JSON.parse(window.RpgCampaignBridge.request(base,secret,method,path,body===undefined?'':JSON.stringify(body)));
 if(!r.status)throw Error(r.error||'Sem conexão');const data=JSON.parse(r.body||'{}');if(r.status>=400)throw Error(data.error||'Acesso negado');return data}
