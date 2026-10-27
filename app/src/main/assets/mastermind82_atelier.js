@@ -1,4 +1,4 @@
-/* MASTERMIND v0.82 — full pixel-art character editor with color-indexed native sprites. */
+/* MASTERMIND v0.82.1 — corrected offline pixel-art character editor with color-indexed native sprites. */
 (function(root){'use strict';
 const D=root.document,A=root.Mastermind82Rig;
 if(!A)throw Error('Mastermind82Rig required');
@@ -24,7 +24,7 @@ function reload(){
  state.appearance=A.norm(source);
  state.dirty=false;
  const name=$('#m81-name');if(name)name.textContent=selected?.character?.name||selected?.name||'Personagem sem nome';
- draw();options();status(!A.isReady()?'Carregando 116 sprites pixel art...':selected?'Editor pixel art pronto. Edite as peças e salve na ficha.':'Monte um personagem em pixel art e crie uma ficha para salvar.');
+ draw();options();status(A.hasError()?'Erro de sprites: '+(A.errorReason?.()||'arquivo indisponível'):!A.isReady()?'Carregando sprites locais...':selected?'Editor pixel art pronto. Edite as peças e salve na ficha.':'Monte um personagem em pixel art e crie uma ficha para salvar.');
 }
 function changed(){state.dirty=true;persist();draw();options(false);status('Visual atualizado. Salve na ficha para atualizar retrato e token.');}
 function chooseTab(cat){if(cat==='finish')cat='outfit';if(!TABS.some(x=>x[0]===cat))cat='outfit';
@@ -95,8 +95,8 @@ function init(){const screen=$('#screen-atelier');if(!screen||state.ready)return
  state.appearance[group[3]]=true;state.appearance[group[2]]=input.value;state.dirty=true;persist();draw();status('Cor personalizada aplicada. Salve na ficha quando concluir.');});
  D.addEventListener('rpg:character-selected',()=>{state.characterId=null;reload()});
  D.addEventListener('click',e=>{if(e.target.closest('[data-screen="atelier"],[data-r09-tool="atelier"],#rpg05-open-atelier')){state.characterId=null;reload()}});
- D.addEventListener('mastermind82:ready',()=>{draw();options();status('116 sprites pixel art carregados. Todas as categorias estão prontas.');});
- D.addEventListener('mastermind82:failed',()=>status('Erro ao carregar atlas pixel art. Verifique a instalação do APK.'));
+ D.addEventListener('mastermind82:ready',()=>{draw();options();status('116 sprites pixel art disponíveis offline. Personalize o personagem e salve na ficha.');});
+ D.addEventListener('mastermind82:failed',()=>{draw();options();status('Falha ao carregar sprites: '+(A.errorReason?.()||'arquivo indisponível')+'. Confira a instalação do APK.');});
  reload();chooseTab('hairFront');
 }
 root.MastermindAtelier={init,reload,draw,save,state,engine:A,category:chooseTab};
