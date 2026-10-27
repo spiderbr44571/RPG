@@ -14,7 +14,7 @@ function mountHeader(){
  const bar=el('div','desktop-titlebar');
  const left=el('div','desktop-titlebar-brand');
  const logo=el('img');logo.src='mastermind_logo.png';logo.alt='';
- left.append(logo,el('strong',null,'MASTERMIND'),el('span',null,'LINUX · v1.0'));
+ left.append(logo,el('strong',null,'MASTERMIND'),el('span',null,'LINUX · v1.0.2'));
  const right=el('div','desktop-titlebar-actions');
  const mk=(text,title,action)=>{const b=el('button','desktop-titlebar-btn',text);b.type='button';b.title=title;b.addEventListener('click',action);right.appendChild(b);};
  mk('⌕','Buscar livros',()=>$('#quick-search')?.click());
@@ -33,6 +33,7 @@ function stageToolbar(){
   ['−','Reduzir zoom','zoom-out'],['+','Ampliar','zoom-in'],
   ['▣ Ajustar','Enquadrar o criador','fit'],
   ['↻','Recarregar Godot','reload'],
+  ['↗ Janela','Abrir Godot em uma janela separada se o painel falhar','window'],
   ['▣ Capturar para ficha','Capturar a tela do Godot','capture']
  ];
  buttons.forEach(([text,title,action])=>{
@@ -50,12 +51,16 @@ function stageToolbar(){
  const loading=stage.querySelector('.p90-stage-placeholder');
  desktop.onGodotStatus(info=>{
   if(!loading)return;
+  const title=loading.querySelector('strong'),detail=loading.querySelector('small');
   if(info.status==='ready'){
-   loading.querySelector('strong').textContent='Editor Godot carregado';
-   loading.querySelector('small').textContent='Use o criador original e capture o retrato quando terminar.';
-  }else if(info.status==='error'){
-   loading.querySelector('strong').textContent='Falha ao abrir o editor';
-   loading.querySelector('small').textContent=info.message||'Verifique a internet e clique em Recarregar.';
+   if(title)title.textContent='Pixel Portrait Creator';
+   if(detail)detail.textContent=info.message||'Godot disponível. Edite e capture seu retrato.';
+  }else if(info.status==='error'||info.status==='warning'){
+   if(title)title.textContent=info.status==='error'?'Falha ao abrir o Godot':'Godot ainda não iniciou';
+   if(detail)detail.textContent=(info.message||'Tente novamente')+' · Use ↻ Recarregar ou ↗ Janela.';
+  }else if(info.status==='loading'){
+   if(title)title.textContent='Carregando Pixel Portrait Creator';
+   if(detail)detail.textContent=info.message||'Obtendo os recursos do criador original...';
   }
  });
  desktop.onCapture(()=>{
