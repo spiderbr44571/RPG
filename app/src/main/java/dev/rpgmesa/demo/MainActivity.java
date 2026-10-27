@@ -35,6 +35,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.View;
+import android.widget.FrameLayout;
 import android.view.Gravity;
 import android.widget.Button;
 import android.widget.EditText;
@@ -81,6 +85,104 @@ public final class MainActivity extends Activity {
     private byte[] pendingCharacterPdf;
     private byte[] pendingCharacterPng;
     private volatile byte[] pendingPixelPortraitCapture;
+    private FrameLayout browserLayer;
+    private FrameLayout inlineClip;
+    private InlinePixelPortraitStage inlinePortrait;
+    private final Handler inlineHandler=new Handler(Looper.getMainLooper());
+    private boolean stageProbeInFlight=false;
+    private boolean stageStopped=false;
+
+    /**
+     * The pixel editor is a separate, bridge-free WebView. Poll ONLY coordinates
+     * from our offline app DOM; NEVER inject the third-party Godot page into the
+     * privileged Mastermind WebView or one of its child frames.
+     */
+    private final Runnable nativeStageProbe=new Runnable(){
+      @Override public void run(){
+        if(stageStopped||isFinishing()||isDestroyed())return;
+        if(browser!=null&&browserLayer!=null&&browser.getWidth()>0
+                &&allowedHost==null&&!stageProbeInFlight){
+          stageProbeInFlight=true;
+          browser.evaluateJavascript(
+            "(function(){var s=document.getElementById('p90-native-stage'),"+
+            "a=document.getElementById('screen-atelier85'),c=document.getElementById('content');"+
+            "if(!s||!c||!a||!a.classList.contains('active'))return null;"+
+            "var r=s.getBoundingClientRect(),q=c.getBoundingClientRect();"+
+            "return JSON.stringify({x:r.left,y:r.top,w:r.width,h:r.height,"+
+            "cx:q.left,cy:q.top,cr:q.right,cb:q.bottom,vw:window.innerWidth});})()",
+            data->{
+              stageProbeInFlight=false;
+              if(stageStopped||inlineClip==null||browser==null)return;
+              if(data==null||"null".equals(data)){
+                hideInlinePortrait();return;
+              }
+              try{
+                String raw=new JSONArray("["+data+"]").getString(0);
+                JSONObject j=new JSONObject(raw);
+                double cssVW=j.getDouble("vw");
+                if(cssVW<1)throw new IllegalArgumentException("Viewport");
+                double ratio=(double)browser.getWidth()/cssVW;
+                int sx=(int)Math.round(j.getDouble("x")*ratio);
+                int sy=(int)Math.round(j.getDouble("y")*ratio);
+                int sw=(int)Math.round(j.getDouble("w")*ratio);
+                int sh=(int)Math.round(j.getDouble("h")*ratio);
+                int cx=(int)Math.round(j.getDouble("cx")*ratio);
+                int cy=(int)Math.round(j.getDouble("cy")*ratio);
+                int cr=(int)Math.round(j.getDouble("cr")*ratio);
+                int cb=(int)Math.round(j.getDouble("cb")*ratio);
+                if(sw<120||sh<180)throw new IllegalArgumentException("Stage collapsed");
+                int left=Math.max(0,Math.max(sx,cx));
+                int top=Math.max(0,Math.max(sy,cy));
+                int right=Math.min(browserLayer.getWidth(),Math.min(sx+sw,cr));
+                int bottom=Math.min(browserLayer.getHeight(),Math.min(sy+sh,cb));
+                if(right-left<75||bottom-top<32){hideInlinePortrait();return;}
+                showInlinePortrait(sx,sy,sw,sh,left,top,right-left,bottom-top);
+              }catch(Exception ignored){hideInlinePortrait();}
+            });
+        }else if(allowedHost!=null)hideInlinePortrait();
+        inlineHandler.postDelayed(this,260);
+      }
+    };
+
+    private void hideInlinePortrait(){
+        if(inlineClip!=null)inlineClip.setVisibility(View.GONE);
+        if(inlinePortrait!=null)inlinePortrait.hideEditor();
+    }
+
+    private void showInlinePortrait(int x,int y,int width,int height,
+                                    int visibleX,int visibleY,int visibleWidth,int visibleHeight){
+        if(browserLayer==null||inlineClip==null||allowedHost!=null)return;
+        if(inlinePortrait==null){
+            inlinePortrait=new InlinePixelPortraitStage(this,png->{
+                if(png==null||png.length<100||png.length>4000000)return;
+                pendingPixelPortraitCapture=png;
+                if(browser!=null)browser.evaluateJavascript(
+                    "document.dispatchEvent(new Event('mastermind:lyime-capture-ready'));"+
+                    "document.getElementById('p90-token-panel')?.scrollIntoView({behavior:'smooth',block:'start'});",
+                    null);
+            });
+            inlineClip.addView(inlinePortrait,new FrameLayout.LayoutParams(width,height));
+        }
+        FrameLayout.LayoutParams viewport=(FrameLayout.LayoutParams)inlineClip.getLayoutParams();
+        if(viewport.width!=visibleWidth||viewport.height!=visibleHeight||
+                viewport.leftMargin!=visibleX||viewport.topMargin!=visibleY){
+            viewport.width=visibleWidth;
+            viewport.height=visibleHeight;
+            viewport.leftMargin=visibleX;
+            viewport.topMargin=visibleY;
+            inlineClip.setLayoutParams(viewport);
+        }
+        FrameLayout.LayoutParams frame=(FrameLayout.LayoutParams)inlinePortrait.getLayoutParams();
+        if(frame.width!=width||frame.height!=height){
+            frame.width=width;frame.height=height;
+            inlinePortrait.setLayoutParams(frame);
+        }
+        inlinePortrait.setTranslationX(x-visibleX);
+        inlinePortrait.setTranslationY(y-visibleY);
+        inlineClip.setVisibility(View.VISIBLE);
+        inlinePortrait.showEditor();
+    }
+
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -151,11 +253,21 @@ public final class MainActivity extends Activity {
         browser.addJavascriptInterface(lan,"RpgLanBridge");
         browser.addJavascriptInterface(campaign,"RpgCampaignBridge");
         browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.addJavascriptInterface(sceneDisplay,"RpgSceneDisplay");browser.addJavascriptInterface(drive,"RpgDriveBridge");browser.addJavascriptInterface(sheetPdf,"RpgSheetPdfBridge");browser.addJavascriptInterface(pixelPortrait,"RpgPixelPortraitBridge");browser.addJavascriptInterface(creatureArt,"RpgCreatureImageBridge");
-        root.addView(browser,new LinearLayout.LayoutParams(-1,0,1));
+        browserLayer=new FrameLayout(this);
+        browserLayer.setClipChildren(true);
+        browserLayer.setClipToPadding(true);
+        browserLayer.addView(browser,new FrameLayout.LayoutParams(-1,-1));
+        inlineClip=new FrameLayout(this);
+        inlineClip.setClipChildren(true);
+        inlineClip.setClipToPadding(true);
+        inlineClip.setVisibility(View.GONE);
+        browserLayer.addView(inlineClip,new FrameLayout.LayoutParams(1,1));
+        root.addView(browserLayer,new LinearLayout.LayoutParams(-1,0,1));
         setContentView(root);
         home.setOnClickListener(v->openOffline());
         connect.setOnClickListener(v->promptLan());
         openOffline();
+        inlineHandler.postDelayed(nativeStageProbe,450);
     }
     private int dp(int x){return Math.round(getResources().getDisplayMetrics().density*x);}
     private Button button(String name){Button b=new Button(this);b.setText(name);b.setTextSize(10);b.setAllCaps(false);return b;}
@@ -890,5 +1002,12 @@ public final class MainActivity extends Activity {
         });
       });
     }
-    @Override protected void onDestroy(){if(pendingUpload!=null){pendingUpload.onReceiveValue(null);pendingUpload=null;}if(browser!=null)browser.destroy();super.onDestroy();}
+    @Override protected void onDestroy(){
+        stageStopped=true;
+        inlineHandler.removeCallbacksAndMessages(null);
+        if(inlinePortrait!=null){inlinePortrait.dispose();inlinePortrait=null;}
+        if(pendingUpload!=null){pendingUpload.onReceiveValue(null);pendingUpload=null;}
+        if(browser!=null){browser.destroy();browser=null;}
+        super.onDestroy();
+    }
 }
