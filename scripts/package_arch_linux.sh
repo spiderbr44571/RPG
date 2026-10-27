@@ -102,6 +102,11 @@ depend = gtk3
 depend = nss
 depend = alsa-lib
 depend = libxss
+depend = libxtst
+depend = libnotify
+depend = xdg-utils
+depend = at-spi2-core
+depend = libsecret
 optdepend = poppler: pesquisa de texto em livros PDF locais
 PKG
 
