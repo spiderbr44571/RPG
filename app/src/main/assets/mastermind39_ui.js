@@ -6,6 +6,7 @@ const glyph=(name)=>'<svg class="icon" aria-hidden="true"><use href="#i-'+name+'
 const tools=[
  ['master','Mesa ao Vivo','map','Cenários, encontros e iniciativa','01'],
  ['sheet','Personagens','user','Fichas, rituais e inventário','02'],
+ ['atelier85','Ateliê 2D','user','Criar e editar retratos e tokens','07'],
  ['library','Biblioteca','book','Livros e sistemas cadastrados','03'],
  ['ai','Pesquisa offline','search','Encontre regras pelo contexto','04'],
  ['canvas','Canvas infinito','map','Ligações, pistas e notas','05'],
@@ -134,7 +135,7 @@ function setupNavigation(){
   nav.appendChild(more);
   const drawer=document.createElement('div');drawer.id='mm39-more-drawer';
   drawer.innerHTML='<header><strong>Ferramentas</strong><button type="button" data-mm39-close>Fechar ×</button></header>'+
-  [['ai','Pesquisa offline','search'],['bestiary','Bestiário','scroll'],['settings','Configurações','settings']].map(([id,label,icon])=>
+  [['atelier85','Ateliê 2D','user'],['ai','Pesquisa offline','search'],['bestiary','Bestiário','scroll'],['settings','Configurações','settings']].map(([id,label,icon])=>
    '<button type="button" data-mm39="'+id+'">'+glyph(icon)+' '+label+glyph('arrow')+'</button>').join('');
   document.body.append(drawer);
  }
@@ -142,7 +143,7 @@ function setupNavigation(){
  if(settings&&settings.parentElement===sidebar)settings.setAttribute('aria-label','Preferências');
 }
 function refineModules(){
- const titles={sheet:['Personagens','Sua coleção de fichas e histórias.'],library:['Biblioteca','Livros, sistemas e referências sempre à mão.'],
+ const titles={atelier85:['Ateliê 2D','Crie retratos e tokens com as peças originais Nonemo.'],sheet:['Personagens','Sua coleção de fichas e histórias.'],library:['Biblioteca','Livros, sistemas e referências sempre à mão.'],
  master:['Mesa ao Vivo','Prepare a campanha e controle os encontros.'],ai:['Consulta offline','Encontre regras pelo contexto e pelas fontes.'],
  bestiary:['Bestiário','Criaturas, monstros e encontros do sistema.'],canvas:['Canvas','Pistas, ideias e conexões em um espaço infinito.']};
  for(const [id,[title,caption]] of Object.entries(titles)){
