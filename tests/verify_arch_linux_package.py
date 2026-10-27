@@ -10,7 +10,7 @@ import tarfile
 
 assert len(sys.argv)==2, "Usage: verify_arch_linux_package.py package.pkg.tar.zst"
 package=pathlib.Path(sys.argv[1])
-assert package.name=="mastermind-rpg-1.0.0-1-x86_64.pkg.tar.zst", package
+assert package.name=="mastermind-rpg-1.0.2-1-x86_64.pkg.tar.zst", package
 assert package.is_file() and package.stat().st_size>50_000_000
 
 proc=subprocess.Popen(["zstd","-dc",str(package)],stdout=subprocess.PIPE)
@@ -53,7 +53,7 @@ missing=expected-present
 assert not missing,f"Required package entries absent: {missing}"
 assert files_count>30,f"Very few packaged files: {files_count}"
 p=metadata["pkginfo"]
-for text in ("pkgname = mastermind-rpg","pkgver = 1.0.0-1","arch = x86_64",
+for text in ("pkgname = mastermind-rpg","pkgver = 1.0.2-1","arch = x86_64",
              "xdata = pkgtype=pkg","depend = gtk3","depend = nss","depend = libxss"):
  assert text in p,text
 d=metadata["desktop"]
