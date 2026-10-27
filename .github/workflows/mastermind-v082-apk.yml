@@ -1,0 +1,79 @@
+name: Mastermind v0.82 Pixel Art Android APK
+on:
+  push:
+    branches:
+      - feature/mastermind-v082-pixel-atelier
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  android:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Install pixel art generator dependencies
+        run: python -m pip install --disable-pip-version-check "Pillow>=10,<12"
+      - name: Prepare 116 hand-authored pixel sprites
+        run: |
+          set -euo pipefail
+          python scripts/generate_pixel82.py app/src/main/assets/atelier
+          python tests/test_pixel82.py
+      - name: Configure Android SDK
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMANAGER" ]; then
+            SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -path '*/bin/sdkmanager' -type f | sort -V | tail -1)"
+          fi
+          "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --install "platforms;android-35" "build-tools;35.0.0"
+      - name: Validate renderer and old RPG functionality
+        run: |
+          set -euo pipefail
+          node --check app/src/main/assets/mastermind82_rig.js
+          node --check app/src/main/assets/mastermind82_atelier.js
+          node tests/gurps4.test.cjs
+          node tests/mastermind_v74.test.cjs
+          node tests/mastermind_v75.test.cjs
+          node tests/mastermind_v82.test.cjs
+      - name: Build Android APK
+        run: gradle :app:assembleDebug --no-daemon
+      - name: Verify signed pixel-art APK
+        run: |
+          set -euo pipefail
+          python tests/verify_apk_v82.py app/build/outputs/apk/debug/app-debug.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-debug.apk
+          sha256sum app/build/outputs/apk/debug/app-debug.apk > apk-sha256.txt
+      - name: Save compiled artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mastermind-v0.82-PixelArt-APK
+          path: |
+            app/build/outputs/apk/debug/app-debug.apk
+            apk-sha256.txt
+          if-no-files-found: error
+      - name: Publish Android APK on GitHub Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="mastermind-v0.82-pixel-atelier"
+          cp app/build/outputs/apk/debug/app-debug.apk Mastermind-v0.82-Android.apk
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" Mastermind-v0.82-Android.apk \
+              --target "${GITHUB_SHA}" \
+              --title "Mastermind v0.82 — Novo Ateliê Pixel Art" \
+              --notes "Ateliê reconstruído em pixel art 168x208 com 116 sprites originais modulares. Camadas independentes de corpo, rosto, orelhas, olhos, sobrancelhas, nariz, boca, cabelos, barba, roupas, capas, armaduras e acessórios. Sombras e detalhes em pixels, recoloração por paletas indexadas, preview e token nearest-neighbor, salvamento por ficha, exportação PNG e interface mobile. As peças permanecem editáveis; sem retratos prontos. APK de depuração."
+          else
+            gh release upload "$TAG" Mastermind-v0.82-Android.apk --clobber
+          fi
