@@ -1,11 +1,53 @@
 {
-  "name": "mastermind-integration",
+  "name": "mastermind-rpg-desktop",
   "private": true,
-  "version": "0.58.0",
+  "version": "1.0.0",
   "scripts": {
-    "test": "python3 tests/runtime/prepare.py && playwright test"
+    "test": "python3 tests/runtime/prepare.py && playwright test",
+    "start": "electron .",
+    "dev": "electron . --enable-logging",
+    "test:desktop": "node --test desktop/tests/*.test.cjs",
+    "dist:linux": "electron-builder --linux AppImage tar.gz --x64 --publish never"
   },
   "devDependencies": {
-    "@playwright/test": "^1.64.1"
+    "@playwright/test": "^1.64.1",
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8"
+  },
+  "productName": "Mastermind",
+  "description": "Mastermind RPG — Linux desktop",
+  "main": "desktop/main.cjs",
+  "license": "UNLICENSED",
+  "build": {
+    "appId": "dev.rpgmesa.mastermind",
+    "productName": "Mastermind",
+    "asar": true,
+    "files": [
+      "desktop/**/*",
+      "app/src/main/assets/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "tar.gz",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Game",
+      "executableName": "mastermind",
+      "artifactName": "Mastermind-v${version}-Linux-${arch}.${ext}"
+    }
   }
 }
