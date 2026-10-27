@@ -1,54 +1,48 @@
-# Mastermind — Novo Ateliê (assets de terceiros)
+# Mastermind — Ateliê v0.85 com assets de terceiros
 
-## Pacote-base escolhido: Swappable Portraits
+## Pacote definitivo escolhido pelo usuário
 
-**Decisão:** lofi_kier — [Swappable Portraits (64x64 - Layers)](https://lofi-kier.itch.io/swappable-portraits), não o pack `Swappable Chibi Portraits`.
+**Free – Character Creation Asset Pack**, por **nemo (nonemo)**.
 
-- **Autor:** lofi_kier
-- **Resolução original declarada:** 64 × 64 pixels
-- **Pacote divulgado:** mais de 160 itens, 10 presets femininos e 10 masculinos
-- **Grupos divulgados:** Accessory, Hair, Clothes, Eyes, Face, Shade, Body, Background
-- **Formato de entrega anunciado:** `Swappable Portraits.zip` (pago; US$ 10 na verificação em 2026-10-27)
-- **IA generativa nas imagens:** autor declara que não utilizou
-- **Estado:** selecionado para o projeto, integração dos arquivos pendente
+- **Página oficial:** https://nonemo.itch.io/character-creation-asset-pack
+- **Distribuição:** gratuita, valor opcional ("Name your own price")
+- **Licença declarada:** Creative Commons Zero 1.0 Universal (CC0)
+- **Arte:** 2D modular, **classificada pelo autor como Vector** — não rotular como pixel art nativa sem inspecionar os arquivos.
+- **IA generativa:** segundo a ficha oficial, não foi utilizada.
+- **Conteúdo divulgado:** 45 estilos de cabelo; 15 estilos de olhos; 3 tons de pele; óculos; 28 roupas; variações faciais mostradas no guia.
+- **Arquivo disponibilizado:** "Modular Characters Asset Pack - nonemo", aproximadamente 797 kB (formato e hierarquia internos ainda não verificados).
+- **Estado:** escolhido; aguardando obtenção/inspeção do pacote original para implementação e testes do APK.
 
-Fonte oficial e termos publicados: https://lofi-kier.itch.io/swappable-portraits
+As informações vêm da descrição/licença pública do artista, verificadas em 2026-10-27. Não inferir compatibilidade de todos os componentes além do que o pacote real demonstrar.
 
-### Licença e limite de distribuição
+### Decisão de direção artística
 
-A página diz que o artista permite usar as assets em projetos comerciais e não comerciais, editar e acrescentar peças, mas **proíbe redistribuir e revender**. Isso não prova autorização para distribuir um aplicativo que contém os PNGs individuais e permite exportar retratos/tokens montados.
+A v0.84 removeu o ateliê gerado anteriormente, e esse código **não será reutilizado**. A nova solução deve trabalhar somente com os arquivos originais produzidos pelo artista, sem completar com artes geradas por IA. Como o pack é classificado como **Vector**, não forçar efeito pixelado por redimensionamento com nearest-neighbor: o resultado deve preservar o desenho original. Se o conteúdo interno for PNG raster, escolher filtragem a partir das dimensões reais e da aparência. A decisão anterior por pixel art fica substituída pelo pack escolhido, salvo uma orientação futura do usuário.
 
-**Antes de distribuir sprites no APK público ou no repositório público, obter confirmação por escrito do artista.** Pedir autorização específica para:
-1. Empacotar as camadas do ZIP dentro de APK Android distribuído gratuitamente ou comercialmente.
-2. Deixar usuários trocar camadas, recolorir e exportar a imagem final como retrato/token para RPG.
-3. Distribuir ou não os arquivos individuais de sprites, incluindo risco de extração do APK.
-4. Atribuição, eventual licença adicional e uso de derivados do pack.
+### Licenciamento
 
-Contato publicado pelo criador: lofi.kier@gmail.com (https://lofi-kier.itch.io/).
+A página identifica a licença como CC0 1.0: permite copiar, modificar e redistribuir o conteúdo, inclusive em aplicativo comercial, sem atribuição legal obrigatória. Apesar disso, registrar **"Assets de personagens: nemo / nonemo"** nos créditos é boa prática. Distribuir exclusivamente os arquivos que pertencem ao pacote, não incorporar conteúdo externo encontrado em imagens de demonstração.
 
-**Alternativa técnica se o autor não permitir embutir:** implementar importação de ZIP local adquirido pelo próprio usuário, não compartilhar camadas; consultar também se a exportação pelo editor é permitida. Não presumir permissão para compartilhamento só pela importação privada.
+### Passos da implementação
 
-### Próxima implementação (após receber o arquivo autorizado)
+1. Obter o download oficial (sem aquisição paga obrigatória), verificar nomes, estrutura, formato, dimensão, transparência e disponibilidade das camadas. O arquivo completo ainda não foi fornecido nesta conversa.
+2. Criar manifesto gerado dos arquivos concretos, com tamanho, SHA-256, categoria, compatibilidade, âncoras e ordem de desenho. Não supor que nariz, boca ou sobrancelha são itens independentes se vierem integrados a "face".
+3. Novo renderizador em camadas reais, sem formas vetoriais programáticas substituindo ilustrações. Se forem SVG, manter suporte a SVG seguro ou converter para PNG durante a build, preservando resolução.
+4. Editor responsivo para Android: prévia, categorias e miniaturas com as peças reais, seletor de cabelo, olhos, tom de pele, roupa, óculos e quaisquer categorias extras verificadas.
+5. Suporte a recoloração apenas quando as máscaras/vetores originais permitirem mudanças sem destruir sombreados.
+6. Salvar configuração estruturada por personagem; gerar retrato e token, inclusive imagem PNG. Manter compatibilidade das fichas da v0.84 e não modificar imagens salvas anteriormente.
+7. Testes: compilação, disponibilidade das imagens no APK, ausência de imagens em branco, composição de amostras, persistência, exportação, Android WebView e desempenho.
+8. Distribuir versão testável v0.85 apenas após renderizar as camadas reais; não voltar a mostrar placeholders fabricados por código ou retratos falsamente "modulares".
 
-1. Usuário fornece o ZIP original licenciado. Não incluir materiais pagos no repositório público antes de validar a autorização.
-2. Inspecionar nomes/dimensões/alpha das PNGs, atlas ou arquivos de projeto. **A divisão real em sprites e a ordem de desenho só podem ser determinadas a partir do ZIP.**
-3. Criar um índice de assets por tipo: `body`, `shade`, `face`, `eyes`, `hair`, `clothes`, `accessory`, `background`. Manter nomes originais e metadados; não assumir que `eyes` contém sobrancelhas ou `face` divide boca/nariz.
-4. Renderizar os sprites em origem comum, usando `image-rendering: pixelated` e canvas 64 × 64 com nearest-neighbor. Para miniaturas/tokens, usar escalas inteiras e centro fixo.
-5. Acrescentar controle independente de cores **somente onde os PNGs/máscaras permitirem**: reindexação por cor do material com proteção dos contornos e sombreados; não pintar regiões aleatórias.
-6. Testar encaixe para combinações de corpo, face, olhos, cabelo e roupas. Itens incompatíveis recebem matriz de compatibilidade; nunca ajustar deslocamentos por tentativa e erro.
-7. Preservar sistema de personagens, imagens, tokens e exportação existentes no Mastermind v0.84. Não restaurar renderizadores, geradores ou interfaces antigos.
-8. Registrar créditos/licença e adicionar verificações para impedir inclusão acidental de arquivos não autorizados em releases.
+### Fora do escopo até inspeção
 
-### Escopo de UX
+- Garantia de visual pixel art: fonte oficial marca **Vector**.
+- Itens independentes de nariz, boca, sobrancelhas ou orelhas; verificar a separação real.
+- Um pacote com várias centenas de peças fora das quantidades divulgadas na página.
+- Integração de outros packs com rigs diferentes.
+- Nova build/APK sem os arquivos originais funcionando.
 
-A experiência nova se baseará **somente** nos recursos realmente disponíveis no pacote. Não prometer individualmente nariz, boca, sobrancelha ou orelhas antes de examinar as camadas. Se for necessário complementar a coleção, encomendar assets no **mesmo molde de 64 × 64** e com autorização do autor.
+### Histórico de decisão
 
-**A v0.84 permanece sem Ateliê** até receber o ZIP e resolver a autorização. Este documento apenas registra a escolha e o plano.
-
-## Proibições para o projeto
-
-- Não gerar assets de personagem com IA.
-- Não reaproveitar sprites antigas das versões 0.76–0.83.
-- Não recortar retratos completos em peças falsas.
-- Não baixar ou copiar pack comercial sem licença.
-- Não republicar assets individuais em repositório público.
+- Swappable Portraits (pago) foi descartado após o usuário escolher o pacote gratuito do nemo.
+- Os arquivos de IA do antigo ateliê continuam excluídos da branch da v0.84.
