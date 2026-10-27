@@ -32,3 +32,41 @@
 #screen-atelier85 .p86-footer a{color:var(--accent,#dabb8e)}
 @media(max-width:800px){#screen-atelier85 .p86-layout{grid-template-columns:1fr}#screen-atelier85 .p86-head{padding:17px 16px}#screen-atelier85 .p86-panel{padding:14px}#screen-atelier85 .p86-actions{gap:7px}}
 @media(max-width:420px){#screen-atelier85 .p86-actions{grid-template-columns:1fr}#screen-atelier85 .p86-preview-area{gap:7px}#screen-atelier85 #p86-portrait{width:min(100%,275px)}#screen-atelier85 #p86-token{width:83px;height:83px}}
+
+/* v0.90: the original Godot WebView is a native sibling clipped to the placeholder.
+   This DOM element provides positioning only and never hosts remote HTML. */
+#screen-atelier85 .p90-shell{max-width:980px;gap:15px}
+#screen-atelier85 .p90-header{padding:15px 18px 12px;border:1px solid var(--line,#554653);background:var(--panel,#201d29);border-radius:15px}
+#screen-atelier85 .p90-brandline{font-size:10px;font-weight:800;letter-spacing:.19em;color:var(--accent,#ceaa79)}
+#screen-atelier85 .p90-header-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:6px 0}
+#screen-atelier85 .p90-header-row h1{font:600 clamp(21px,4vw,31px) Georgia,serif;line-height:1.15;margin:2px 0}
+#screen-atelier85 .p90-header-row .p86-btn{min-height:38px;flex:none;padding:9px 12px;font-size:11px}
+#screen-atelier85 .p90-header>p{font-size:12px;line-height:1.5;margin:5px 0 0;color:var(--muted,#bdb2b2)}
+#screen-atelier85 .p90-studio-card{background:var(--panel,#211c29);border:1px solid var(--line,#564955);border-radius:16px;padding:10px;display:grid;gap:8px;min-width:0}
+#screen-atelier85 .p90-stage-title{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:3px 8px}
+#screen-atelier85 .p90-stage-title strong{display:block;font:600 17px Georgia,serif}
+#screen-atelier85 .p90-stage-title small{display:block;color:var(--muted,#b9aab3);font-size:10px;margin-top:2px}
+#screen-atelier85 .p90-live-dot{height:9px;width:9px;background:var(--accent,#d2ad71);border-radius:50%;box-shadow:0 0 8px #cbad6d65;flex:none}
+#screen-atelier85 .p90-native-stage{position:relative;display:block;width:100%;height:clamp(510px,125vw,720px);overflow:hidden;border:1px solid #65536a;border-radius:12px;background:#211e2f;box-shadow:inset 0 0 0 1px #ab89542a;isolation:isolate}
+#screen-atelier85 .p90-stage-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px;padding:25px;text-align:center;background:radial-gradient(circle at 50% 35%,#413449,#25202f 70%);color:#ecdbbb}
+#screen-atelier85 .p90-stage-placeholder strong{font-size:14px}
+#screen-atelier85 .p90-stage-placeholder small{max-width:260px;font-size:11px;line-height:1.5;color:#b3a5b3}
+#screen-atelier85 .p90-spinner{height:35px;width:35px;border:3px solid #92764f55;border-top-color:#e1bf7f;border-radius:50%;animation:p90-spin 1s linear infinite}
+@keyframes p90-spin{to{transform:rotate(360deg)}}
+#screen-atelier85 .p90-stage-caption{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:0 4px;color:var(--muted,#bdb0a2);font-size:10px;line-height:1.45}
+#screen-atelier85 .p90-stage-caption span{flex:1}
+#screen-atelier85 .p90-tiny-link{background:none;border:none;padding:8px;color:var(--accent,#d3b58d);text-decoration:underline;white-space:nowrap;cursor:pointer;font-size:10px}
+#screen-atelier85 .p90-token-panel{scroll-margin-top:14px}
+#screen-atelier85 .p90-token-title h2{margin:0 0 6px;font-size:22px}
+#screen-atelier85 .p90-token-title p{margin:0 0 10px;font-size:12px;line-height:1.55}
+@media(max-width:600px){
+ #screen-atelier85 .p90-shell{gap:12px}
+ #screen-atelier85 .p90-header{padding:13px 12px}
+ #screen-atelier85 .p90-studio-card{padding:7px}
+ #screen-atelier85 .p90-native-stage{height:clamp(505px,128vw,655px)}
+ #screen-atelier85 .p90-stage-title strong{font-size:16px}
+ #screen-atelier85 .p90-stage-caption{flex-wrap:wrap;gap:3px}
+ #screen-atelier85 .p90-stage-caption span{flex-basis:100%}
+ #screen-atelier85 .p90-header-row h1{font-size:22px}
+}
+@media(prefers-reduced-motion:reduce){#screen-atelier85 .p90-spinner{animation:none}}
