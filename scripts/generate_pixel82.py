@@ -245,15 +245,6 @@ def hairBack(d,v):
    poly(d,[(x+5,87),(x+10,100),(x+2,110),(x-7,110)],c(HAIR,0))
    ln(d,[(x-8,70),(x-12,91),(x-3,108)],c(HAIR,5),2)
    rect(d,(x-5,60,x+1,63),c(METAL,5))
- if v==6:
-  # Sculpted fantasy twin ponytails, behind the shared head silhouette.
-  for side in (-1,1):
-   x=37 if side<0 else 128
-   outlined(d,[(x-9,59),(x+7,55),(x+15,72),(x+13,97),(x+5,115),(x-13,113),(x-18,91),(x-16,73)],c(HAIR,1),INK,2)
-   poly(d,[(x-11,65),(x+1,59),(x+9,68),(x+5,80),(x-8,84)],c(HAIR,4))
-   poly(d,[(x+5,87),(x+10,100),(x+2,110),(x-7,110)],c(HAIR,0))
-   ln(d,[(x-8,70),(x-12,91),(x-3,108)],c(HAIR,5),2)
-   rect(d,(x-5,60,x+1,63),c(METAL,5))
  if v in (4,5,9):
   ellipse(d,(95,34,124,64),c(HAIR,2))
   ellipse(d,(101,38,117,54),c(HAIR,5))
@@ -310,9 +301,161 @@ def accessory(d,v):
  if v==11:
   for x,y in [(62,43),(106,43),(116,54)]:ellipse(d,(x-3,y-3,x+3,y+3),c(METAL,5))
 
+def premium_details(d,key,v):
+ """Per-category hand placed pixel clusters, not scaled vectors or generated portraits.
+ In particular: 3D-looking strands, eyelashes/iris clusters, bridge/nostrils,
+ articulated lips and textile stitches. Keep transparent assets on shared anchors.
+ """
+ if key=='face':
+  # Layered under-eye planes and temple highlights. Eyes are a later layer.
+  for x in (64,94):
+   poly(d,[(x-10,88),(x-6,91),(x+5,91),(x+9,87),(x+7,91),(x-6,93)],c(SKIN,2))
+   ln(d,[(x-8,95),(x-3,97),(x+5,97)],c(SKIN,5),1)
+  ln(d,[(70,55),(76,51),(91,52),(98,56)],c(SKIN,5),1)
+  ln(d,[(57,99),(59,112),(67,121)],c(SKIN,1),2)
+  ln(d,[(109,99),(106,114),(100,121)],c(SKIN,1),2)
+  for x,y in [(60,99),(62,97),(67,100),(105,99),(101,101)]:rect(d,(x,y,x+1,y+1),c(BLUSH,2))
+ elif key=='eyes':
+  for x in (65,94):
+   y=78+(1 if v==3 else 0)
+   # Dark inked outer line, colored iris concentric crescent and catch-light.
+   ellipse(d,(x-4,y-4,x+3,y+6),c(EYE,1))
+   ellipse(d,(x-3,y-3,x+2,y+5),c(EYE,3))
+   rect(d,(x-3,y+2,x+2,y+5),c(EYE,2))
+   rect(d,(x-1,y-3,x+2,y+2),c(EYE,0))
+   rect(d,(x,y-1,x+1,y+3),INK)
+   rect(d,(x-3,y-3,x-1,y-1),WHITE)
+   rect(d,(x+2,y+1,x+3,y+2),LIGHT)
+   rect(d,(x-3,y+5,x+2,y+5),c(EYE,5))
+   ln(d,[(x-9,y-5),(x-4,y-7),(x+5,y-6),(x+9,y-4)],INK,2)
+   # upper lashes and slightly warmer lower eyelid, vary by eye model
+   for lx,ly in [(-9,-5),(-6,-7),(6,-6)]:
+    ln(d,[(x+lx,y+ly+1),(x+lx-(2 if lx<0 else -2),y+ly-3)],INK,1 if v in (2,5) else 2)
+   ln(d,[(x-7,y+6),(x-2,y+8),(x+5,y+7)],c(SKIN,1),1)
+   rect(d,(x-6,y+9,x-3,y+9),c(SKIN,5))
+ elif key=='brows':
+  for x in (65,95):
+   y=[62,64,61,62,65,61,62,63][v]
+   for dx in [-6,-2,2,6]:
+    yy=y+(abs(dx)//3 if v in (0,4,7) else 0)
+    rect(d,(x+dx,yy-1,x+dx+1,yy-1),c(HAIR,5))
+ elif key=='nose':
+  # Nose reads as planes and little nostril clusters, rather than a line only.
+  x,y=84,101
+  poly(d,[(x-3,y-9),(x-1,y-9),(x,y-1),(x-1,y+5),(x-4,y+3)],c(SKIN,2))
+  rect(d,(x+1,y-5,x+2,y+1),c(SKIN,5))
+  ln(d,[(x-4,y+4),(x,y+6),(x+5,y+4)],c(SKIN,1),1)
+  rect(d,(x-4,y+4,x-3,y+4),c(SKIN,0))
+  rect(d,(x+4,y+4,x+5,y+4),c(SKIN,0))
+  rect(d,(x,y+3,x+2,y+3),c(SKIN,6))
+ elif key=='mouth':
+  x,y=84,116
+  if v==3:
+   rect(d,(x-5,y,x+4,y),WHITE)
+   rect(d,(x-6,y+2,x+5,y+3),c(BLUSH,2))
+   ln(d,[(x-7,y-3),(x,y-4),(x+7,y-2)],c(BLUSH,0),1)
+  elif v in (1,6):
+   poly(d,[(x-8,y-1),(x-2,y+2),(x+3,y+2),(x+8,y-1),(x+4,y+5),(x-4,y+5)],c(BLUSH,2))
+   ln(d,[(x-8,y-1),(x-4,y+1),(x+4,y+1),(x+8,y-1)],c(BLUSH,0),1)
+   rect(d,(x-2,y+4,x+2,y+4),c(BLUSH,5))
+  elif v==5:
+   poly(d,[(x-4,y),(x,y-1),(x+4,y),(x+2,y+2),(x-2,y+2)],c(BLUSH,3))
+   ln(d,[(x-4,y),(x,y+1),(x+4,y)],c(BLUSH,0),1)
+   rect(d,(x-2,y+2,x+2,y+2),c(BLUSH,5))
+  else:
+   poly(d,[(x-7,y),(x-3,y-2),(x,y-1),(x+3,y-2),(x+7,y),(x+4,y+3),(x-4,y+3)],c(BLUSH,3))
+   ln(d,[(x-7,y),(x-2,y+1),(x+4,y+1),(x+7,y)],c(BLUSH,0),1)
+   rect(d,(x-2,y+3,x+3,y+3),c(BLUSH,5))
+  ln(d,[(x-5,y+6),(x+3,y+6)],c(SKIN,5),1)
+ elif key=='hairFront':
+  # Hair roots / highlight ribbons with distinct variant-specific carving.
+  for i in range(10):
+   x=60+i*5
+   y=41+(i*3+v*5)%13
+   ln(d,[(x,y),(x-3,y+6),(x-5,y+13)],c(HAIR,5 if i%3==0 else 4),1 if i%3 else 2)
+   if i%3==1:ln(d,[(x+2,y+3),(x+1,y+8)],c(HAIR,0),1)
+  for x,y in [(67,43),(84,39),(102,47)]:
+   rect(d,(x,y,x+2,y),c(HAIR,6))
+  if v in (6,10):
+   # Plaited locks are alternately lit, each connector visibly separated.
+   for j in range(4):
+    yy=60+j*10
+    poly(d,[(51,yy),(57,yy+3),(52,yy+7),(48,yy+5)],c(HAIR,3+j%3))
+    ln(d,[(50,yy+2),(56,yy+4)],c(HAIR,5),1)
+  if v in (3,7):
+   for x in (56,109):
+    for j in range(4):
+     yy=57+j*8
+     rect(d,(x+(j%2)*2,yy,x+4+(j%2)*2,yy+3),c(HAIR,4 if j%2 else 1))
+ elif key=='hairBack':
+  if v==7:return
+  length=[128,192,184,198,138,170,194,110,197,174,162,188][v]
+  for i in range(11):
+   x=55+i*6
+   yy=69+(i*5+v*3)%17
+   for j in range(2):
+    y=min(length-5,yy+j*35)
+    if y>yy-1:
+     ln(d,[(x,y),(x-3,y+10),(x-3,y+17)],c(HAIR,4 if i%3 else 5),1)
+  if v in (3,8,11):
+   for x in (42,124):
+    for j in range(5):
+     y=97+j*15
+     ln(d,[(x-3,y),(x+2,y+4),(x-2,y+9)],c(HAIR,5),2)
+     rect(d,(x-1,y+7,x+1,y+8),c(HAIR,1))
+  if v in (6,11):
+   for x in (34,129):
+    for j in range(5):
+     yy=76+j*6
+     rect(d,(x-4,yy,x-2,yy+1),c(HAIR,6 if j%2 else 4))
+ elif key=='outfit':
+  # Subpixel-like fabric treatment via patterned one-pixel cloth clusters.
+  rng=random.Random(283+v)
+  for _ in range(34):
+   x=rng.choice(list(range(26,60))+list(range(119,143)))
+   y=rng.randint(169,202)
+   col=c(MAIN,5 if rng.random()>.35 else 1)
+   rect(d,(x,y,x+1,y),col)
+  # Individual embroidered gold emblems and neckline stitchwork.
+  for i in range(10):
+   x=55+i*6;y=182+(i%3)*3
+   rect(d,(x,y,x+1,y),c(METAL,5))
+   if i%3==0:rect(d,(x+1,y+2,x+1,y+3),c(METAL,2))
+  if v in (4,5,14):
+   for i in range(5):
+    x=76+i*5;y=168+abs(2-i)*2
+    ln(d,[(x,y),(x+2,y+3),(x,y+6)],c(METAL,4),1)
+   poly(d,[(79,194),(85,189),(91,194),(86,202)],c(METAL,3))
+   rect(d,(84,192,86,195),c(METAL,6))
+  if v in (3,6,7,15):
+   for i in range(4):
+    x=49+i*9
+    ln(d,[(x,187),(x+2,193),(x,199)],c(METAL,4),1)
+  if v in (9,10,11,12,13):
+   for x in (32,132):
+    for i in range(4):
+     yy=163+i*10
+     rect(d,(x,yy,x+3,yy+1),c(METAL,4))
+ elif key=='armor':
+  if v==0:return
+  for x in (37,127):
+   for i in range(5):
+    yy=148+i*4
+    if yy>168:continue
+    rect(d,(x-7+i%3,yy,x-2+i%3,yy),c(METAL,5))
+    rect(d,(x+5,yy+1,x+5,yy+2),c(METAL,1))
+ elif key=='ears':
+  if v==0:
+   # Human ears are present (not absent), tucked beneath the face layer.
+   for side in (-1,1):
+    x=49 if side==-1 else 117
+    outlined(d,[(x,70),(x+side*7,73),(x+side*7,87),(x,95)],c(SKIN,3),INK,1)
+    ln(d,[(x+side*2,76),(x+side*5,82),(x+side*2,90)],c(SKIN,1),1)
+
 def sprite(key,v):
  im=Image.new('RGBA',(W,H),(0,0,0,0));d=ImageDraw.Draw(im)
  globals()[key](d,v)
+ premium_details(d,key,v)
  return im
 
 def make(out):
