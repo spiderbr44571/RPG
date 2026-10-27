@@ -21,24 +21,20 @@ Inclui:
 2. Os métodos nativos Android baseados em SAF, PdfRenderer e Intent foram substituídos. PDFs são indexados por pdfjs-dist localmente; visualização de páginas em janelas PDF próprias, e não por imagens renderizadas no diálogo do Android.
 3. A hospedagem nativa de campanhas do APK Android (LocalCampaignServer.java) não foi replicada integralmente. A interface original permanece, mas a hospedagem da mesa em rede deve ser tratada separadamente. Existe servidor LAN Python básico do repositório, mas não se deve confundir seus endpoints com o servidor completo Android.
 4. O Ateliê do lyime requer internet e suporte a WebGL/WASM. As sprites e os binários Godot não estão embutidos no pacote Linux.
-5. A versão AppImage é x86-64. Não é um binário ARM/Android.
+5. A versão Linux é x86-64. Não é um binário ARM/Android.
 
 ## Como instalar no CachyOS / Ryoku / Hyprland
 
-Baixe o AppImage da [GitHub Release](https://github.com/spiderbr44571/RPG/releases/tag/mastermind-linux-v1.0.0-beta) e rode:
+Baixe o pacote portátil da [GitHub Release](https://github.com/spiderbr44571/RPG/releases/tag/mastermind-linux-v1.0.0-beta) e rode:
 
 ```bash
-chmod +x Mastermind-Linux-1.0.0-x64.AppImage
-./Mastermind-Linux-1.0.0-x64.AppImage
+tar -xzf Mastermind-Linux-1.0.0-x64.tar.gz
+./linux-unpacked/mastermind
 ```
 
-Se o AppImage reclamar de FUSE, use a alternativa sem montagem:
+O diretório `linux-unpacked` contém o executável e todas as dependências Electron. Pode ser movido para `~/Aplicativos/Mastermind`. Para iniciar usando o atalho, use o caminho completo para `mastermind`. Não precisa de Java, npm ou Node instalados para executar o pacote.
 
-```bash
-./Mastermind-Linux-1.0.0-x64.AppImage --appimage-extract-and-run
-```
-
-Ou use a distribuição .tar.gz incluída na mesma release.
+**AppImage ainda não foi validado na distribuição inicial.** O pacote tar.gz contém um aplicativo executável real e não requer FUSE.
 
 O Electron usa a interface Wayland/X11 disponível. O driver NVIDIA mais recente do CachyOS é recomendado para a aceleração WebGL do Godot.
 
@@ -68,6 +64,6 @@ Pacotes gerados em `desktop/dist/`.
 
 ## Qualidade
 
-O pipeline executa testes de unidade e regressão, abre o aplicativo com um display virtual Xvfb, compila AppImage e tar.gz e publica arquivos em GitHub Releases.
+O pipeline executa testes de unidade e regressão, abre o aplicativo com um display virtual Xvfb, empacota uma distribuição portátil Linux em tar.gz e publica arquivos em GitHub Releases.
 
 O aplicativo precisa ser conferido em um desktop Linux real (especialmente HiDPI, comportamento do Godot e PDF), pois o teste virtual não cobre todas as diferenças entre Wayland/Hyprland e X11.
