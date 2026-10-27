@@ -120,16 +120,39 @@ function createGame(){
  gameView.webContents.on('will-navigate',(event,url)=>{
   if(!trustedGame(url))event.preventDefault();
  });
+ gameView.webContents.on('did-start-loading',()=>reportGodot('loading','Carregando Godot HTML5 original...'));
  gameView.webContents.on('did-fail-load',(_event,code,description,isMainFrame)=>{
-  if(isMainFrame&&win)win.webContents.send('mastermind:godot-status',{status:'error',message:description,code});
+  if(isMainFrame&&code!==-3){gameLastError=description;reportGodot('error',description);}
+ });
+ gameView.webContents.on('render-process-gone',(_e,details)=>{
+  gameLastError='O processo gráfico do Godot encerrou: '+details.reason;
+  reportGodot('error',gameLastError);
  });
  gameView.webContents.on('did-finish-load',()=>{
-  if(win)win.webContents.send('mastermind:godot-status',{status:'ready'});
-  fitGame();
+  reportGodot('ready','Página HTML5 carregada; inicializando Godot/WebAssembly...');
+  if(godotTimer)clearTimeout(godotTimer);
+  // Game runtime starts after the HTML; do not remove the fallback on timeout.
+  godotTimer=setTimeout(async()=>{
+   if(!gameView||gameView.webContents.isDestroyed()||!gameView.getVisible())return;
+   try{
+    const status=await gameView.webContents.executeJavaScript(
+     "(function(){const c=document.getElementById('canvas');"+
+     "return {canvas:!!c,width:c?.width||0,height:c?.height||0,"+
+     "error:(document.querySelector('#status')?.textContent||'').slice(0,140)}})()",true);
+    if(status?.canvas&&status.width>0&&status.height>0){
+     reportGodot('ready','Canvas do Godot disponível — personalize seu personagem.');
+     fitGame();
+    }else{
+     reportGodot('warning','O jogo ainda não iniciou. Tente Recarregar ou Abrir em janela.');
+    }
+   }catch(error){reportGodot('error','Falha no motor Godot: '+sanitizeError(error));}
+  },28000);
+  setTimeout(()=>{fitGame();},1500);
  });
 }
 function gameRect(data){
- if(!win||!gameView||!data||!data.visible){gameView?.setVisible(false);return;}
+ if(!win||!data||!data.visible){gameView?.setVisible(false);return;}
+ if(!gameView)createGame();
  const {x,y,width,height}=data;
  if(![x,y,width,height].every(Number.isFinite)||width<100||height<120){gameView.setVisible(false);return;}
  const [cw,ch]=win.getContentSize();
@@ -142,41 +165,70 @@ function gameRect(data){
  }
  gameView.setVisible(true);
  if(!gameStarted){
-  gameStarted=true;gameLoading=true;
+  gameStarted=true;gameLoading=true;gameLastError='';
+  reportGodot('loading','Conectando ao editor original do lyime...');
   resolveGameUrl().then(url=>{
    if(!gameView||gameView.webContents.isDestroyed())return;
+   reportGodot('loading','Baixando o Godot HTML5 (aproximadamente 40 MB)...');
    return gameView.webContents.loadURL(url);
   }).catch(error=>{
-   win?.webContents.send('mastermind:godot-status',{status:'error',message:String(error.message||error)});
+   gameLastError=sanitizeError(error);
+   reportGodot('error',gameLastError+' — use Recarregar ou Abrir em janela.');
   }).finally(()=>{gameLoading=false;});
  }
 }
 function fitGame(){
  if(!gameView||!gameBounds||gameView.webContents.isDestroyed())return;
- editorZoom=1;editorPan={x:0,y:0};
- gameView.webContents.setZoomFactor(1);
+ // Electron's browser zoom preserves click coordinates; scaling document.body
+ // with CSS transformed the Godot canvas and could make selection inaccurate.
  gameView.webContents.executeJavaScript(
-  "(function(){const c=document.getElementById('canvas');if(!c)return;"+
-  "const r=c.getBoundingClientRect();const w=innerWidth,h=innerHeight;"+
-  "const scale=Math.min((w-12)/Math.max(1,r.width),(h-12)/Math.max(1,r.height));"+
-  "if(scale<0.4||scale>3.0)return;"+
-  "document.documentElement.style.overflow='hidden';"+
-  "const dx=(w-r.width*scale)/2-r.left*scale;"+
-  "const dy=(h-r.height*scale)/2-r.top*scale;"+
-  "document.body.style.transformOrigin='0 0';"+
-  "document.body.style.transform='translate('+dx+'px,'+dy+'px) scale('+scale+')';"+
-  "})()",true
- ).catch(()=>{});
+  "(function(){const c=document.getElementById('canvas');"+
+  "if(!c)return null;const r=c.getBoundingClientRect();"+
+  "return {w:r.width,h:r.height,vw:innerWidth,vh:innerHeight};})()",true
+ ).then(v=>{
+  if(!gameView||!v||v.w<10||v.h<10)return;
+  const ratio=Math.min((v.vw-18)/v.w,(v.vh-18)/v.h);
+  editorZoom=Math.max(.7,Math.min(1.8,ratio));
+  gameView.webContents.setZoomFactor(editorZoom);
+ }).catch(error=>console.warn('Godot fit unavailable:',sanitizeError(error)));
+}
+async function openGodotWindow(){
+ if(godotWindow&&!godotWindow.isDestroyed()){godotWindow.show();godotWindow.focus();return true;}
+ godotWindow=new BrowserWindow({
+  title:'Mastermind · Pixel Portrait Creator',
+  width:1080,height:900,minWidth:700,minHeight:550,
+  icon:path.join(assets,'mastermind_logo.png'),
+  backgroundColor:'#1a1722',
+  webPreferences:{nodeIntegration:false,contextIsolation:true,sandbox:true,webSecurity:true}
+ });
+ godotWindow.webContents.setWindowOpenHandler(({url})=>{
+  if(trustedGame(url))shell.openExternal(url).catch(()=>{});
+  return {action:'deny'};
+ });
+ godotWindow.webContents.on('will-navigate',(event,url)=>{
+  if(!trustedGame(url))event.preventDefault();
+ });
+ godotWindow.webContents.on('did-fail-load',(_e,code,description,isMainFrame)=>{
+  if(isMainFrame&&code!==-3)reportGodot('error','Janela do Godot: '+description);
+ });
+ godotWindow.on('closed',()=>{godotWindow=null;});
+ try{await godotWindow.loadURL(await resolveGameUrl());return true;}
+ catch(error){reportGodot('error','Falha também na janela: '+sanitizeError(error));return false;}
 }
 function gameAction(action){
+ if(!gameView&&action!=='browser'&&action!=='window')createGame();
+ if(action==='browser'){shell.openExternal(creator).catch(()=>{});return;}
+ if(action==='window'){openGodotWindow().catch(console.error);return;}
  if(!gameView)return;
  switch(action){
   case 'fit':fitGame();break;
-  case 'reload':gameView.webContents.reloadIgnoringCache();break;
+  case 'reload':
+   if(gameView.webContents.getURL())gameView.webContents.reloadIgnoringCache();
+   else{gameStarted=false;gameRect({visible:true,...gameBounds});}
+   reportGodot('loading','Recarregando o Godot...');
+   break;
   case 'zoom-in':editorZoom=Math.min(2.5,editorZoom*1.15);gameView.webContents.setZoomFactor(editorZoom);break;
   case 'zoom-out':editorZoom=Math.max(.55,editorZoom/1.15);gameView.webContents.setZoomFactor(editorZoom);break;
-  case 'browser':shell.openExternal(creator);break;
-  default:break;
  }
 }
 async function captureGame(){
