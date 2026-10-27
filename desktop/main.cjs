@@ -17,7 +17,6 @@ protocol.registerSchemesAsPrivileged([
   }}
 ]);
 app.commandLine.appendSwitch('ozone-platform-hint','auto');
-app.commandLine.appendSwitch('disable-features','OutOfBlinkCors'); // controlled assets are same-origin only
 app.setName('Mastermind');
 const isSmoke=process.argv.includes('--smoke-test');
 const WEB_ORIGIN='mastermind://app';
