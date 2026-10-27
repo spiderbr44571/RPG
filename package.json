@@ -1,7 +1,7 @@
 {
   "name": "mastermind-rpg-desktop",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.2",
   "scripts": {
     "test": "python3 tests/runtime/prepare.py && playwright test",
     "start": "electron .",
@@ -11,11 +11,11 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
-    "electron": "^33.4.11",
+    "electron": "^43.8.4",
     "electron-builder": "^25.1.8"
   },
   "productName": "Mastermind",
-  "description": "Mastermind RPG — Linux desktop",
+  "description": "Mastermind RPG Linux desktop — mestragem LAN, canvas and Godot fixes",
   "main": "desktop/main.cjs",
   "license": "UNLICENSED",
   "build": {
