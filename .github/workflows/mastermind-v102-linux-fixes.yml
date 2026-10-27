@@ -1,0 +1,97 @@
+name: Mastermind v1.0.2 — Correções Mestragem, Canvas e Ateliê (Linux)
+on:
+  push:
+    branches:
+      - fix/mastermind-v102-linux-mestragem-atelier
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  linux-fixed:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependências de desktop, packaging e testes gráficos
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends zstd desktop-file-utils xvfb libgtk-3-0 libnss3 libasound2t64 libxss1 libxtst6 libnotify4 libatk-bridge2.0-0 libsecret-1-0
+          npm install --no-audit --no-fund
+      - name: Verificar JavaScript do desktop
+        run: |
+          set -euo pipefail
+          node --check desktop/main.cjs
+          node --check desktop/preload.cjs
+          node --check desktop/renderer.js
+          node --check desktop/campaign-server.cjs
+          node --check desktop/tests/electron-smoke.cjs
+          node --check app/src/main/assets/pixelportrait86_companion.js
+      - name: Testar servidor LAN real, rotas HTTP e preservação do Mastermind
+        run: |
+          set -euo pipefail
+          node --test desktop/tests/desktop.test.cjs desktop/tests/campaign-server.test.cjs desktop/tests/linux-v102.test.cjs
+          node tests/pixelportrait90.test.cjs
+          node tests/gurps4.test.cjs
+      - name: Testar app Electron com Xvfb — mestre e Ateliê
+        run: |
+          set -euo pipefail
+          xvfb-run -a -s '-screen 0 1600x1000x24' timeout 80s node desktop/tests/electron-smoke.cjs
+      - name: Gerar AppImage e versão Linux compactada
+        run: npm run dist:linux
+      - name: Empacotar instalador real CachyOS/Arch
+        run: |
+          set -euo pipefail
+          test -s dist/Mastermind-v1.0.2-Linux-x86_64.AppImage
+          test -s dist/Mastermind-v1.0.2-Linux-x64.tar.gz
+          bash scripts/package_arch_linux.sh dist/Mastermind-v1.0.2-Linux-x64.tar.gz dist/
+          python3 tests/verify_arch_linux_package.py dist/mastermind-rpg-1.0.2-1-x86_64.pkg.tar.zst
+          sha256sum dist/Mastermind-v1.0.2-Linux-x86_64.AppImage dist/Mastermind-v1.0.2-Linux-x64.tar.gz dist/mastermind-rpg-1.0.2-1-x86_64.pkg.tar.zst > dist/SHA256SUMS.txt
+      - name: Verificar instalação e remoção via pacman real
+        run: |
+          set -euo pipefail
+          docker run --rm -v "$PWD/dist:/install:ro" archlinux:latest bash -euo pipefail -c '
+            pacman -Qip /install/mastermind-rpg-1.0.2-1-x86_64.pkg.tar.zst
+            pacman -U --noconfirm -dd /install/mastermind-rpg-1.0.2-1-x86_64.pkg.tar.zst
+            pacman -Q mastermind-rpg
+            test -x /opt/mastermind/mastermind
+            test -x /usr/bin/mastermind
+            test -s /usr/share/applications/mastermind.desktop
+            test -s /usr/share/pixmaps/mastermind.png
+            pacman -Rns --noconfirm -dd mastermind-rpg
+            ! pacman -Q mastermind-rpg
+            echo "PASS: pacote instalável via pacman, ícone, comando e desinstalação"
+          '
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Mastermind-v1.0.2-Linux-CachyOS
+          path: |
+            dist/mastermind-rpg-1.0.2-1-x86_64.pkg.tar.zst
+            dist/mastermind-rpg-1.0.2-1-x86_64.pkg.tar.zst.sha256
+            dist/Mastermind-v1.0.2-Linux-x86_64.AppImage
+            dist/Mastermind-v1.0.2-Linux-x64.tar.gz
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+      - name: Publicar release com instalador do Linux corrigido
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="mastermind-v1.0.2-linux-mestragem-atelier"
+          FILES=(
+            dist/mastermind-rpg-1.0.2-1-x86_64.pkg.tar.zst
+            dist/mastermind-rpg-1.0.2-1-x86_64.pkg.tar.zst.sha256
+            dist/Mastermind-v1.0.2-Linux-x86_64.AppImage
+            dist/Mastermind-v1.0.2-Linux-x64.tar.gz
+            dist/SHA256SUMS.txt
+          )
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" "${FILES[@]}" --target "${GITHUB_SHA}" \
+              --title "Mastermind v1.0.2 — Mestragem, Canvas e Ateliê corrigidos no Linux" \
+              --notes "Pacote CachyOS/Arch atualizado via sudo pacman -U ./mastermind-rpg-1.0.2-1-x86_64.pkg.tar.zst. Correção da origem file:// com hash (impedia comunicação do app Linux), servidor de campanha LAN real com persistência e autenticação, editor visual de cenários/canvas, mesa ao vivo, painel da mestragem, diagnóstico do Godot e botão de janela alternativa. Testes HTTP, Electron GUI/Xvfb, empacotamento e instalação pacman. Algumas operações avançadas de mesa do Android ainda podem requerer port; integração depende de WebGL/Internet para Godot."
+          else
+            gh release upload "$TAG" "${FILES[@]}" --clobber
+          fi
