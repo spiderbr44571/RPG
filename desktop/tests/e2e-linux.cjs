@@ -10,8 +10,9 @@ const assert=require('node:assert/strict');
    timeout:45000
   });
   const win=await client.firstWindow({timeout:30000});
-  await win.locator('#screen-master').waitFor({timeout:15000});
+  await win.locator('#screen-master').waitFor({state:'attached',timeout:15000});
   await win.evaluate(()=>window.RPG_DEMO.navigate('master'));
+  await win.locator('#screen-master').waitFor({state:'visible',timeout:10000});
   await win.locator('#r12-host-controls').waitFor({timeout:8000});
   const hasBridge=await win.evaluate(()=>typeof window.RpgLocalHost?.start==='function'&&
     typeof window.MastermindDesktop?.action==='function');
