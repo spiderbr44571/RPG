@@ -1,0 +1,40 @@
+/* Mastermind 0.85 – Atelier novo, construído para as peças CC0 do nemo. */
+#screen-atelier85{color:var(--fg,#f3e6d4)}
+#screen-atelier85 .n85-head{border:1px solid color-mix(in srgb,var(--accent,#bd9c6f) 55%,transparent);background:linear-gradient(120deg,#322737,#171f29 72%);border-radius:17px;padding:21px 23px;margin:0 0 15px;display:flex;align-items:center;gap:16px;justify-content:space-between;flex-wrap:wrap}
+#screen-atelier85 .n85-kicker{font:700 11px system-ui;letter-spacing:.19em;text-transform:uppercase;color:#cdb389}
+#screen-atelier85 .n85-head h1{font:700 clamp(25px,3vw,36px) Georgia,serif;color:#ffe8c4;line-height:1.2;margin:6px 0 8px}
+#screen-atelier85 .n85-head p{font:400 13px/1.55 system-ui;color:#d5c4bd;margin:0;max-width:610px}
+#screen-atelier85 .n85-action{cursor:pointer;background:#29303c;border:1px solid #846c59;color:#f9e3be;padding:10px 14px;min-height:42px;border-radius:10px;font:650 12px system-ui;transition:transform .15s,background .2s}
+#screen-atelier85 .n85-action:hover{background:#41404a;transform:translateY(-1px)}
+#screen-atelier85 .n85-action.primary{background:linear-gradient(120deg,#25666b,#22474f);border-color:#ac8861;color:#fff2d9}
+#screen-atelier85 .n85-shell{display:grid;grid-template-columns:minmax(260px,.95fr) minmax(300px,1.15fr);gap:14px;align-items:start}
+#screen-atelier85 .n85-panel{border:1px solid #826d60;border-radius:16px;background:linear-gradient(155deg,#2c2634,#1b1d2b 85%);box-shadow:0 16px 42px #0004;overflow:hidden;min-width:0}
+#screen-atelier85 .n85-panel-head{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:15px 18px;background:#48364072;border-bottom:1px solid #846555}
+#screen-atelier85 .n85-panel-head strong{font:700 19px Georgia,serif;color:#f5d5a9}
+#screen-atelier85 .n85-panel-head span{font:600 10px system-ui;color:#d2b48b}
+#screen-atelier85 .n85-preview{display:grid;place-items:center;padding:20px 16px 14px;min-height:350px}
+#screen-atelier85 #n85-canvas{background:#1d2830;border:5px solid #d6b98c;outline:1px solid #443447;box-shadow:0 0 0 10px #393047,0 14px 35px #0005;display:block;max-width:min(100%,350px);height:auto;aspect-ratio:290/320;border-radius:8px}
+#screen-atelier85 .n85-token-row{display:flex;align-items:center;gap:12px;margin:13px 16px 0;padding:12px 10px;border-radius:10px;background:#50415460;border:1px solid #9c7a69}
+#screen-atelier85 #n85-token{width:72px;height:72px;border-radius:100%;box-shadow:0 0 0 2px #d0ad7a;background:#232635}
+#screen-atelier85 .n85-token-row p{margin:0;color:#dbcbbc;font:600 12px/1.6 system-ui}
+#screen-atelier85 .n85-token-row p small{font:11px system-ui;color:#baadad}
+#screen-atelier85 .n85-button-row{padding:14px 16px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#screen-atelier85 .n85-button-row .wide{grid-column:1/-1}
+#screen-atelier85 .n85-status{font:11px/1.55 system-ui;color:#c3ada7;margin:0 16px 16px;min-height:17px}
+#screen-atelier85 .n85-categories{display:flex;gap:7px;padding:14px 14px 12px;overflow-x:auto;scrollbar-width:thin;scrollbar-color:#9b8069 transparent;border-bottom:1px solid #584a51}
+#screen-atelier85 .n85-cat{flex-shrink:0;border:1px solid #6c5b5a;border-radius:10px;color:#dfd3c9;background:#242532;padding:9px 12px;font:650 12px system-ui;cursor:pointer;white-space:nowrap}
+#screen-atelier85 .n85-cat.selected{background:linear-gradient(110deg,#855e50,#6f4d58);border-color:#d7b585;color:#ffebca}
+#screen-atelier85 .n85-options-title{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:18px 17px 13px}
+#screen-atelier85 .n85-options-title strong{font:700 18px Georgia,serif;color:#efce9f}
+#screen-atelier85 .n85-options-title small{font:10px/1.4 system-ui;color:#c6ac94;text-align:right}
+#screen-atelier85 .n85-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;padding:4px 15px 18px;max-height:600px;overflow-y:auto;scrollbar-width:thin}
+#screen-atelier85 .n85-choice{min-width:0;display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:space-between;padding:8px 5px 10px;border-radius:11px;background:#272636;border:1px solid #75616b;cursor:pointer;color:#e4d5c7;position:relative}
+#screen-atelier85 .n85-choice[aria-pressed="true"]{background:#23464b;border:2px solid #e7c591;box-shadow:0 0 0 2px #9776543b}
+#screen-atelier85 .n85-choice canvas{width:min(100%,130px);height:auto;aspect-ratio:290/320;display:block;border-radius:6px;background:#171f2b}
+#screen-atelier85 .n85-choice span{font:600 11px/1.3 system-ui;text-align:center;word-break:break-word}
+#screen-atelier85 .n85-choice .n85-swatch{height:51px;width:51px;border-radius:50%;border:3px solid #dbc6a3;box-shadow:inset 0 -9px 0 #0003,0 3px 11px #0005;margin:9px auto 10px}
+#screen-atelier85 .n85-hint{margin:0 15px 14px;padding:12px;background:#293039;border:1px solid #655564;border-radius:9px;font:11px/1.5 system-ui;color:#cbbcae}
+#screen-atelier85 .n85-license{margin:13px 0 2px;text-align:center;color:#a999a2;font:11px/1.6 system-ui}
+#screen-atelier85 .n85-license a{color:#e2bf8e;text-decoration:underline}
+@media(max-width:980px){#screen-atelier85 .n85-shell{grid-template-columns:1fr}#screen-atelier85 .n85-preview{min-height:320px}#screen-atelier85 .n85-grid{grid-template-columns:repeat(4,minmax(0,1fr));max-height:none}}
+@media(max-width:520px){#screen-atelier85 .n85-head{padding:16px}#screen-atelier85 .n85-shell{gap:10px}#screen-atelier85 .n85-preview{padding:15px 15px;min-height:0}#screen-atelier85 #n85-canvas{max-width:calc(100% - 24px)}#screen-atelier85 .n85-grid{grid-template-columns:repeat(3,minmax(0,1fr));padding:3px 10px 16px;gap:7px}#screen-atelier85 .n85-panel-head{padding:13px 14px}#screen-atelier85 .n85-button-row{padding:10px;gap:7px}#screen-atelier85 .n85-action{padding:9px 8px;font-size:11px}#screen-atelier85 .n85-choice{padding:6px 3px}#screen-atelier85 .n85-choice span{font-size:10px}}
