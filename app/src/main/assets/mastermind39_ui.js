@@ -6,7 +6,7 @@ const glyph=(name)=>'<svg class="icon" aria-hidden="true"><use href="#i-'+name+'
 const tools=[
  ['master','Mesa ao Vivo','map','Cenários, encontros e iniciativa','01'],
  ['sheet','Personagens','user','Fichas, rituais e inventário','02'],
- ['atelier85','Ateliê 2D','user','Criar e editar retratos e tokens','07'],
+ ['atelier85','Ateliê · lyime','user','Pixel Portrait Creator e tokens','07'],
  ['library','Biblioteca','book','Livros e sistemas cadastrados','03'],
  ['ai','Pesquisa offline','search','Encontre regras pelo contexto','04'],
  ['canvas','Canvas infinito','map','Ligações, pistas e notas','05'],
