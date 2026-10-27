@@ -23,12 +23,24 @@ import android.webkit.WebViewClient;
 import android.webkit.WebSettings;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import java.nio.charset.StandardCharsets;
 
 /** Pixel Portrait Creator: the original lyime HTML5 app, inside a separate WebView.
  * No APK copy of the Godot game, no JavaScript bridges, and no access to RPG data.
  */
 public final class PixelPortraitActivity extends Activity {
     public static final String OFFICIAL_PAGE = "https://lyime.itch.io/pixel-portrait-creator";
+    /** Inspected directly from the official itch.io page, 2026-10-27. */
+    public static final String VERIFIED_GODOT_GAME = "https://html.itch.zone/html/18379448/index.html?v=1785079497";
+    private static final Pattern HTML5_ENTRY = Pattern.compile(
+        "https://html\\.itch\\.zone/html/[0-9]{4,16}/index\\.html(?:\\?v=[0-9]{1,16})?");
+
     public static final String CAPTURE_FILENAME = "lyime-capture-v087.png";
     private WebView creator;
     private TextView progress;
@@ -52,8 +64,10 @@ public final class PixelPortraitActivity extends Activity {
         progress.setGravity(Gravity.CENTER_VERTICAL);
         progress.setText("Editor original · carregando...");
         Button external=button("Navegador");
+        Button refresh=button("Recarregar");
         header.addView(back);
         header.addView(progress,new LinearLayout.LayoutParams(0,dp(44),1));
+        header.addView(refresh);
         header.addView(external);
         root.addView(header,new LinearLayout.LayoutParams(-1,-2));
 
@@ -72,6 +86,11 @@ public final class PixelPortraitActivity extends Activity {
         settings.setMediaPlaybackRequiresUserGesture(false);
         // This WebView MUST NEVER receive addJavascriptInterface(). The itch page
         // runs third-party JavaScript and must not see Mastermind's RPG bridges.
+        // Android WebView loads the original Godot HTML5 export as the TOP LEVEL
+        // document, rather than embedding the itch.io project page in an iframe.
+        // The official itch page denies third-party framing via frame-ancestors.
+        settings.setUseWideViewPort(true);
+        settings.setLoadWithOverviewMode(true);
         creator.setWebViewClient(new WebViewClient(){
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request){
                 if(!request.isForMainFrame())return false; // itch-hosted HTML5 iframe
@@ -93,7 +112,7 @@ public final class PixelPortraitActivity extends Activity {
         });
         creator.setWebChromeClient(new WebChromeClient(){
             @Override public void onProgressChanged(WebView view,int value){
-                progress.setText(value<100?"Carregando lyime... "+value+"%":"Pixel Portrait Creator · online");
+                progress.setText(value<100?"Godot HTML5 · "+value+"%":"Pixel Portrait Creator · carregado");
             }
         });
         root.addView(creator,new LinearLayout.LayoutParams(-1,0,1));
@@ -116,10 +135,52 @@ public final class PixelPortraitActivity extends Activity {
         setContentView(root);
         back.setOnClickListener(v->finish());
         external.setOnClickListener(v->openBrowser());
+        refresh.setOnClickListener(v->loadOriginalGame());
         capture.setOnClickListener(v->captureVisiblePage());
-        creator.loadUrl(OFFICIAL_PAGE);
+        loadOriginalGame();
     }
 
+    /** Discover the HTML5 entry from itch.io's public <iframe data-iframe> markup.
+     * A game update may replace the numerical upload; validate the origin/path before loading.
+     * The inspected working upload remains a fallback if the website lookup fails.
+     */
+    private void loadOriginalGame(){
+        if(creator==null)return;
+        progress.setText("Localizando exportação HTML5 original...");
+        new Thread(()->{
+            String resolved=VERIFIED_GODOT_GAME;
+            HttpURLConnection connection=null;
+            try{
+                connection=(HttpURLConnection)new URL(OFFICIAL_PAGE).openConnection();
+                connection.setConnectTimeout(8000);
+                connection.setReadTimeout(8000);
+                connection.setRequestProperty("Accept","text/html");
+                connection.setRequestProperty("User-Agent","Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/125.0.0.0 Mobile Safari/537.36");
+                int status=connection.getResponseCode();
+                if(status==200){
+                    try(InputStream input=connection.getInputStream();
+                        ByteArrayOutputStream data=new ByteArrayOutputStream()){
+                        byte[] buf=new byte[4096];int count;
+                        while((count=input.read(buf))!=-1){
+                            if(data.size()+count>262144)break;
+                            data.write(buf,0,count);
+                        }
+                        Matcher found=HTML5_ENTRY.matcher(data.toString("UTF-8"));
+                        if(found.find())resolved=found.group();
+                    }
+                }
+            }catch(Exception ignored){
+                // Either network is offline or itch markup changed; try the verified
+                // upload and offer the external-browser fallback on load error.
+            }finally{if(connection!=null)connection.disconnect();}
+            final String gameUrl=resolved;
+            runOnUiThread(()->{
+                if(creator==null||isFinishing())return;
+                progress.setText("Carregando o Godot original...");
+                creator.loadUrl(gameUrl);
+            });
+        },"lyime-html5-resolver").start();
+    }
     private static boolean isItchHost(String host){
         if(host==null)return false;
         host=host.toLowerCase(java.util.Locale.ROOT);
