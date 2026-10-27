@@ -3,6 +3,8 @@ package dev.rpgmesa.demo;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
@@ -11,10 +13,13 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.PixelCopy;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.FrameLayout;
+import android.widget.HorizontalScrollView;
 import android.widget.TextView;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -30,6 +35,8 @@ import java.net.URL;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.nio.charset.StandardCharsets;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /** Pixel Portrait Creator: the original lyime HTML5 app, inside a separate WebView.
  * No APK copy of the Godot game, no JavaScript bridges, and no access to RPG data.
@@ -45,6 +52,26 @@ public final class PixelPortraitActivity extends Activity {
     private WebView creator;
     private TextView progress;
     private Button capture;
+    private FrameLayout gameViewport;
+    private TextView zoomReadout;
+    private Button dragButton;
+    private Button rotationButton;
+    private LinearLayout zoomToolbar;
+
+    /** Native view-level zoom: avoids modifying or replacing the original Godot game. */
+    private float magnification=1f;
+    private float panX=0f,panY=0f;
+    private float canvasLeft=0f,canvasTop=0f,canvasWidth=0f,canvasHeight=0f;
+    private boolean canvasMeasured=false;
+    private boolean userAdjusted=false;
+    private boolean moveMode=false;
+    private boolean landscape=false;
+    private float lastTouchX=0f,lastTouchY=0f;
+    private int activePanPointer=-1;
+
+    private static float within(float value,float min,float max){
+        return Math.max(min,Math.min(max,value));
+    }
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -91,7 +118,37 @@ public final class PixelPortraitActivity extends Activity {
         // The official itch page denies third-party framing via frame-ancestors.
         settings.setUseWideViewPort(true);
         settings.setLoadWithOverviewMode(true);
+        creator.setPivotX(0f);
+        creator.setPivotY(0f);
+        creator.setOnTouchListener((view,event)->{
+            if(!moveMode)return false;  // Regular taps continue to reach the real Godot editor.
+            switch(event.getActionMasked()){
+                case MotionEvent.ACTION_DOWN:
+                    activePanPointer=event.getPointerId(0);
+                    lastTouchX=event.getRawX();lastTouchY=event.getRawY();
+                    return true;
+                case MotionEvent.ACTION_MOVE:
+                    if(activePanPointer!=event.getPointerId(event.getActionIndex()) && event.getPointerCount()<2){
+                        // Another pointer was just added; keep using the first.
+                    }
+                    float x=event.getRawX(),y=event.getRawY();
+                    panX+=x-lastTouchX;panY+=y-lastTouchY;
+                    lastTouchX=x;lastTouchY=y;
+                    applyViewTransform();
+                    return true;
+                case MotionEvent.ACTION_CANCEL:
+                case MotionEvent.ACTION_UP:
+                    activePanPointer=-1;return true;
+                default:return true;
+            }
+        });
         creator.setWebViewClient(new WebViewClient(){
+            @Override public void onPageFinished(WebView view,String url){
+                if(url!=null&&url.startsWith("https://html.itch.zone/html/")){
+                    gameViewport.postDelayed(()->probeGameCanvas(true),850);
+                    gameViewport.postDelayed(()->probeGameCanvas(true),2600);
+                }
+            }
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request){
                 if(!request.isForMainFrame())return false; // itch-hosted HTML5 iframe
                 Uri uri=request.getUrl();
@@ -115,7 +172,64 @@ public final class PixelPortraitActivity extends Activity {
                 progress.setText(value<100?"Godot HTML5 · "+value+"%":"Pixel Portrait Creator · carregado");
             }
         });
-        root.addView(creator,new LinearLayout.LayoutParams(-1,0,1));
+        gameViewport=new FrameLayout(this);
+        gameViewport.setClipChildren(true);
+        gameViewport.setClipToPadding(true);
+        gameViewport.setBackgroundColor(Color.rgb(32,30,42));
+        gameViewport.addView(creator,new FrameLayout.LayoutParams(-1,-1));
+        gameViewport.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,oright,obottom)->{
+            if((r-l)!=(oright-ol)||(b-t)!=(obottom-ot)){
+                if(canvasMeasured&&!userAdjusted)gameViewport.post(()->fitGame());
+            }
+        });
+        // Controls stay outside the remote WebView, so neither Godot nor itch.io
+        // can read/tamper with the zoom, pan and orientation buttons.
+        HorizontalScrollView toolbarScroll=new HorizontalScrollView(this);
+        toolbarScroll.setHorizontalScrollBarEnabled(false);
+        toolbarScroll.setFillViewport(true);
+        zoomToolbar=new LinearLayout(this);
+        zoomToolbar.setOrientation(LinearLayout.HORIZONTAL);
+        zoomToolbar.setGravity(Gravity.CENTER_VERTICAL);
+        zoomToolbar.setPadding(dp(6),dp(3),dp(6),dp(3));
+        zoomToolbar.setBackgroundColor(Color.rgb(32,29,43));
+        Button zoomMinus=compactButton("−");
+        zoomReadout=new TextView(this);
+        zoomReadout.setText("100%");
+        zoomReadout.setTextColor(Color.rgb(234,213,178));
+        zoomReadout.setGravity(Gravity.CENTER);
+        zoomReadout.setTextSize(12);
+        zoomReadout.setMinWidth(dp(48));
+        Button zoomPlus=compactButton("+");
+        Button fitButton=compactButton("Ajustar");
+        dragButton=compactButton("Mover");
+        rotationButton=compactButton("Paisagem");
+        zoomToolbar.addView(zoomMinus);
+        zoomToolbar.addView(zoomReadout,new LinearLayout.LayoutParams(dp(52),dp(40)));
+        zoomToolbar.addView(zoomPlus);
+        zoomToolbar.addView(fitButton);
+        zoomToolbar.addView(dragButton);
+        zoomToolbar.addView(rotationButton);
+        toolbarScroll.addView(zoomToolbar);
+        root.addView(toolbarScroll,new LinearLayout.LayoutParams(-1,dp(49)));
+        root.addView(gameViewport,new LinearLayout.LayoutParams(-1,0,1));
+        zoomMinus.setOnClickListener(v->changeMagnification(1f/1.2f));
+        zoomPlus.setOnClickListener(v->changeMagnification(1.2f));
+        fitButton.setOnClickListener(v->{userAdjusted=false;probeGameCanvas(true);});
+        dragButton.setOnClickListener(v->{
+            moveMode=!moveMode;
+            dragButton.setText(moveMode?"Mover ✓":"Mover");
+            dragButton.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
+                 moveMode?Color.rgb(113,91,56):Color.rgb(65,61,76)));
+            // Leaving pan mode allows normal taps on Godot again.
+            progress.setText(moveMode?"Arraste para mover · toque Mover para editar":"Toque para editar no Godot");
+        });
+        rotationButton.setOnClickListener(v->{
+            landscape=!landscape;
+            rotationButton.setText(landscape?"Retrato":"Paisagem");
+            setRequestedOrientation(landscape?ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE:
+                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
+            gameViewport.postDelayed(()->{userAdjusted=false;probeGameCanvas(true);},400);
+        });
         LinearLayout footer=new LinearLayout(this);
         footer.setGravity(Gravity.CENTER_VERTICAL);
         footer.setPadding(dp(8),dp(5),dp(8),dp(7));
@@ -125,7 +239,7 @@ public final class PixelPortraitActivity extends Activity {
         capture.setTextColor(Color.rgb(28,23,31));
         capture.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(207,167,107)));
         TextView note=new TextView(this);
-        note.setText("Personalize no original · recorte depois no Mastermind");
+        note.setText("Use + / − ou Ajustar · Mover para arrastar · toque para editar");
         note.setTextSize(10);
         note.setTextColor(Color.rgb(208,192,170));
         note.setGravity(Gravity.CENTER);
@@ -140,6 +254,101 @@ public final class PixelPortraitActivity extends Activity {
         loadOriginalGame();
     }
 
+    private Button compactButton(String title){
+        Button button=new Button(this);
+        button.setText(title);
+        button.setAllCaps(false);
+        button.setTextSize(12);
+        button.setMinHeight(0);
+        button.setMinimumHeight(0);
+        button.setMinWidth(0);
+        button.setMinimumWidth(0);
+        button.setTextColor(Color.rgb(239,220,184));
+        button.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(65,61,76)));
+        button.setPadding(dp(9),0,dp(9),0);
+        LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(-2,dp(39));
+        params.setMargins(dp(2),0,dp(2),0);
+        button.setLayoutParams(params);
+        return button;
+    }
+
+    private void applyViewTransform(){
+        if(creator==null)return;
+        creator.setScaleX(magnification);
+        creator.setScaleY(magnification);
+        creator.setTranslationX(panX);
+        creator.setTranslationY(panY);
+        if(zoomReadout!=null)zoomReadout.setText(Math.round(magnification*100)+"%");
+    }
+
+    /** Zoom around the current viewport center, preserving the visible part of the portrait. */
+    private void changeMagnification(float ratio){
+        if(gameViewport==null||gameViewport.getWidth()<1)return;
+        userAdjusted=true;
+        float old=magnification;
+        magnification=within(old*ratio,.75f,3.5f);
+        float fraction=magnification/old;
+        float cx=gameViewport.getWidth()/2f,cy=gameViewport.getHeight()/2f;
+        panX=cx+(panX-cx)*fraction;
+        panY=cy+(panY-cy)*fraction;
+        applyViewTransform();
+    }
+
+    /** Read-only inspection of the HTML5 canvas. This does NOT change the game's DOM. */
+    private void probeGameCanvas(boolean doFit){
+        if(creator==null||gameViewport==null||gameViewport.getWidth()<1)return;
+        creator.evaluateJavascript(
+            "(function(){var c=document.getElementById('canvas');if(!c)return null;"+
+            "var r=c.getBoundingClientRect();"+
+            "return JSON.stringify({x:r.left,y:r.top,w:r.width,h:r.height,vw:window.innerWidth});})()",
+            response->{
+                if(creator==null||gameViewport==null||response==null||response.equals("null"))return;
+                try{
+                    String payload=new JSONArray("["+response+"]").getString(0);
+                    JSONObject metrics=new JSONObject(payload);
+                    float cssWidth=(float)metrics.getDouble("vw");
+                    if(cssWidth<=0)return;
+                    float pixelScale=gameViewport.getWidth()/cssWidth;
+                    canvasLeft=(float)metrics.getDouble("x")*pixelScale;
+                    canvasTop=(float)metrics.getDouble("y")*pixelScale;
+                    canvasWidth=(float)metrics.getDouble("w")*pixelScale;
+                    canvasHeight=(float)metrics.getDouble("h")*pixelScale;
+                    canvasMeasured=canvasWidth>50&&canvasHeight>50;
+                    if(canvasMeasured&&doFit&&!userAdjusted)fitGame();
+                }catch(Exception ignored){
+                    // The online game may change its HTML structure; buttons still
+                    // provide zoom and manual panning without canvas dimensions.
+                }
+            });
+    }
+
+    /** Enlarge and center the actual Godot canvas within the available screen. */
+    private void fitGame(){
+        if(gameViewport==null||gameViewport.getWidth()<1||gameViewport.getHeight()<1)return;
+        if(canvasMeasured){
+            float availableWidth=Math.max(1,gameViewport.getWidth()-dp(15));
+            float availableHeight=Math.max(1,gameViewport.getHeight()-dp(15));
+            magnification=within(Math.min(availableWidth/canvasWidth,availableHeight/canvasHeight),.75f,3.5f);
+            panX=(gameViewport.getWidth()-canvasWidth*magnification)/2f-canvasLeft*magnification;
+            panY=(gameViewport.getHeight()-canvasHeight*magnification)/2f-canvasTop*magnification;
+        }else{
+            magnification=1.5f;
+            panX=0f;panY=dp(3);
+        }
+        userAdjusted=false;
+        applyViewTransform();
+    }
+
+    @Override public void onConfigurationChanged(Configuration configuration){
+        super.onConfigurationChanged(configuration);
+        if(gameViewport!=null){
+            gameViewport.postDelayed(()->{
+                userAdjusted=false;
+                probeGameCanvas(true);
+            },350);
+        }
+    }
+
     /** Discover the HTML5 entry from itch.io's public <iframe data-iframe> markup.
      * A game update may replace the numerical upload; validate the origin/path before loading.
      * The inspected working upload remains a fallback if the website lookup fails.
@@ -147,6 +356,9 @@ public final class PixelPortraitActivity extends Activity {
     private void loadOriginalGame(){
         if(creator==null)return;
         progress.setText("Localizando exportação HTML5 original...");
+        canvasMeasured=false;
+        magnification=1f;panX=panY=0f;userAdjusted=false;
+        applyViewTransform();
         new Thread(()->{
             String resolved=VERIFIED_GODOT_GAME;
             HttpURLConnection connection=null;
