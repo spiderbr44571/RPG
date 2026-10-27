@@ -24,7 +24,7 @@ test('Linux Godot has lifecycle events and recovery, no endless loading state',(
  assert.match(main,/godotTimer=setTimeout/);
  assert.match(main,/},28000\)/);
  assert.match(main,/async function openGodotWindow\(\)/);
- assert.match(main,/case 'window':/);
+ assert.match(main,/if\(action==='window'\)/);
  assert.match(renderer,/'↗ Janela'/);
  assert.match(renderer,/info\.status==='error'\|\|info\.status==='warning'/);
  assert.match(main,/webSecurity:true/);
