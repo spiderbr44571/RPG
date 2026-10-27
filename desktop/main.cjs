@@ -63,7 +63,15 @@ function safeName(value,ext){
  if(!name||!name.toLowerCase().endsWith(ext))throw Error('Nome inválido');
  return name;
 }
-function ensureLocal(event){if(!win||event.sender!==win.webContents||event.sender.getURL()!==require('node:url').pathToFileURL(path.join(assets,'demo-offline.html')).href)throw Error('Requisição externa bloqueada');}
+function ensureLocal(event){
+ if(!win||event.sender!==win.webContents)throw Error('Requisição externa bloqueada');
+ // Mastermind uses history.replaceState('#screen') for navigation. The fragment
+ // must not invalidate the IPC origin check for the SAME local HTML document.
+ const current=new URL(event.sender.getURL());
+ const trusted=require('node:url').pathToFileURL(path.join(assets,'demo-offline.html'));
+ if(current.protocol!=='file:'||current.hostname!==trusted.hostname||current.pathname!==trusted.pathname)
+   throw Error('Requisição externa bloqueada');
+}
 function boundedBase64(input,limit=15*1024*1024){
  if(typeof input!=='string'||input.length>limit*1.4||!/^[A-Za-z0-9+/=\s]+$/.test(input))throw Error('Dados inválidos');
  const buf=Buffer.from(input,'base64');
