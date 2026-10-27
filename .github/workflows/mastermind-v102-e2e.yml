@@ -1,0 +1,40 @@
+name: Mastermind v1.0.2 — Teste real do desktop Linux
+on:
+  push:
+    branches: [fix/mastermind-v102-linux-mestragem-atelie]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  desktop-e2e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Build original Android campaign engine on Linux
+        run: bash desktop/server/build.sh
+      - name: Install Electron and testing support
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends xvfb
+          npm install --no-audit --no-fund
+      - name: Static safety and app tests
+        run: |
+          node --check desktop/main.cjs
+          node --check desktop/campaign-host.cjs
+          node --check desktop/renderer.js
+          node --check desktop/preload.cjs
+          node --check app/src/main/assets/rpg11_campaigns.js
+          node --test desktop/tests/desktop.test.cjs
+      - name: Launch actual Electron and exercise server + Godot
+        env:
+          MASTERMIND_E2E: "1"
+          ELECTRON_DISABLE_SECURITY_WARNINGS: "true"
+        run: timeout 125s xvfb-run -a -s "-screen 0 1440x900x24" node desktop/tests/e2e-linux.cjs
