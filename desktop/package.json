@@ -10,8 +10,9 @@
     "start": "electron .",
     "check": "node --check main.cjs && node --check preload.cjs && node --check book-catalog.cjs && node --check local-server.cjs && node --check desktop-ui.js",
     "test": "node --test test/*.test.cjs",
-    "dist:linux": "electron-builder --linux AppImage tar.gz --x64 --publish never",
-    "dist:dir": "electron-builder --linux dir --x64 --publish never"
+    "dist:linux": "electron-builder --linux dir --x64 --publish never",
+    "dist:dir": "electron-builder --linux dir --x64 --publish never",
+    "dist:appimage": "electron-builder --linux AppImage --x64 --publish never"
   },
   "dependencies": {
     "pdfjs-dist": "4.10.38"
@@ -37,18 +38,37 @@
       "node_modules/**/*"
     ],
     "extraResources": [
-      {"from": "../app/src/main/assets", "to": "web", "filter": ["**/*"]},
-      {"from": "desktop-ui.js", "to": "web/mastermind_linux.js"},
-      {"from": "desktop.css", "to": "web/mastermind_linux.css"},
-      {"from": "../server/mesa_lan.py", "to": "server/mesa_lan.py"}
+      {
+        "from": "../app/src/main/assets",
+        "to": "web",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "desktop-ui.js",
+        "to": "web/mastermind_linux.js"
+      },
+      {
+        "from": "desktop.css",
+        "to": "web/mastermind_linux.css"
+      },
+      {
+        "from": "../server/mesa_lan.py",
+        "to": "server/mesa_lan.py"
+      }
     ],
     "linux": {
       "category": "Game",
       "executableName": "mastermind",
       "icon": "icons",
       "target": [
-        {"target": "AppImage", "arch": ["x64"]},
-        {"target": "tar.gz", "arch": ["x64"]}
+        {
+          "target": "dir",
+          "arch": [
+            "x64"
+          ]
+        }
       ]
     },
     "appImage": {
