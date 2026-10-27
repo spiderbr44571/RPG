@@ -1,0 +1,14 @@
+name: Inspect lyime itch HTML5 launch (metadata only)
+on:
+  push:
+    branches:
+      - feature/mastermind-v088-direct-godot-embed
+  workflow_dispatch:
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect lyime website HTML and iframe launch attributes
+        run: python3 scripts/inspect_lyime_web.py
