@@ -10,11 +10,11 @@ for(const x of ['screen-atelier85','p86-import','p86-portrait','p86-token','p86-
 for(const x of ['online','download','save','exportPortrait','exportToken','resetCrop','clear'])assert.ok(html.includes('data-p86-action="'+x+'"'),x);
 assert.ok(html.includes('pixelportrait86_companion.js')&&html.includes('pixelportrait86_companion.css'));
 assert.doesNotMatch(html,/src="nonemo85_|src="mastermind82_|src="mastermind83_/);
-assert.match(html,/>v0\.88<\/small>/);
+assert.match(html,/>v0\.89<\/small>/);
 assert.match(html,/data-screen="atelier85"/);
 assert.match(html,/\['atelier85','Ateliê','shirt'/);
 assert.ok(css.includes('#screen-atelier85'));
-assert.match(gradle,/versionCode 92; versionName '0\.88\.0-mastermind-lyime-direct-godot'/);
+assert.match(gradle,/versionCode 93; versionName '0\.89\.0-mastermind-atelier-zoom'/);
 assert.match(java,/class PixelPortraitBridge/);
 assert.match(java,/new Intent\(Intent.ACTION_VIEW,page\)/);
 assert.match(java,/https:\/\/lyime\.itch\.io\/pixel-portrait-creator/);
