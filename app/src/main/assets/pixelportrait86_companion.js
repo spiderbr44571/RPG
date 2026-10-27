@@ -179,7 +179,7 @@ function consumeNativeCapture(){
  if(!native?.consumeCapture)return;
  try{
   const value=native.consumeCapture();
-  if(typeof value==='string'&&/^data:image\\/png;base64,[A-Za-z0-9+/=]{100,}$/.test(value)){
+  if(typeof value==='string'&&/^data:image\/png;base64,[A-Za-z0-9+/=]{100,}$/.test(value)){
    applyImage(value);
    message('Captura do editor incorporado recebida. Arraste o recorte para focar somente no personagem.');
   }
