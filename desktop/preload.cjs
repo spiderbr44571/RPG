@@ -87,6 +87,14 @@ contextBridge.exposeInMainWorld('MastermindLinux',Object.freeze({
 
 window.addEventListener('DOMContentLoaded',()=>{
   document.documentElement.classList.add('mm-linux');
+  const style=document.createElement('link');
+  style.rel='stylesheet';
+  style.href='mastermind_linux.css';
+  document.head.appendChild(style);
+  const runtime=document.createElement('script');
+  runtime.src='mastermind_linux.js';
+  runtime.defer=true;
+  document.body.appendChild(runtime);
 });
 ipcRenderer.on('mastermind:desktop-navigate',(_event,name)=>{
   if(ALLOWED_SCREENS.has(name)){
