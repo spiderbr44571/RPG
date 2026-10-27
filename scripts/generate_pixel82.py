@@ -245,6 +245,15 @@ def hairBack(d,v):
    poly(d,[(x+5,87),(x+10,100),(x+2,110),(x-7,110)],c(HAIR,0))
    ln(d,[(x-8,70),(x-12,91),(x-3,108)],c(HAIR,5),2)
    rect(d,(x-5,60,x+1,63),c(METAL,5))
+ if v==6:
+  # Sculpted fantasy twin ponytails, behind the shared head silhouette.
+  for side in (-1,1):
+   x=37 if side<0 else 128
+   outlined(d,[(x-9,59),(x+7,55),(x+15,72),(x+13,97),(x+5,115),(x-13,113),(x-18,91),(x-16,73)],c(HAIR,1),INK,2)
+   poly(d,[(x-11,65),(x+1,59),(x+9,68),(x+5,80),(x-8,84)],c(HAIR,4))
+   poly(d,[(x+5,87),(x+10,100),(x+2,110),(x-7,110)],c(HAIR,0))
+   ln(d,[(x-8,70),(x-12,91),(x-3,108)],c(HAIR,5),2)
+   rect(d,(x-5,60,x+1,63),c(METAL,5))
  if v in (4,5,9):
   ellipse(d,(95,34,124,64),c(HAIR,2))
   ellipse(d,(101,38,117,54),c(HAIR,5))
