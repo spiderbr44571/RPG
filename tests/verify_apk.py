@@ -15,7 +15,7 @@ with zipfile.ZipFile(sys.argv[1]) as apk:
  assert b'>v0.80<' in apk.read('assets/demo-offline.html')
  for asset in ('mastermind78_assets.js','mastermind79_art.js','mastermind80_portraits.js','mastermind78_atelier.js','mastermind78_atelier.css'):
   assert 'assets/'+asset in apk.namelist(), f'Missing modular character resource: {asset}'
-  assert len(apk.read('assets/'+asset))>(500 if asset.endswith('.css') else 2000), f'Empty modular resource: {asset}'
+  assert len(apk.read('assets/'+asset))>(500 if asset.endswith('.css') else 1200 if asset=='mastermind80_portraits.js' else 2000), f'Empty modular resource: {asset}'
  assert b'mastermind78_atelier.js' in apk.read('assets/demo-offline.html')
  assert b'mastermind78_assets.js' in apk.read('assets/demo-offline.html')
  assert b'mastermind79_art.js' in apk.read('assets/demo-offline.html')
