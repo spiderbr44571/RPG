@@ -14,6 +14,7 @@ const creator='https://lyime.itch.io/pixel-portrait-creator';
 const gameFallback='https://html.itch.zone/html/18379448/index.html?v=1785079497';
 let win,gameView,gameStarted=false,gameLoading=false,gameBounds=null,editorZoom=1,editorPan={x:0,y:0},capture=null;
 let hostManager=null;
+let gameErrorTimer=null;
 const allowedExt=new Set(['.png','.pdf','.json']);
 const stored=()=>path.join(app.getPath('userData'),'mastermind-books');
 function safeName(value,ext){
@@ -85,11 +86,23 @@ function createGame(){
   if(!trustedGame(url))event.preventDefault();
  });
  gameView.webContents.on('did-fail-load',(_event,code,description,isMainFrame)=>{
-  if(isMainFrame&&win)win.webContents.send('mastermind:godot-status',{status:'error',message:description,code});
+  if(isMainFrame&&code!==-3&&win){
+   clearTimeout(gameErrorTimer);
+   win.webContents.send('mastermind:godot-status',{status:'error',message:description,code});
+  }
+ });
+ gameView.webContents.on('render-process-gone',(_event,details)=>{
+  clearTimeout(gameErrorTimer);
+  if(win)win.webContents.send('mastermind:godot-status',{
+   status:'error',message:'O processo do Godot encerrou. Clique Recarregar. ('+details.reason+')'
+  });
  });
  gameView.webContents.on('did-finish-load',()=>{
+  clearTimeout(gameErrorTimer);
   if(win)win.webContents.send('mastermind:godot-status',{status:'ready'});
-  fitGame();
+  // Godot initializes its WASM and resizes the canvas AFTER the first HTML load.
+  setTimeout(fitGame,1000);
+  setTimeout(fitGame,2800);
  });
 }
 function gameRect(data){
@@ -107,10 +120,18 @@ function gameRect(data){
  gameView.setVisible(true);
  if(!gameStarted){
   gameStarted=true;gameLoading=true;
+  if(win)win.webContents.send('mastermind:godot-status',{status:'loading',message:'Carregando o Godot original pela internet...'});
+  clearTimeout(gameErrorTimer);
+  gameErrorTimer=setTimeout(()=>{
+   if(win&&gameLoading)win.webContents.send('mastermind:godot-status',{
+    status:'error',message:'O editor está demorando. Verifique a conexão e use Recarregar.'
+   });
+  },35000);
   resolveGameUrl().then(url=>{
    if(!gameView||gameView.webContents.isDestroyed())return;
    return gameView.webContents.loadURL(url);
   }).catch(error=>{
+   clearTimeout(gameErrorTimer);
    win?.webContents.send('mastermind:godot-status',{status:'error',message:String(error.message||error)});
   }).finally(()=>{gameLoading=false;});
  }
@@ -292,5 +313,5 @@ app.whenReady().then(()=>{
  });
  makeWindow();
 });
-app.on('before-quit',()=>{hostManager?.stop();});
+app.on('before-quit',()=>{clearTimeout(gameErrorTimer);hostManager?.stop();});
 app.on('window-all-closed',()=>{app.quit();});
