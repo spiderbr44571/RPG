@@ -54,6 +54,7 @@ public final class MainActivity extends Activity {
     private static final int PICK_LOCAL_FILE = 1104;
     private static final int PICK_BOOK_DOCUMENT = 1105;
     private static final int SAVE_CHARACTER_PDF = 1106;
+    private static final int SAVE_CHARACTER_PNG = 1107;
     private final BookBridge books = new BookBridge();
     // Activity fields are constructed before the Android Context is attached.
     // Initialize PDF search in onCreate, after super.onCreate(state).
@@ -76,6 +77,7 @@ public final class MainActivity extends Activity {
     private int allowedPort;
     private ValueCallback<Uri[]> pendingUpload;
     private byte[] pendingCharacterPdf;
+    private byte[] pendingCharacterPng;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -193,6 +195,18 @@ public final class MainActivity extends Activity {
     }
     @Override protected void onActivityResult(int request,int result,Intent data){
         super.onActivityResult(request,result,data);
+        if(request==SAVE_CHARACTER_PNG){
+          final byte[] bytes=pendingCharacterPng;
+          pendingCharacterPng=null;
+          if(result==RESULT_OK && data!=null && data.getData()!=null && bytes!=null){
+            try(OutputStream out=getContentResolver().openOutputStream(data.getData(),"w")){
+              if(out==null)throw new IllegalStateException("Destino nao disponivel");
+              out.write(bytes);out.flush();
+              android.widget.Toast.makeText(this,"Imagem PNG salva",android.widget.Toast.LENGTH_SHORT).show();
+            }catch(Exception err){showBookError("Falha ao salvar o retrato PNG: "+err.getMessage());}
+          }
+          return;
+        }
         if(request==SAVE_CHARACTER_PDF){
           final byte[] bytes=pendingCharacterPdf;
           pendingCharacterPdf=null;
@@ -732,6 +746,27 @@ public final class MainActivity extends Activity {
     }
     /** SAF: gera um documento PDF local escolhido pelo usuario, sem enviar fichas a servidores. */
     public final class SheetPdfBridge {
+      /** Save a character portrait or token through Android SAF (offline only). */
+      @JavascriptInterface public void savePng(String filename,String base64){
+        if(filename==null || !filename.matches("[A-Za-z0-9._-]{1,90}\\.png") ||
+           base64==null || base64.length()>4400000)return;
+        runOnUiThread(()->{
+          if(allowedHost!=null)return;
+          try{
+            byte[] png=Base64.decode(base64,Base64.DEFAULT);
+            if(png.length<68 || png.length>3200000 ||
+               (png[0]&0xff)!=0x89 || png[1]!=0x50 || png[2]!=0x4e || png[3]!=0x47 ||
+               png[4]!=0x0d || png[5]!=0x0a || png[6]!=0x1a || png[7]!=0x0a)
+              throw new IllegalArgumentException("PNG invalido");
+            pendingCharacterPng=png;
+            Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("image/png");
+            intent.putExtra(Intent.EXTRA_TITLE,filename);
+            startActivityForResult(intent,SAVE_CHARACTER_PNG);
+          }catch(Exception err){pendingCharacterPng=null;showBookError("Nao foi possivel preparar PNG: "+err.getMessage());}
+        });
+      }
       @JavascriptInterface public void savePdf(String filename,String base64){
         if(filename==null || !filename.matches("[A-Za-z0-9._-]{1,90}\\.pdf") ||
            base64==null || base64.length()>3600000)return;

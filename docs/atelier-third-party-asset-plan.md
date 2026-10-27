@@ -46,3 +46,14 @@ A página identifica a licença como CC0 1.0: permite copiar, modificar e redist
 
 - Swappable Portraits (pago) foi descartado após o usuário escolher o pacote gratuito do nemo.
 - Os arquivos de IA do antigo ateliê continuam excluídos da branch da v0.84.
+
+## Inspeção do ZIP original enviado (2026-10-27)
+
+- Licença CC0 confirmada dentro de `license.md`.
+- Exatamente **180 assets distintas**, em PNG 1x, PNG 2x e SVG (540 arquivos de arte no ZIP).
+- Android usa os PNG 2x originais, sem adicionar artes de IA.
+- Rostos e cabelos usam tela compartilhada de **290×286 pixels**, e braços, pernas e roupa são desenhados nas âncoras originais.
+- Catálogo: 3 tons de pele, 2 tipos de cabeça, 15 expressões, 10 olhos, 6 bocas, 5 cabelos frontais × 9 cores, 3 traseiros × 9 cores, 3 barbas × 9 cores, 2 estilos de roupa × 7 cores, mangas e cores, calças e quatro óculos.
+- Atlas integrado ao JavaScript de maneira offline (data:image/png) para evitar `file://` bloqueado em Android WebView.
+- Salvamento do retrato/token no sistema de fichas, exportação PNG via seletor nativo Android.
+- Versão `v0.85.0-mastermind-nonemo` no mesmo ID do aplicativo, sem remover fichas anteriores.
