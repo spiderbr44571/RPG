@@ -128,7 +128,7 @@ function gameAction(action){
  }
 }
 async function captureGame(){
- if(!gameView||!gameBounds||!gameView.getVisible())return false;
+ if(!gameView||!gameBounds||!gameStarted)return false;
  const img=await gameView.webContents.capturePage();
  if(img.isEmpty())return false;
  const png=img.toPNG();
@@ -145,6 +145,15 @@ function makeWindow(){
    webSecurity:true,webviewTag:false,backgroundThrottling:false}
  });
  win.loadFile(path.join(assets,'demo-offline.html'));
+ win.webContents.on('did-finish-load',async()=>{
+  if(!win||win.webContents.isDestroyed())return;
+  try{
+   const css=fs.readFileSync(path.join(__dirname,'desktop.css'),'utf8');
+   const js=fs.readFileSync(path.join(__dirname,'renderer.js'),'utf8');
+   await win.webContents.insertCSS(css);
+   await win.webContents.executeJavaScript(js,true);
+  }catch(error){console.error('Desktop integration:',error);}
+ });
  win.once('ready-to-show',()=>{win.show();if(process.platform==='linux'&&process.env.MASTERMIND_MAXIMIZED==='1')win.maximize();});
  win.on('closed',()=>{win=null;gameView=null;gameStarted=false;});
  win.webContents.setWindowOpenHandler(({url})=>{
@@ -203,7 +212,6 @@ async function searchPdf(id,query,limit=10,offset=0){
  const records=await listBooks(),book=records.find(x=>x.id===id)||savedPdf;
  if(!book)return {results:[],total:0,error:'Nenhum livro importado'};
  const file=path.join(stored(),book.id+'.pdf');
- const pdf=await fs.promises.readFile(file);
  // Desktop v1: text index via poppler pdftotext when installed.
  const {execFile}=require('node:child_process');
  const txt=await new Promise((resolve,reject)=>execFile('pdftotext',['-layout',file,'-'],{timeout:20000,maxBuffer:20*1024*1024},(err,stdout)=>err?reject(err):resolve(stdout))).catch(()=>null);
