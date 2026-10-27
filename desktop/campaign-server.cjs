@@ -140,7 +140,17 @@ function createHost({assetsDir,dataDir,port=8765,host='0.0.0.0'}={}){
    'Referrer-Policy':'no-referrer',...headers,'Content-Length':buffer.length});res.end(buffer);
  };
  const page=(res,filename)=>{
-  const src=fs.readFileSync(path.join(assetsDir,filename));
+  let source=fs.readFileSync(path.join(assetsDir,filename),'utf8');
+  if(filename==='lan_master.html'){
+    // Desktop-only direct visual map editor shortcut; Android assets untouched.
+    source=source.replace('<button data-act="live">Mesa ao vivo</button>',
+      '<button data-act="maps">Editar mapas e canvas</button><button data-act="live">Mesa ao vivo</button>');
+    source=source.replace("if(a==='live'){",
+      "if(a==='maps'){scenarioEditing=true;$('#scenario-editor').hidden=false;"+
+      "window.RPG29_EDITOR.open($('#scenario-editor'),{request:api,route:prefix,"+
+      "onClose:()=>{scenarioEditing=false;detail().catch(()=>{})}});}\nif(a==='live'){");
+  }
+  const src=Buffer.from(source,'utf8');
   res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Content-Length':src.length,
    'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer',
    'Content-Security-Policy':"default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; frame-ancestors 'none'"});res.end(src);
