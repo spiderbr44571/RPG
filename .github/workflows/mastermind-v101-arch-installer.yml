@@ -1,0 +1,84 @@
+name: Mastermind v1.0 — Instalador Arch e CachyOS
+on:
+  push:
+    branches:
+      - feature/mastermind-v101-arch-installer
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  native-arch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preparar compressão Zstandard e validar atalhos desktop
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends zstd desktop-file-utils
+      - name: Baixar a versão Linux original já compilada
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p downloaded
+          gh release download mastermind-v1.0-linux-desktop \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern "Mastermind-v1.0.0-Linux-x64.tar.gz" \
+            --dir downloaded --clobber
+          test -s downloaded/Mastermind-v1.0.0-Linux-x64.tar.gz
+          ls -lh downloaded/
+      - name: Gerar pacote nativo instalável pelo pacman
+        run: |
+          set -euo pipefail
+          bash scripts/package_arch_linux.sh \
+            downloaded/Mastermind-v1.0.0-Linux-x64.tar.gz dist/
+      - name: Validar arquivos, dependências, ícone e instalador
+        run: |
+          set -euo pipefail
+          python3 tests/verify_arch_linux_package.py \
+            dist/mastermind-rpg-1.0.0-1-x86_64.pkg.tar.zst
+          test -s dist/mastermind-rpg-1.0.0-1-x86_64.pkg.tar.zst.sha256
+          file dist/mastermind-rpg-1.0.0-1-x86_64.pkg.tar.zst
+      - name: Testar instalação e desinstalação com o pacman real
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "$PWD/dist:/install:ro" \
+            archlinux:latest \
+            bash -euo pipefail -c '
+              pacman -Qip /install/mastermind-rpg-1.0.0-1-x86_64.pkg.tar.zst
+              pacman -Qlp /install/mastermind-rpg-1.0.0-1-x86_64.pkg.tar.zst | grep "usr/bin/mastermind"
+              pacman -U --noconfirm --nodeps /install/mastermind-rpg-1.0.0-1-x86_64.pkg.tar.zst
+              pacman -Q mastermind-rpg
+              test -x /usr/bin/mastermind
+              test -x /opt/mastermind/mastermind
+              test -s /usr/share/applications/mastermind.desktop
+              test -s /usr/share/pixmaps/mastermind.png
+              pacman -Rns --noconfirm --nodeps mastermind-rpg
+              ! pacman -Q mastermind-rpg
+              echo "PASS: pacote instalou e desinstalou corretamente com pacman"
+            '
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Mastermind-v1.0-Instalador-CachyOS-Arch
+          path: |
+            dist/mastermind-rpg-1.0.0-1-x86_64.pkg.tar.zst
+            dist/mastermind-rpg-1.0.0-1-x86_64.pkg.tar.zst.sha256
+          if-no-files-found: error
+      - name: Publicar pacote na release do GitHub
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="mastermind-v1.0.0-cachyos-installer"
+          PKG="dist/mastermind-rpg-1.0.0-1-x86_64.pkg.tar.zst"
+          HASH="$PKG.sha256"
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" "$PKG" "$HASH" \
+              --target "${GITHUB_SHA}" \
+              --title "Mastermind v1.0 — Instalador CachyOS e Arch Linux" \
+              --notes "Pacote nativo x86_64 .pkg.tar.zst, instalado com: sudo pacman -U ./mastermind-rpg-1.0.0-1-x86_64.pkg.tar.zst. Instala entrada no menu, ícone, comando mastermind, integração Wayland/X11, diretórios /opt e /usr. Desinstala com sudo pacman -Rns mastermind-rpg. Inclui a primeira versão Linux 1.0.0; recursos Android ainda não portados permanecem pendentes. A instalação e remoção foram testadas com o pacman do Arch Linux em um contêiner."
+          else
+            gh release upload "$TAG" "$PKG" "$HASH" --clobber
+          fi
