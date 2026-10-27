@@ -38,11 +38,33 @@ const DARK=[29,21,36],LIGHT=[255,240,216],SHADES=[-.72,-.48,-.27,0,.22,.42,.65];
 const COUNTS={body:4,hairBack:12,cloak:6,neck:1,outfit:16,armor:6,ears:4,face:6,eyes:8,brows:8,nose:6,mouth:8,beard:7,hairFront:12,accessory:12};
 const ORDER=['hairBack','cloak','body','neck','outfit','armor','ears','face','eyes','brows','nose','mouth','beard','hairFront','accessory'];
 const OFFSETS={};let offset=0;for(const[k,n]of Object.entries(COUNTS)){OFFSETS[k]=offset;offset+=n;}
-let ready=false,failed=false,atlas=null,atlasCtx=null;const cache=new Map(),MAX=180;
-const source=new Image();
-source.onload=()=>{if(source.naturalWidth!==1680||source.naturalHeight!==2496){failed=true;return;}atlas=D.createElement('canvas');atlas.width=source.naturalWidth;atlas.height=source.naturalHeight;atlasCtx=atlas.getContext('2d',{willReadFrequently:true});atlasCtx.drawImage(source,0,0);ready=true;D?.dispatchEvent?.(new CustomEvent('mastermind82:ready'));};
-source.onerror=()=>{failed=true;D?.dispatchEvent?.(new CustomEvent('mastermind82:failed'));};
-source.src='atelier/pixel82_atlas.png';
+// The atlas is embedded as a data URI to avoid Android WebView file-origin restrictions.
+// A normal asset URL remains as a backup, but is never needed for the signed offline APK.
+let ready=false,failed=false,atlas=null,atlasCtx=null,errorReason='';const cache=new Map(),MAX=180;
+let fallbackUsed=false;
+const source=new Image(), fileURL='atelier/pixel82_atlas.png';
+const embedded=root.Mastermind82AtlasEmbedded;
+function notify(kind,reason){
+ if(kind==='failed'){failed=true;ready=false;errorReason=reason||'Não foi possível abrir o atlas pixel art';}
+ D?.dispatchEvent?.(new CustomEvent('mastermind82:'+kind,{detail:{reason:errorReason}}));
+}
+source.onload=()=>{
+ try{
+  if(source.naturalWidth!==1680||source.naturalHeight!==2496)throw Error('Atlas inválido: '+source.naturalWidth+'×'+source.naturalHeight+'; esperado 1680×2496');
+  atlas=D.createElement('canvas');atlas.width=1680;atlas.height=2496;
+  atlasCtx=atlas.getContext('2d',{willReadFrequently:true});if(!atlasCtx)throw Error('Canvas 2D indisponível');
+  atlasCtx.drawImage(source,0,0);atlasCtx.getImageData(0,0,1,1);
+  ready=true;failed=false;errorReason='';notify('ready','');
+ }catch(err){notify('failed',String(err?.message||err));}
+};
+source.onerror=()=>{
+ if(!fallbackUsed&&embedded){fallbackUsed=true;source.src=fileURL;return;}
+ notify('failed','Falha ao ler o atlas de sprites. Reinstale a versão atualizada.');
+};
+source.src=(typeof embedded==='string'&&embedded.startsWith('data:image/png;base64,'))?embedded:fileURL;
+if(typeof root.setTimeout==='function')root.setTimeout(()=>{
+ if(!ready&&!failed)notify('failed','O atlas não respondeu. Verifique a instalação do aplicativo.');
+},8000);
 function getSprite(key,index,p){if(!ready)return null;
  const actual=key==='neck'?0:idx(index,COUNTS[key]);
  const signature=[p.skin,p.hair,p.eye,p.primary,p.secondary,p.trim].join('_');const cacheKey=key+':'+actual+':'+signature;
@@ -66,7 +88,14 @@ function paintBG(ctx,c,p){ctx.fillStyle=BACK[c.background];ctx.fillRect(0,0,W,H)
 function portrait(ctx,w,h,raw){const c=norm(raw),p=pal(c);if(!ctx)return c;
  if(!portrait.buffer){portrait.buffer=D.createElement('canvas');portrait.buffer.width=W;portrait.buffer.height=H;}
  const low=portrait.buffer,paint=low.getContext('2d');paint.clearRect(0,0,W,H);paintBG(paint,c,p);
- if(ready){for(const key of ORDER){const sprite=getSprite(key,c[key],p);if(sprite)paint.drawImage(sprite,0,0);}}
+ if(ready){for(const key of ORDER){const sprite=getSprite(key,c[key],p);if(!sprite)continue;
+  if(key==='ears'){
+   // Left and right ear sprites follow each face shape's independent cheek anchors.
+   const delta=RIG.faceWidth[c.face];
+   paint.drawImage(sprite,0,0,84,H,-delta,0,84,H);
+   paint.drawImage(sprite,84,0,84,H,84+delta,0,84,H);
+  }else paint.drawImage(sprite,0,0);
+ }}
  else{paint.fillStyle='#b78b6e';paint.font='11px monospace';paint.fillText(failed?'Falha ao carregar sprites':'Carregando pixel art',16,100);}
  ctx.save();ctx.clearRect(0,0,w,h);ctx.imageSmoothingEnabled=false;ctx.drawImage(low,0,0,w,h);ctx.restore();return c;}
 function token(ctx,size,canvas,raw){const c=norm(raw),p=pal(c),n=128;
@@ -84,6 +113,6 @@ function token(ctx,size,canvas,raw){const c=norm(raw),p=pal(c),n=128;
  }}
  ctx.save();ctx.clearRect(0,0,size,size);ctx.imageSmoothingEnabled=false;ctx.drawImage(low,0,0,size,size);ctx.restore();}
 function random(previous){const c=norm(previous);for(const[k,v]of Object.entries(OPTIONS))c[k]=Math.floor(Math.random()*v.length);for(const[k,v]of [['hairColor',COLORS.hair],['eyeColor',COLORS.eyes],['clothPrimary',COLORS.cloth],['clothSecondary',COLORS.cloth],['trimColor',COLORS.trim]])c[k]=Math.floor(Math.random()*v.length);for(const k of ['Skin','Hair','Eyes','Primary','Secondary','Trim'])c['useCustom'+k]=false;return c;}
-const api={W,H,COLORS,OPTIONS,BACK,DEFAULTS,RIG,norm,pal,portrait,token,random,version:82,isReady:()=>ready,hasError:()=>failed,spriteCount:offset,spriteSource:'atelier/pixel82_atlas.png'};
+const api={W,H,COLORS,OPTIONS,BACK,DEFAULTS,RIG,norm,pal,portrait,token,random,version:82,isReady:()=>ready,hasError:()=>failed,errorReason:()=>errorReason,spriteCount:offset,spriteSource:embedded?'embedded:pixel82_atlas.png':'atelier/pixel82_atlas.png'};
 root.Mastermind82Rig=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
