@@ -41,6 +41,22 @@ const assert=require('node:assert/strict');
    base:'http://'+state.ip+':'+state.port,secret:key,method:'GET',route:'/api/admin/campaigns/'+id
   }),{state,key,id});
   assert.equal(details.status,200,details.body);
+  const canvasNodes=[{kind:'node',data:{id:'linux-canvas-test',x:120,y:90,title:'Pista E2E'}}];
+  const savedCanvas=await win.evaluate(({state,key,id,canvasNodes})=>window.MastermindDesktop.action('campaign-request',{
+   base:'http://'+state.ip+':'+state.port,secret:key,method:'POST',route:'/api/admin/campaigns/'+id+'/canvas',
+   body:{nodes:canvasNodes}
+  }),{state,key,id,canvasNodes});
+  assert.equal(savedCanvas.status,200,savedCanvas.body);
+  const persisted=await win.evaluate(({state,key,id})=>window.MastermindDesktop.action('campaign-request',{
+   base:'http://'+state.ip+':'+state.port,secret:key,method:'GET',route:'/api/admin/campaigns/'+id
+  }),{state,key,id});
+  assert.equal(JSON.parse(persisted.body).campaign.canvas[0].data.id,'linux-canvas-test',
+   'Canvas da mestragem não persiste no servidor');
+  const scenarios=await win.evaluate(({state,key,id})=>window.MastermindDesktop.action('campaign-request',{
+   base:'http://'+state.ip+':'+state.port,secret:key,method:'GET',route:'/api/admin/campaigns/'+id+'/scenarios'
+  }),{state,key,id});
+  assert.equal(scenarios.status,200,scenarios.body);
+  assert.ok(Array.isArray(JSON.parse(scenarios.body).scenarios),'Biblioteca de mapas não funciona');
   await win.evaluate(()=>window.RPG_DEMO.navigate('atelier85'));
   await win.locator('#p90-native-stage').waitFor({state:'visible',timeout:12000});
   await win.waitForTimeout(3500);
