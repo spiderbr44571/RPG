@@ -59,7 +59,7 @@ Pacotes gerados em `desktop/dist/`.
 
 ## Privacidade e segurança
 
-- `main.cjs` registra a origem local `mastermind://app`. Só essa origem recebe o preload.
+- `main.cjs` usa uma origem HTTP fixa exclusiva de loopback (`127.0.0.1:18590`), sem permitir conexões LAN. Apenas a janela local recebe o preload Electron; isso preserva o IndexedDB e o localStorage entre reinicializações.
 - Recursos externos do Godot são exibidos numa WebContentsView separada, sem Node.js e sem bridge Electron.
 - O renderer local não possui acesso irrestrito ao filesystem. PDFs entram via seletor nativo e as operações de saída exibem um diálogo de salvamento.
 - PDFs pessoais são copiados para um diretório privado do usuário, indexados por página, e não enviados a servidores.
