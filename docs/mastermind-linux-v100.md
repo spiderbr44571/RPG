@@ -32,14 +32,14 @@ Este é o **primeiro port funcional**, não uma afirmação de paridade absoluta
 ### AppImage
 
 ```bash
-chmod +x Mastermind-v1.0.0-Linux-x64.AppImage
-./Mastermind-v1.0.0-Linux-x64.AppImage
+chmod +x Mastermind-v1.0.0-Linux-x86_64.AppImage
+./Mastermind-v1.0.0-Linux-x86_64.AppImage
 ```
 
 Se o AppImage reclamar de FUSE, use:
 
 ```bash
-./Mastermind-v1.0.0-Linux-x64.AppImage --appimage-extract-and-run
+./Mastermind-v1.0.0-Linux-x86_64.AppImage --appimage-extract-and-run
 ```
 
 ### Tarball
