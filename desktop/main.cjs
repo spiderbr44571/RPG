@@ -8,10 +8,12 @@
 const {app,BrowserWindow,WebContentsView,ipcMain,dialog,shell,nativeImage,session,Menu}=require('electron');
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),https=require('node:https');
 const {URL}=require('node:url');
+const {CampaignHost}=require('./campaign-host.cjs');
 const assets=path.join(__dirname,'..','app','src','main','assets');
 const creator='https://lyime.itch.io/pixel-portrait-creator';
 const gameFallback='https://html.itch.zone/html/18379448/index.html?v=1785079497';
 let win,gameView,gameStarted=false,gameLoading=false,gameBounds=null,editorZoom=1,editorPan={x:0,y:0},capture=null;
+let hostManager=null;
 const allowedExt=new Set(['.png','.pdf','.json']);
 const stored=()=>path.join(app.getPath('userData'),'mastermind-books');
 function safeName(value,ext){
@@ -234,10 +236,19 @@ async function searchPdf(id,query,limit=10,offset=0){
 }
 app.whenReady().then(()=>{
  app.setAppUserModelId('dev.rpgmesa.mastermind');
+ const serverJar=app.isPackaged?path.join(process.resourcesPath,'server','mastermind-campaign-server.jar'):
+   path.join(__dirname,'server','dist','mastermind-campaign-server.jar');
+ const serverAssets=app.isPackaged?path.join(process.resourcesPath,'server','assets'):assets;
+ hostManager=new CampaignHost({userData:app.getPath('userData'),assets:serverAssets,jar:serverJar});
+ hostManager.on('change',status=>{
+  if(win&&!win.webContents.isDestroyed())win.webContents.send('mastermind:campaign-status',status);
+ });
  session.defaultSession.setPermissionRequestHandler((_web,permission,callback)=>callback(false));
  ipcMain.on('mastermind:sync',(event,{method,args=[]})=>{
   try{ensureLocal(event);if(method==='book-info')event.returnValue=JSON.stringify(savedPdf?{name:savedPdf.name,available:true,storage:'desktop'}:{available:false});
   else if(method==='capture') {event.returnValue=capture||'';capture=null;}
+  else if(method==='campaign-status')event.returnValue=JSON.stringify(hostManager?.status()||{running:false,error:'Servidor indisponível'});
+  else if(method==='campaign-key')event.returnValue=hostManager?.masterKey()||'';
   else event.returnValue='';
   }catch{event.returnValue='';}
  });
@@ -254,10 +265,18 @@ app.whenReady().then(()=>{
    case 'godot-bounds':createGame();gameRect(args[0]);return true;
    case 'godot-action':gameAction(args[0]);return true;
    case 'godot-capture':return captureGame();
+   case 'campaign-start':return hostManager.start();
+   case 'campaign-stop':return hostManager.stop();
+   case 'campaign-status':return hostManager.status();
+   case 'campaign-panel':
+    if(!hostManager.status().running)throw Error('Inicie o servidor antes de abrir o painel.');
+    return shell.openExternal(hostManager.status().masterUrl);
+   case 'campaign-request':return hostManager.request(args[0]);
    case 'window-action':if(args[0]==='fullscreen')win.setFullScreen(!win.isFullScreen());return true;
    default:return false;
   }
  });
  makeWindow();
 });
+app.on('before-quit',()=>{hostManager?.stop();});
 app.on('window-all-closed',()=>{app.quit();});
