@@ -10,8 +10,8 @@ archive="$(realpath "$1")"
 destination="$(realpath -m "$2")"
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 name=mastermind-rpg
-version=1.0.0
-release=1
+version="${MASTERMIND_VERSION:-1.0.0}"
+release="${MASTERMIND_RELEASE:-1}"
 arch=x86_64
 file="$name-$version-$release-$arch.pkg.tar.zst"
 [[ -s "$archive" ]] || { echo "Archive Linux ausente: $archive" >&2; exit 2; }
@@ -107,6 +107,7 @@ depend = libnotify
 depend = xdg-utils
 depend = at-spi2-core
 depend = libsecret
+depend = jre17-openjdk-headless
 optdepend = poppler: pesquisa de texto em livros PDF locais
 PKG
 
