@@ -75,10 +75,26 @@ function rectangle(){
  if(right-x<100||bottom-y<80)return {visible:false};
  return {visible:true,x,y,width:right-x,height:bottom-y};
 }
-let last='';
+let last='',stageSyncInFlight=false,stageErrorAt=0;
 function tick(){
  const r=rectangle(),next=JSON.stringify(r);
- if(next!==last){last=next;desktop.action('godot-bounds',r).catch(console.error);}
+ if(stageSyncInFlight||next===last)return;
+ stageSyncInFlight=true;
+ desktop.action('godot-bounds',r).then(ok=>{
+  if(ok===true){last=next;stageErrorAt=0;}
+  else{last='';}
+ }).catch(error=>{
+  last=''; // Failed IPC must never be cached as a successful screen position.
+  if(Date.now()-stageErrorAt>4000){
+   stageErrorAt=Date.now();
+   const box=$('#p90-native-stage .p90-stage-placeholder');
+   if(box){
+    const title=box.querySelector('strong'),detail=box.querySelector('small');
+    if(title)title.textContent='Falha ao conectar ao editor';
+    if(detail)detail.textContent='Erro de comunicação: '+String(error.message||error).slice(0,110)+'. Use Recarregar ou Abrir em janela.';
+   }
+  }
+ }).finally(()=>{stageSyncInFlight=false;});
 }
 function shortcuts(){
  document.addEventListener('keydown',event=>{
