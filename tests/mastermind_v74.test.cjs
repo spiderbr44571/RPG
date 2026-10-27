@@ -40,6 +40,6 @@ const license=read('LICENSE-TABLER-ICONS.txt');
 assert.match(license,/MIT License/);assert.match(license,/Permission is hereby granted/);
 for(const name of ['mastermind74_icons.js','rpg29_scene_editor.js','rpg31_master_table.js','mastermind54_player_shell.js'])
  assert.doesNotThrow(()=>new Function(read(name)),'Invalid JavaScript '+name);
-assert.match(read('demo-offline.html'),/>v0\.(?:74|75|76|76\.1|76\.2|77|78|79|80|81|82|82\.1|83)<\/small>/);
-assert.match(fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:74|75|76|77|78|79|80|81|82|83|84|85|86)/);
+assert.match(read('demo-offline.html'),/>v0\.(?:74|75|76|76\.1|76\.2|77|78|79|80|81|82|82\.1|83|84)<\/small>/);
+assert.match(fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:74|75|76|77|78|79|80|81|82|83|84|85|86|87)/);
 console.log('PASS v0.74: 39+ MIT Tabler SVGs, grid/GM/player consistency, optical scaling and offline loading');
