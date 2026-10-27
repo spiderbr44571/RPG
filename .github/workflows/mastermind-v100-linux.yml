@@ -33,15 +33,15 @@ jobs:
       - name: Validar binários
         run: |
           set -euo pipefail
-          test -f dist/Mastermind-v1.0.0-Linux-x64.AppImage
+          test -f dist/Mastermind-v1.0.0-Linux-x86_64.AppImage
           test -f dist/Mastermind-v1.0.0-Linux-x64.tar.gz
-          test "$(stat -c %s dist/Mastermind-v1.0.0-Linux-x64.AppImage)" -gt 50000000
-          sha256sum dist/Mastermind-v1.0.0-Linux-x64.* > dist/SHA256SUMS.txt
+          test "$(stat -c %s dist/Mastermind-v1.0.0-Linux-x86_64.AppImage)" -gt 50000000
+          sha256sum dist/Mastermind-v1.0.0-Linux-x86_64.AppImage dist/Mastermind-v1.0.0-Linux-x64.tar.gz > dist/SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
           name: Mastermind-v1.0-Linux
           path: |
-            dist/Mastermind-v1.0.0-Linux-x64.AppImage
+            dist/Mastermind-v1.0.0-Linux-x86_64.AppImage
             dist/Mastermind-v1.0.0-Linux-x64.tar.gz
             dist/SHA256SUMS.txt
           if-no-files-found: error
@@ -52,10 +52,10 @@ jobs:
           set -euo pipefail
           TAG="mastermind-v1.0-linux-desktop"
           if ! gh release view "$TAG" >/dev/null 2>&1; then
-            gh release create "$TAG" dist/Mastermind-v1.0.0-Linux-x64.AppImage dist/Mastermind-v1.0.0-Linux-x64.tar.gz dist/SHA256SUMS.txt \
+            gh release create "$TAG" dist/Mastermind-v1.0.0-Linux-x86_64.AppImage dist/Mastermind-v1.0.0-Linux-x64.tar.gz dist/SHA256SUMS.txt \
               --target "${GITHUB_SHA}" \
               --title "Mastermind v1.0 — Linux Desktop" \
               --notes "Primeiro port desktop Linux do Mastermind. Interface RPG original adaptada a 1024–4K, dados e personagens locais, mesa, canvas, bestiário, fichas, biblioteca e exportação, Ateliê Godot integrado em janela nativa isolada, PDFs locais com poppler, AppImage e tar.gz. O app não migra automaticamente os dados privados do Android. Requer internet apenas para conteúdo externo e Godot. Teste visual no CachyOS/Hyprland recomendado."
           else
-            gh release upload "$TAG" dist/Mastermind-v1.0.0-Linux-x64.AppImage dist/Mastermind-v1.0.0-Linux-x64.tar.gz dist/SHA256SUMS.txt --clobber
+            gh release upload "$TAG" dist/Mastermind-v1.0.0-Linux-x86_64.AppImage dist/Mastermind-v1.0.0-Linux-x64.tar.gz dist/SHA256SUMS.txt --clobber
           fi
