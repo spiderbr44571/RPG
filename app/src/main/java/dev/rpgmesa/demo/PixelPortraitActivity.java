@@ -128,9 +128,6 @@ public final class PixelPortraitActivity extends Activity {
                     lastTouchX=event.getRawX();lastTouchY=event.getRawY();
                     return true;
                 case MotionEvent.ACTION_MOVE:
-                    if(activePanPointer!=event.getPointerId(event.getActionIndex()) && event.getPointerCount()<2){
-                        // Another pointer was just added; keep using the first.
-                    }
                     float x=event.getRawX(),y=event.getRawY();
                     panX+=x-lastTouchX;panY+=y-lastTouchY;
                     lastTouchX=x;lastTouchY=y;
@@ -214,7 +211,11 @@ public final class PixelPortraitActivity extends Activity {
         root.addView(gameViewport,new LinearLayout.LayoutParams(-1,0,1));
         zoomMinus.setOnClickListener(v->changeMagnification(1f/1.2f));
         zoomPlus.setOnClickListener(v->changeMagnification(1.2f));
-        fitButton.setOnClickListener(v->{userAdjusted=false;probeGameCanvas(true);});
+        fitButton.setOnClickListener(v->{
+            userAdjusted=false;
+            fitGame();
+            probeGameCanvas(true);
+        });
         dragButton.setOnClickListener(v->{
             moveMode=!moveMode;
             dragButton.setText(moveMode?"Mover ✓":"Mover");
@@ -419,7 +420,10 @@ public final class PixelPortraitActivity extends Activity {
             progress.setText("Abra o editor primeiro.");return;
         }
         Rect area=new Rect();
-        if(!creator.getGlobalVisibleRect(area)||area.width()<64||area.height()<64){
+        Rect gameRect=new Rect();
+        if(!creator.getGlobalVisibleRect(area)||gameViewport==null||
+           !gameViewport.getGlobalVisibleRect(gameRect)||!area.intersect(gameRect)||
+           area.width()<64||area.height()<64){
             progress.setText("A tela ainda não está visível.");return;
         }
         if(area.width()*(long)area.height()>12000000L){
