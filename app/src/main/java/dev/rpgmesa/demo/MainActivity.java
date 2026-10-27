@@ -68,6 +68,7 @@ public final class MainActivity extends Activity {
     private final SceneDisplayBridge sceneDisplay = new SceneDisplayBridge();
     private final DriveBridge drive = new DriveBridge();
     private final SheetPdfBridge sheetPdf = new SheetPdfBridge();
+    private final PixelPortraitBridge pixelPortrait = new PixelPortraitBridge();
     private final CreatureImageBridge creatureArt = new CreatureImageBridge();
 
     private static final String OFFLINE_URL = "file:///android_asset/demo-offline.html";
@@ -147,7 +148,7 @@ public final class MainActivity extends Activity {
         browser.addJavascriptInterface(books,"RpgBookBridge");
         browser.addJavascriptInterface(lan,"RpgLanBridge");
         browser.addJavascriptInterface(campaign,"RpgCampaignBridge");
-        browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.addJavascriptInterface(sceneDisplay,"RpgSceneDisplay");browser.addJavascriptInterface(drive,"RpgDriveBridge");browser.addJavascriptInterface(sheetPdf,"RpgSheetPdfBridge");browser.addJavascriptInterface(creatureArt,"RpgCreatureImageBridge");
+        browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.addJavascriptInterface(sceneDisplay,"RpgSceneDisplay");browser.addJavascriptInterface(drive,"RpgDriveBridge");browser.addJavascriptInterface(sheetPdf,"RpgSheetPdfBridge");browser.addJavascriptInterface(pixelPortrait,"RpgPixelPortraitBridge");browser.addJavascriptInterface(creatureArt,"RpgCreatureImageBridge");
         root.addView(browser,new LinearLayout.LayoutParams(-1,0,1));
         setContentView(root);
         home.setOnClickListener(v->openOffline());
@@ -156,7 +157,7 @@ public final class MainActivity extends Activity {
     }
     private int dp(int x){return Math.round(getResources().getDisplayMetrics().density*x);}
     private Button button(String name){Button b=new Button(this);b.setText(name);b.setTextSize(10);b.setAllCaps(false);return b;}
-    private void openOffline(){setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);allowedHost=null;allowedPort=0;browser.addJavascriptInterface(sceneDisplay,"RpgSceneDisplay");mode.setText("● MODO OFFLINE");browser.addJavascriptInterface(books,"RpgBookBridge");browser.addJavascriptInterface(lan,"RpgLanBridge");browser.addJavascriptInterface(campaign,"RpgCampaignBridge");browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.addJavascriptInterface(drive,"RpgDriveBridge");browser.addJavascriptInterface(sheetPdf,"RpgSheetPdfBridge");browser.addJavascriptInterface(creatureArt,"RpgCreatureImageBridge");browser.loadUrl(OFFLINE_URL);}
+    private void openOffline(){setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);allowedHost=null;allowedPort=0;browser.addJavascriptInterface(sceneDisplay,"RpgSceneDisplay");mode.setText("● MODO OFFLINE");browser.addJavascriptInterface(books,"RpgBookBridge");browser.addJavascriptInterface(lan,"RpgLanBridge");browser.addJavascriptInterface(campaign,"RpgCampaignBridge");browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.addJavascriptInterface(drive,"RpgDriveBridge");browser.addJavascriptInterface(sheetPdf,"RpgSheetPdfBridge");browser.addJavascriptInterface(pixelPortrait,"RpgPixelPortraitBridge");browser.addJavascriptInterface(creatureArt,"RpgCreatureImageBridge");browser.loadUrl(OFFLINE_URL);}
     private static boolean isPrivateLan(String h) {
         if(h==null||!h.matches("\\d{1,3}(\\.\\d{1,3}){3}"))return false;
         String[] p=h.split("\\.");int[] n=new int[4];
@@ -745,6 +746,19 @@ public final class MainActivity extends Activity {
       }
     }
     /** SAF: gera um documento PDF local escolhido pelo usuario, sem enviar fichas a servidores. */
+    /** Open only the official Pixel Portrait Creator website, outside the privileged WebView. */
+    public final class PixelPortraitBridge {
+      @JavascriptInterface public void openOnline(){launchPixelPortrait(false);}
+      @JavascriptInterface public void openDownload(){launchPixelPortrait(true);}
+    }
+    private void launchPixelPortrait(boolean download){
+      runOnUiThread(()->{
+        try{
+          Uri page=Uri.parse("https://lyime.itch.io/pixel-portrait-creator"+(download?"#download":""));
+          startActivity(new Intent(Intent.ACTION_VIEW,page));
+        }catch(Exception err){showBookError("Não foi possível abrir o Pixel Portrait Creator no navegador.");}
+      });
+    }
     public final class SheetPdfBridge {
       /** Save a character portrait or token through Android SAF (offline only). */
       @JavascriptInterface public void savePng(String filename,String base64){
