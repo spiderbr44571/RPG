@@ -21,7 +21,21 @@ function safeName(value,ext){
  if(!name||!name.toLowerCase().endsWith(ext))throw Error('Nome inválido');
  return name;
 }
-function ensureLocal(event){if(!win||event.sender!==win.webContents||event.sender.getURL()!==require('node:url').pathToFileURL(path.join(assets,'demo-offline.html')).href)throw Error('Requisição externa bloqueada');}
+function ensureLocal(event){
+ // The SPA navigates with #master/#atelier85/#canvas. Fragments are part of the
+ // same trusted local document, but an exact URL string comparison rejected them.
+ // Compare only the canonical local file path, and reject subframes.
+ if(!win||event.sender!==win.webContents)throw Error('Requisição externa bloqueada');
+ if(event.senderFrame&&event.senderFrame!==win.webContents.mainFrame)
+  throw Error('Acesso a bridge negado para subframe');
+ let actual,expected;
+ try{
+  actual=new URL(event.sender.getURL());
+  expected=require('node:url').pathToFileURL(path.join(assets,'demo-offline.html'));
+ }catch{throw Error('Endereço inválido');}
+ if(actual.protocol!=='file:'||actual.host!==expected.host||actual.pathname!==expected.pathname)
+  throw Error('Requisição externa bloqueada');
+}
 function boundedBase64(input,limit=15*1024*1024){
  if(typeof input!=='string'||input.length>limit*1.4||!/^[A-Za-z0-9+/=\s]+$/.test(input))throw Error('Dados inválidos');
  const buf=Buffer.from(input,'base64');
