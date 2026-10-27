@@ -98,12 +98,12 @@ test('pdf text ranking finds exact page and accent-insensitive query',async()=>{
     assert.equal(second.status(id).state,'ready');
   }finally{await fsp.rm(directory,{recursive:true,force:true})}
 });
-test('desktop builder publishes AppImage + tar.gz from all Android web assets',()=>{
+test('desktop builder publishes a portable x64 Electron bundle retaining all Android web assets',()=>{
   assert.equal(pkg.name,'mastermind-linux');
   assert.equal(pkg.build.appId,'dev.mastermind.rpg');
   assert.ok(pkg.build.extraResources.find(r=>r.to==='web'&&r.from.includes('app/src/main/assets')));
   assert.ok(pkg.build.extraResources.find(r=>r.to==='web/mastermind_linux.css'));
-  assert.ok(pkg.build.linux.target.some(t=>t.target==='AppImage'));
-  assert.ok(pkg.build.linux.target.some(t=>t.target==='tar.gz'));
-  assert.match(pkg.scripts['dist:linux'],/electron-builder/);
+  assert.ok(pkg.build.linux.target.some(t=>t.target==='dir'));
+  assert.match(pkg.scripts['dist:linux'],/electron-builder --linux dir/);
+  assert.match(pkg.build.artifactName,/Mastermind-Linux/);
 });
