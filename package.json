@@ -1,13 +1,15 @@
 {
   "name": "mastermind-rpg-desktop",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.2",
   "scripts": {
     "test": "python3 tests/runtime/prepare.py && playwright test",
     "start": "electron .",
     "dev": "electron . --enable-logging",
     "test:desktop": "node --test desktop/tests/*.test.cjs",
-    "dist:linux": "electron-builder --linux AppImage tar.gz --x64 --publish never"
+    "dist:linux": "npm run build:server && electron-builder --linux AppImage tar.gz --x64 --publish never",
+    "build:server": "bash desktop/server/build.sh",
+    "test:campaign": "node --test desktop/tests/campaign.test.cjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
@@ -48,6 +50,19 @@
       "category": "Game",
       "executableName": "mastermind",
       "artifactName": "Mastermind-v${version}-Linux-${arch}.${ext}"
-    }
+    },
+    "extraResources": [
+      {
+        "from": "desktop/server/dist/mastermind-campaign-server.jar",
+        "to": "server/mastermind-campaign-server.jar"
+      },
+      {
+        "from": "app/src/main/assets",
+        "to": "server/assets",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ]
   }
 }
