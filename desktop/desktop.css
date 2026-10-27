@@ -1,0 +1,52 @@
+/* Desktop v1.0: full native Linux adaptation. Android never loads this stylesheet. */
+:root{--desktop-bar-height:42px}
+html.mastermind-desktop,body.mastermind-desktop{width:100%;height:100%;overflow:hidden}
+body.mastermind-desktop .app{height:calc(100vh - var(--desktop-bar-height));min-height:0;grid-template-columns:260px minmax(0,1fr)}
+body.mastermind-desktop .main{min-width:0}
+body.mastermind-desktop .content{overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+body.mastermind-desktop .sidebar{padding:19px 13px 14px}
+body.mastermind-desktop .sidebar .brand{padding-bottom:12px}
+body.mastermind-desktop .nav-btn{min-height:40px;white-space:normal}
+body.mastermind-desktop .topbar{min-height:58px;padding:0 25px}
+body.mastermind-desktop .screen{max-width:none}
+body.mastermind-desktop .page-row{gap:20px}
+body.mastermind-desktop .page-h{font-size:clamp(29px,2.5vw,46px)}
+body.mastermind-desktop .modal{max-width:min(94vw,1200px)}
+body.mastermind-desktop button{transition:background .15s,border-color .15s,color .15s}
+body.mastermind-desktop button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+body.mastermind-desktop input[type="text"],body.mastermind-desktop input[type="search"],body.mastermind-desktop textarea{max-width:100%}
+body.mastermind-desktop #screen-atelier85 .p90-shell{max-width:1400px}
+body.mastermind-desktop #screen-atelier85 .p90-header{padding:17px 24px}
+body.mastermind-desktop #screen-atelier85 .p90-studio-card{padding:14px}
+body.mastermind-desktop #screen-atelier85 .p90-native-stage{height:min(75vh,800px);min-height:500px}
+body.mastermind-desktop #screen-atelier85 .p90-token-panel{max-width:1050px}
+body.mastermind-desktop #screen-atelier85 .p86-preview-area{justify-content:flex-start;gap:35px}
+body.mastermind-desktop .desktop-titlebar{height:var(--desktop-bar-height);display:flex;align-items:center;justify-content:space-between;padding:0 14px 0 20px;background:#14121c;border-bottom:1px solid #b6986a35;color:#d5c4ad;user-select:none}
+.desktop-titlebar-brand{display:flex;align-items:center;gap:10px;letter-spacing:.11em;font:600 11px 'Space Grotesk',system-ui,sans-serif}
+.desktop-titlebar-brand img{height:24px;width:24px;object-fit:contain}
+.desktop-titlebar-brand span{color:#b7a38e;font-size:10px;letter-spacing:.08em}
+.desktop-titlebar-actions{display:flex;gap:7px}
+.desktop-titlebar-btn{border:1px solid #b79a6a55;border-radius:6px;background:#282231;color:#ead9b9;min-width:35px;height:28px}
+.desktop-titlebar-btn:hover{background:#3b3042}
+.desktop-godot-tools{display:flex;gap:7px;flex-wrap:wrap;align-items:center;padding:4px 6px 7px}
+.desktop-tool-btn{padding:8px 12px;min-height:36px;border-radius:8px;border:1px solid #ad936a88;background:#292330;color:#f0dfc5;font-size:12px;cursor:pointer}
+.desktop-tool-btn:hover{background:#433348}
+.desktop-tool-btn:last-child{margin-left:auto;background:#a68758;color:#15141c;font-weight:700}
+.desktop-library-import{display:block;width:100%;min-height:39px;margin:10px 0 14px;border:1px solid #bb9868;border-radius:10px;background:#b8956130;color:var(--fg);font-size:12px;text-align:left;padding:10px 14px}
+.desktop-library-import:hover{background:#b8956148}
+.desktop-book-drawer{margin:26px 0 0;padding:20px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+.desktop-book-drawer h3{display:flex;justify-content:space-between;margin:0 0 12px;font:600 22px Georgia,serif}
+.desktop-books-refresh{border:1px solid var(--line);background:var(--panel2);color:var(--fg);border-radius:7px}
+.desktop-books-list{display:grid;gap:10px}
+.desktop-book-row{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:12px;border:1px solid var(--line-soft);border-radius:10px}
+.desktop-book-row>span{flex:1;min-width:200px;overflow-wrap:anywhere}
+.desktop-book-row>button,.desktop-search>button{border:1px solid var(--line);background:var(--panel2);color:var(--fg);padding:8px 12px;border-radius:7px}
+.desktop-search{display:flex;flex-wrap:wrap;gap:9px;width:100%;margin-top:8px}
+.desktop-search input{flex:1;min-width:220px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);padding:9px 12px;border-radius:7px}
+.desktop-search-results{width:100%;max-height:430px;overflow:auto;display:grid;gap:8px}
+.desktop-book-hit{padding:10px;border-left:3px solid var(--accent);background:var(--panel2);border-radius:5px}
+.desktop-book-hit strong{color:var(--accent)}
+.desktop-book-hit p{font-size:12px;line-height:1.6;margin:6px 0 0;white-space:pre-wrap}
+@media(min-width:1500px){body.mastermind-desktop .app{grid-template-columns:285px minmax(0,1fr)}body.mastermind-desktop .content{padding-left:32px;padding-right:32px}}
+@media(min-width:2100px){body.mastermind-desktop{font-size:15px}body.mastermind-desktop .content{max-width:none}body.mastermind-desktop #screen-atelier85 .p90-shell{max-width:1650px}}
+@media(max-width:1150px){body.mastermind-desktop .app{grid-template-columns:210px minmax(0,1fr)}body.mastermind-desktop .sidebar{padding:10px}body.mastermind-desktop .content{padding:15px}body.mastermind-desktop .topbar{padding:0 12px}}
