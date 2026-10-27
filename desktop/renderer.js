@@ -14,7 +14,7 @@ function mountHeader(){
  const bar=el('div','desktop-titlebar');
  const left=el('div','desktop-titlebar-brand');
  const logo=el('img');logo.src='mastermind_logo.png';logo.alt='';
- left.append(logo,el('strong',null,'MASTERMIND'),el('span',null,'LINUX · v1.0'));
+ left.append(logo,el('strong',null,'MASTERMIND'),el('span',null,'LINUX · v1.0.2'));
  const right=el('div','desktop-titlebar-actions');
  const mk=(text,title,action)=>{const b=el('button','desktop-titlebar-btn',text);b.type='button';b.title=title;b.addEventListener('click',action);right.appendChild(b);};
  mk('⌕','Buscar livros',()=>$('#quick-search')?.click());
@@ -50,12 +50,22 @@ function stageToolbar(){
  const loading=stage.querySelector('.p90-stage-placeholder');
  desktop.onGodotStatus(info=>{
   if(!loading)return;
+  const title=loading.querySelector('strong');
+  const subtitle=loading.querySelector('small');
+  if(!title||!subtitle)return;
   if(info.status==='ready'){
-   loading.querySelector('strong').textContent='Editor Godot carregado';
-   loading.querySelector('small').textContent='Use o criador original e capture o retrato quando terminar.';
+   title.textContent='Editor Godot carregado';
+   subtitle.textContent='Use o criador original e capture o retrato quando terminar.';
+   loading.classList.remove('desktop-godot-error');
+  }else if(info.status==='loading'){
+   title.textContent='Carregando Pixel Portrait Creator…';
+   subtitle.textContent=info.message||'Conectando ao Godot do lyime.';
+   loading.classList.remove('desktop-godot-error');
   }else if(info.status==='error'){
-   loading.querySelector('strong').textContent='Falha ao abrir o editor';
-   loading.querySelector('small').textContent=info.message||'Verifique a internet e clique em Recarregar.';
+   title.textContent='O criador não conseguiu carregar';
+   subtitle.textContent=(info.message||'Verifique a conexão.')+' Use o botão Recarregar ou abra no navegador.';
+   loading.classList.add('desktop-godot-error');
+   toast('Ateliê: '+(info.message||'Falha ao carregar Godot'));
   }
  });
  desktop.onCapture(()=>{
