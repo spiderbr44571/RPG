@@ -30,3 +30,20 @@ for suffix in ("","?click_to_load=true","?embed=1"):
         p=re.search(r'<div[^>]+(?:game_frame|game_embed|html_embed)[^>]*>',decoded,re.I)
         if p:print("FRAME DIV",re.sub(r'\s+',' ',p.group(0))[:1600])
     except:pass
+
+print("==== DIRECT HTML5 GODOT RUNTIME ====")
+for direct in ("https://html.itch.zone/html/18379448/index.html?v=1785079497","https://itch.io/embed-upload/18379448?color=333333"):
+    print("TRY",direct)
+    try:markup=get(direct)
+    except Exception as e:
+        print("DIRECT_FETCH_ERROR",repr(e));continue
+    from html.parser import HTMLParser
+    class GameParser(HTMLParser):
+        def handle_starttag(self,tag,attrs):
+            if tag in ("script","canvas","iframe","meta"):
+                filtered={k:v for k,v in attrs if k in ("src","id","type","name","content","data-iframe")}
+                if filtered:print("TAG",tag,json.dumps(filtered,ensure_ascii=False)[:700])
+    GameParser().feed(markup)
+    for phrase in ("Godot","godot","webgl","SharedArrayBuffer","serviceWorker","wasm","Game file","INDEXEDDB"):
+        k=markup.find(phrase)
+        if k>=0:print("GODOT_TAG",phrase,repr(markup[max(0,k-70):k+250])[:360])
