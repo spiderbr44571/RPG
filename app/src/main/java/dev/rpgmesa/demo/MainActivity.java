@@ -55,6 +55,7 @@ public final class MainActivity extends Activity {
     private static final int PICK_BOOK_DOCUMENT = 1105;
     private static final int SAVE_CHARACTER_PDF = 1106;
     private static final int SAVE_CHARACTER_PNG = 1107;
+    private static final int PIXEL_PORTRAIT_CREATOR = 1108;
     private final BookBridge books = new BookBridge();
     // Activity fields are constructed before the Android Context is attached.
     // Initialize PDF search in onCreate, after super.onCreate(state).
@@ -79,6 +80,7 @@ public final class MainActivity extends Activity {
     private ValueCallback<Uri[]> pendingUpload;
     private byte[] pendingCharacterPdf;
     private byte[] pendingCharacterPng;
+    private volatile byte[] pendingPixelPortraitCapture;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -196,6 +198,24 @@ public final class MainActivity extends Activity {
     }
     @Override protected void onActivityResult(int request,int result,Intent data){
         super.onActivityResult(request,result,data);
+        if(request==PIXEL_PORTRAIT_CREATOR){
+          if(result==RESULT_OK && data!=null &&
+             PixelPortraitActivity.CAPTURE_FILENAME.equals(data.getStringExtra("pixelportrait_capture"))){
+            java.io.File capture=new java.io.File(getCacheDir(),PixelPortraitActivity.CAPTURE_FILENAME);
+            try{
+              if(!capture.isFile()||capture.length()<100||capture.length()>4000000L)
+                throw new IllegalArgumentException("Captura vazia ou grande demais");
+              byte[] raw=java.nio.file.Files.readAllBytes(capture.toPath());
+              if(raw.length<100||(raw[0]&255)!=0x89||raw[1]!=0x50||raw[2]!=0x4e||raw[3]!=0x47)
+                throw new IllegalArgumentException("PNG não reconhecido");
+              pendingPixelPortraitCapture=raw;
+              if(browser!=null)browser.post(()->browser.evaluateJavascript(
+                "document.dispatchEvent(new Event('mastermind:lyime-capture-ready'));",null));
+            }catch(Exception err){showBookError("Falha ao importar a captura: "+err.getMessage());}
+            finally{capture.delete();}
+          }
+          return;
+        }
         if(request==SAVE_CHARACTER_PNG){
           final byte[] bytes=pendingCharacterPng;
           pendingCharacterPng=null;
@@ -746,10 +766,26 @@ public final class MainActivity extends Activity {
       }
     }
     /** SAF: gera um documento PDF local escolhido pelo usuario, sem enviar fichas a servidores. */
-    /** Open only the official Pixel Portrait Creator website, outside the privileged WebView. */
+    /** Isolated lyime player. Remote site never shares Mastermind native bridges. */
     public final class PixelPortraitBridge {
-      @JavascriptInterface public void openOnline(){launchPixelPortrait(false);}
+      @JavascriptInterface public void openOnline(){
+        runOnUiThread(()->{
+          if(allowedHost!=null)return;
+          try{
+            pendingPixelPortraitCapture=null;
+            startActivityForResult(new Intent(MainActivity.this,PixelPortraitActivity.class),PIXEL_PORTRAIT_CREATOR);
+          }catch(Exception error){showBookError("Não foi possível abrir o criador do lyime.");}
+        });
+      }
+      @JavascriptInterface public void openBrowser(){launchPixelPortrait(false);}
       @JavascriptInterface public void openDownload(){launchPixelPortrait(true);}
+      @JavascriptInterface public String consumeCapture(){
+        if(allowedHost!=null)return "";
+        byte[] raw=pendingPixelPortraitCapture;
+        pendingPixelPortraitCapture=null;
+        if(raw==null||raw.length<100||raw.length>4000000)return "";
+        return "data:image/png;base64,"+Base64.encodeToString(raw,Base64.NO_WRAP);
+      }
     }
     private void launchPixelPortrait(boolean download){
       runOnUiThread(()->{
