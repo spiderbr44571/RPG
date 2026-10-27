@@ -11,8 +11,9 @@ assert.doesNotMatch(html,/>Ateliê</,'Ateliê button must be removed');
 assert.match(html,/id="screen-sheet"/,'Characters must remain available');
 assert.match(html,/id="screen-settings"/,'Theme settings must remain available');
 assert.match(html,/Cores do aplicativo/);
-assert.match(html,/tokenImage/,'Existing token saving must remain implemented');
-assert.match(html,/photo/,'Existing character photos must remain available');
+assert.match(html,/id="r09-upload-photo"/,'Character portrait uploads must remain available');
+assert.match(html,/id="rpg05-new-char"/,'Character creation must remain available');
+assert.match(html,/id="rpg05-char-select"/,'Character selection must remain available');
 assert.match(gradle,/versionCode 87/);
 assert.match(gradle,/versionName '0\.84\.0-mastermind-without-atelier'/);
 for(const name of ['mastermind83_renderer.js','mastermind83_studio.css','mastermind83_studio.js'])
