@@ -1,0 +1,49 @@
+name: Mastermind Linux — AppImage complementar
+on:
+  push:
+    branches:
+      - feature/mastermind-linux-desktop-v1
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  appimage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Preparar icones e bibliotecas do Linux
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet --break-system-packages pillow
+          python3 desktop/make_icon.py
+      - name: Instalar Electron e empacotador
+        run: npm --prefix desktop install --no-audit --no-fund
+      - name: AppImage individual sem compactação concorrente
+        run: |
+          set -euo pipefail
+          timeout 360s npm --prefix desktop run dist:appimage
+          APPIMAGE=desktop/dist/Mastermind-Linux-1.0.0-x86_64.AppImage
+          test -s "$APPIMAGE"
+          chmod +x "$APPIMAGE"
+          file "$APPIMAGE"
+          sha256sum "$APPIMAGE" > desktop/dist/SHA256SUMS-AppImage
+          ls -lh "$APPIMAGE"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Mastermind-Linux-v1-AppImage
+          if-no-files-found: error
+          path: |
+            desktop/dist/Mastermind-Linux-1.0.0-x86_64.AppImage
+            desktop/dist/SHA256SUMS-AppImage
+      - name: Adicionar AppImage à versão Linux existente
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release upload mastermind-linux-v1.0.0-beta \
+            desktop/dist/Mastermind-Linux-1.0.0-x86_64.AppImage \
+            desktop/dist/SHA256SUMS-AppImage --clobber
