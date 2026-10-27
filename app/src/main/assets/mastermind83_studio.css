@@ -1,0 +1,63 @@
+/* MASTERMIND 0.83 — a clean room rewrite of the Atelier UI. Pixel-art fantasy style. */
+#screen-atelier.mm83-screen{max-width:1200px;margin:auto;padding:12px 10px 98px;color:#4b3441;font-family:Verdana,system-ui,sans-serif;box-sizing:border-box}
+#screen-atelier .mm83-app{--m83-bg:#d6c0ad;--m83-panel:#e8d4b9;--m83-ink:#4b3441;--m83-accent:#a56969;--m83-gold:#efd5a1;background:var(--m83-bg);border:4px solid var(--m83-ink);box-shadow:0 0 0 4px #faebd0,0 0 0 8px var(--m83-ink),8px 12px 0 #0004;min-width:0;padding:12px;position:relative;image-rendering:pixelated;overflow:hidden}
+#screen-atelier .mm83-app *{box-sizing:border-box}
+#screen-atelier .mm83-header{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#704a53;border:3px solid #513943;padding:13px 15px;color:#fff1d5;margin-bottom:12px;box-shadow:inset 3px 3px #9a7580,inset -4px -4px #422c39}
+#screen-atelier .mm83-eyebrow{font-size:10px;letter-spacing:2px;font-weight:800;color:#eccb93}
+#screen-atelier .mm83-header h1{font:bold clamp(17px,3vw,27px)/1.25 Georgia,serif;color:#ffdfab;margin:5px 0 2px}
+#screen-atelier .mm83-header p{font-size:11px;line-height:1.45;color:#eed8c5;margin:0}
+#screen-atelier .mm83-home{background:#f3dfb6;color:#64444a;border:3px solid #4b3441;padding:10px 12px;font-weight:bold;box-shadow:3px 3px #3d303a;cursor:pointer;flex:0 0 auto}
+#screen-atelier .mm83-main{display:grid;grid-template-columns:minmax(235px,36%) minmax(0,1fr);gap:14px}
+#screen-atelier .mm83-preview-panel{background:#bd988a;border:3px solid #65474d;box-shadow:inset 3px 3px #e7ba9f,3px 3px #634450;min-width:0;padding:10px 10px 14px}
+#screen-atelier .mm83-pane-title{display:flex;align-items:center;justify-content:space-between;gap:10px;font:bold 15px Georgia,serif;color:#fce7bf;margin:0 2px 9px}
+#screen-atelier .mm83-pane-title span{font:700 9px monospace;color:#ffecba;letter-spacing:.3px;text-align:right}
+#screen-atelier #mm83-portrait{image-rendering:pixelated;image-rendering:crisp-edges;width:min(100%,360px);aspect-ratio:192/224;height:auto;display:block;margin:0 auto;border:5px solid #fff8db;outline:4px solid #3b2a40;background:#2a2036}
+#screen-atelier .mm83-token-row{display:flex;align-items:center;gap:12px;background:#4b394f;margin:12px 4px 0;padding:7px;border:2px solid #e8c49b;color:#fbe4ba;font:700 11px/1.4 monospace}
+#screen-atelier #mm83-token{width:76px;height:76px;image-rendering:pixelated;image-rendering:crisp-edges;flex:0 0 auto}
+#screen-atelier .mm83-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:12px 0 0}
+#screen-atelier .mm83-action{min-height:39px;font-weight:800;font-size:11px;background:#f2dfbd;border:2px solid #62414b;color:#5c3b49;box-shadow:3px 3px #765366;padding:8px 4px;cursor:pointer}
+#screen-atelier .mm83-action:active{transform:translate(2px,2px);box-shadow:1px 1px #765366}
+#screen-atelier #mm83-save{grid-column:1/-1;background:#347c82;color:#fff1d7;border-color:#315365;font-size:13px;min-height:45px}
+#screen-atelier #mm83-status{font:11px/1.5 Verdana,sans-serif;min-height:36px;color:#563846;background:#ead5b9;border:2px solid #ad827c;margin:12px 0 0;padding:9px}
+#screen-atelier .mm83-selection{min-width:0;display:flex;flex-direction:column;gap:9px}
+#screen-atelier .mm83-tab-box{background:#f1debd;border:3px solid #674850;box-shadow:inset 3px 3px #fff0d1;padding:8px}
+#screen-atelier .mm83-tab-box small{display:block;font:800 10px/1.3 monospace;letter-spacing:1px;color:#98675b;margin:0 0 6px}
+#screen-atelier .mm83-category-list{display:flex;gap:6px;overflow-x:auto;scrollbar-color:#936e68 #ead0b1;padding:2px 1px 8px;scroll-snap-type:x proximity;max-width:100%}
+#screen-atelier .mm83-category{font-size:11px;font-weight:800;white-space:nowrap;flex:0 0 auto;min-height:38px;background:#ddbea0;color:#513842;border:2px solid #76505a;box-shadow:2px 2px #ab827e;padding:7px 9px;cursor:pointer;scroll-snap-align:start}
+#screen-atelier .mm83-category.is-selected{background:#765169;color:#ffedc6;border-color:#473041}
+#screen-atelier .mm83-select-panel{flex:1;min-width:0;border:3px solid #65434a;background:#e9d4b8;box-shadow:inset 4px 4px #fff0d2;padding:10px}
+#screen-atelier .mm83-category-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:1px 2px 10px;color:#654253}
+#screen-atelier .mm83-category-head h2{font:bold 19px Georgia,serif;color:#5f4151;margin:0}
+#screen-atelier .mm83-category-head span{font:700 10px monospace;color:#90656c;text-align:right}
+#screen-atelier .mm83-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;max-height:665px;overflow-y:auto;padding:4px}
+#screen-atelier .mm83-choice{min-width:0;overflow:hidden;border:3px solid #85616b;box-shadow:inset 2px 2px #fff9e6,3px 3px #9b7778;background:#dcc2aa;padding:5px 4px 7px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;color:#503746}
+#screen-atelier .mm83-choice.is-selected{background:#a86f75;border-color:#513a53;box-shadow:inset 2px 2px #f8d49e,3px 3px #654756;color:#fff0d0}
+#screen-atelier .mm83-choice-art{width:100%;height:auto;aspect-ratio:150/166;image-rendering:pixelated;image-rendering:crisp-edges;background:#e0bba6;border:2px solid #6b4a5a;display:block}
+#screen-atelier .mm83-choice span{font:bold 10px/1.35 Verdana,sans-serif;text-align:center;min-height:27px;display:flex;align-items:center;justify-content:center}
+#screen-atelier .mm83-palette-groups{display:grid;gap:10px;max-height:670px;overflow:auto}
+#screen-atelier .mm83-palette-row{background:#d9b9a8;border:2px solid #896271;padding:9px}
+#screen-atelier .mm83-palette-head{display:flex;justify-content:space-between;align-items:center;gap:9px;margin-bottom:8px;color:#55384a;font:bold 11px Verdana,sans-serif}
+#screen-atelier .mm83-palette-head input{height:36px;width:60px;background:transparent;border:2px solid #735061;padding:2px;cursor:pointer}
+#screen-atelier .mm83-swatches{display:flex;flex-wrap:wrap;gap:7px}
+#screen-atelier .mm83-swatches button{width:32px;height:32px;border:2px solid #49394c;box-shadow:2px 2px #7c6662;cursor:pointer}
+#screen-atelier .mm83-swatches button.is-selected{outline:3px solid #efce7e;outline-offset:1px}
+#screen-atelier .mm83-palette-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+#screen-atelier .mm83-color-chip{height:72px;display:flex;align-items:flex-end;justify-content:center;background:var(--swatch);border:3px solid #5f444e;box-shadow:3px 3px #ab8c80;padding:3px;cursor:pointer}
+#screen-atelier .mm83-color-chip span{background:#eeddc5;color:#4b3946;border:1px solid #573b43;padding:2px 3px;font:700 9px monospace}
+#screen-atelier .mm83-color-chip.is-selected{outline:3px solid #d9a94f}
+#screen-atelier .mm83-explain{font:11px/1.6 Verdana,sans-serif;color:#644751;margin:10px 4px 2px}
+@media(max-width:980px){#screen-atelier .mm83-main{grid-template-columns:minmax(0,1fr)}#screen-atelier .mm83-preview-panel{display:grid;grid-template-columns:minmax(150px,240px) minmax(0,1fr);column-gap:12px}#screen-atelier .mm83-pane-title{grid-column:1/-1}#screen-atelier #mm83-portrait{grid-row:2 / span 3;width:100%}#screen-atelier .mm83-token-row{margin:0;align-self:start}#screen-atelier .mm83-actions{margin:0}#screen-atelier .mm83-preview-panel #mm83-status{margin:7px 0 0}}
+@media(max-width:560px){#screen-atelier.mm83-screen{padding:7px 3px 92px}#screen-atelier .mm83-app{padding:7px;border-width:3px;box-shadow:0 0 0 2px #faebd0,0 0 0 5px #4b3441}#screen-atelier .mm83-header{padding:9px;gap:8px}#screen-atelier .mm83-header h1{font-size:18px}#screen-atelier .mm83-header p{font-size:10px}#screen-atelier .mm83-home{font-size:10px;padding:7px}#screen-atelier .mm83-preview-panel{grid-template-columns:minmax(115px,42%) minmax(0,1fr);padding:6px;gap:9px}#screen-atelier .mm83-pane-title{font-size:14px;margin-bottom:3px}#screen-atelier .mm83-token-row{gap:3px;flex-wrap:wrap;padding:4px;font-size:8px}#screen-atelier #mm83-token{width:53px;height:53px}#screen-atelier .mm83-actions{display:grid;grid-template-columns:1fr;gap:5px}#screen-atelier .mm83-action{font-size:9px;min-height:28px;padding:4px;box-shadow:2px 2px #765366}#screen-atelier #mm83-save{min-height:37px;font-size:11px}#screen-atelier .mm83-preview-panel #mm83-status{grid-column:1/-1;font-size:10px;min-height:unset}#screen-atelier .mm83-choices{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:0}#screen-atelier .mm83-choice{padding:3px 2px 5px}#screen-atelier .mm83-choice span{font-size:9px;min-height:28px}#screen-atelier .mm83-category{font-size:10px;padding:6px}#screen-atelier .mm83-color-chip{height:55px}}
+@media(max-width:355px){#screen-atelier .mm83-choices{grid-template-columns:repeat(2,minmax(0,1fr))}#screen-atelier .mm83-palette-grid{grid-template-columns:repeat(3,1fr)}}
+/* At portrait-phone widths the artwork, not the controls, must be the hero. */
+@media(max-width:560px){
+ #screen-atelier .mm83-preview-panel{display:flex;flex-direction:column;gap:10px}
+ #screen-atelier .mm83-pane-title{display:flex;width:100%;align-items:center}
+ #screen-atelier #mm83-portrait{grid-row:auto;width:min(100%,310px);height:auto;max-height:none;align-self:center}
+ #screen-atelier .mm83-token-row{width:100%;margin:0;padding:7px;font-size:10px;display:flex;flex-wrap:nowrap;gap:9px}
+ #screen-atelier #mm83-token{width:65px;height:65px}
+ #screen-atelier .mm83-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;width:100%}
+ #screen-atelier .mm83-action{font-size:10px;min-height:38px;padding:5px}
+ #screen-atelier #mm83-save{grid-column:1/-1;min-height:43px;font-size:12px}
+ #screen-atelier .mm83-preview-panel #mm83-status{width:100%;font-size:11px}
+}

@@ -197,7 +197,7 @@ html[data-paranormal="medo"] .v10-result:before{border-radius:45% 5% 45% 5%}
 
 </style><link rel="stylesheet" href="rpg15_catalog.css"><script src="rpg37_rules.js"></script><link rel="stylesheet" href="mastermind38_shell.css">
 <link rel="stylesheet" href="mastermind39_ui.css"><link rel="stylesheet" href="mastermind40_canvas_images.css"><link rel="stylesheet" href="mastermind42_workspace.css"><link rel="stylesheet" href="mastermind44_sheet_rules.css"><link rel="stylesheet" href="mastermind45_pdf_search.css"><link rel="stylesheet" href="mastermind56_local_powers.css">
-<link rel="stylesheet" href="mastermind82_atelier.css"></head>
+<link rel="stylesheet" href="mastermind83_studio.css"></head>
 <body>
 <div id="mm-loading" role="status" aria-label="Preparando o Mastermind" aria-live="polite"><div class="mm-boot-content"><img class="mm-boot-logo" src="mastermind_logo.png" width="112" height="112" alt="" aria-hidden="true" decoding="async"><strong class="mm-boot-title">Mastermind</strong><small class="mm-boot-subtitle">Preparando seu espaço...</small><span class="mm-boot-progress" aria-hidden="true"></span></div></div>
 <svg width="0" height="0" style="position:absolute;overflow:hidden" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
@@ -241,7 +241,7 @@ html[data-paranormal="medo"] .v10-result:before{border-radius:45% 5% 45% 5%}
   <div class="sidebar-bottom"><div class="connected"><div class="connected-dot"></div><div><strong>Núcleo local disponível</strong><small>IA opcional · Biblioteca offline</small></div></div><div class="profile"><div class="avatar">R</div><div><strong>Seu espaço</strong><small>Seu espaço local</small></div></div></div>
 </aside>
 <main class="main">
- <header class="topbar"><div class="breadcrumb"><small>Workspace</small><span class="divider-slash">/</span><strong id="current-page">Visão geral</strong><small id="mm-release" aria-label="Versão instalada" style="color:var(--accent);font-size:10px">v0.82.1</small></div><div class="top-actions"><button class="kbtn" id="mm62-descriptions-trigger" type="button" onclick="window.Mastermind62Descriptions?.search?.()">📖 Descrições</button><button class="kbtn" id="quick-search"><svg class="icon"><use href="#i-search"/></svg><span>Buscar livros</span><span class="hide-mobile" style="color:var(--faint)">⌘ K</span></button><button class="icon-btn" id="theme-quick" aria-label="Alternar tema"><svg class="icon"><use href="#i-sun"/></svg></button></div></header>
+ <header class="topbar"><div class="breadcrumb"><small>Workspace</small><span class="divider-slash">/</span><strong id="current-page">Visão geral</strong><small id="mm-release" aria-label="Versão instalada" style="color:var(--accent);font-size:10px">v0.83</small></div><div class="top-actions"><button class="kbtn" id="mm62-descriptions-trigger" type="button" onclick="window.Mastermind62Descriptions?.search?.()">📖 Descrições</button><button class="kbtn" id="quick-search"><svg class="icon"><use href="#i-search"/></svg><span>Buscar livros</span><span class="hide-mobile" style="color:var(--faint)">⌘ K</span></button><button class="icon-btn" id="theme-quick" aria-label="Alternar tema"><svg class="icon"><use href="#i-sun"/></svg></button></div></header>
  <div class="content" id="content">
 <section id="screen-op" class="screen" aria-label="Sistema Ordem Paranormal versão 1.3">
 <div class="page-row"><div><div class="eyebrow">MÓDULO COMUNITÁRIO · 1.3</div><h1 class="page-h">Sistema <i>Paranormal.</i></h1><p class="op-note">Este é um conteúdo não oficial, publicado sob a Licença da Comunidade de Ordem Paranormal. Contém material gerado por inteligência artificial.</p><p class="page-sub">Livro de regras v1.3 · ficha e mecânicas offline · não é um aplicativo oficial.</p></div><span class="preview-pill">MÓDULO PARCIAL · VERIFICADO</span></div>
@@ -267,53 +267,36 @@ html[data-paranormal="medo"] .v10-result:before{border-radius:45% 5% 45% 5%}
  <!-- CHAR SHEET -->
  <section id="screen-sheet" class="screen" aria-label="Fichas"><div class="page-row"><div><div class="eyebrow">Motor determinístico</div><h1 class="page-h">Personagens vivos.</h1><p class="page-sub">Tudo editável, com regras independentes do assistente de IA.</p></div><button class="btn-dark" id="export-character"><svg class="icon"><use href="#i-copy"/></svg>Exportar ficha</button></div>
  <div class="sheet-layout"><div><div class="surface-flat sheet-head"><div class="sheet-top"><div class="char-avatar">K</div><div><h2>Kael Vesper</h2><p>Explorador do Limiar · Nível 4 · Exemplo fictício</p></div></div><div class="sheet-meta"><span class="pill">Sistema: Regras de Demonstração</span><span class="pill">Trilha: Vigia</span><span class="pill">Campanha: Ecos do Véu</span></div></div><div class="surface-flat sheet-attributes"><div class="section-head"><h3>Atributos principais</h3><small>Clique para editar</small></div><div class="attr-grid" id="attribute-grid"></div></div><div class="surface-flat sheet-secondary"><div class="section-head"><h3>Perícias &amp; aptidões</h3><span class="tag">Valores de exemplo</span></div><div id="skill-list"></div><div id="sheet-derived" class="rpg-derived"></div></div></div><aside><div class="surface-flat resource-panel"><h3>Recursos do personagem</h3><div id="resource-list"></div><span class="tag">Cálculo independente de IA</span></div><div class="surface-flat roll-card"><div class="dice-glyph">✳</div><h3>Mesa de rolagens</h3><p>Teste rápido com dado de 20 faces.</p><button class="btn-primary" id="roll-dice"><svg class="icon"><use href="#i-dice"/></svg>Rolar 1d20</button><div class="roll-result" id="roll-result">O resultado aparecerá aqui</div></div></aside></div></section>
- <!-- Mastermind v0.82 — Modular character studio: all drawn on the same anchored canvas -->
-<section id="screen-atelier" class="screen" aria-label="Novo ateliê de tokens 2D">
- <header class="m81-head"><div><div class="m81-eyebrow">MASTERMIND · ATELIÊ v0.82.1</div>
- <h1>Crie seu personagem em 2D</h1><p>Monte um token de fantasia por peças independentes. Cada rosto, cabelo, traje e acessório encaixa no mesmo rig. Sem retratos prontos.</p></div>
- <button type="button" id="m81-sheet" class="m81-button">Abrir ficha</button></header>
- <div class="m81-layout">
-  <nav class="m81-category-nav" role="tablist" aria-label="Partes do personagem">
-   <button type="button" role="tab" data-m81-tab="body" aria-selected="false" class="">Corpo</button>
-   <button type="button" role="tab" data-m81-tab="face" aria-selected="false" class="">Rosto</button>
-   <button type="button" role="tab" data-m81-tab="ears" aria-selected="false" class="">Orelhas</button>
-   <button type="button" role="tab" data-m81-tab="skin" aria-selected="false" class="">Pele</button>
-   <button type="button" role="tab" data-m81-tab="eyes" aria-selected="false" class="">Olhos</button>
-   <button type="button" role="tab" data-m81-tab="brows" aria-selected="false" class="">Sobrancelhas</button>
-   <button type="button" role="tab" data-m81-tab="nose" aria-selected="false" class="">Nariz</button>
-   <button type="button" role="tab" data-m81-tab="mouth" aria-selected="false" class="">Boca</button>
-   <button type="button" role="tab" data-m81-tab="hairBack" aria-selected="false" class="">Cabelo traseiro</button>
-   <button type="button" role="tab" data-m81-tab="hairFront" aria-selected="false" class="">Cabelo frontal</button>
-   <button type="button" role="tab" data-m81-tab="beard" aria-selected="false" class="">Barba</button>
-   <button type="button" role="tab" data-m81-tab="outfit" aria-selected="true" class="selected">Roupas</button>
-   <button type="button" role="tab" data-m81-tab="cloak" aria-selected="false" class="">Capas e mantos</button>
-   <button type="button" role="tab" data-m81-tab="armor" aria-selected="false" class="">Armaduras</button>
-   <button type="button" role="tab" data-m81-tab="accessory" aria-selected="false" class="">Acessórios</button>
-   <button type="button" role="tab" data-m81-tab="colors" aria-selected="false" class="">Cores</button>
-   <button type="button" role="tab" data-m81-tab="background" aria-selected="false" class="">Cenários</button>
-   <button type="button" role="tab" data-m81-tab="frame" aria-selected="false" class="">Tokens</button>
-  </nav>
-  <section class="m81-panel m81-editor" aria-label="Escolher peças de criação">
-   <div class="m81-panel-title"><h2 id="m81-section-name">Roupas</h2><span>116 sprites pixel art originais</span></div>
-   <div id="m81-options" class="m81-options" aria-live="polite"></div>
-   <div class="m81-copyright">Pixel art 168×208 sem suavização, com sombras desenhadas pixel a pixel, paletas personalizáveis e âncoras comuns.</div>
-  </section>
-  <section class="m81-panel m81-stage" aria-label="Prévia do personagem e exportação">
-   <div class="m81-panel-title"><h2 id="m81-name">Personagem</h2><span>Retrato + token</span></div>
-   <div class="m81-stage-content">
-    <div class="m81-preview"><canvas width="840" height="1040" id="m81-portrait" aria-label="Personagem personalizado por camadas"></canvas>
-     <div class="m81-token-shell"><span>Token</span><canvas id="m81-token" width="512" height="512" aria-label="Token gerado da aparência modular"></canvas></div>
+ <!-- Mastermind v0.83: pixel-art studio reconstructed from clean sprites and independent UI. -->
+<section id="screen-atelier" class="screen mm83-screen" aria-label="Ateliê Pixel Art">
+ <div class="mm83-app">
+  <header class="mm83-header">
+   <div><div class="mm83-eyebrow">MASTERMIND · PIXEL STUDIO v0.83</div><h1>Crie seu personagem</h1><p>Peças pixel art originais. Escolha cada detalhe e monte seu token.</p></div>
+   <button id="mm83-sheet" class="mm83-home" type="button">Abrir ficha</button>
+  </header>
+  <div class="mm83-main">
+   <section class="mm83-preview-panel" aria-label="Prévia do personagem">
+    <div class="mm83-pane-title"><strong id="mm83-name">Novo personagem</strong><span id="mm83-render-state">PIXEL ART 192×224</span></div>
+    <canvas id="mm83-portrait" width="768" height="896" aria-label="Retrato montado por sprites pixel art independentes"></canvas>
+    <div class="mm83-token-row"><canvas id="mm83-token" width="384" height="384" aria-label="Token do personagem"></canvas><span>Token automático<br>Sem interpolação</span></div>
+    <div class="mm83-actions">
+     <button class="mm83-action" id="mm83-save" type="button">Salvar na ficha</button>
+     <button class="mm83-action" id="mm83-export-portrait" type="button">Exportar retrato</button>
+     <button class="mm83-action" id="mm83-export-token" type="button">Exportar token</button>
+     <button class="mm83-action" id="mm83-random" type="button">Aleatorizar</button>
+     <button class="mm83-action" id="mm83-reset" type="button">Restaurar</button>
     </div>
-    <div class="m81-actions">
-     <button class="m81-button primary" id="m81-save" type="button">Salvar na ficha</button>
-     <button class="m81-button" id="m81-export-portrait" type="button">Exportar retrato</button>
-     <button class="m81-button" id="m81-export-token" type="button">Exportar token PNG</button>
-     <button class="m81-button" id="m81-shuffle" type="button">Aleatorizar</button>
-     <button class="m81-button" id="m81-reset" type="button">Restaurar padrão</button>
+    <p id="mm83-status" role="status" aria-live="polite">Preparando o estúdio...</p>
+   </section>
+   <section class="mm83-selection" aria-label="Personalização das peças">
+    <div class="mm83-tab-box"><small>ESCOLHA A PARTE DO PERSONAGEM</small><nav id="mm83-category-list" class="mm83-category-list" role="tablist" aria-label="Categorias de personalização"></nav></div>
+    <div class="mm83-select-panel">
+     <div class="mm83-category-head"><h2 id="mm83-current-category">Cabelo frontal</h2><span>ASSETS PIXEL ART</span></div>
+     <div id="mm83-choices" class="mm83-choices" aria-live="polite"></div>
+     <p class="mm83-explain">Todas as peças usam um único molde pixel art. Troque cabelo, olhos, roupas, acessórios e cores livremente.</p>
     </div>
-    <p id="m81-status" role="status" aria-live="polite">Edite uma categoria e salve o resultado na ficha.</p>
-   </div>
-  </section>
+   </section>
+  </div>
  </div>
 </section>
 <!-- AI SEARCH -->
@@ -1699,4 +1682,4 @@ html body #r09-dice .r09-die-num{fill:#201522!important;font:900 29px system-ui,
 .r37-inventory-warning{border-radius:9px;border:1px solid #d29b66;background:#3a2a23;color:#f2d2ac;padding:12px;margin:0;line-height:1.6}
 .r37-inventory-ok{color:#91dabb;font-size:12px;margin:0}
 .r37-over{border-color:#e5aa77!important;color:#e8b88c}
-@media(max-width:450px){.r37-category-grid{grid-template-columns:1fr}}</style><script src="mastermind39_ui.js"></script><script src="mastermind40_canvas_images.js"></script><script src="mastermind42_workspace.js"></script><script src="mastermind59_class_catalog.js"></script><script src="mastermind56_local_powers.js"></script><link rel="stylesheet" href="mastermind60_identity.css"><script src="mastermind82_atlas_data.js"></script><script src="mastermind82_rig.js"></script><script src="mastermind82_atelier.js"></script></body></html>
+@media(max-width:450px){.r37-category-grid{grid-template-columns:1fr}}</style><script src="mastermind39_ui.js"></script><script src="mastermind40_canvas_images.js"></script><script src="mastermind42_workspace.js"></script><script src="mastermind59_class_catalog.js"></script><script src="mastermind56_local_powers.js"></script><link rel="stylesheet" href="mastermind60_identity.css"><script src="mastermind83_atlas.js"></script><script src="mastermind83_renderer.js"></script><script src="mastermind83_studio.js"></script></body></html>
