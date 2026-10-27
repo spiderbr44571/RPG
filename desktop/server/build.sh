@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build a self-contained JVM server from the exact Android LocalCampaignServer.java engine.
 set -euo pipefail
-repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 temp="$(mktemp -d)"
 trap 'rm -rf "$temp"' EXIT
 mkdir -p "$temp/lib" "$temp/classes" "$temp/merge"
