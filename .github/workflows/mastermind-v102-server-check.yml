@@ -1,0 +1,40 @@
+name: Mastermind v1.0.2 — Server compilation early check
+on:
+  push:
+    branches:
+      - fix/mastermind-v102-linux-mestragem-atelie
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  test-linux-server:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Build original campaign engine for Linux
+        run: bash desktop/server/build.sh
+      - name: Check server JAR and contents
+        run: |
+          set -eu
+          jar tf desktop/server/dist/mastermind-campaign-server.jar | grep dev/rpgmesa/demo/LocalCampaignServer
+          jar tf desktop/server/dist/mastermind-campaign-server.jar | grep fi/iki/elonen/NanoHTTPD
+          jar tf desktop/server/dist/mastermind-campaign-server.jar | grep android/graphics/Canvas
+          mkdir -p /tmp/mm-campaign-db
+          timeout 12s java -Djava.awt.headless=true -jar desktop/server/dist/mastermind-campaign-server.jar /tmp/mm-campaign-db app/src/main/assets 8765 > /tmp/mm-server-log.txt 2>&1 &
+          PID=$!
+          for i in $(seq 1 30); do
+            if grep -q MASTERMIND_SERVER_READY /tmp/mm-server-log.txt; then break; fi
+            sleep .2
+          done
+          cat /tmp/mm-server-log.txt
+          grep -q MASTERMIND_SERVER_READY /tmp/mm-server-log.txt
+          HOST_IP="$(awk '/MASTERMIND_SERVER_READY/ {print $2}' /tmp/mm-server-log.txt | tail -1)"
+          curl -fsS "http://$HOST_IP:8765/master" | grep -q '<'
+          SECRET="$(python3 -c 'import json; print(json.load(open("/tmp/mm-campaign-db/campanhas-android.json"))["secret"])')"
+          curl -fsS -H "Authorization: Bearer $SECRET" "http://$HOST_IP:8765/api/admin/campaigns" | grep -q campaigns
+          kill "$PID" || true
