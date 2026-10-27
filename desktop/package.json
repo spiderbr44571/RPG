@@ -8,7 +8,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "start": "electron .",
-    "check": "node --check main.cjs && node --check preload.cjs && node --check book-catalog.cjs && node --check desktop-ui.js",
+    "check": "node --check main.cjs && node --check preload.cjs && node --check book-catalog.cjs && node --check local-server.cjs && node --check desktop-ui.js",
     "test": "node --test test/*.test.cjs",
     "dist:linux": "electron-builder --linux AppImage tar.gz --x64 --publish never",
     "dist:dir": "electron-builder --linux dir --x64 --publish never"
@@ -32,6 +32,7 @@
       "main.cjs",
       "preload.cjs",
       "book-catalog.cjs",
+      "local-server.cjs",
       "package.json",
       "node_modules/**/*"
     ],
