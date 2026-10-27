@@ -30,10 +30,10 @@ assert.match(native,/data\.size\(\)\+count>262144/,'Network inspection must be b
 assert.match(manifest,/<activity android:name="\.PixelPortraitActivity" android:exported="false"/);
 assert.match(parent,/new Intent\(MainActivity\.this,PixelPortraitActivity\.class\)/);
 assert.match(parent,/String consumeCapture\(\)/);
-assert.match(html,/>v0\.88<\/small>/);
+assert.match(html,/>v0\.89<\/small>/);
 assert.match(html,/MASTERMIND · ATELIÊ GODOT HTML5 · v0\.88/);
 assert.match(html,/data-p86-action="online">Personalizar dentro do app<\/button>/);
 assert.match(html,/id="p86-portrait"/);
 assert.match(html,/id="p86-token"/);
-assert.match(gradle,/versionCode 92; versionName '0\.88\.0-mastermind-lyime-direct-godot'/);
+assert.match(gradle,/versionCode 93; versionName '0\.89\.0-mastermind-atelier-zoom'/);
 console.log('PASS v0.88: official inspected Godot HTML5 URL, bounded dynamic discovery, direct secure WebView, capture and fallback');
