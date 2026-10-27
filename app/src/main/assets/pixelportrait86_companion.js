@@ -110,9 +110,10 @@ function launch(mode){
  // Native Android bridge opens an allowlisted URL outside the app. No remote JS is
  // loaded in Mastermind's trusted WebView (which exposes offline data bridges).
  const native=root.RpgPixelPortraitBridge;
- if(mode==='online'&&native?.openOnline){native.openOnline();return;}
+ if(mode==='online'&&native?.openOnline){native.openOnline();message('Abrindo o Pixel Portrait Creator dentro do Mastermind...');return;}
+ if(mode==='browser'&&native?.openBrowser){native.openBrowser();return;}
  if(mode==='download'&&native?.openDownload){native.openDownload();return;}
- const url=mode==='online'?CREATOR_PAGE:CREATOR_PAGE+'#download';
+ const url=mode==='download'?CREATOR_PAGE+'#download':CREATOR_PAGE;
  const tab=root.open(url,'_blank','noopener,noreferrer');
  if(!tab)message('Abra no navegador: '+CREATOR_PAGE);
 }
@@ -161,6 +162,7 @@ DOC.addEventListener('click',e=>{
  if(!action)return;
  switch(action){
  case 'online':launch('online');break;
+ case 'browser':launch('browser');break;
  case 'download':launch('download');break;
  case 'save':save();break;
  case 'exportPortrait':exportPng('portrait');break;
@@ -172,7 +174,19 @@ DOC.addEventListener('click',e=>{
 });
 DOC.addEventListener('rpg:character-selected',syncCharacter);
 DOC.getElementById('rpg05-char-select')?.addEventListener('change',()=>root.setTimeout(syncCharacter,0));
-DOC.addEventListener('visibilitychange',()=>{if(!DOC.hidden)syncCharacter();});
-root.PixelPortrait86={save,draw,syncCharacter,state,launch};
+function consumeNativeCapture(){
+ const native=root.RpgPixelPortraitBridge;
+ if(!native?.consumeCapture)return;
+ try{
+  const value=native.consumeCapture();
+  if(typeof value==='string'&&/^data:image\\/png;base64,[A-Za-z0-9+/=]{100,}$/.test(value)){
+   applyImage(value);
+   message('Captura do editor incorporado recebida. Arraste o recorte para focar somente no personagem.');
+  }
+ }catch(error){message('A captura ainda não está disponível. Use Importar PNG.',true);}
+}
+DOC.addEventListener('mastermind:lyime-capture-ready',consumeNativeCapture);
+DOC.addEventListener('visibilitychange',()=>{if(!DOC.hidden){syncCharacter();consumeNativeCapture();}});
+root.PixelPortrait86={save,draw,syncCharacter,state,launch,consumeNativeCapture};
 syncCharacter();draw();
 })(typeof window!=='undefined'?window:globalThis);
