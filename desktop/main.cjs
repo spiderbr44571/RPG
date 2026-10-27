@@ -432,13 +432,9 @@ app.whenReady().then(async()=>{
     if(!target)return new Response('Not found',{status:404});
     try{
       if(!fs.statSync(target).isFile())return new Response('Not found',{status:404});
-      // net.fetch(file://) handles bundled resources and PDF byte-range requests.
-      const response=await net.fetch(pathToFileURL(target).toString());
-      return new Response(response.body,{status:response.status,headers:{
-        'Content-Type':mime(path.extname(target).toLowerCase()),
-        'Cache-Control':'no-store',
-        'X-Content-Type-Options':'nosniff'
-      }});
+      // Return Electron's original file: response. Wrapping its stream in a new
+      // WHATWG Response can fail on Linux Chromium's custom-protocol handler.
+      return net.fetch(pathToFileURL(target).toString());
     }catch(_){return new Response('Not found',{status:404})}
   });
   registerIPC();
