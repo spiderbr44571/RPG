@@ -153,8 +153,73 @@ function fixMobileStrings(){
  const status=$('#p86-status');
  if(status)status.textContent='Capture no editor acima ou importe PNG; ajuste e salve retrato e token na ficha.';
 }
+function mountMestragem(){
+ const page=$('#screen-master');if(!page)return;
+ const panel=el('section','desktop-gm-panel');
+ panel.innerHTML=
+  '<div class="desktop-gm-heading"><div><span class="desktop-gm-kicker">MESTRAGEM · REDE LOCAL</span>'+
+  '<h2>Mesa e cenários do Mestre</h2><p>Servidor integrado ao Linux. Gerencie campanhas, jogadores, turnos e mapas visuais sem Android.</p></div>'+
+  '<span id="desktop-gm-indicator" class="desktop-gm-indicator">DESLIGADO</span></div>'+
+  '<div class="desktop-gm-buttons">'+
+  '<button type="button" class="desktop-gm-start">Iniciar servidor da mesa</button>'+
+  '<button type="button" class="desktop-gm-console" disabled>Abrir mestragem e canvas</button>'+
+  '<button type="button" class="desktop-gm-stop" disabled>Desligar servidor</button></div>'+
+  '<div class="desktop-gm-access" hidden>'+
+  '<div><small>Painel local</small><code class="desktop-gm-local"></code></div>'+
+  '<div><small>Endereço na rede</small><code class="desktop-gm-lan"></code></div>'+
+  '<div><small>Chave privada do mestre</small><div class="desktop-gm-key-row"><input class="desktop-gm-key" type="password" readonly autocomplete="off"><button class="desktop-gm-reveal" type="button">Mostrar</button><button class="desktop-gm-copy" type="button">Copiar</button></div></div>'+
+  '</div><p class="desktop-gm-status" role="status">O servidor fica desligado até você iniciá-lo. Compartilhe apenas em uma rede Wi-Fi confiável.</p>'+
+  '<div class="desktop-gm-info"><strong>Canvas do mestre:</strong> clique em <em>Abrir mestragem e canvas</em>, escolha sua campanha e use <em>Editar mapas e canvas</em>. As alterações são salvas neste PC.</div>';
+ page.prepend(panel);
+ const btnStart=panel.querySelector('.desktop-gm-start'),btnOpen=panel.querySelector('.desktop-gm-console'),btnStop=panel.querySelector('.desktop-gm-stop');
+ const indicator=panel.querySelector('.desktop-gm-indicator'),status=panel.querySelector('.desktop-gm-status');
+ const access=panel.querySelector('.desktop-gm-access');
+ const setStatus=(str,error=false)=>{status.textContent=str;status.classList.toggle('error',error)};
+ let busy=false;
+ function update(state){
+  const active=!!state?.active;
+  btnStart.disabled=active||busy;btnOpen.disabled=!active||busy;btnStop.disabled=!active||busy;
+  indicator.textContent=active?'ATIVO · LAN':'DESLIGADO';
+  indicator.classList.toggle('on',active);
+  access.hidden=!active;
+  if(active){
+   panel.querySelector('.desktop-gm-local').textContent=state.url;
+   panel.querySelector('.desktop-gm-lan').textContent=state.lanUrl;
+   panel.querySelector('.desktop-gm-key').value=state.key||'';
+  }
+ }
+ async function run(method){
+  if(busy)return;busy=true;update({active:!btnOpen.disabled});
+  try{
+   if(method==='gm-start'){
+    const result=await desktop.action('gm-start');update(result);
+    setStatus('Servidor da mesa ativo na porta '+result.port+'. Abra o painel para criar campanhas, cenários e convites.');
+   }else if(method==='gm-open'){
+    const result=await desktop.action('gm-open');update(result);
+    setStatus('Painel de mestragem aberto. A chave de acesso será preenchida automaticamente.');
+   }else if(method==='gm-stop'){
+    const result=await desktop.action('gm-stop');update(result);
+    setStatus('Servidor desligado. Suas campanhas permanecem salvas neste computador.');
+   }
+  }catch(error){setStatus('Erro: '+error.message,true);update(await desktop.action('gm-status').catch(()=>({active:false})));}
+  finally{busy=false;update(await desktop.action('gm-status').catch(()=>({active:false})));}
+ }
+ btnStart.addEventListener('click',()=>run('gm-start'));
+ btnOpen.addEventListener('click',()=>run('gm-open'));
+ btnStop.addEventListener('click',()=>run('gm-stop'));
+ panel.querySelector('.desktop-gm-reveal').addEventListener('click',()=>{
+  const input=panel.querySelector('.desktop-gm-key');
+  input.type=input.type==='password'?'text':'password';
+ });
+ panel.querySelector('.desktop-gm-copy').addEventListener('click',()=>{
+  const input=panel.querySelector('.desktop-gm-key');
+  navigator.clipboard?.writeText(input.value).then(()=>setStatus('Chave copiada. Não envie a chave do mestre aos jogadores.'))
+   .catch(()=>{input.select();document.execCommand('copy');setStatus('Chave selecionada.');});
+ });
+ desktop.action('gm-status').then(update).catch(e=>setStatus('Não foi possível verificar o servidor: '+e.message,true));
+}
 function start(){
- mountHeader();stageToolbar();desktopBooks();shortcuts();fixMobileStrings();
+ mountHeader();stageToolbar();desktopBooks();shortcuts();fixMobileStrings();mountMestragem();
  const content=$('#content');
  content?.addEventListener('scroll',tick,{passive:true});
  addEventListener('resize',tick,{passive:true});
