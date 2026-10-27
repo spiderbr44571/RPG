@@ -1,0 +1,63 @@
+name: Mastermind v1.0 — Linux Desktop
+on:
+  push:
+    branches:
+      - feature/mastermind-v100-linux-desktop
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  desktop-linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Instalar dependências do Electron
+        run: npm install --no-audit --no-fund
+      - name: Validar código e compatibilidade de interface
+        run: |
+          set -euo pipefail
+          node --check desktop/main.cjs
+          node --check desktop/preload.cjs
+          node --check desktop/renderer.js
+          node --test desktop/tests/*.test.cjs
+          node tests/pixelportrait90.test.cjs
+          node tests/gurps4.test.cjs
+      - name: Empacotar AppImage e tar.gz para Linux x86_64
+        run: npm run dist:linux
+      - name: Validar binários
+        run: |
+          set -euo pipefail
+          test -f dist/Mastermind-v1.0.0-Linux-x64.AppImage
+          test -f dist/Mastermind-v1.0.0-Linux-x64.tar.gz
+          test "$(stat -c %s dist/Mastermind-v1.0.0-Linux-x64.AppImage)" -gt 50000000
+          sha256sum dist/Mastermind-v1.0.0-Linux-x64.* > dist/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Mastermind-v1.0-Linux
+          path: |
+            dist/Mastermind-v1.0.0-Linux-x64.AppImage
+            dist/Mastermind-v1.0.0-Linux-x64.tar.gz
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+      - name: Publicar release Linux
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="mastermind-v1.0-linux-desktop"
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" dist/Mastermind-v1.0.0-Linux-x64.AppImage dist/Mastermind-v1.0.0-Linux-x64.tar.gz dist/SHA256SUMS.txt \
+              --target "${GITHUB_SHA}" \
+              --title "Mastermind v1.0 — Linux Desktop" \
+              --notes "Primeiro port desktop Linux do Mastermind. Interface RPG original adaptada a 1024–4K, dados e personagens locais, mesa, canvas, bestiário, fichas, biblioteca e exportação, Ateliê Godot integrado em janela nativa isolada, PDFs locais com poppler, AppImage e tar.gz. O app não migra automaticamente os dados privados do Android. Requer internet apenas para conteúdo externo e Godot. Teste visual no CachyOS/Hyprland recomendado."
+          else
+            gh release upload "$TAG" dist/Mastermind-v1.0.0-Linux-x64.AppImage dist/Mastermind-v1.0.0-Linux-x64.tar.gz dist/SHA256SUMS.txt --clobber
+          fi
