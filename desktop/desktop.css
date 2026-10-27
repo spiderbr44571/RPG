@@ -50,3 +50,34 @@ body.mastermind-desktop .desktop-titlebar{height:var(--desktop-bar-height);displ
 @media(min-width:1500px){body.mastermind-desktop .app{grid-template-columns:285px minmax(0,1fr)}body.mastermind-desktop .content{padding-left:32px;padding-right:32px}}
 @media(min-width:2100px){body.mastermind-desktop{font-size:15px}body.mastermind-desktop .content{max-width:none}body.mastermind-desktop #screen-atelier85 .p90-shell{max-width:1650px}}
 @media(max-width:1150px){body.mastermind-desktop .app{grid-template-columns:210px minmax(0,1fr)}body.mastermind-desktop .sidebar{padding:10px}body.mastermind-desktop .content{padding:15px}body.mastermind-desktop .topbar{padding:0 12px}}
+
+/* Linux v1.0.2 — real GM LAN server, campaign maps and tabletop. */
+body.mastermind-desktop #screen-master>.desktop-gm-panel{
+ border:1px solid var(--line,#775e57);border-radius:16px;padding:21px 22px;
+ background:linear-gradient(125deg,var(--panel,#251d2b),var(--panel2,#18171f));
+ margin:0 0 21px;box-shadow:0 9px 24px #0002;display:grid;gap:15px;
+}
+body.mastermind-desktop .desktop-gm-heading{display:flex;align-items:center;justify-content:space-between;gap:18px}
+body.mastermind-desktop .desktop-gm-heading h2{font:600 27px Georgia,serif;margin:5px 0 6px;color:var(--fg,#f5e3cf)}
+body.mastermind-desktop .desktop-gm-heading p{font-size:12px;color:var(--muted,#c3b0ad);margin:0;line-height:1.6}
+body.mastermind-desktop .desktop-gm-kicker{color:var(--accent,#d3af78);font-size:10px;font-weight:800;letter-spacing:.17em}
+body.mastermind-desktop .desktop-gm-indicator{border-radius:99px;background:#44343b;border:1px solid #97787a;color:#e3b2a3;font-size:10px;font-weight:800;padding:9px 14px;white-space:nowrap}
+body.mastermind-desktop .desktop-gm-indicator.on{border-color:#7eac88;background:#254334;color:#c8ecc5}
+body.mastermind-desktop .desktop-gm-buttons{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+body.mastermind-desktop .desktop-gm-buttons button{border:1px solid var(--line,#755b51);border-radius:9px;color:var(--fg,#f8ead6);background:var(--panel2,#332a3a);font:bold 12px system-ui;cursor:pointer;min-height:42px;padding:11px 15px}
+body.mastermind-desktop .desktop-gm-buttons .desktop-gm-start{background:var(--accent,#d1a974);border-color:var(--accent,#d1a974);color:#22171a}
+body.mastermind-desktop .desktop-gm-buttons button:disabled{opacity:.38;cursor:default}
+body.mastermind-desktop .desktop-gm-buttons button:not(:disabled):hover{filter:brightness(1.12)}
+body.mastermind-desktop .desktop-gm-access{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:11px;padding:15px;border-radius:11px;border:1px solid #78665880;background:#1d1a2488}
+body.mastermind-desktop .desktop-gm-access[hidden]{display:none}
+body.mastermind-desktop .desktop-gm-access>div{display:grid;gap:6px;min-width:0}
+body.mastermind-desktop .desktop-gm-access small{font-size:10px;color:var(--muted,#bfb2a9)}
+body.mastermind-desktop .desktop-gm-access code{color:var(--accent,#e3c29d);word-break:break-all;font-size:12px;user-select:text}
+body.mastermind-desktop .desktop-gm-key-row{display:flex;gap:7px;flex-wrap:wrap}
+body.mastermind-desktop .desktop-gm-key{min-width:120px;width:100%;flex:1;max-width:340px;border-radius:6px;padding:8px 10px;color:var(--fg,#fff);background:#12121c;border:1px solid #655366}
+body.mastermind-desktop .desktop-gm-key-row button{background:#383040;border:1px solid #856c76;border-radius:7px;color:var(--fg,#fff);padding:8px 10px;cursor:pointer}
+body.mastermind-desktop .desktop-gm-status{margin:0;font-size:12px;line-height:1.5;color:#c3d7c4}
+body.mastermind-desktop .desktop-gm-status.error{color:#ffa6a6}
+body.mastermind-desktop .desktop-gm-info{font-size:12px;color:var(--muted,#bdb5b0);line-height:1.6}
+body.mastermind-desktop .desktop-gm-info strong{color:var(--fg,#fff)}
+@media(max-width:1100px){body.mastermind-desktop #screen-master>.desktop-gm-panel{padding:14px}body.mastermind-desktop .desktop-gm-heading{align-items:flex-start;flex-direction:column}body.mastermind-desktop .desktop-gm-access{grid-template-columns:1fr}}
