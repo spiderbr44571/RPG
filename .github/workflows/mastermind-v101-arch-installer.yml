@@ -49,13 +49,14 @@ jobs:
             bash -euo pipefail -c '
               pacman -Qip /install/mastermind-rpg-1.0.0-1-x86_64.pkg.tar.zst
               pacman -Qlp /install/mastermind-rpg-1.0.0-1-x86_64.pkg.tar.zst | grep "usr/bin/mastermind"
-              pacman -U --noconfirm --nodeps /install/mastermind-rpg-1.0.0-1-x86_64.pkg.tar.zst
+              # Test layout/install in minimal Arch container (no sync databases). On a real system pacman -U resolves dependencies normally.
+              pacman -U --noconfirm -dd /install/mastermind-rpg-1.0.0-1-x86_64.pkg.tar.zst
               pacman -Q mastermind-rpg
               test -x /usr/bin/mastermind
               test -x /opt/mastermind/mastermind
               test -s /usr/share/applications/mastermind.desktop
               test -s /usr/share/pixmaps/mastermind.png
-              pacman -Rns --noconfirm --nodeps mastermind-rpg
+              pacman -Rns --noconfirm -dd mastermind-rpg
               ! pacman -Q mastermind-rpg
               echo "PASS: pacote instalou e desinstalou corretamente com pacman"
             '
