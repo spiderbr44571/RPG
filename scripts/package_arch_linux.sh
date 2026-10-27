@@ -3,14 +3,14 @@
 # Installs in /opt/mastermind and exposes /usr/bin/mastermind and an app-menu entry.
 set -euo pipefail
 if [[ $# -lt 2 ]]; then
-  echo "Uso: $0 <Mastermind-v1.0.0-Linux-x64.tar.gz> <diretorio-destino>" >&2
+  echo "Uso: $0 <Mastermind-v1.0.2-Linux-x64.tar.gz> <diretorio-destino>" >&2
   exit 2
 fi
 archive="$(realpath "$1")"
 destination="$(realpath -m "$2")"
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 name=mastermind-rpg
-version=1.0.0
+version=1.0.2
 release=1
 arch=x86_64
 file="$name-$version-$release-$arch.pkg.tar.zst"
