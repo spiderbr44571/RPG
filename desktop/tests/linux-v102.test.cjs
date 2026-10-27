@@ -1,0 +1,48 @@
+'use strict';
+const {test}=require('node:test'),assert=require('node:assert/strict');
+const fs=require('node:fs'),path=require('node:path');
+const base=path.resolve(__dirname,'../..');
+const get=f=>fs.readFileSync(path.join(base,f),'utf8');
+const main=get('desktop/main.cjs');
+const renderer=get('desktop/renderer.js');
+const preload=get('desktop/preload.cjs');
+const css=get('desktop/desktop.css');
+const pkg=JSON.parse(get('package.json'));
+test('Ateliê IPC supports Mastermind navigation URL fragments',()=>{
+ assert.match(main,/new URL\(event\.sender\.getURL\(\)\)/);
+ assert.match(main,/current\.pathname!==trusted\.pathname/);
+ assert.doesNotMatch(main,/event\.sender\.getURL\(\)!==require\('node:url'\)\.pathToFileURL/);
+ assert.match(renderer,/desktop\.action\('godot-bounds',r\)\.then\(ok=>/);
+ assert.match(renderer,/if\(ok===true\)\{last=next/);
+ assert.match(renderer,/catch\(error=>\{\s*last=''/);
+});
+test('Linux Godot has lifecycle events and recovery, no endless loading state',()=>{
+ assert.match(main,/new WebContentsView/);
+ assert.match(main,/did-fail-load/);
+ assert.match(main,/render-process-gone/);
+ assert.match(main,/const status=await gameView\.webContents\.executeJavaScript/);
+ assert.match(main,/godotTimer=setTimeout/);
+ assert.match(main,/},28000\)/);
+ assert.match(main,/async function openGodotWindow\(\)/);
+ assert.match(main,/case 'window':/);
+ assert.match(renderer,/'↗ Janela'/);
+ assert.match(renderer,/info\.status==='error'\|\|info\.status==='warning'/);
+ assert.match(main,/webSecurity:true/);
+ assert.match(main,/sandbox:true/);
+ assert.match(main,/nodeIntegration:false/);
+});
+test('Real Linux mestragem server is wired to desktop IPC, UI and storage',()=>{
+ assert.match(main,/require\('\.\/campaign-server\.cjs'\)/);
+ assert.match(main,/async function startGmServer\(\)/);
+ assert.match(main,/createHost\(\{assetsDir:assets,dataDir:path\.join\(app\.getPath\('userData'\),'mastermind-gm'\)/);
+ for(const action of ['gm-start','gm-status','gm-open','gm-stop'])assert.ok(main.includes("case '"+action+"'"),action);
+ assert.match(renderer,/function mountMestragem\(\)/);
+ assert.match(renderer,/const page=\$\('#screen-master'\)/);
+ assert.match(renderer,/desktop-gm-console/);
+ assert.match(renderer,/Abrir mestragem e canvas/);
+ assert.match(css,/\.desktop-gm-panel/);
+ assert.match(main,/gmWindow\.webContents\.executeJavaScript/);
+ assert.match(main,/gmHost\.close\(\)/);
+ assert.match(preload,/MastermindDesktop/);
+ assert.equal(pkg.version,'1.0.2');
+});
