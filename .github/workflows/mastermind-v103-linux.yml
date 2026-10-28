@@ -1,0 +1,65 @@
+name: Mastermind 1.0.3 Linux — Mestragem e paisagem
+on:
+  push:
+    branches:
+      - fix/mastermind-v103-linux-mestragem-paisagem
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  linux-build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Dependências Linux
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends xvfb zstd desktop-file-utils
+          npm install --no-audit --no-fund
+      - name: Compilar servidor de campanhas embutido
+        run: bash desktop/server/build.sh
+      - name: Validação sintática e testes locais
+        run: |
+          set -euo pipefail
+          node --check desktop/main.cjs
+          node --check desktop/mestragem-linux.js
+          node --check desktop/renderer.js
+          node --check app/src/main/assets/rpg11_campaigns.js
+          node --test desktop/tests/desktop.test.cjs
+      - name: Testar servidor, fichas, grid e paisagem em Electron real
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+          MASTERMIND_E2E: '1'
+        run: timeout 140s xvfb-run -a -s "-screen 0 1440x900x24" node desktop/tests/e2e-mestragem.cjs
+      - name: Compilar AppImage e tar.gz
+        run: npx electron-builder --linux AppImage tar.gz --x64 --publish never
+      - name: Criar instalador Arch/CachyOS
+        env:
+          MASTERMIND_VERSION: '1.0.3'
+          MASTERMIND_RELEASE: '1'
+        run: |
+          set -euo pipefail
+          bash scripts/package_arch_linux.sh dist/Mastermind-v1.0.3-Linux-x64.tar.gz dist/
+          python3 tests/verify_arch_linux_package.py dist/mastermind-rpg-1.0.3-1-x86_64.pkg.tar.zst
+          test -s dist/Mastermind-v1.0.3-Linux-x86_64.AppImage
+          test -s dist/mastermind-rpg-1.0.3-1-x86_64.pkg.tar.zst
+          sha256sum dist/Mastermind-v1.0.3-Linux-x86_64.AppImage dist/Mastermind-v1.0.3-Linux-x64.tar.gz > dist/SHA256SUMS.txt
+      - name: Disponibilizar instalador Linux
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mastermind-1.0.3-Linux-Mestragem-Paisagem
+          if-no-files-found: error
+          path: |
+            dist/Mastermind-v1.0.3-Linux-x86_64.AppImage
+            dist/Mastermind-v1.0.3-Linux-x64.tar.gz
+            dist/mastermind-rpg-1.0.3-1-x86_64.pkg.tar.zst
+            dist/mastermind-rpg-1.0.3-1-x86_64.pkg.tar.zst.sha256
+            dist/SHA256SUMS.txt
