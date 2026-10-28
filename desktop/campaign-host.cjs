@@ -34,7 +34,8 @@ class CampaignHost extends EventEmitter{
  async start(){
   if(this.running)return this.status();
   if(this.pending)return this.pending;
-  if(!fs.existsSync(this.jar))throw Error('Servidor da campanha não incluído na instalação Linux');
+  if(!fs.existsSync(this.jar))throw Error('Servidor da campanha não incluído na instalação desktop');
+  if((this.java.includes('/')||this.java.includes('\\\\'))&&!fs.existsSync(this.java))throw Error('Java 17 embutido não encontrado: '+this.java);
   if(!fs.existsSync(this.assets))throw Error('Arquivos de campanha não encontrados');
   fs.mkdirSync(this.directory,{recursive:true,mode:0o700});
   this.starting=true;this.error='';this.emit('change',this.status());
@@ -63,7 +64,7 @@ class CampaignHost extends EventEmitter{
    proc.stdout.on('data',chunk=>parse(chunk.toString()));
    proc.stderr.on('data',chunk=>{stderr+=chunk.toString();stderr=stderr.slice(-1200);});
    proc.on('error',err=>{
-    this.error=err.code==='ENOENT'?'Java 17 não encontrado. Instale jre17-openjdk-headless.':err.message;
+    this.error=err.code==='ENOENT'?(process.platform==='win32'?'Java 17 do Mastermind não encontrado. Reinstale o aplicativo.':'Java 17 não encontrado. Instale jre17-openjdk-headless.'):err.message;
     this.running=false;this.starting=false;
     if(!ended){ended=true;clearTimeout(timer);reject(Error(this.error));}
     this.emit('change',this.status());
