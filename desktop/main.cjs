@@ -1,6 +1,6 @@
 'use strict';
 /**
- * Mastermind Desktop 1.0 — native Linux shell.
+ * Mastermind Desktop 1.1 — native Linux / Windows shell.
  * RPG code and all original UI assets are shared with the Android build.
  * Third-party Godot content lives in an isolated WebContentsView, never in the
  * privileged local application renderer.
@@ -218,7 +218,7 @@ function makeWindow(){
   ]},
   {label:'Visualizar',submenu:[{role:'reload',label:'Recarregar interface'},{role:'resetZoom',label:'Zoom padrão'},{role:'zoomIn',label:'Aumentar zoom'},{role:'zoomOut',label:'Diminuir zoom'},{role:'togglefullscreen',label:'Tela cheia'}]},
   {label:'Ateliê',submenu:[{label:'Reenquadrar Godot',click:()=>gameAction('fit')},{label:'Capturar retrato',click:()=>captureGame()}]},
-  {label:'Ajuda',submenu:[{label:'Sobre o Mastermind',click:()=>dialog.showMessageBox(win,{message:'Mastermind 1.0 — Linux',detail:'Mesma interface e recursos de RPG do Android. O editor lyime permanece online e isolado.'})}]}
+  {label:'Ajuda',submenu:[{label:'Sobre o Mastermind',click:()=>dialog.showMessageBox(win,{message:'Mastermind 1.1 — Desktop',detail:'Versão para '+(process.platform==='win32'?'Windows':'Linux')+'. Recursos de RPG compartilhados com Android. O editor lyime permanece online e isolado.'})}]}
  ]);
  Menu.setApplicationMenu(menu);
 }
@@ -262,7 +262,7 @@ async function searchPdf(id,query,limit=10,offset=0){
  // Desktop v1: text index via poppler pdftotext when installed.
  const {execFile}=require('node:child_process');
  const txt=await new Promise((resolve,reject)=>execFile('pdftotext',['-layout',file,'-'],{timeout:20000,maxBuffer:20*1024*1024},(err,stdout)=>err?reject(err):resolve(stdout))).catch(()=>null);
- if(txt===null)return {results:[],total:0,error:'Instale poppler (pacman -S poppler) para pesquisar PDFs locais'};
+ if(txt===null)return {results:[],total:0,error:process.platform==='win32'?'Pesquisa em PDF local: instale o Poppler para Windows e adicione pdftotext.exe ao PATH.':'Instale poppler (pacman -S poppler) para pesquisar PDFs locais'};
  const words=String(query||'').toLocaleLowerCase('pt-BR').trim().split(/\s+/).filter(x=>x.length>2).slice(0,10);
  if(!words.length)return {results:[],total:0};
  const pages=txt.split('\f');
@@ -284,7 +284,10 @@ app.whenReady().then(()=>{
  const serverJar=app.isPackaged?path.join(process.resourcesPath,'server','mastermind-campaign-server.jar'):
    path.join(__dirname,'server','dist','mastermind-campaign-server.jar');
  const serverAssets=app.isPackaged?path.join(process.resourcesPath,'server','assets'):assets;
- hostManager=new CampaignHost({userData:app.getPath('userData'),assets:serverAssets,jar:serverJar});
+ // Windows ships a private Java 17 runtime so the user never has to install a JDK.
+ const java=process.platform==='win32'&&app.isPackaged
+   ?path.join(process.resourcesPath,'runtime','windows','bin','java.exe'):'java';
+ hostManager=new CampaignHost({userData:app.getPath('userData'),assets:serverAssets,jar:serverJar,java});
  hostManager.on('change',status=>{
   if(win&&!win.webContents.isDestroyed())win.webContents.send('mastermind:campaign-status',status);
  });
