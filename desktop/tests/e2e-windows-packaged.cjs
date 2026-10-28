@@ -47,7 +47,7 @@ const path=require('node:path');
   assert.ok(await win.evaluate(()=>document.body.classList.contains('mastermind-landscape')),'Modo paisagem nao funciona no Windows');
   await win.evaluate(()=>window.RPG_DEMO.navigate('master'));
   const sheetCount=await win.locator('#mastermind-linux-local-sheets .desktop-sheets-count').textContent();
-  assert.match(sheetCount,/ficha\\(s\\)/,'Fichas locais nao foram expostas');
+  assert.ok(sheetCount&&sheetCount.includes('ficha(s)'),'Fichas locais nao foram expostas: '+sheetCount);
   console.log('PASS Windows: interface instalada, logo, Atelie, fichas, paisagem, Java 17 e mestragem local.');
  }finally{
   if(client)await client.close();
