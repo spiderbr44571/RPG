@@ -72,7 +72,7 @@ test('Linux mestragem, fichas locais, grid e layout paisagem sem alterar o APK',
  assert.match(bridge,/window\.RPG16_GURPS/);
  assert.match(bridge,/window\.RPG18_DND/);
  assert.match(bridge,/mastermindLocalRef/);
- assert.match(bridge,/\/'\/assign'/);
+ assert.match(bridge,/request\(id,'\/assign','POST'/);
  assert.match(bridge,/window\.RpgLocalHost\.start\(\)/);
  assert.match(bridge,/mastermind-linux-landscape-v1/);
  assert.match(bridge,/mastermind-linux-landscape/);
