@@ -1,0 +1,127 @@
+name: Mastermind 1.1.0 - Windows nativo (Setup + Portatil)
+on:
+  push:
+    branches:
+      - port/mastermind-v110-windows-desktop
+  workflow_dispatch:
+permissions:
+  contents: read
+
+jobs:
+  compile-server:
+    name: Compilar servidor original de campanhas (Java 17)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Compilar JAR compartilhado com o Android/Linux
+        run: bash desktop/server/build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mastermind-windows-campaign-jar
+          path: desktop/server/dist/mastermind-campaign-server.jar
+          if-no-files-found: error
+          retention-days: 2
+
+  build-windows:
+    name: Windows x64 - build, teste real e instalador
+    runs-on: windows-2022
+    needs: compile-server
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/download-artifact@v4
+        with:
+          name: mastermind-windows-campaign-jar
+          path: desktop/server/dist
+      - name: Instalar dependencias de build
+        run: npm install --no-audit --no-fund
+      - name: Criar runtime Java 17 privado (Windows sem instalacao de Java)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $runtime = Join-Path $PWD 'desktop/runtime/windows'
+          if (Test-Path $runtime) { Remove-Item -Recurse -Force $runtime }
+          & (Join-Path $env:JAVA_HOME 'bin/jlink.exe') --add-modules java.base,java.desktop,java.logging,java.management,java.naming,java.net.http,jdk.crypto.ec,jdk.unsupported --output $runtime --strip-debug --no-header-files --no-man-pages --compress=2
+          if ($LASTEXITCODE -ne 0) { throw 'Falha ao gerar runtime Java' }
+          & (Join-Path $runtime 'bin/java.exe') -version
+          if ($LASTEXITCODE -ne 0) { throw 'Java embarcado nao executa' }
+          if (!(Test-Path 'desktop/server/dist/mastermind-campaign-server.jar')) { throw 'JAR ausente' }
+      - name: Criar icone Windows a partir da logo aprovada
+        shell: pwsh
+        run: |
+          python -m pip install --disable-pip-version-check --quiet Pillow
+          if ($LASTEXITCODE -ne 0) { throw 'Falha ao instalar gerador de icones' }
+          New-Item -ItemType Directory -Force build | Out-Null
+          python -c "from PIL import Image; im=Image.open('app/src/main/assets/mastermind_logo.png').convert('RGBA'); im.save('build/mastermind.ico',format='ICO',sizes=[(16,16),(24,24),(32,32),(48,48),(64,64),(128,128),(256,256)])"
+          if ($LASTEXITCODE -ne 0) { throw 'Falha ao gerar mastermind.ico' }
+      - name: Validar scripts, regras e configuracao Windows
+        shell: pwsh
+        run: |
+          node --check desktop/main.cjs
+          node --check desktop/campaign-host.cjs
+          node --check desktop/renderer.js
+          node --check desktop/mestragem-linux.js
+          node --test desktop/tests/desktop.test.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'Testes estaticos falharam' }
+      - name: Gerar Mastermind Setup.exe e Portable.exe
+        shell: pwsh
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: |
+          npx electron-builder --win nsis portable --x64 --publish never
+          if ($LASTEXITCODE -ne 0) { throw 'electron-builder falhou' }
+      - name: Validar recursos reais do executavel Windows
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = 'dist/win-unpacked'
+          foreach ($file in @('Mastermind.exe','resources/app.asar','resources/server/assets/demo-offline.html','resources/server/assets/mastermind_logo.png','resources/server/mastermind-campaign-server.jar','resources/runtime/windows/bin/java.exe')) {
+            $p = Join-Path $root $file
+            if (!(Test-Path $p)) { throw "Arquivo obrigatorio ausente do Windows: $p" }
+            if ((Get-Item $p).Length -eq 0) { throw "Arquivo vazio: $p" }
+          }
+          $html = Get-Content -Raw (Join-Path $root 'resources/server/assets/demo-offline.html')
+          if ($html -notmatch 'screen-master' -or $html -notmatch 'screen-atelier85') { throw 'Interface incompleta no pacote' }
+          & (Join-Path $root 'resources/runtime/windows/bin/java.exe') -jar (Join-Path $root 'resources/server/mastermind-campaign-server.jar') --help
+          Write-Output 'PASS: Interface, imagem, JAR e runtime presentes na versao Windows'
+      - name: Testar o binario Windows empacotado (interface e mestragem)
+        shell: pwsh
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: |
+          node desktop/tests/e2e-windows-packaged.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'O aplicativo Windows empacotado falhou no teste real' }
+      - name: Verificar Setup/Portable e gerar SHA256
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $setup = Get-ChildItem dist -Filter 'Mastermind-v1.1.0-Windows-*-Setup.exe' | Select-Object -First 1
+          $portable = Get-ChildItem dist -Filter 'Mastermind-v1.1.0-Windows-*-Portable.exe' | Select-Object -First 1
+          if (!$setup -or !$portable) { throw 'Setup.exe ou Portable.exe ausente' }
+          if ($setup.Length -lt 40000000 -or $portable.Length -lt 40000000) { throw 'Instalador Windows incompleto' }
+          @($setup,$portable) | ForEach-Object {
+            $hash = (Get-FileHash -Algorithm SHA256 $_.FullName).Hash.ToLowerInvariant()
+            "$hash  $($_.Name)"
+          } | Set-Content -Encoding ascii dist/SHA256-Windows.txt
+          Get-Content dist/SHA256-Windows.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Mastermind-1.1.0-Windows-Setup-e-Portable
+          path: |
+            dist/Mastermind-v1.1.0-Windows-*-Setup.exe
+            dist/Mastermind-v1.1.0-Windows-*-Portable.exe
+            dist/SHA256-Windows.txt
+          if-no-files-found: error
+          retention-days: 90
