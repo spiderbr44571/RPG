@@ -1,8 +1,8 @@
-name: Mastermind 1.0.4 Linux — correção tela escura
+name: Mastermind 1.0.5 Linux — Ateliê Godot corrigido
 on:
   push:
     branches:
-      - fix/mastermind-v104-linux-packaged-assets
+      - fix/mastermind-v105-linux-atelier-health
   pull_request:
     branches:
       - fix/mastermind-v103-linux-mestragem-paisagem
@@ -36,7 +36,7 @@ jobs:
           node --check desktop/mestragem-linux.js
           node --check desktop/renderer.js
           node --check app/src/main/assets/rpg11_campaigns.js
-          node --test desktop/tests/desktop.test.cjs
+          node --test desktop/tests/desktop.test.cjs desktop/tests/godot-health.test.cjs
       - name: Testar servidor, fichas, grid e paisagem em Electron real
         env:
           ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
@@ -48,25 +48,29 @@ jobs:
         env:
           ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
         run: timeout 120s xvfb-run -a -s "-screen 0 1440x900x24" node desktop/tests/e2e-packaged.cjs dist/linux-unpacked/mastermind
+      - name: Validar tela preta do Atelie no Electron empacotado e recuperar a interface
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: timeout 90s xvfb-run -a -s "-screen 0 1440x900x24" node desktop/tests/e2e-atelier-black.cjs dist/linux-unpacked/mastermind
       - name: Criar instalador Arch/CachyOS
         env:
-          MASTERMIND_VERSION: '1.0.4'
+          MASTERMIND_VERSION: '1.0.5'
           MASTERMIND_RELEASE: '1'
         run: |
           set -euo pipefail
-          bash scripts/package_arch_linux.sh dist/Mastermind-v1.0.4-Linux-x64.tar.gz dist/
-          python3 tests/verify_arch_linux_package.py dist/mastermind-rpg-1.0.4-1-x86_64.pkg.tar.zst
-          test -s dist/Mastermind-v1.0.4-Linux-x86_64.AppImage
-          test -s dist/mastermind-rpg-1.0.4-1-x86_64.pkg.tar.zst
-          sha256sum dist/Mastermind-v1.0.4-Linux-x86_64.AppImage dist/Mastermind-v1.0.4-Linux-x64.tar.gz > dist/SHA256SUMS.txt
+          bash scripts/package_arch_linux.sh dist/Mastermind-v1.0.5-Linux-x64.tar.gz dist/
+          python3 tests/verify_arch_linux_package.py dist/mastermind-rpg-1.0.5-1-x86_64.pkg.tar.zst
+          test -s dist/Mastermind-v1.0.5-Linux-x86_64.AppImage
+          test -s dist/mastermind-rpg-1.0.5-1-x86_64.pkg.tar.zst
+          sha256sum dist/Mastermind-v1.0.5-Linux-x86_64.AppImage dist/Mastermind-v1.0.5-Linux-x64.tar.gz > dist/SHA256SUMS.txt
       - name: Disponibilizar instalador Linux
         uses: actions/upload-artifact@v4
         with:
-          name: Mastermind-1.0.4-Linux-Corrigido
+          name: Mastermind-1.0.5-Linux-Atelie-Corrigido
           if-no-files-found: error
           path: |
-            dist/Mastermind-v1.0.4-Linux-x86_64.AppImage
-            dist/Mastermind-v1.0.4-Linux-x64.tar.gz
-            dist/mastermind-rpg-1.0.4-1-x86_64.pkg.tar.zst
-            dist/mastermind-rpg-1.0.4-1-x86_64.pkg.tar.zst.sha256
+            dist/Mastermind-v1.0.5-Linux-x86_64.AppImage
+            dist/Mastermind-v1.0.5-Linux-x64.tar.gz
+            dist/mastermind-rpg-1.0.5-1-x86_64.pkg.tar.zst
+            dist/mastermind-rpg-1.0.5-1-x86_64.pkg.tar.zst.sha256
             dist/SHA256SUMS.txt
