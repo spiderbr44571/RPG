@@ -81,5 +81,5 @@ test('Linux mestragem, fichas locais, grid e layout paisagem sem alterar o APK',
  assert.match(css,/z-index:17!important/);
  assert.match(css,/background-size:48px 48px!important/);
  assert.match(css,/\.mastermind-landscape/);
- assert.match(html,/Servidor neste celular/);
+ assert.match(read('app/src/main/assets/rpg11_campaigns.js'),/Servidor neste celular/);
 });
