@@ -23,7 +23,9 @@ expected={
  "opt/mastermind/mastermind",
  "opt/mastermind/resources/app.asar",
  "opt/mastermind/resources/server/mastermind-campaign-server.jar",
- "opt/mastermind/resources/server/assets/lan_master.html",\n "opt/mastermind/resources/server/assets/demo-offline.html",\n "opt/mastermind/resources/server/assets/mastermind_logo.png"
+ "opt/mastermind/resources/server/assets/lan_master.html",
+ "opt/mastermind/resources/server/assets/demo-offline.html",
+ "opt/mastermind/resources/server/assets/mastermind_logo.png"
 }
 present=set()
 metadata={}
