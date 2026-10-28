@@ -23,7 +23,7 @@ expected={
  "opt/mastermind/mastermind",
  "opt/mastermind/resources/app.asar",
  "opt/mastermind/resources/server/mastermind-campaign-server.jar",
- "opt/mastermind/resources/server/assets/lan_master.html"
+ "opt/mastermind/resources/server/assets/lan_master.html",\n "opt/mastermind/resources/server/assets/demo-offline.html",\n "opt/mastermind/resources/server/assets/mastermind_logo.png"
 }
 present=set()
 metadata={}
@@ -43,6 +43,10 @@ with tarfile.open(fileobj=proc.stdout,mode="r|") as archive:
     present.add(name)
     if name==".PKGINFO":
      metadata["pkginfo"]=archive.extractfile(item).read().decode("utf8")
+    elif name=="opt/mastermind/resources/server/assets/demo-offline.html":
+     assert b"<!doctype html>" in archive.extractfile(item).read(256).lower(), "Offline UI is not a valid HTML document"
+    elif name=="opt/mastermind/resources/server/assets/mastermind_logo.png":
+     assert archive.extractfile(item).read(8)==b"\\x89PNG\\r\\n\\x1a\\n", "Packaged UI logo is invalid"
     elif name=="usr/bin/mastermind":
      assert item.mode&0o111, "Launcher isn't executable"
      metadata["launcher"]=archive.extractfile(item).read().decode("utf8")
