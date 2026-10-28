@@ -17,8 +17,8 @@ test('Linux AppImage and tar.gz packages preserve all original Android assets',(
 });
 test('Linux native shell has sandboxed local RPG renderer and separate remote Godot',()=>{
  assert.match(main,/contextIsolation:true,sandbox:true/);
- assert.match(main,/const packagedAssets=path\\.join\\(process\\.resourcesPath,'server','assets'\\)/);
- assert.match(main,/const assets=app\\.isPackaged \\? packagedAssets : sourceAssets/);
+ assert.ok(main.includes("const packagedAssets=path.join(process.resourcesPath,'server','assets')"));
+ assert.ok(main.includes('const assets=app.isPackaged ? packagedAssets : sourceAssets'));
  assert.match(main,/nodeIntegration:false/);
  assert.match(main,/webSecurity:true/);
  assert.match(main,/new WebContentsView/);
