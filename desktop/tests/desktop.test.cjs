@@ -6,7 +6,7 @@ const pkg=JSON.parse(read('package.json'));
 const main=read('desktop/main.cjs'),preload=read('desktop/preload.cjs'),renderer=read('desktop/renderer.js'),css=read('desktop/desktop.css'),html=read('app/src/main/assets/demo-offline.html');
 test('Linux AppImage and tar.gz packages preserve all original Android assets',()=>{
  assert.equal(pkg.main,'desktop/main.cjs');
- assert.equal(pkg.version,'1.0.3');
+ assert.equal(pkg.version,'1.0.4');
  assert.equal(pkg.build.linux.target[0].target,'AppImage');
  assert.equal(pkg.build.linux.target[1].target,'tar.gz');
  assert.ok(pkg.build.files.includes('app/src/main/assets/**/*'));
@@ -17,6 +17,8 @@ test('Linux AppImage and tar.gz packages preserve all original Android assets',(
 });
 test('Linux native shell has sandboxed local RPG renderer and separate remote Godot',()=>{
  assert.match(main,/contextIsolation:true,sandbox:true/);
+ assert.match(main,/const packagedAssets=path\\.join\\(process\\.resourcesPath,'server','assets'\\)/);
+ assert.match(main,/const assets=app\\.isPackaged \\? packagedAssets : sourceAssets/);
  assert.match(main,/nodeIntegration:false/);
  assert.match(main,/webSecurity:true/);
  assert.match(main,/new WebContentsView/);
