@@ -6,7 +6,7 @@ const pkg=JSON.parse(read('package.json'));
 const main=read('desktop/main.cjs'),preload=read('desktop/preload.cjs'),renderer=read('desktop/renderer.js'),css=read('desktop/desktop.css'),html=read('app/src/main/assets/demo-offline.html');
 test('Linux AppImage and tar.gz packages preserve all original Android assets',()=>{
  assert.equal(pkg.main,'desktop/main.cjs');
- assert.equal(pkg.version,'1.0.4');
+ assert.equal(pkg.version,'1.0.5');
  assert.equal(pkg.build.linux.target[0].target,'AppImage');
  assert.equal(pkg.build.linux.target[1].target,'tar.gz');
  assert.ok(pkg.build.files.includes('app/src/main/assets/**/*'));
@@ -84,4 +84,17 @@ test('Linux mestragem, fichas locais, grid e layout paisagem sem alterar o APK',
  assert.match(css,/background-size:48px 48px!important/);
  assert.match(css,/\.mastermind-landscape/);
  assert.match(read('app/src/main/assets/rpg11_campaigns.js'),/Servidor neste celular/);
+});
+
+test('Atelie checks rendered pixels and exposes recovery instead of masking a black screen',()=>{
+ assert.match(main,/frameHasDetail\(frame\)/);
+ assert.match(main,/failGame\(/);
+ assert.match(main,/gameView\.setVisible\(false\)/);
+ assert.match(main,/godot-software-renderer\.flag/);
+ assert.match(main,/gameLoadSerial/);
+ assert.match(main,/case 'compatibility'/);
+ assert.match(renderer,/Compatibilidade/);
+ assert.match(renderer,/Navegador/);
+ assert.match(renderer,/desktop\.onGodotStatus/);
+ assert.ok(!main.includes("gameLoading=false;});"),'Godot nao deve ser marcado pronto logo apos loadURL');
 });
