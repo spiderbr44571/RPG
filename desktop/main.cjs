@@ -78,13 +78,14 @@ async function loadGodot(){
  gameStarted=true;gameLoading=true;gameFailed=false;gameLastError='';
  gameView.setVisible(true);
  gameStatus('loading','Abrindo o criador e verificando o desenho na tela...');
+ const fixture=process.env.MASTERMIND_E2E==='1'&&process.env.MASTERMIND_GODOT_FIXTURE==='black';
  gameErrorTimer=setTimeout(()=>{
   if(serial===gameLoadSerial&&gameLoading)failGame('O editor abriu mas não exibiu uma imagem. Experimente o modo compatibilidade ou abra no navegador.');
- },55000);
+ },fixture?6500:55000);
  try{
-  const url=await resolveGameUrl();
+  const url=fixture?'data:text/html;charset=utf-8,<html><body style="margin:0;background:black"><canvas id="canvas" width="600" height="400" style="width:600px;height:400px;background:black"></canvas></body></html>':await resolveGameUrl();
   if(serial!==gameLoadSerial)return;
-  if(!trustedGame(url))throw Error('Endereço externo do editor não autorizado.');
+  if(!fixture&&!trustedGame(url))throw Error('Endereço externo do editor não autorizado.');
   gameCurrentUrl=url;
   await gameView.webContents.loadURL(url);
  }catch(error){
