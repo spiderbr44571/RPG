@@ -49,6 +49,13 @@ fi
   echo "Pacote Electron sem resources/app.asar — interface do Mastermind ausente" >&2
   exit 3
 }
+# Prevent the v1.0.3 blank screen: the desktop UI must exist in app resources.
+for asset in demo-offline.html mastermind_logo.png; do
+  [[ -s "$install_root/resources/server/assets/$asset" ]] || {
+    echo "ERRO: Interface Linux incompleta no instalador ($asset ausente)" >&2
+    exit 3
+  }
+done
 cat > "$root/usr/bin/mastermind" <<'LAUNCHER'
 #!/usr/bin/env bash
 # Installed, desktop-integrated Mastermind launcher for Arch/CachyOS.
