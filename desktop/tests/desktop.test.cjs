@@ -94,9 +94,9 @@ test('Windows desktop installer and portable include offline assets and Java 17 
  assert.ok(pkg.build.extraResources.some(x=>x.to==='runtime/windows'));
  assert.ok(pkg.build.extraResources.some(x=>x.to==='server/assets'));
  assert.ok(pkg.build.extraResources.some(x=>x.to==='server/mastermind-campaign-server.jar'));
- assert.match(main,/runtime','windows','bin','java\\.exe'/);
- assert.match(preload,/platform:process\\.platform/);
- assert.match(renderer,/desktop\\.platform==='win32'/);
- assert.match(main,/const assets=app\\.isPackaged \\? packagedAssets : sourceAssets/);
- assert.match(main,/mastermind-campaign-server\\.jar/);
+ assert.ok(main.includes("'runtime','windows','bin','java.exe'"));
+ assert.ok(preload.includes('platform:process.platform'));
+ assert.ok(renderer.includes("desktop.platform==='win32'"));
+ assert.ok(main.includes('const assets=app.isPackaged ? packagedAssets : sourceAssets'));
+ assert.ok(main.includes('mastermind-campaign-server.jar'));
 });
