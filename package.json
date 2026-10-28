@@ -1,7 +1,7 @@
 {
   "name": "mastermind-rpg-desktop",
   "private": true,
-  "version": "1.0.4",
+  "version": "1.1.0",
   "scripts": {
     "test": "python3 tests/runtime/prepare.py && playwright test",
     "start": "electron .",
@@ -9,7 +9,8 @@
     "test:desktop": "node --test desktop/tests/*.test.cjs",
     "dist:linux": "npm run build:server && electron-builder --linux AppImage tar.gz --x64 --publish never",
     "build:server": "bash desktop/server/build.sh",
-    "test:campaign": "node --test desktop/tests/campaign.test.cjs"
+    "test:campaign": "node --test desktop/tests/campaign.test.cjs",
+    "dist:windows": "electron-builder --win nsis portable --x64 --publish never"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
@@ -17,7 +18,7 @@
     "electron-builder": "^25.1.8"
   },
   "productName": "Mastermind",
-  "description": "Mastermind RPG — Linux desktop",
+  "description": "Mastermind RPG — Windows e Linux desktop",
   "main": "desktop/main.cjs",
   "license": "UNLICENSED",
   "build": {
@@ -27,7 +28,8 @@
     "files": [
       "desktop/**/*",
       "app/src/main/assets/**/*",
-      "package.json"
+      "package.json",
+      "!desktop/runtime/windows/**/*"
     ],
     "directories": {
       "output": "dist"
@@ -62,7 +64,45 @@
         "filter": [
           "**/*"
         ]
+      },
+      {
+        "from": "desktop/runtime/windows",
+        "to": "runtime/windows",
+        "filter": [
+          "**/*"
+        ]
       }
-    ]
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/mastermind.ico",
+      "artifactName": "Mastermind-v${version}-Windows-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "deleteAppDataOnUninstall": false,
+      "shortcutName": "Mastermind",
+      "artifactName": "Mastermind-v${version}-Windows-${arch}-Setup.${ext}"
+    },
+    "portable": {
+      "artifactName": "Mastermind-v${version}-Windows-${arch}-Portable.${ext}"
+    }
   }
 }

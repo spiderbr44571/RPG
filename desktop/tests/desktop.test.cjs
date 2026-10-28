@@ -6,7 +6,7 @@ const pkg=JSON.parse(read('package.json'));
 const main=read('desktop/main.cjs'),preload=read('desktop/preload.cjs'),renderer=read('desktop/renderer.js'),css=read('desktop/desktop.css'),html=read('app/src/main/assets/demo-offline.html');
 test('Linux AppImage and tar.gz packages preserve all original Android assets',()=>{
  assert.equal(pkg.main,'desktop/main.cjs');
- assert.equal(pkg.version,'1.0.4');
+ assert.equal(pkg.version,'1.1.0');
  assert.equal(pkg.build.linux.target[0].target,'AppImage');
  assert.equal(pkg.build.linux.target[1].target,'tar.gz');
  assert.ok(pkg.build.files.includes('app/src/main/assets/**/*'));
@@ -84,4 +84,19 @@ test('Linux mestragem, fichas locais, grid e layout paisagem sem alterar o APK',
  assert.match(css,/background-size:48px 48px!important/);
  assert.match(css,/\.mastermind-landscape/);
  assert.match(read('app/src/main/assets/rpg11_campaigns.js'),/Servidor neste celular/);
+});
+
+test('Windows desktop installer and portable include offline assets and Java 17 runtime',()=>{
+ assert.equal(pkg.build.win.target[0].target,'nsis');
+ assert.equal(pkg.build.win.target[1].target,'portable');
+ assert.match(pkg.build.nsis.artifactName,/Setup/);
+ assert.match(pkg.build.portable.artifactName,/Portable/);
+ assert.ok(pkg.build.extraResources.some(x=>x.to==='runtime/windows'));
+ assert.ok(pkg.build.extraResources.some(x=>x.to==='server/assets'));
+ assert.ok(pkg.build.extraResources.some(x=>x.to==='server/mastermind-campaign-server.jar'));
+ assert.ok(main.includes("'runtime','windows','bin','java.exe'"));
+ assert.ok(preload.includes('platform:process.platform'));
+ assert.ok(renderer.includes("desktop.platform==='win32'"));
+ assert.ok(main.includes('const assets=app.isPackaged ? packagedAssets : sourceAssets'));
+ assert.ok(main.includes('mastermind-campaign-server.jar'));
 });
