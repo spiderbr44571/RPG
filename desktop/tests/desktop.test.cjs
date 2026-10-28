@@ -6,7 +6,7 @@ const pkg=JSON.parse(read('package.json'));
 const main=read('desktop/main.cjs'),preload=read('desktop/preload.cjs'),renderer=read('desktop/renderer.js'),css=read('desktop/desktop.css'),html=read('app/src/main/assets/demo-offline.html');
 test('Linux AppImage and tar.gz packages preserve all original Android assets',()=>{
  assert.equal(pkg.main,'desktop/main.cjs');
- assert.equal(pkg.version,'1.1.0');
+ assert.equal(pkg.version,'1.1.1');
  assert.equal(pkg.build.linux.target[0].target,'AppImage');
  assert.equal(pkg.build.linux.target[1].target,'tar.gz');
  assert.ok(pkg.build.files.includes('app/src/main/assets/**/*'));
@@ -99,4 +99,17 @@ test('Windows desktop installer and portable include offline assets and Java 17 
  assert.ok(renderer.includes("desktop.platform==='win32'"));
  assert.ok(main.includes('const assets=app.isPackaged ? packagedAssets : sourceAssets'));
  assert.ok(main.includes('mastermind-campaign-server.jar'));
+});
+
+test('Atelie checks rendered pixels and exposes recovery instead of masking a black screen',()=>{
+ assert.match(main,/frameHasDetail\(frame\)/);
+ assert.match(main,/failGame\(/);
+ assert.match(main,/gameView\.setVisible\(false\)/);
+ assert.match(main,/godot-software-renderer\.flag/);
+ assert.match(main,/gameLoadSerial/);
+ assert.match(main,/case 'compatibility'/);
+ assert.match(renderer,/Compatibilidade/);
+ assert.match(renderer,/Navegador/);
+ assert.match(renderer,/desktop\.onGodotStatus/);
+ assert.ok(!main.includes("gameLoading=false;});"),'Godot nao deve ser marcado pronto logo apos loadURL');
 });

@@ -14,7 +14,7 @@ function mountHeader(){
  const bar=el('div','desktop-titlebar');
  const left=el('div','desktop-titlebar-brand');
  const logo=el('img');logo.src='mastermind_logo.png';logo.alt='';
- left.append(logo,el('strong',null,'MASTERMIND'),el('span',null,(desktop.platform==='win32'?'WINDOWS':'LINUX')+' · v1.1.0'));
+ left.append(logo,el('strong',null,'MASTERMIND'),el('span',null,(desktop.platform==='win32'?'WINDOWS':'LINUX')+' · v1.1.1'));
  const right=el('div','desktop-titlebar-actions');
  const mk=(text,title,action)=>{const b=el('button','desktop-titlebar-btn',text);b.type='button';b.title=title;b.addEventListener('click',action);right.appendChild(b);};
  mk('⌕','Buscar livros',()=>$('#quick-search')?.click());
@@ -33,6 +33,8 @@ function stageToolbar(){
   ['−','Reduzir zoom','zoom-out'],['+','Ampliar','zoom-in'],
   ['▣ Ajustar','Enquadrar o criador','fit'],
   ['↻','Recarregar Godot','reload'],
+  ['◈ Compatibilidade','Alternar renderização WebGL por software (reinicia o Mastermind)','compatibility'],
+  ['↗ Navegador','Abrir criador original no navegador','browser'],
   ['▣ Capturar para ficha','Capturar a tela do Godot','capture']
  ];
  buttons.forEach(([text,title,action])=>{
@@ -55,7 +57,7 @@ function stageToolbar(){
   if(!title||!subtitle)return;
   if(info.status==='ready'){
    title.textContent='Editor Godot carregado';
-   subtitle.textContent='Use o criador original e capture o retrato quando terminar.';
+   subtitle.textContent='O editor está desenhando corretamente. Personalize e capture o retrato.';
    loading.classList.remove('desktop-godot-error');
   }else if(info.status==='loading'){
    title.textContent='Carregando Pixel Portrait Creator…';
@@ -63,7 +65,7 @@ function stageToolbar(){
    loading.classList.remove('desktop-godot-error');
   }else if(info.status==='error'){
    title.textContent='O criador não conseguiu carregar';
-   subtitle.textContent=(info.message||'Verifique a conexão.')+' Use o botão Recarregar ou abra no navegador.';
+   subtitle.textContent=(info.message||'Verifique a conexão.')+' Clique em Recarregar, Compatibilidade ou Navegador acima.';
    loading.classList.add('desktop-godot-error');
    toast('Ateliê: '+(info.message||'Falha ao carregar Godot'));
   }
