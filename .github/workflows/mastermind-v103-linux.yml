@@ -3,6 +3,9 @@ on:
   push:
     branches:
       - fix/mastermind-v104-linux-packaged-assets
+  pull_request:
+    branches:
+      - fix/mastermind-v103-linux-mestragem-paisagem
   workflow_dispatch:
 permissions:
   contents: read
