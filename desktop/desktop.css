@@ -50,3 +50,40 @@ body.mastermind-desktop .desktop-titlebar{height:var(--desktop-bar-height);displ
 @media(min-width:1500px){body.mastermind-desktop .app{grid-template-columns:285px minmax(0,1fr)}body.mastermind-desktop .content{padding-left:32px;padding-right:32px}}
 @media(min-width:2100px){body.mastermind-desktop{font-size:15px}body.mastermind-desktop .content{max-width:none}body.mastermind-desktop #screen-atelier85 .p90-shell{max-width:1650px}}
 @media(max-width:1150px){body.mastermind-desktop .app{grid-template-columns:210px minmax(0,1fr)}body.mastermind-desktop .sidebar{padding:10px}body.mastermind-desktop .content{padding:15px}body.mastermind-desktop .topbar{padding:0 12px}}
+
+
+/* Linux 1.0.3: o servidor Android permanece no APK; desktop se conecta sozinho. */
+body.mastermind-desktop #r12-host-controls{display:none!important}
+body.mastermind-desktop .desktop-sheets-panel{margin:15px 0;padding:13px 16px;border:1px solid var(--line);background:var(--panel2);border-radius:12px}
+body.mastermind-desktop .desktop-sheets-panel strong{display:block;color:var(--accent);font-size:13px}
+body.mastermind-desktop .desktop-sheets-panel p{margin:6px 0;color:var(--fg);font-size:12px;line-height:1.5}
+body.mastermind-desktop .desktop-sheets-panel small{color:var(--muted)}
+body.mastermind-desktop .desktop-landscape-setting{border-top:1px solid var(--line);margin-top:12px;padding-top:14px}
+body.mastermind-desktop #mastermind-linux-landscape{flex:none;cursor:pointer}
+/* A grade deve ficar acima da névoa/iluminação, mas abaixo dos tokens. */
+body.mastermind-desktop .r30-studio .r30-world>.m69-atmosphere-canvas{z-index:12!important}
+body.mastermind-desktop .r30-studio .r30-world>.m72-volume{z-index:13!important}
+body.mastermind-desktop .r30-studio .r30-world>.r30-grid{
+  display:block!important;position:absolute!important;inset:0!important;
+  z-index:17!important;pointer-events:none!important;opacity:1!important;
+  background-image:linear-gradient(to right,rgba(255,255,255,.44) 1px,transparent 1px),
+                   linear-gradient(to bottom,rgba(255,255,255,.44) 1px,transparent 1px)!important;
+  background-size:48px 48px!important;background-position:0 0!important;
+}
+body.mastermind-desktop .r30-studio .r30-world>.r30-token{z-index:20!important}
+/* A opção paisagem fica persistida e é aplicada na navegação inteira. */
+body.mastermind-desktop.mastermind-landscape .app{grid-template-columns:205px minmax(0,1fr)}
+body.mastermind-desktop.mastermind-landscape .content{padding:16px 26px}
+body.mastermind-desktop.mastermind-landscape .screen{max-width:none!important}
+body.mastermind-desktop.mastermind-landscape #screen-settings .settings-layout{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start}
+body.mastermind-desktop.mastermind-landscape #screen-master .r11-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center}
+body.mastermind-desktop.mastermind-landscape #screen-master .r11-fields{display:flex;flex-wrap:wrap;gap:12px}
+body.mastermind-desktop.mastermind-landscape #screen-master #r11-detail>.r11-tools{display:flex;flex-wrap:wrap}
+body.mastermind-desktop.mastermind-landscape #screen-sheet .rpg05-band{display:flex;flex-wrap:wrap;align-items:center;gap:16px}
+body.mastermind-desktop.mastermind-landscape #screen-sheet .rpg05-heading{flex:1 1 290px}
+body.mastermind-desktop.mastermind-landscape .r30-studio .r71-body{grid-template-columns:48px minmax(0,1fr) minmax(220px,275px)}
+@media(max-width:1000px){
+ body.mastermind-desktop.mastermind-landscape #screen-settings .settings-layout{grid-template-columns:minmax(0,1fr)}
+ body.mastermind-desktop.mastermind-landscape .content{padding:12px}
+ body.mastermind-desktop.mastermind-landscape .r30-studio .r71-body{grid-template-columns:40px minmax(0,1fr)}
+}
