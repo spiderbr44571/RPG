@@ -48,7 +48,7 @@ with tarfile.open(fileobj=proc.stdout,mode="r|") as archive:
     elif name=="opt/mastermind/resources/server/assets/demo-offline.html":
      assert b"<!doctype html>" in archive.extractfile(item).read(256).lower(), "Offline UI is not a valid HTML document"
     elif name=="opt/mastermind/resources/server/assets/mastermind_logo.png":
-     assert archive.extractfile(item).read(8)==b"\\x89PNG\\r\\n\\x1a\\n", "Packaged UI logo is invalid"
+     assert archive.extractfile(item).read(8)==b"\x89PNG\r\n\x1a\n", "Packaged UI logo is invalid"
     elif name=="usr/bin/mastermind":
      assert item.mode&0o111, "Launcher isn't executable"
      metadata["launcher"]=archive.extractfile(item).read().decode("utf8")
