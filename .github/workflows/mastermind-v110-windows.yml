@@ -1,8 +1,8 @@
-name: Mastermind 1.1.0 - Windows nativo (Setup + Portatil)
+name: Mastermind 1.1.1 - Windows Atelie corrigido
 on:
   push:
     branches:
-      - port/mastermind-v110-windows-desktop
+      - fix/mastermind-v111-windows-atelier-health
   workflow_dispatch:
 permissions:
   contents: read
@@ -73,7 +73,7 @@ jobs:
           node --check desktop/campaign-host.cjs
           node --check desktop/renderer.js
           node --check desktop/mestragem-linux.js
-          node --test desktop/tests/desktop.test.cjs
+          node --test desktop/tests/desktop.test.cjs desktop/tests/godot-health.test.cjs
           if ($LASTEXITCODE -ne 0) { throw 'Testes estaticos falharam' }
       - name: Gerar Mastermind Setup.exe e Portable.exe
         shell: pwsh
@@ -103,12 +103,19 @@ jobs:
         run: |
           node desktop/tests/e2e-windows-packaged.cjs
           if ($LASTEXITCODE -ne 0) { throw 'O aplicativo Windows empacotado falhou no teste real' }
+      - name: Verificar tela preta do Atelie e mostrar recuperacao no Windows real
+        shell: pwsh
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: |
+          node desktop/tests/e2e-atelier-black.cjs dist/win-unpacked/Mastermind.exe
+          if ($LASTEXITCODE -ne 0) { throw 'Atelie Windows nao recuperou de tela preta' }
       - name: Verificar Setup/Portable e gerar SHA256
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $setup = Get-ChildItem dist -Filter 'Mastermind-v1.1.0-Windows-*-Setup.exe' | Select-Object -First 1
-          $portable = Get-ChildItem dist -Filter 'Mastermind-v1.1.0-Windows-*-Portable.exe' | Select-Object -First 1
+          $setup = Get-ChildItem dist -Filter 'Mastermind-v1.1.1-Windows-*-Setup.exe' | Select-Object -First 1
+          $portable = Get-ChildItem dist -Filter 'Mastermind-v1.1.1-Windows-*-Portable.exe' | Select-Object -First 1
           if (!$setup -or !$portable) { throw 'Setup.exe ou Portable.exe ausente' }
           if ($setup.Length -lt 40000000 -or $portable.Length -lt 40000000) { throw 'Instalador Windows incompleto' }
           @($setup,$portable) | ForEach-Object {
@@ -118,10 +125,10 @@ jobs:
           Get-Content dist/SHA256-Windows.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: Mastermind-1.1.0-Windows-Setup-e-Portable
+          name: Mastermind-1.1.1-Windows-Atelie-Corrigido
           path: |
-            dist/Mastermind-v1.1.0-Windows-*-Setup.exe
-            dist/Mastermind-v1.1.0-Windows-*-Portable.exe
+            dist/Mastermind-v1.1.1-Windows-*-Setup.exe
+            dist/Mastermind-v1.1.1-Windows-*-Portable.exe
             dist/SHA256-Windows.txt
           if-no-files-found: error
           retention-days: 90
