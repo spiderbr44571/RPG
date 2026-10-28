@@ -9,7 +9,15 @@ const {app,BrowserWindow,WebContentsView,ipcMain,dialog,shell,nativeImage,sessio
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),https=require('node:https');
 const {URL}=require('node:url');
 const {CampaignHost}=require('./campaign-host.cjs');
-const assets=path.join(__dirname,'..','app','src','main','assets');
+// The release's server/assets is an unpacked, verified copy of the shared UI.
+// In electron-builder builds the app.asar files filter may exclude app assets;
+// resolving the packaged view here prevents ERR_FILE_NOT_FOUND / blank windows.
+const sourceAssets=path.join(__dirname,'..','app','src','main','assets');
+const packagedAssets=path.join(process.resourcesPath,'server','assets');
+const assets=app.isPackaged ? packagedAssets : sourceAssets;
+if(!fs.existsSync(path.join(assets,'demo-offline.html'))){
+ throw Error('Mastermind: interface offline não encontrada: '+assets);
+}
 const creator='https://lyime.itch.io/pixel-portrait-creator';
 const gameFallback='https://html.itch.zone/html/18379448/index.html?v=1785079497';
 let win,gameView,gameStarted=false,gameLoading=false,gameBounds=null,editorZoom=1,editorPan={x:0,y:0},capture=null;

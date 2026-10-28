@@ -1,6 +1,9 @@
-name: Mastermind 1.0.3 Linux — Mestragem e paisagem
+name: Mastermind 1.0.4 Linux — correção tela escura
 on:
   push:
+    branches:
+      - fix/mastermind-v104-linux-packaged-assets
+  pull_request:
     branches:
       - fix/mastermind-v103-linux-mestragem-paisagem
   workflow_dispatch:
@@ -41,25 +44,29 @@ jobs:
         run: timeout 140s xvfb-run -a -s "-screen 0 1440x900x24" node desktop/tests/e2e-mestragem.cjs
       - name: Compilar AppImage e tar.gz
         run: npx electron-builder --linux AppImage tar.gz --x64 --publish never
+      - name: Testar aplicativo Linux empacotado (evita tela escura ERR_FILE_NOT_FOUND)
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: timeout 120s xvfb-run -a -s "-screen 0 1440x900x24" node desktop/tests/e2e-packaged.cjs dist/linux-unpacked/mastermind
       - name: Criar instalador Arch/CachyOS
         env:
-          MASTERMIND_VERSION: '1.0.3'
+          MASTERMIND_VERSION: '1.0.4'
           MASTERMIND_RELEASE: '1'
         run: |
           set -euo pipefail
-          bash scripts/package_arch_linux.sh dist/Mastermind-v1.0.3-Linux-x64.tar.gz dist/
-          python3 tests/verify_arch_linux_package.py dist/mastermind-rpg-1.0.3-1-x86_64.pkg.tar.zst
-          test -s dist/Mastermind-v1.0.3-Linux-x86_64.AppImage
-          test -s dist/mastermind-rpg-1.0.3-1-x86_64.pkg.tar.zst
-          sha256sum dist/Mastermind-v1.0.3-Linux-x86_64.AppImage dist/Mastermind-v1.0.3-Linux-x64.tar.gz > dist/SHA256SUMS.txt
+          bash scripts/package_arch_linux.sh dist/Mastermind-v1.0.4-Linux-x64.tar.gz dist/
+          python3 tests/verify_arch_linux_package.py dist/mastermind-rpg-1.0.4-1-x86_64.pkg.tar.zst
+          test -s dist/Mastermind-v1.0.4-Linux-x86_64.AppImage
+          test -s dist/mastermind-rpg-1.0.4-1-x86_64.pkg.tar.zst
+          sha256sum dist/Mastermind-v1.0.4-Linux-x86_64.AppImage dist/Mastermind-v1.0.4-Linux-x64.tar.gz > dist/SHA256SUMS.txt
       - name: Disponibilizar instalador Linux
         uses: actions/upload-artifact@v4
         with:
-          name: Mastermind-1.0.3-Linux-Mestragem-Paisagem
+          name: Mastermind-1.0.4-Linux-Corrigido
           if-no-files-found: error
           path: |
-            dist/Mastermind-v1.0.3-Linux-x86_64.AppImage
-            dist/Mastermind-v1.0.3-Linux-x64.tar.gz
-            dist/mastermind-rpg-1.0.3-1-x86_64.pkg.tar.zst
-            dist/mastermind-rpg-1.0.3-1-x86_64.pkg.tar.zst.sha256
+            dist/Mastermind-v1.0.4-Linux-x86_64.AppImage
+            dist/Mastermind-v1.0.4-Linux-x64.tar.gz
+            dist/mastermind-rpg-1.0.4-1-x86_64.pkg.tar.zst
+            dist/mastermind-rpg-1.0.4-1-x86_64.pkg.tar.zst.sha256
             dist/SHA256SUMS.txt
