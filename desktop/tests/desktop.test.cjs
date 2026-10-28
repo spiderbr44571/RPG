@@ -6,7 +6,7 @@ const pkg=JSON.parse(read('package.json'));
 const main=read('desktop/main.cjs'),preload=read('desktop/preload.cjs'),renderer=read('desktop/renderer.js'),css=read('desktop/desktop.css'),html=read('app/src/main/assets/demo-offline.html');
 test('Linux AppImage and tar.gz packages preserve all original Android assets',()=>{
  assert.equal(pkg.main,'desktop/main.cjs');
- assert.equal(pkg.version,'1.0.2');
+ assert.equal(pkg.version,'1.0.3');
  assert.equal(pkg.build.linux.target[0].target,'AppImage');
  assert.equal(pkg.build.linux.target[1].target,'tar.gz');
  assert.ok(pkg.build.files.includes('app/src/main/assets/**/*'));
@@ -63,4 +63,23 @@ test('PDF, PNG and character persistence stay local',()=>{
  assert.match(preload,/RpgSheetPdfBridge/);
  assert.match(preload,/RpgPixelPortraitBridge/);
  assert.match(preload,/consumeCapture:\(\)=>sync\('capture'\)/);
+});
+
+test('Linux mestragem, fichas locais, grid e layout paisagem sem alterar o APK',()=>{
+ const bridge=read('desktop/mestragem-linux.js');
+ assert.match(main,/mestragem-linux\.js/);
+ assert.match(bridge,/window\.MastermindCharacters/);
+ assert.match(bridge,/window\.RPG16_GURPS/);
+ assert.match(bridge,/window\.RPG18_DND/);
+ assert.match(bridge,/mastermindLocalRef/);
+ assert.match(bridge,/\/'\/assign'/);
+ assert.match(bridge,/window\.RpgLocalHost\.start\(\)/);
+ assert.match(bridge,/mastermind-linux-landscape-v1/);
+ assert.match(bridge,/mastermind-linux-landscape/);
+ assert.match(css,/#r12-host-controls\{display:none!important\}/);
+ assert.match(css,/\.r30-world>\.r30-grid/);
+ assert.match(css,/z-index:17!important/);
+ assert.match(css,/background-size:48px 48px!important/);
+ assert.match(css,/\.mastermind-landscape/);
+ assert.match(html,/Servidor neste celular/);
 });
