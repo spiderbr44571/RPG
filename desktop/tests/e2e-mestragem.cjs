@@ -29,7 +29,7 @@ const assert=require('node:assert/strict');
   const invite=await win.locator('#r11-invite').inputValue();
   const campaignId=await win.locator('#r11-list [data-choose].active').getAttribute('data-choose');
   assert.ok(campaignId&&invite.includes(campaignId));
-  const join=await client.evaluate(async({invite})=>{
+  const join=await (async()=>{
    const http=require('node:http');
    const u=new URL(invite);
    const url=new URL(u.origin+u.pathname.replace('/join/','/api/join/'));
@@ -40,7 +40,7 @@ const assert=require('node:assert/strict');
     });
     req.on('error',reject);req.write(payload);req.end();
    });
-  },{invite});
+  })();
   assert.equal(join.status,201,join.body);
   const readCampaign=()=>win.evaluate(async()=>{
    const s=JSON.parse(window.RpgLocalHost.status());
