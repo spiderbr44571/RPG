@@ -187,8 +187,10 @@ function makeWindow(){
   try{
    const css=fs.readFileSync(path.join(__dirname,'desktop.css'),'utf8');
    const js=fs.readFileSync(path.join(__dirname,'renderer.js'),'utf8');
+   const mestragem=fs.readFileSync(path.join(__dirname,'mestragem-linux.js'),'utf8');
    await win.webContents.insertCSS(css);
    await win.webContents.executeJavaScript(js,true);
+   await win.webContents.executeJavaScript(mestragem,true);
   }catch(error){console.error('Desktop integration:',error);}
  });
  win.once('ready-to-show',()=>{win.show();if(process.platform==='linux'&&process.env.MASTERMIND_MAXIMIZED==='1')win.maximize();});
