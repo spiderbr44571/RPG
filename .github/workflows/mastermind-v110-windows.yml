@@ -64,7 +64,7 @@ jobs:
           python -m pip install --disable-pip-version-check --quiet Pillow
           if ($LASTEXITCODE -ne 0) { throw 'Falha ao instalar gerador de icones' }
           New-Item -ItemType Directory -Force build | Out-Null
-          python -c "from PIL import Image; im=Image.open('app/src/main/assets/mastermind_logo.png').convert('RGBA'); im.save('build/mastermind.ico',format='ICO',sizes=[(16,16),(24,24),(32,32),(48,48),(64,64),(128,128),(256,256)])"
+          python -c "from PIL import Image; im=Image.open('app/src/main/assets/mastermind_logo.png').convert('RGBA'); im=im.resize((512,512),Image.Resampling.LANCZOS); im.save('build/mastermind.ico',format='ICO',sizes=[(16,16),(24,24),(32,32),(48,48),(64,64),(128,128),(256,256)])"
           if ($LASTEXITCODE -ne 0) { throw 'Falha ao gerar mastermind.ico' }
       - name: Validar scripts, regras e configuracao Windows
         shell: pwsh
