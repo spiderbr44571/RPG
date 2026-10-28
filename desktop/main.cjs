@@ -9,6 +9,7 @@ const {app,BrowserWindow,WebContentsView,ipcMain,dialog,shell,nativeImage,sessio
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),https=require('node:https');
 const {URL}=require('node:url');
 const {CampaignHost}=require('./campaign-host.cjs');
+const {frameHasDetail}=require('./godot-health.cjs');
 // The release's server/assets is an unpacked, verified copy of the shared UI.
 // In electron-builder builds the app.asar files filter may exclude app assets;
 // resolving the packaged view here prevents ERR_FILE_NOT_FOUND / blank windows.
@@ -25,6 +26,81 @@ let hostManager=null;
 let gameErrorTimer=null;
 const allowedExt=new Set(['.png','.pdf','.json']);
 const stored=()=>path.join(app.getPath('userData'),'mastermind-books');
+// Compatibility WebGL is opt-in: Chromium can reject GPU contexts on some drivers.
+const godotCompatFlag=path.join(app.getPath('userData'),'godot-software-renderer.flag');
+let godotSoftwareRenderer=false;
+try{godotSoftwareRenderer=fs.existsSync(godotCompatFlag);}catch{}
+if(godotSoftwareRenderer){
+ app.commandLine.appendSwitch('use-angle','swiftshader');
+ app.commandLine.appendSwitch('enable-unsafe-swiftshader');
+}
+let gameFailed=false,gameLoadSerial=0,gameCurrentUrl='',gameLastError='',gameProbeTimer=null;
+function gameStatus(status,message){
+ if(win&&!win.webContents.isDestroyed())win.webContents.send('mastermind:godot-status',{
+  status,message:message||'',software:godotSoftwareRenderer
+ });
+}
+function stopGameProbes(){
+ clearTimeout(gameErrorTimer);gameErrorTimer=null;
+ clearTimeout(gameProbeTimer);gameProbeTimer=null;
+}
+function failGame(message){
+ if(gameFailed)return;
+ gameFailed=true;gameLoading=false;stopGameProbes();
+ console.warn('Atelie Godot:',message,'url:',gameCurrentUrl,'console:',gameLastError);
+ if(gameView)gameView.setVisible(false); // reveal the actionable error instead of a black native view
+ gameStatus('error',message+(gameLastError?' ('+gameLastError.slice(0,140)+')':''));
+}
+async function probeGodot(serial){
+ if(!gameView||gameView.webContents.isDestroyed()||!gameLoading||gameFailed||serial!==gameLoadSerial)return;
+ try{
+  const state=await gameView.webContents.executeJavaScript(
+   "(function(){const c=document.querySelector('#canvas,canvas');if(!c)return {canvas:false};"+
+   "const r=c.getBoundingClientRect();const css=getComputedStyle(c);"+
+   "return {canvas:true,width:r.width,height:r.height,hidden:css.display==='none'||css.visibility==='hidden'};})()",true);
+  if(serial!==gameLoadSerial||gameFailed)return;
+  if(state&&state.canvas&&state.width>80&&state.height>80&&!state.hidden){
+   const frame=await gameView.webContents.capturePage();
+   if(frameHasDetail(frame)){
+    gameLoading=false;stopGameProbes();
+    gameStatus('ready','Editor de retratos carregado e renderizando.');
+    setTimeout(fitGame,200);return;
+   }
+  }
+ }catch(error){gameLastError=String(error.message||error).slice(0,180);}
+ if(serial===gameLoadSerial&&gameLoading&&!gameFailed)
+  gameProbeTimer=setTimeout(()=>probeGodot(serial),2400);
+}
+async function loadGodot(){
+ if(!gameView||gameView.webContents.isDestroyed())return;
+ stopGameProbes();
+ const serial=++gameLoadSerial;
+ gameStarted=true;gameLoading=true;gameFailed=false;gameLastError='';
+ gameView.setVisible(true);
+ gameStatus('loading','Abrindo o criador e verificando o desenho na tela...');
+ gameErrorTimer=setTimeout(()=>{
+  if(serial===gameLoadSerial&&gameLoading)failGame('O editor abriu mas não exibiu uma imagem. Experimente o modo compatibilidade ou abra no navegador.');
+ },55000);
+ try{
+  const url=await resolveGameUrl();
+  if(serial!==gameLoadSerial)return;
+  if(!trustedGame(url))throw Error('Endereço externo do editor não autorizado.');
+  gameCurrentUrl=url;
+  await gameView.webContents.loadURL(url);
+ }catch(error){
+  if(serial===gameLoadSerial)failGame('Falha ao carregar o editor online: '+String(error.message||error));
+ }
+}
+function restartGodotRenderer(){
+ try{
+  fs.mkdirSync(path.dirname(godotCompatFlag),{recursive:true});
+  if(godotSoftwareRenderer)fs.unlinkSync(godotCompatFlag);
+  else fs.writeFileSync(godotCompatFlag,'1');
+  app.relaunch({args:process.argv.slice(1)});
+  app.exit(0);
+ }catch(error){gameStatus('error','Não foi possível alternar o modo gráfico: '+String(error.message||error));}
+}
+
 function safeName(value,ext){
  const name=String(value||'').replace(/[^a-zA-Z0-9._-]/g,'_').slice(0,100);
  if(!name||!name.toLowerCase().endsWith(ext))throw Error('Nome inválido');
@@ -93,28 +169,26 @@ function createGame(){
  gameView.webContents.on('will-navigate',(event,url)=>{
   if(!trustedGame(url))event.preventDefault();
  });
- gameView.webContents.on('did-fail-load',(_event,code,description,isMainFrame)=>{
-  if(isMainFrame&&code!==-3&&win){
-   clearTimeout(gameErrorTimer);
-   win.webContents.send('mastermind:godot-status',{status:'error',message:description,code});
+ gameView.webContents.on('console-message',(_event,level,message)=>{
+  if(level>=2&&/webgl|gpu|godot|wasm|sharedarraybuffer|cross.origin|error/i.test(String(message))){
+   gameLastError=String(message).slice(0,180);
   }
  });
+ gameView.webContents.on('did-fail-load',(_event,code,description,isMainFrame)=>{
+  if(isMainFrame&&code!==-3)failGame('Falha de rede do Godot: '+description+' ('+code+')');
+ });
  gameView.webContents.on('render-process-gone',(_event,details)=>{
-  clearTimeout(gameErrorTimer);
-  if(win)win.webContents.send('mastermind:godot-status',{
-   status:'error',message:'O processo do Godot encerrou. Clique Recarregar. ('+details.reason+')'
-  });
+  failGame('O processo do editor terminou: '+details.reason+'.');
  });
  gameView.webContents.on('did-finish-load',()=>{
-  clearTimeout(gameErrorTimer);
-  if(win)win.webContents.send('mastermind:godot-status',{status:'ready'});
-  // Godot initializes its WASM and resizes the canvas AFTER the first HTML load.
-  setTimeout(fitGame,1000);
-  setTimeout(fitGame,2800);
+  if(gameLoading&&!gameFailed){
+   const serial=gameLoadSerial;
+   gameProbeTimer=setTimeout(()=>probeGodot(serial),1800);
+  }
  });
 }
 function gameRect(data){
- if(!win||!gameView||!data||!data.visible){gameView?.setVisible(false);return;}
+ if(!win||!gameView||!data||!data.visible||gameFailed){gameView?.setVisible(false);return;}
  const {x,y,width,height}=data;
  if(![x,y,width,height].every(Number.isFinite)||width<100||height<120){gameView.setVisible(false);return;}
  const [cw,ch]=win.getContentSize();
@@ -126,23 +200,7 @@ function gameRect(data){
   gameView.setBounds(bounds);gameBounds=bounds;
  }
  gameView.setVisible(true);
- if(!gameStarted){
-  gameStarted=true;gameLoading=true;
-  if(win)win.webContents.send('mastermind:godot-status',{status:'loading',message:'Carregando o Godot original pela internet...'});
-  clearTimeout(gameErrorTimer);
-  gameErrorTimer=setTimeout(()=>{
-   if(win&&gameLoading)win.webContents.send('mastermind:godot-status',{
-    status:'error',message:'O editor está demorando. Verifique a conexão e use Recarregar.'
-   });
-  },35000);
-  resolveGameUrl().then(url=>{
-   if(!gameView||gameView.webContents.isDestroyed())return;
-   return gameView.webContents.loadURL(url);
-  }).catch(error=>{
-   clearTimeout(gameErrorTimer);
-   win?.webContents.send('mastermind:godot-status',{status:'error',message:String(error.message||error)});
-  }).finally(()=>{gameLoading=false;});
- }
+ if(!gameStarted)loadGodot();
 }
 function fitGame(){
  if(!gameView||!gameBounds||gameView.webContents.isDestroyed())return;
@@ -165,15 +223,16 @@ function gameAction(action){
  if(!gameView)return;
  switch(action){
   case 'fit':fitGame();break;
-  case 'reload':gameView.webContents.reloadIgnoringCache();break;
+  case 'reload':loadGodot();break;
+  case 'compatibility':restartGodotRenderer();break;
   case 'zoom-in':editorZoom=Math.min(2.5,editorZoom*1.15);gameView.webContents.setZoomFactor(editorZoom);break;
   case 'zoom-out':editorZoom=Math.max(.55,editorZoom/1.15);gameView.webContents.setZoomFactor(editorZoom);break;
-  case 'browser':shell.openExternal(creator);break;
+  case 'browser':shell.openExternal(creator).catch(error=>gameStatus('error',String(error)));break;
   default:break;
  }
 }
 async function captureGame(){
- if(!gameView||!gameBounds||!gameStarted)return false;
+ if(!gameView||!gameBounds||!gameStarted||gameFailed||gameLoading)return false;
  const img=await gameView.webContents.capturePage();
  if(img.isEmpty())return false;
  const png=img.toPNG();
@@ -326,5 +385,5 @@ app.whenReady().then(()=>{
  });
  makeWindow();
 });
-app.on('before-quit',()=>{clearTimeout(gameErrorTimer);hostManager?.stop();});
+app.on('before-quit',()=>{stopGameProbes();hostManager?.stop();});
 app.on('window-all-closed',()=>{app.quit();});
