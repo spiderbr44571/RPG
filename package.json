@@ -28,7 +28,8 @@
     "files": [
       "desktop/**/*",
       "app/src/main/assets/**/*",
-      "package.json"
+      "package.json",
+      "!desktop/runtime/windows/**/*"
     ],
     "directories": {
       "output": "dist"
