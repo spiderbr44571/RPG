@@ -63,6 +63,13 @@
         "filter": [
           "**/*"
         ]
+      },
+      {
+        "from": "desktop/runtime/windows",
+        "to": "runtime/windows",
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "win": {
@@ -81,16 +88,7 @@
         }
       ],
       "icon": "build/mastermind.ico",
-      "artifactName": "Mastermind-v${version}-Windows-${arch}-${target}.${ext}",
-      "extraResources": [
-        {
-          "from": "desktop/runtime/windows",
-          "to": "runtime/windows",
-          "filter": [
-            "**/*"
-          ]
-        }
-      ]
+      "artifactName": "Mastermind-v${version}-Windows-${arch}.${ext}"
     },
     "nsis": {
       "oneClick": false,
@@ -99,7 +97,11 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "deleteAppDataOnUninstall": false,
-      "shortcutName": "Mastermind"
+      "shortcutName": "Mastermind",
+      "artifactName": "Mastermind-v${version}-Windows-${arch}-Setup.${ext}"
+    },
+    "portable": {
+      "artifactName": "Mastermind-v${version}-Windows-${arch}-Portable.${ext}"
     }
   }
 }
