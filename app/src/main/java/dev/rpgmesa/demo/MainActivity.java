@@ -60,6 +60,7 @@ public final class MainActivity extends Activity {
     private static final int SAVE_CHARACTER_PDF = 1106;
     private static final int SAVE_CHARACTER_PNG = 1107;
     private static final int PIXEL_PORTRAIT_CREATOR = 1108;
+    private static final int SAVE_INVESTIGATOR_JSON = 1109;
     private final BookBridge books = new BookBridge();
     // Activity fields are constructed before the Android Context is attached.
     // Initialize PDF search in onCreate, after super.onCreate(state).
@@ -84,6 +85,7 @@ public final class MainActivity extends Activity {
     private ValueCallback<Uri[]> pendingUpload;
     private byte[] pendingCharacterPdf;
     private byte[] pendingCharacterPng;
+    private byte[] pendingInvestigatorJson;
     private volatile byte[] pendingPixelPortraitCapture;
     private FrameLayout browserLayer;
     private FrameLayout inlineClip;
@@ -340,6 +342,18 @@ public final class MainActivity extends Activity {
           }
           return;
         }
+        if(request==SAVE_INVESTIGATOR_JSON){
+          final byte[] bytes=pendingInvestigatorJson;
+          pendingInvestigatorJson=null;
+          if(result==RESULT_OK && data!=null && data.getData()!=null && bytes!=null){
+            try(OutputStream out=getContentResolver().openOutputStream(data.getData(),"w")){
+              if(out==null)throw new IllegalStateException("Destino nao disponivel");
+              out.write(bytes);out.flush();
+              android.widget.Toast.makeText(this,"Ficha do investigador exportada em JSON",android.widget.Toast.LENGTH_SHORT).show();
+            }catch(Exception err){showBookError("Falha ao salvar JSON: "+err.getMessage());}
+          }
+          return;
+        }
         if(request==SAVE_CHARACTER_PDF){
           final byte[] bytes=pendingCharacterPdf;
           pendingCharacterPdf=null;
@@ -506,6 +520,30 @@ public final class MainActivity extends Activity {
     }
     /** SAF: only user-selected PDFs, no broad storage permissions and no network upload. */
     public final class BookBridge {
+      /** Export a user's own investigator JSON through Android SAF. Never writes to a public location silently. */
+      @JavascriptInterface public void saveInvestigatorJson(String filename,String json){
+        if(json==null||json.length()>250000||json.length()<5){showBookError("Ficha JSON vazia ou grande demais.");return;}
+        try{
+          JSONObject character=new JSONObject(json);
+          if(!"chamado-de-ctchulhu".equals(character.optString("systemId")))throw new IllegalArgumentException("Sistema de ficha inválido");
+          final byte[] bytes=json.getBytes(StandardCharsets.UTF_8);
+          if(bytes.length>250000)throw new IllegalArgumentException("Arquivo JSON grande demais");
+          String safe=filename==null?"investigador-coc7":filename.replaceAll("[^a-zA-Z0-9_-]","_");
+          safe=(safe.length()>65?safe.substring(0,65):safe)+"-coc7.json";
+          final String outputName=safe;
+          runOnUiThread(()->{
+            try{
+              pendingInvestigatorJson=bytes;
+              Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);
+              intent.addCategory(Intent.CATEGORY_OPENABLE);
+              intent.setType("application/json");
+              intent.putExtra(Intent.EXTRA_TITLE,outputName);
+              startActivityForResult(intent,SAVE_INVESTIGATOR_JSON);
+            }catch(Exception e){pendingInvestigatorJson=null;showBookError("Não foi possível abrir o seletor de destino JSON.");}
+          });
+        }catch(Exception e){showBookError("Não foi possível exportar o investigador: "+e.getMessage());}
+      }
+
       @JavascriptInterface public String getSavedPdf(){
         String path=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_uri",null);
         String name=getPreferences(Context.MODE_PRIVATE).getString("op_pdf_name","Livro");
