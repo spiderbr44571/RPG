@@ -1479,8 +1479,17 @@ document.body.append(overlay,dock);
 const dice=$('#r09-dice');let rolling=false;
 function rand20(){const arr=new Uint32Array(1),limit=Math.floor(4294967296/20)*20;do{crypto.getRandomValues(arr)}while(arr[0]>=limit);return(arr[0]%20)+1}
 function roll(){return rand20()}
-function openHub(){overlay.classList.add('open');dice.setAttribute('aria-expanded','true');document.body.style.overflow='hidden'}
-function closeHub(){overlay.classList.remove('open');dice.setAttribute('aria-expanded','false');document.body.style.overflow=''}
+function openHub(){
+ // A native WebView / WebContentsView cannot be covered by an HTML z-index.
+ window.RpgPixelPortraitBridge?.setOverlayVisible?.(true);
+ overlay.classList.add('open');dice.setAttribute('aria-expanded','true');document.body.style.overflow='hidden';
+ window.dispatchEvent(new Event('mastermind:overlay-visibility'));
+}
+function closeHub(){
+ overlay.classList.remove('open');dice.setAttribute('aria-expanded','false');document.body.style.overflow='';
+ window.RpgPixelPortraitBridge?.setOverlayVisible?.(false);
+ window.dispatchEvent(new Event('mastermind:overlay-visibility'));
+}
 dice.addEventListener('click',()=>{openHub()});
 $('.r09-close',overlay).addEventListener('click',closeHub);overlay.addEventListener('click',e=>{if(e.target===overlay)closeHub()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.classList.contains('open'))closeHub()});

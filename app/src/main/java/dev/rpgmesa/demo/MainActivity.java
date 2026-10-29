@@ -91,6 +91,8 @@ public final class MainActivity extends Activity {
     private final Handler inlineHandler=new Handler(Looper.getMainLooper());
     private boolean stageProbeInFlight=false;
     private boolean stageStopped=false;
+    // Native stage is a sibling of the WebView and sits ABOVE HTML dialogs.
+    private volatile boolean nativeOverlayBlocked=false;
 
     /**
      * The pixel editor is a separate, bridge-free WebView. Poll ONLY coordinates
@@ -100,6 +102,7 @@ public final class MainActivity extends Activity {
     private final Runnable nativeStageProbe=new Runnable(){
       @Override public void run(){
         if(stageStopped||isFinishing()||isDestroyed())return;
+        if(nativeOverlayBlocked){hideInlinePortrait();inlineHandler.postDelayed(this,260);return;}
         if(browser!=null&&browserLayer!=null&&browser.getWidth()>0
                 &&allowedHost==null&&!stageProbeInFlight){
           stageProbeInFlight=true;
@@ -107,12 +110,14 @@ public final class MainActivity extends Activity {
             "(function(){var s=document.getElementById('p90-native-stage'),"+
             "a=document.getElementById('screen-atelier85'),c=document.getElementById('content');"+
             "if(!s||!c||!a||!a.classList.contains('active'))return null;"+
+             "if(document.querySelector('.r09-overlay.open,.modal-backdrop.open,.rpg05-dialog:not([hidden])')||document.body.classList.contains('rpg08-menu-open'))return null;"+
             "var r=s.getBoundingClientRect(),q=c.getBoundingClientRect();"+
             "return JSON.stringify({x:r.left,y:r.top,w:r.width,h:r.height,"+
             "cx:q.left,cy:q.top,cr:q.right,cb:q.bottom,vw:window.innerWidth});})()",
             data->{
               stageProbeInFlight=false;
               if(stageStopped||inlineClip==null||browser==null)return;
+              if(nativeOverlayBlocked){hideInlinePortrait();return;}
               if(data==null||"null".equals(data)){
                 hideInlinePortrait();return;
               }
@@ -151,7 +156,7 @@ public final class MainActivity extends Activity {
 
     private void showInlinePortrait(int x,int y,int width,int height,
                                     int visibleX,int visibleY,int visibleWidth,int visibleHeight){
-        if(browserLayer==null||inlineClip==null||allowedHost!=null)return;
+        if(browserLayer==null||inlineClip==null||allowedHost!=null||nativeOverlayBlocked)return;
         if(inlinePortrait==null){
             inlinePortrait=new InlinePixelPortraitStage(this,png->{
                 if(png==null||png.length<100||png.length>4000000)return;
@@ -880,6 +885,14 @@ public final class MainActivity extends Activity {
     /** SAF: gera um documento PDF local escolhido pelo usuario, sem enviar fichas a servidores. */
     /** Isolated lyime player. Remote site never shares Mastermind native bridges. */
     public final class PixelPortraitBridge {
+      /** Called by trusted local Mastermind UI only, never the remote Godot WebView. */
+      @JavascriptInterface public void setOverlayVisible(boolean visible){
+        runOnUiThread(()->{
+          if(allowedHost!=null)return;
+          nativeOverlayBlocked=visible;
+          if(visible)hideInlinePortrait();
+        });
+      }
       @JavascriptInterface public void openOnline(){
         runOnUiThread(()->{
           if(allowedHost!=null)return;
