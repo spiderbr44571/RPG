@@ -6,10 +6,12 @@ const pkg=JSON.parse(read('package.json'));
 const main=read('desktop/main.cjs'),preload=read('desktop/preload.cjs'),renderer=read('desktop/renderer.js'),css=read('desktop/desktop.css'),html=read('app/src/main/assets/demo-offline.html');
 test('Linux AppImage and tar.gz packages preserve all original Android assets',()=>{
  assert.equal(pkg.main,'desktop/main.cjs');
- assert.equal(pkg.version,'1.0.8');
+ assert.equal(pkg.version,'1.0.9');
  assert.equal(pkg.build.linux.target[0].target,'AppImage');
  assert.equal(pkg.build.linux.target[1].target,'tar.gz');
- assert.ok(pkg.build.files.includes('app/src/main/assets/**/*'));
+ assert.ok(!pkg.build.files.some(x=>x.includes('app/src/main/assets')), 'No duplicate offline UI inside app.asar');
+ assert.ok(pkg.build.extraResources.some(x=>x.from==='app/src/main/assets'&&x.to==='server/assets'), 'Full trusted assets remain present outside app.asar');
+ assert.equal(pkg.build.compression,'maximum');
  assert.match(html,/id="screen-atelier85"/);
  assert.match(html,/id="p90-native-stage"/);
  assert.match(html,/id="p86-token"/);
@@ -97,4 +99,16 @@ test('Atelie checks rendered pixels and exposes recovery instead of masking a bl
  assert.match(renderer,/Navegador/);
  assert.match(renderer,/desktop\.onGodotStatus/);
  assert.ok(!main.includes("gameLoading=false;});"),'Godot nao deve ser marcado pronto logo apos loadURL');
+});
+
+test('Lean Electron package preserves all app entrypoints and native services',()=>{
+ for(const item of ['desktop/*.cjs','desktop/*.js','desktop/*.css','package.json'])assert.ok(pkg.build.files.includes(item));
+ const resources=pkg.build.extraResources;
+ assert.ok(resources.some(x=>x.from==='desktop/server/dist/mastermind-campaign-server.jar'));
+ assert.ok(resources.some(x=>x.from==='app/src/main/assets'&&x.filter.includes('**/*')));
+ assert.match(main,/const assets=app.isPackaged \? packagedAssets : sourceAssets/);
+ assert.match(main,/new WebContentsView/);
+ assert.match(main,/function gameRect\(/);
+ assert.match(main,/function captureGame\(/);
+ assert.match(main,/function makeWindow\(/);
 });

@@ -1,7 +1,7 @@
 {
   "name": "mastermind-rpg-desktop",
   "private": true,
-  "version": "1.0.8",
+  "version": "1.0.9",
   "scripts": {
     "test": "python3 tests/runtime/prepare.py && playwright test",
     "start": "electron .",
@@ -25,8 +25,9 @@
     "productName": "Mastermind",
     "asar": true,
     "files": [
-      "desktop/**/*",
-      "app/src/main/assets/**/*",
+      "desktop/*.cjs",
+      "desktop/*.js",
+      "desktop/*.css",
       "package.json"
     ],
     "directories": {
@@ -63,6 +64,7 @@
           "**/*"
         ]
       }
-    ]
+    ],
+    "compression": "maximum"
   }
 }
