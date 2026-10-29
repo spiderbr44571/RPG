@@ -70,7 +70,7 @@ assert.match(game,/if\(!moveMode\)return false/,'Godot should retain taps while 
 assert.match(game,/PixelCopy\.request\(activity\.getWindow\(\),rect,bmp/);
 assert.match(game,/receiver\.received\(raw\)/,'Capture must return bytes, not site DOM');
 assert.match(manifest,/<activity android:name="\.PixelPortraitActivity" android:exported="false"/);
-assert.match(gradle,/versionCode 94; versionName '0\.90\.0-mastermind-inline-atelier'/);
+assert.match(gradle,/versionCode 95; versionName '0\\.91\\.0-mastermind-canvas-manual'/);
 const clip=(stage,scroll)=>Math.max(0,Math.min(stage.y+stage.h,scroll.y+scroll.h)-Math.max(stage.y,scroll.y));
 assert.equal(clip({y:100,h:500},{y:0,h:600}),500);
 assert.equal(clip({y:-150,h:500},{y:80,h:700}),270);
