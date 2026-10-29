@@ -1,0 +1,66 @@
+name: Mastermind v0.92 Android - Atelie por tras do menu
+on:
+  push:
+    branches:
+      - fix/mastermind-v092-android-manual-canvas
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  android:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Testar conexoes exclusivamente manuais, Godot e regras
+        run: |
+          set -euo pipefail
+          node --test tests/mastermind_manual_canvas.test.cjs tests/mastermind_atelier_overlay.test.cjs
+          node --check app/src/main/assets/pixelportrait86_companion.js
+          node tests/pixelportrait90.test.cjs
+          node tests/gurps4.test.cjs
+          node tests/mastermind_v74.test.cjs
+          node tests/mastermind_v75.test.cjs
+      - name: Preparar Android SDK
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMANAGER" ]; then SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -path '*/bin/sdkmanager' -type f | sort -V | tail -1)"; fi
+          "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --install 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Compilar Mastermind v0.92 APK
+        run: gradle :app:assembleDebug --no-daemon
+      - name: Validar APK e assinatura
+        run: |
+          set -euo pipefail
+          python3 tests/verify_apk_v91.py app/build/outputs/apk/debug/app-debug.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-debug.apk
+          sha256sum app/build/outputs/apk/debug/app-debug.apk > mastermind-v092-sha256.txt
+          cp app/build/outputs/apk/debug/app-debug.apk Mastermind-v0.92-Android.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Mastermind-v0.92-Android-Atelie-Menu-APK
+          path: |
+            Mastermind-v0.92-Android.apk
+            mastermind-v092-sha256.txt
+          if-no-files-found: error
+          retention-days: 90
+      - name: Publicar APK no GitHub Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="mastermind-v0.92-atelier-menu"
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" Mastermind-v0.92-Android.apk --target "${GITHUB_SHA}" \
+              --title "Mastermind v0.92 Android - Canvas com conexoes manuais" \
+              --notes "Atelie Godot desaparece temporariamente quando o mestre abre menus e modais, voltando ao fechar sem apagar o retrato. Preserva o Canvas de ligacoes manuais, fichas, campanhas e mapas."
+          else
+            gh release upload "$TAG" Mastermind-v0.92-Android.apk --clobber
+          fi
