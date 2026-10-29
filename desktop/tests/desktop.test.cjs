@@ -112,3 +112,10 @@ test('Lean Electron package preserves all app entrypoints and native services',(
  assert.match(main,/function captureGame\(/);
  assert.match(main,/function makeWindow\(/);
 });
+
+test('PDF progress event is exposed by preload before the desktop library subscribes',()=>{
+ assert.match(preload,/onBookIndex:callback=>ipcRenderer\.on\('mastermind:book-index'/);
+ assert.match(renderer,/desktop\.onBookIndex\(/);
+ assert.match(main,/function informBook\(/);
+ assert.match(main,/mastermind:book-index/);
+});
