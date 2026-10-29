@@ -1,8 +1,8 @@
-name: Mastermind 1.0.5 Linux — Ateliê Godot corrigido
+name: Mastermind 1.0.6 Linux — Chromium atualizado para Godot
 on:
   push:
     branches:
-      - fix/mastermind-v105-linux-atelier-health
+      - fix/mastermind-v106-linux-electron-modern-godot
   pull_request:
     branches:
       - fix/mastermind-v103-linux-mestragem-paisagem
@@ -52,25 +52,36 @@ jobs:
         env:
           ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
         run: timeout 90s xvfb-run -a -s "-screen 0 1440x900x24" node desktop/tests/e2e-atelier-black.cjs dist/linux-unpacked/mastermind
+      - name: Verificar editor Godot ONLINE real na build empacotada
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: timeout 135s xvfb-run -a -s "-screen 0 1440x900x24" node desktop/tests/e2e-godot-live.cjs dist/linux-unpacked/mastermind
+      - name: Preservar evidência do teste do Godot
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mastermind-Linux-Godot-Diagnostico
+          path: dist/godot-evidence/
+          if-no-files-found: ignore
       - name: Criar instalador Arch/CachyOS
         env:
-          MASTERMIND_VERSION: '1.0.5'
+          MASTERMIND_VERSION: '1.0.6'
           MASTERMIND_RELEASE: '1'
         run: |
           set -euo pipefail
-          bash scripts/package_arch_linux.sh dist/Mastermind-v1.0.5-Linux-x64.tar.gz dist/
-          python3 tests/verify_arch_linux_package.py dist/mastermind-rpg-1.0.5-1-x86_64.pkg.tar.zst
-          test -s dist/Mastermind-v1.0.5-Linux-x86_64.AppImage
-          test -s dist/mastermind-rpg-1.0.5-1-x86_64.pkg.tar.zst
-          sha256sum dist/Mastermind-v1.0.5-Linux-x86_64.AppImage dist/Mastermind-v1.0.5-Linux-x64.tar.gz > dist/SHA256SUMS.txt
+          bash scripts/package_arch_linux.sh dist/Mastermind-v1.0.6-Linux-x64.tar.gz dist/
+          python3 tests/verify_arch_linux_package.py dist/mastermind-rpg-1.0.6-1-x86_64.pkg.tar.zst
+          test -s dist/Mastermind-v1.0.6-Linux-x86_64.AppImage
+          test -s dist/mastermind-rpg-1.0.6-1-x86_64.pkg.tar.zst
+          sha256sum dist/Mastermind-v1.0.6-Linux-x86_64.AppImage dist/Mastermind-v1.0.6-Linux-x64.tar.gz > dist/SHA256SUMS.txt
       - name: Disponibilizar instalador Linux
         uses: actions/upload-artifact@v4
         with:
-          name: Mastermind-1.0.5-Linux-Atelie-Corrigido
+          name: Mastermind-1.0.6-Linux-Godot-WebGL
           if-no-files-found: error
           path: |
-            dist/Mastermind-v1.0.5-Linux-x86_64.AppImage
-            dist/Mastermind-v1.0.5-Linux-x64.tar.gz
-            dist/mastermind-rpg-1.0.5-1-x86_64.pkg.tar.zst
-            dist/mastermind-rpg-1.0.5-1-x86_64.pkg.tar.zst.sha256
+            dist/Mastermind-v1.0.6-Linux-x86_64.AppImage
+            dist/Mastermind-v1.0.6-Linux-x64.tar.gz
+            dist/mastermind-rpg-1.0.6-1-x86_64.pkg.tar.zst
+            dist/mastermind-rpg-1.0.6-1-x86_64.pkg.tar.zst.sha256
             dist/SHA256SUMS.txt
