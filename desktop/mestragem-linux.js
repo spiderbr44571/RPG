@@ -28,7 +28,7 @@ function mountLandscapeSetting(){
  row.className='setting-row desktop-landscape-setting';
  const label=document.createElement('div');
  const strong=document.createElement('strong');strong.textContent='Modo paisagem em todas as telas';
- const hint=document.createElement('small');hint.textContent='Organiza menus, fichas e mestragem horizontalmente no Linux. Não altera os temas.';
+ const hint=document.createElement('small');hint.textContent='Usa toda a tela do computador na horizontal, incluindo fichas, Ateliê e mestragem. Preserva os temas.';
  label.append(strong,hint);
  const toggle=document.createElement('button');
  toggle.type='button';toggle.id='mastermind-linux-landscape';toggle.className='switch';
