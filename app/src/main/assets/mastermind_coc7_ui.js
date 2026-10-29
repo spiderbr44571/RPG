@@ -70,7 +70,7 @@ function render(){
  const selection=remote?'<strong>Ficha do servidor — edite e salve na campanha</strong>':'<label>Investigador<select id="coc-select">'+options(characters.map(x=>[x.id,x.name||'Investigador']),selected)+'</select></label>';
  host.innerHTML='<section class="coc-shell"><div class="coc-head"><div><span class="eyebrow">INVESTIGADORES · 7ª EDIÇÃO</span><h2>Chamado de Cthulhu</h2><p>Ficha local, investigação, perícias percentuais e dados. Regras-base públicas da Chaosium; consulte seus PDFs para detalhes e suplementos.</p></div>'+
  '<div class="coc-actions">'+selection+
- (remote?'<button data-coc-save-remote>Salvar na campanha</button><button data-coc-cancel-remote>Fechar edição</button>':'<button data-coc-new>+ Novo investigador</button><button data-coc-delete>Excluir</button><button data-coc-export>Exportar JSON</button><label class="coc-file">Importar JSON<input type="file" id="coc-file" accept="application/json,.json" hidden></label>')+'</div></div>'+
+ (remote?'<button data-coc-save-remote>Salvar na campanha</button><button data-coc-cancel-remote>Fechar edição</button>':'<button data-coc-new>+ Novo investigador</button><button data-coc-delete>Excluir</button><button data-coc-export>Exportar JSON</button><button type="button" data-coc-import>Importar JSON</button><input type="file" id="coc-file" accept="application/json,.json" style="display:none">')+'</div></div>'+
  '<div class="coc-tabs">'+[['attributes','Atributos e recursos'],['skills','Perícias e rolagens'],['inventory','Inventário e rituais'],['history','História e notas']].map(([id,name])=>'<button data-coc-tab="'+id+'"'+(tab===id?' class="active"':'')+'>'+name+'</button>').join('')+'</div>'+
  '<div class="coc-body">'+body(c)+'</div><div class="coc-rollbox" aria-live="polite">'+esc(lastRoll||'Escolha uma característica ou perícia para rolar 1d100.')+
  '<label>Bônus / penalidade<select id="coc-bonus">'+options([['0','Normal'],['1','1 dado de bônus'],['2','2 dados de bônus'],['-1','1 dado de penalidade'],['-2','2 dados de penalidade']],'0')+'</select></label></div>'+
@@ -84,7 +84,12 @@ function rollValue(name,value){
  const area=host.querySelector('.coc-rollbox');if(area)area.firstChild.textContent=lastRoll;
 }
 function addEntry(key,value){if(!value)return;apply(c=>{c[key]=c[key]||[];c[key].push(value.slice(0,220));});}
-function download(c){const data=JSON.stringify(E.validate(c),null,2),file=new Blob([data],{type:'application/json'}),url=URL.createObjectURL(file),a=document.createElement('a');a.href=url;a.download=(c.name||'investigador').replace(/[^a-zA-Z0-9_-]/g,'_')+'-coc7.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);}
+function download(c){
+ const json=JSON.stringify(E.validate(c),null,2),name=(c.name||'investigador').replace(/[^a-zA-Z0-9_-]/g,'_');
+ if(window.RpgBookBridge?.saveInvestigatorJson){window.RpgBookBridge.saveInvestigatorJson(name,json);return;}
+ const file=new Blob([json],{type:'application/json'}),url=URL.createObjectURL(file),a=document.createElement('a');
+ a.href=url;a.download=name+'-coc7.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
 async function importJson(file){
  if(!file||file.size>5*1024*1024)throw Error('Arquivo JSON ausente ou grande demais');
  const data=E.validate(JSON.parse(await file.text()));if(characters.some(x=>x.id===data.id))data.id=E.newCharacter().id;
@@ -99,6 +104,7 @@ async function handleClick(e){
  if(b.hasAttribute('data-coc-new')){if(characters.length>=60)return alert('Limite de 60 investigadores');const c=E.newCharacter();characters.push(c);selected=c.id;save();render();return;}
  if(b.hasAttribute('data-coc-delete')){if(!confirm('Excluir apenas a ficha selecionada? Faça backup antes se necessário.'))return;characters=characters.filter(c=>c.id!==selected);if(!characters.length)characters=[E.newCharacter()];selected=characters[0].id;save();render();return;}
  if(b.hasAttribute('data-coc-export')){download(current());return;}
+ if(b.hasAttribute('data-coc-import')){host.querySelector('#coc-file')?.click();return;}
  if(b.hasAttribute('data-coc-save-remote')){if(remoteSave){const copy=toCampaignSheet(remote);await remoteSave(copy);remote=null;remoteSave=null;render();}return;}
  if(b.hasAttribute('data-coc-cancel-remote')){remote=null;remoteSave=null;render();return;}
  if(b.hasAttribute('data-coc-add-skill')){const name=prompt('Nome da perícia personalizada:')?.trim();if(!name||name.length>100)return;apply(c=>{if(c.skills[name]===undefined)c.skills[name]=0;});return;}
