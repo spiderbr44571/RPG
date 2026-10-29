@@ -48,7 +48,7 @@ test('Desktop mouse/keyboard, 1080p+ CSS, Godot and PDF controls',()=>{
  assert.match(renderer,/document\.documentElement\.classList\.add\('mastermind-desktop'\)/);
  assert.match(renderer,/event\.key==='F11'/);
  assert.match(renderer,/event\.key\.toLowerCase\(\)==='k'/);
- assert.match(renderer,/desktop\.action\('pick-pdf'\)/);
+ assert.match(renderer,/desktop\.action\('pick-pdf',/);
  assert.match(renderer,/desktop\.action\('search-book'/);
  assert.match(css,/@media\(min-width:1500px\)/);
  assert.match(css,/@media\(min-width:2100px\)/);
@@ -60,7 +60,7 @@ test('PDF, PNG and character persistence stay local',()=>{
  assert.match(main,/path\.join\(stored\(\),'index\.json'\)/);
  assert.match(main,/showSaveDialog/);
  assert.match(main,/showOpenDialog/);
- assert.match(main,/pdftotext/);
+ assert.match(main,/book-index\.cjs/);
  assert.match(main,/case 'save-png'/);
  assert.match(main,/case 'save-pdf'/);
  assert.match(main,/case 'open-book'/);
