@@ -316,10 +316,10 @@
     },
     {
       "id": "chamado-de-ctchulhu",
-      "title": "Chamado de Ctchulhu",
+      "title": "Chamado de Cthulhu",
       "folderId": "15p5_S-e0EoyWkdfNsEh8EOSqgwg5v0ML",
       "driveUrl": "https://drive.google.com/drive/folders/15p5_S-e0EoyWkdfNsEh8EOSqgwg5v0ML",
-      "implementation": "catalog",
+      "implementation": "partial",
       "books": [
         {
           "id": "1BHFogM9QafBHWIYA4ehTj2QOxTZW0UM-",

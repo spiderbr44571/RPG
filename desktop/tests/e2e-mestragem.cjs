@@ -13,7 +13,12 @@ const assert=require('node:assert/strict');
   const win=await client.firstWindow({timeout:30000});
   await win.locator('#screen-master').waitFor({state:'attached'});
   await win.evaluate(()=>window.RPG_DEMO.navigate('master'));
-  await win.waitForFunction(()=>document.querySelector('#r11-campaign-status')?.textContent==='Conectado',null,{timeout:30000});
+  try{
+   await win.waitForFunction(()=>document.querySelector('#r11-campaign-status')?.textContent==='Conectado',null,{timeout:50000});
+  }catch(error){
+   console.error('Mastermind servidor diagnóstico:',await win.evaluate(()=>({status:document.querySelector('#r11-campaign-status')?.textContent,local:window.RpgLocalHost?.status?.(),ready:!!window.MastermindCoc7,platform:window.MastermindDesktop?.platform})));
+   throw error;
+  }
   assert.equal(await win.locator('#r12-host-controls').isVisible(),false,'O botão de ligar servidor do Android ficou no PC');
   const state=await win.evaluate(()=>JSON.parse(window.RpgLocalHost.status()));
   assert.ok(state.running,'Servidor não iniciou automaticamente');

@@ -6,7 +6,7 @@ const pkg=JSON.parse(read('package.json'));
 const main=read('desktop/main.cjs'),preload=read('desktop/preload.cjs'),renderer=read('desktop/renderer.js'),css=read('desktop/desktop.css'),html=read('app/src/main/assets/demo-offline.html');
 test('Linux AppImage and tar.gz packages preserve all original Android assets',()=>{
  assert.equal(pkg.main,'desktop/main.cjs');
- assert.equal(pkg.version,'1.0.9');
+ assert.equal(pkg.version,'1.1.0');
  assert.equal(pkg.build.linux.target[0].target,'AppImage');
  assert.equal(pkg.build.linux.target[1].target,'tar.gz');
  assert.ok(!pkg.build.files.some(x=>x.includes('app/src/main/assets')), 'No duplicate offline UI inside app.asar');
@@ -48,7 +48,7 @@ test('Desktop mouse/keyboard, 1080p+ CSS, Godot and PDF controls',()=>{
  assert.match(renderer,/document\.documentElement\.classList\.add\('mastermind-desktop'\)/);
  assert.match(renderer,/event\.key==='F11'/);
  assert.match(renderer,/event\.key\.toLowerCase\(\)==='k'/);
- assert.match(renderer,/desktop\.action\('pick-pdf'\)/);
+ assert.match(renderer,/desktop\.action\('pick-pdf',/);
  assert.match(renderer,/desktop\.action\('search-book'/);
  assert.match(css,/@media\(min-width:1500px\)/);
  assert.match(css,/@media\(min-width:2100px\)/);
@@ -60,7 +60,7 @@ test('PDF, PNG and character persistence stay local',()=>{
  assert.match(main,/path\.join\(stored\(\),'index\.json'\)/);
  assert.match(main,/showSaveDialog/);
  assert.match(main,/showOpenDialog/);
- assert.match(main,/pdftotext/);
+ assert.match(main,/book-index\.cjs/);
  assert.match(main,/case 'save-png'/);
  assert.match(main,/case 'save-pdf'/);
  assert.match(main,/case 'open-book'/);
@@ -111,4 +111,11 @@ test('Lean Electron package preserves all app entrypoints and native services',(
  assert.match(main,/function gameRect\(/);
  assert.match(main,/function captureGame\(/);
  assert.match(main,/function makeWindow\(/);
+});
+
+test('PDF progress event is exposed by preload before the desktop library subscribes',()=>{
+ assert.match(preload,/onBookIndex:callback=>ipcRenderer\.on\('mastermind:book-index'/);
+ assert.match(renderer,/desktop\.onBookIndex\(/);
+ assert.match(main,/function informBook\(/);
+ assert.match(main,/mastermind:book-index/);
 });
