@@ -1,8 +1,8 @@
-name: Mastermind 1.1.3 - Windows Canvas Manual
+name: Mastermind 1.1.4 - Windows Atelie e paisagem
 on:
   push:
     branches:
-      - fix/mastermind-v113-windows-manual-canvas
+      - fix/mastermind-v114-windows-atelier-landscape
   workflow_dispatch:
 permissions:
   contents: read
@@ -73,7 +73,7 @@ jobs:
           node --check desktop/campaign-host.cjs
           node --check desktop/renderer.js
           node --check desktop/mestragem-linux.js
-          node --test desktop/tests/desktop.test.cjs desktop/tests/godot-health.test.cjs tests/mastermind_manual_canvas.test.cjs
+          node --test desktop/tests/desktop.test.cjs desktop/tests/godot-health.test.cjs tests/mastermind_manual_canvas.test.cjs tests/mastermind_atelier_overlay.test.cjs
           if ($LASTEXITCODE -ne 0) { throw 'Testes estaticos falharam' }
       - name: Gerar Mastermind Setup.exe e Portable.exe
         shell: pwsh
@@ -110,6 +110,13 @@ jobs:
         run: |
           node desktop/tests/e2e-canvas-manual.cjs dist/win-unpacked/Mastermind.exe
           if ($LASTEXITCODE -ne 0) { throw 'Conexoes manuais do Canvas falharam no Windows' }
+      - name: Testar tela horizontal e menu do Atelie no Windows empacotado
+        shell: pwsh
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: |
+          node desktop/tests/e2e-atelier-landscape.cjs dist/win-unpacked/Mastermind.exe
+          if ($LASTEXITCODE -ne 0) { throw 'Falha no menu do Atelie ou no layout horizontal do Windows' }
       - name: Verificar tela preta do Atelie e mostrar recuperacao no Windows real
         shell: pwsh
         env:
@@ -121,8 +128,8 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $setup = Get-ChildItem dist -Filter 'Mastermind-v1.1.3-Windows-*-Setup.exe' | Select-Object -First 1
-          $portable = Get-ChildItem dist -Filter 'Mastermind-v1.1.3-Windows-*-Portable.exe' | Select-Object -First 1
+          $setup = Get-ChildItem dist -Filter 'Mastermind-v1.1.4-Windows-*-Setup.exe' | Select-Object -First 1
+          $portable = Get-ChildItem dist -Filter 'Mastermind-v1.1.4-Windows-*-Portable.exe' | Select-Object -First 1
           if (!$setup -or !$portable) { throw 'Setup.exe ou Portable.exe ausente' }
           if ($setup.Length -lt 40000000 -or $portable.Length -lt 40000000) { throw 'Instalador Windows incompleto' }
           @($setup,$portable) | ForEach-Object {
@@ -132,10 +139,10 @@ jobs:
           Get-Content dist/SHA256-Windows.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: Mastermind-1.1.3-Windows-Canvas-Manual
+          name: Mastermind-1.1.4-Windows-Atelie-Paisagem
           path: |
-            dist/Mastermind-v1.1.3-Windows-*-Setup.exe
-            dist/Mastermind-v1.1.3-Windows-*-Portable.exe
+            dist/Mastermind-v1.1.4-Windows-*-Setup.exe
+            dist/Mastermind-v1.1.4-Windows-*-Portable.exe
             dist/SHA256-Windows.txt
           if-no-files-found: error
           retention-days: 90
