@@ -1,7 +1,7 @@
 {
   "name": "mastermind-rpg-desktop",
   "private": true,
-  "version": "1.1.1",
+  "version": "1.1.2",
   "scripts": {
     "test": "python3 tests/runtime/prepare.py && playwright test",
     "start": "electron .",
@@ -14,7 +14,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
-    "electron": "^33.4.11",
+    "electron": "45.1.0",
     "electron-builder": "^25.1.8"
   },
   "productName": "Mastermind",
