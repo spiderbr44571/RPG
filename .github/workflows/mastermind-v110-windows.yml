@@ -1,8 +1,8 @@
-name: Mastermind 1.1.4 - Windows Atelie e paisagem
+name: Mastermind 1.1.5 Windows - instaladores separados e integridade total
 on:
   push:
     branches:
-      - fix/mastermind-v114-windows-atelier-landscape
+      - opt/mastermind-v115-windows-lean-packaging
   workflow_dispatch:
 permissions:
   contents: read
@@ -94,6 +94,21 @@ jobs:
           }
           $html = Get-Content -Raw (Join-Path $root 'resources/server/assets/demo-offline.html')
           if ($html -notmatch 'screen-master' -or $html -notmatch 'screen-atelier85') { throw 'Interface incompleta no pacote' }
+          # The app's full original UI remains installed once under resources/server/assets.
+          $origin = Join-Path $PWD 'app/src/main/assets'
+          $installed = Join-Path $root 'resources/server/assets'
+          $origFiles = @(Get-ChildItem $origin -Recurse -File)
+          $destFiles = @(Get-ChildItem $installed -Recurse -File)
+          if ($origFiles.Count -ne $destFiles.Count) { throw "Quantidade de assets alterada: $($origFiles.Count) vs $($destFiles.Count)" }
+          foreach ($asset in $origFiles) {
+            $rel = $asset.FullName.Substring($origin.Length).TrimStart([char[]]@('/',[char]92))
+            $dest = Join-Path $installed $rel
+            if (!(Test-Path $dest)) { throw "Asset perdido na otimização: $rel" }
+            $srcHash = (Get-FileHash -Algorithm SHA256 $asset.FullName).Hash
+            $dstHash = (Get-FileHash -Algorithm SHA256 $dest).Hash
+            if ($srcHash -ne $dstHash) { throw "Asset alterado na otimização: $rel" }
+          }
+          Write-Output "PASS: todos os $($origFiles.Count) arquivos originais idênticos dentro do instalador"
           # Java executable was verified in the jlink step; the server's --help intentionally exits 1.
           Write-Output 'PASS: Interface, imagem, JAR e runtime presentes na versao Windows'
       - name: Testar o binario Windows empacotado (interface e mestragem)
@@ -128,8 +143,8 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $setup = Get-ChildItem dist -Filter 'Mastermind-v1.1.4-Windows-*-Setup.exe' | Select-Object -First 1
-          $portable = Get-ChildItem dist -Filter 'Mastermind-v1.1.4-Windows-*-Portable.exe' | Select-Object -First 1
+          $setup = Get-ChildItem dist -Filter 'Mastermind-v1.1.5-Windows-*-Setup.exe' | Select-Object -First 1
+          $portable = Get-ChildItem dist -Filter 'Mastermind-v1.1.5-Windows-*-Portable.exe' | Select-Object -First 1
           if (!$setup -or !$portable) { throw 'Setup.exe ou Portable.exe ausente' }
           if ($setup.Length -lt 40000000 -or $portable.Length -lt 40000000) { throw 'Instalador Windows incompleto' }
           @($setup,$portable) | ForEach-Object {
@@ -137,12 +152,21 @@ jobs:
             "$hash  $($_.Name)"
           } | Set-Content -Encoding ascii dist/SHA256-Windows.txt
           Get-Content dist/SHA256-Windows.txt
-      - uses: actions/upload-artifact@v4
+      - name: Publicar instalador Windows normal sem outra copia Portable
+        uses: actions/upload-artifact@v4
         with:
-          name: Mastermind-1.1.4-Windows-Atelie-Paisagem
-          path: |
-            dist/Mastermind-v1.1.4-Windows-*-Setup.exe
-            dist/Mastermind-v1.1.4-Windows-*-Portable.exe
-            dist/SHA256-Windows.txt
+          name: Mastermind-1.1.5-Windows-Setup
           if-no-files-found: error
           retention-days: 90
+          path: |
+            dist/Mastermind-v1.1.5-Windows-*-Setup.exe
+            dist/SHA256-Windows.txt
+      - name: Publicar Portable opcional separadamente
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mastermind-1.1.5-Windows-Portable
+          if-no-files-found: error
+          retention-days: 90
+          path: |
+            dist/Mastermind-v1.1.5-Windows-*-Portable.exe
+            dist/SHA256-Windows.txt
