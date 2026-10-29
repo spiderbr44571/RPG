@@ -1,7 +1,7 @@
 {
   "name": "mastermind-rpg-desktop",
   "private": true,
-  "version": "1.1.4",
+  "version": "1.1.5",
   "scripts": {
     "test": "python3 tests/runtime/prepare.py && playwright test",
     "start": "electron .",
@@ -26,10 +26,10 @@
     "productName": "Mastermind",
     "asar": true,
     "files": [
-      "desktop/**/*",
-      "app/src/main/assets/**/*",
-      "package.json",
-      "!desktop/runtime/windows/**/*"
+      "desktop/*.cjs",
+      "desktop/*.js",
+      "desktop/*.css",
+      "package.json"
     ],
     "directories": {
       "output": "dist"
@@ -103,6 +103,7 @@
     },
     "portable": {
       "artifactName": "Mastermind-v${version}-Windows-${arch}-Portable.${ext}"
-    }
+    },
+    "compression": "maximum"
   }
 }
