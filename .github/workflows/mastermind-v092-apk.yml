@@ -2,7 +2,7 @@ name: Mastermind v0.92 Android - Atelie por tras do menu
 on:
   push:
     branches:
-      - fix/mastermind-v092-android-manual-canvas
+      - fix/mastermind-v092-android-atelier-menu
   workflow_dispatch:
 permissions:
   contents: write
@@ -39,7 +39,7 @@ jobs:
       - name: Validar APK e assinatura
         run: |
           set -euo pipefail
-          python3 tests/verify_apk_v91.py app/build/outputs/apk/debug/app-debug.apk
+          python3 tests/verify_apk_v92.py app/build/outputs/apk/debug/app-debug.apk
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-debug.apk
           sha256sum app/build/outputs/apk/debug/app-debug.apk > mastermind-v092-sha256.txt
           cp app/build/outputs/apk/debug/app-debug.apk Mastermind-v0.92-Android.apk
@@ -59,7 +59,7 @@ jobs:
           TAG="mastermind-v0.92-atelier-menu"
           if ! gh release view "$TAG" >/dev/null 2>&1; then
             gh release create "$TAG" Mastermind-v0.92-Android.apk --target "${GITHUB_SHA}" \
-              --title "Mastermind v0.92 Android - Canvas com conexoes manuais" \
+              --title "Mastermind v0.92 Android - Atelie corretamente atras do menu" \
               --notes "Atelie Godot desaparece temporariamente quando o mestre abre menus e modais, voltando ao fechar sem apagar o retrato. Preserva o Canvas de ligacoes manuais, fichas, campanhas e mapas."
           else
             gh release upload "$TAG" Mastermind-v0.92-Android.apk --clobber
