@@ -29,7 +29,7 @@ function samplePdf(){
   assert.equal(matches.results[0].page,1,'Página real incorreta');
   const all=await win.evaluate(()=>window.MastermindDesktop.action('search-library','descanso','chamado-de-ctchulhu',20));
   assert.equal(all.total,1,'Pesquisa cruzada por sistema falhou: '+JSON.stringify(all));
-  await win.evaluate(()=>window.RPG15.openSystem('chamado-de-ctchulhu'));
+  await win.evaluate(()=>{window.RPG_DEMO.navigate('library');window.RPG15.openSystem('chamado-de-ctchulhu');});
   await win.locator('.coc-shell').waitFor({state:'visible',timeout:15000});
   const char=await win.evaluate(()=>window.MastermindCoc7.current);
   assert.equal(char.systemId,'chamado-de-ctchulhu');
