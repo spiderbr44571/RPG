@@ -245,8 +245,9 @@ function makeWindow(){
    const js=fs.readFileSync(path.join(__dirname,'renderer.js'),'utf8');
    const mestragem=fs.readFileSync(path.join(__dirname,'mestragem-linux.js'),'utf8');
    await win.webContents.insertCSS(css);
-   await win.webContents.executeJavaScript(js,true);
-   await win.webContents.executeJavaScript(mestragem,true);
+   // A new library UI must not prevent existing campaign features from loading.
+   try{await win.webContents.executeJavaScript(js,true);}catch(error){console.error('Desktop renderer:',error);}
+   try{await win.webContents.executeJavaScript(mestragem,true);}catch(error){console.error('Desktop mestragem:',error);}
   }catch(error){console.error('Desktop integration:',error);}
  });
  win.once('ready-to-show',()=>{win.show();if(process.platform==='linux'&&process.env.MASTERMIND_MAXIMIZED==='1')win.maximize();});
