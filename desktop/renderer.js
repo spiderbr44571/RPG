@@ -14,7 +14,7 @@ function mountHeader(){
  const bar=el('div','desktop-titlebar');
  const left=el('div','desktop-titlebar-brand');
  const logo=el('img');logo.src='mastermind_logo.png';logo.alt='';
- left.append(logo,el('strong',null,'MASTERMIND'),el('span',null,'LINUX · v1.0.7'));
+ left.append(logo,el('strong',null,'MASTERMIND'),el('span',null,'LINUX · v1.0.8'));
  const right=el('div','desktop-titlebar-actions');
  const mk=(text,title,action)=>{const b=el('button','desktop-titlebar-btn',text);b.type='button';b.title=title;b.addEventListener('click',action);right.appendChild(b);};
  mk('⌕','Buscar livros',()=>$('#quick-search')?.click());
@@ -81,6 +81,9 @@ function rectangle(){
  const screen=$('#screen-atelier85');
  const content=$('#content');
  if(!stage||!screen?.classList.contains('active')||!content)return {visible:false};
+ // WebContentsView always composites above the local HTML: hide it behind any
+ // main menu/modal rather than trying to fight the HTML z-index.
+ if(document.querySelector('.r09-overlay.open,.modal-backdrop.open,.rpg05-dialog:not([hidden])')||document.body.classList.contains('rpg08-menu-open'))return {visible:false};
  const a=stage.getBoundingClientRect(),c=content.getBoundingClientRect();
  const x=Math.max(a.left,c.left,0),y=Math.max(a.top,c.top,0);
  const right=Math.min(a.right,c.right,innerWidth),bottom=Math.min(a.bottom,c.bottom,innerHeight);
@@ -170,9 +173,14 @@ function start(){
  const content=$('#content');
  content?.addEventListener('scroll',tick,{passive:true});
  addEventListener('resize',tick,{passive:true});
+ addEventListener('mastermind:overlay-visibility',tick);
  const observer=new MutationObserver(tick);
  const screen=$('#screen-atelier85');
  if(screen)observer.observe(screen,{attributes:true,attributeFilter:['class']});
+ for(const overlay of document.querySelectorAll('.r09-overlay,.modal-backdrop,.rpg05-dialog')){
+  observer.observe(overlay,{attributes:true,attributeFilter:['class','hidden']});
+ }
+ observer.observe(document.body,{attributes:true,attributeFilter:['class']});
  setInterval(tick,220);tick();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
