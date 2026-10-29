@@ -28,6 +28,8 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
    await win.locator('#node-layer [data-node="'+id+'"]').dispatchEvent('pointerdown',{pointerId:101,button:0,bubbles:true,pointerType:'mouse',isPrimary:true});
   }
   await win.waitForFunction(()=>window.MastermindWorkspace?.links.length===1,null,{timeout:5000});
+  // The custom SVG connection is drawn in requestAnimationFrame, not synchronously.
+  await win.waitForFunction(()=>document.querySelectorAll('#mm42-edges .mm43-link-visible').length===1,null,{timeout:15000});
   assert.equal(await win.locator('#mm42-edges .mm43-link-visible').count(),1,'Manual line not drawn');
   const snapshot=await win.evaluate(()=>{
    window.MastermindWorkspace.save();
