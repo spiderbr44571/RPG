@@ -207,18 +207,6 @@ function fitGame(){
  if(!gameView||!gameBounds||gameView.webContents.isDestroyed())return;
  editorZoom=1;editorPan={x:0,y:0};
  gameView.webContents.setZoomFactor(1);
- gameView.webContents.executeJavaScript(
-  "(function(){const c=document.getElementById('canvas');if(!c)return;"+
-  "const r=c.getBoundingClientRect();const w=innerWidth,h=innerHeight;"+
-  "const scale=Math.min((w-12)/Math.max(1,r.width),(h-12)/Math.max(1,r.height));"+
-  "if(scale<0.4||scale>3.0)return;"+
-  "document.documentElement.style.overflow='hidden';"+
-  "const dx=(w-r.width*scale)/2-r.left*scale;"+
-  "const dy=(h-r.height*scale)/2-r.top*scale;"+
-  "document.body.style.transformOrigin='0 0';"+
-  "document.body.style.transform='translate('+dx+'px,'+dy+'px) scale('+scale+')';"+
-  "})()",true
- ).catch(()=>{});
 }
 function gameAction(action){
  if(!gameView)return;
