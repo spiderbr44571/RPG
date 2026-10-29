@@ -1,0 +1,31 @@
+
+/* Mastermind v0.91 — ergonomia do investigador CoC no Android WebView.
+ * Não altera o Ateliê Godot, o grid, as telas existentes ou desktop. */
+@media(max-width:720px){
+ body .coc-shell{padding:12px!important;border-radius:13px;overflow:visible}
+ body .coc-head{display:grid;gap:12px}
+ body .coc-head h2{font-size:clamp(23px,6vw,34px);line-height:1.2}
+ body .coc-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:8px}
+ body .coc-actions>label,body .coc-actions>strong{grid-column:1/-1;min-width:0;width:100%}
+ body .coc-actions>button{min-height:44px;white-space:normal}
+ body .coc-tabs{display:flex;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;-webkit-overflow-scrolling:touch;padding-bottom:9px;touch-action:pan-x}
+ body .coc-tabs button{flex:0 0 auto;padding:11px 12px;min-height:44px;font-size:12px}
+ body .coc-grid{grid-template-columns:minmax(0,1fr);gap:10px}
+ body .coc-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ body .coc-stat{padding:10px 8px;gap:8px;min-width:0}
+ body .coc-stat input{min-width:0;width:100%;font-size:16px}
+ body .coc-stat button{min-height:42px;white-space:normal;padding:8px}
+ body .coc-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ body .coc-skills{grid-template-columns:1fr}
+ body .coc-skill{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+ body .coc-skill>label:first-child{min-width:0;flex:none}
+ body .coc-skill input[type=number]{max-width:none}
+ body .coc-skill>small{grid-column:1/-1}
+ body .coc-skill>button{min-height:42px}
+ body .coc-mark{grid-column:1/-1;min-height:36px}
+ body .coc-rollbox{display:grid;gap:9px;font-size:13px}
+ body .coc-rollbox label{margin:0;width:100%}
+ body .coc-body>button{min-height:44px;white-space:normal;margin:5px}
+ body .coc-body input[data-coc-new-entry]{min-height:44px}
+ body .coc-body textarea{font-size:16px;width:100%}
+}
