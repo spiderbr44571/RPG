@@ -271,61 +271,89 @@ function makeWindow(){
  Menu.setApplicationMenu(menu);
 }
 let savedPdf=null;
-async function choosePdf(){
- const result=await dialog.showOpenDialog(win,{title:'Adicionar livro PDF',properties:['openFile'],filters:[{name:'PDF',extensions:['pdf']}]});
- if(result.canceled||!result.filePaths[0])return;
- const p=result.filePaths[0],stat=await fs.promises.stat(p);
- if(stat.size>250*1024*1024)throw Error('PDF acima de 250 MB');
- await fs.promises.mkdir(stored(),{recursive:true});
- const id='book-'+Date.now().toString(36);
- const dest=path.join(stored(),id+'.pdf');
- await fs.promises.copyFile(p,dest);
- const meta={id,name:path.basename(p),available:true,storage:'desktop',path:dest,systemId:'custom'};
- const records=await listBooks();
- records.push(meta);
- await fs.promises.writeFile(path.join(stored(),'index.json'),JSON.stringify(records,null,2));
- savedPdf=meta;
- win.webContents.send('mastermind:pdf-selected',meta);
- return meta;
-}
+const bookIndex=require('./book-index.cjs'),bookProgress=new Map();
+const catalogSystemIds=new Set(['custom','ordem-paranormal','d-d','gurps','chamado-de-ctchulhu']);
+const validBookId=x=>typeof x==='string'&&/^book-[a-z0-9]+$/.test(x);
+const bookFile=id=>path.join(stored(),id+'.pdf');
+const bookMetaFile=()=>path.join(stored(),'index.json');
+function informBook(id,status){bookProgress.set(id,status);if(win&&!win.isDestroyed())win.webContents.send('mastermind:book-index',{id,...status});}
 async function listBooks(){
  try{
-  const arr=JSON.parse(await fs.promises.readFile(path.join(stored(),'index.json'),'utf8'));
-  return Array.isArray(arr)?arr.filter(x=>typeof x.id==='string'&&/^book-[a-z0-9]+$/.test(x.id)): [];
+  const arr=JSON.parse(await fs.promises.readFile(bookMetaFile(),'utf8'));
+  return Array.isArray(arr)?arr.filter(x=>validBookId(x.id)&&typeof x.name==='string').map(x=>({
+   id:x.id,name:x.name,systemId:catalogSystemIds.has(x.systemId)?x.systemId:'custom',
+   available:true,storage:'desktop',size:x.size||0,addedAt:x.addedAt||0
+  })):[];
  }catch{return [];}
 }
-function loadBookFile(meta){return path.join(stored(),safeName(meta.id,'.pdf'));}
+async function saveBooks(list){await fs.promises.mkdir(stored(),{recursive:true});const temp=bookMetaFile()+'.tmp';await fs.promises.writeFile(temp,JSON.stringify(list,null,2));await fs.promises.rename(temp,bookMetaFile());}
+async function getBook(id){if(!validBookId(id))return null;return (await listBooks()).find(b=>b.id===id)||null;}
+async function indexBook(id){
+ const book=await getBook(id);if(!book)throw Error('Livro não encontrado');
+ informBook(id,{state:'indexing',done:0,total:0});
+ try{
+  const index=await bookIndex.getIndex(stored(),id,bookFile(id),progress=>informBook(id,progress));
+  if(index.pages.every(p=>!p.text))informBook(id,{state:'no_text',done:index.pages.length,total:index.totalPages});
+  return {state:index.pages.some(p=>p.text)?'ready':'no_text',pages:index.totalPages};
+ }catch(error){informBook(id,{state:'error',message:String(error.message||error).slice(0,210)});throw error;}
+}
+async function choosePdf(systemId='custom'){
+ const result=await dialog.showOpenDialog(win,{title:'Adicionar livro PDF à biblioteca',properties:['openFile','multiSelections'],filters:[{name:'Livros PDF',extensions:['pdf']}]});
+ if(result.canceled||!result.filePaths.length)return [];
+ await fs.promises.mkdir(stored(),{recursive:true});
+ const list=await listBooks(),added=[];
+ for(const p of result.filePaths.slice(0,30)){
+  const stat=await fs.promises.stat(p);
+  if(stat.size<20||stat.size>250*1024*1024)throw Error('PDF excede 250 MB ou está vazio: '+path.basename(p));
+  const fd=await fs.promises.open(p,'r');const head=Buffer.alloc(5);try{await fd.read(head,0,5,0);}finally{await fd.close();}
+  if(head.toString('latin1')!=='%PDF-')throw Error('Arquivo não tem assinatura PDF: '+path.basename(p));
+  const id='book-'+require('node:crypto').randomBytes(9).toString('hex');
+  const dest=bookFile(id);
+  await fs.promises.copyFile(p,dest);
+  const meta={id,name:path.basename(p),available:true,storage:'desktop',systemId:catalogSystemIds.has(systemId)?systemId:'custom',size:stat.size,addedAt:Date.now()};
+  list.push(meta);added.push(meta);savedPdf=meta;
+ }
+ await saveBooks(list);
+ for(const meta of added){
+  win.webContents.send('mastermind:pdf-selected',meta);
+  // Background within the local desktop process; never uploads documents.
+  setImmediate(()=>{indexBook(meta.id).catch(err=>console.warn('PDF index:',err.message));});
+ }
+ return added;
+}
 async function openPdf(id){
- const records=await listBooks();
- const book=records.find(x=>x.id===id)||savedPdf;
- if(!book)return false;
- const file=path.join(stored(),book.id+'.pdf');
- await shell.openPath(file);
+ const book=await getBook(id);if(!book)return false;
+ const error=await shell.openPath(bookFile(id));if(error)throw Error(error);
  return true;
 }
-async function searchPdf(id,query,limit=10,offset=0){
- const records=await listBooks(),book=records.find(x=>x.id===id)||savedPdf;
- if(!book)return {results:[],total:0,error:'Nenhum livro importado'};
- const file=path.join(stored(),book.id+'.pdf');
- // Desktop v1: text index via poppler pdftotext when installed.
- const {execFile}=require('node:child_process');
- const txt=await new Promise((resolve,reject)=>execFile('pdftotext',['-layout',file,'-'],{timeout:20000,maxBuffer:20*1024*1024},(err,stdout)=>err?reject(err):resolve(stdout))).catch(()=>null);
- if(txt===null)return {results:[],total:0,error:process.platform==='win32'?'Pesquisa em PDF local: instale o Poppler para Windows e adicione pdftotext.exe ao PATH.':'Instale poppler (pacman -S poppler) para pesquisar PDFs locais'};
- const words=String(query||'').toLocaleLowerCase('pt-BR').trim().split(/\s+/).filter(x=>x.length>2).slice(0,10);
- if(!words.length)return {results:[],total:0};
- const pages=txt.split('\f');
- const matches=[];
- pages.forEach((page,index)=>{
-  const text=page.replace(/\s+/g,' ').trim();
-  if(!text)return;
-  const lower=text.toLocaleLowerCase('pt-BR');
-  const score=words.filter(w=>lower.includes(w)).length;
-  if(score===0)return;
-  const first=Math.max(0,lower.indexOf(words.find(w=>lower.includes(w))));
-  matches.push({page:index+1,pageNumber:index+1,printedPage:index+1,score,excerpt:text.slice(Math.max(0,first-130),first+370),text:text.slice(Math.max(0,first-130),first+370),title:book.name});
- });
- matches.sort((a,b)=>b.score-a.score);
- return {results:matches.slice(offset,offset+limit),total:matches.length};
+async function removeBook(id){
+ const book=await getBook(id);if(!book)return false;
+ const list=(await listBooks()).filter(b=>b.id!==id);await saveBooks(list);
+ await bookIndex.deleteIndex(stored(),id);
+ await fs.promises.rm(bookFile(id),{force:true});
+ bookProgress.delete(id);if(savedPdf?.id===id)savedPdf=null;return true;
+}
+async function bookStatus(id){const book=await getBook(id);if(!book)return {state:'missing'};return bookProgress.get(id)||bookIndex.info(stored(),id,bookFile(id));}
+async function searchPdf(id,query,limit=12,offset=0){
+ const book=await getBook(id);if(!book)return {results:[],total:0,error:'Livro não encontrado'};
+ if(!String(query||'').trim())return {results:[],total:0};
+ try{
+  const index=await bookIndex.getIndex(stored(),id,bookFile(id),p=>informBook(id,p));
+  const result=bookIndex.searchIndex(index,query,limit,offset);
+  return {...result,results:result.results.map(h=>({...h,title:book.name,bookId:id,systemId:book.systemId})),
+   error:result.hasText?null:'Este PDF não possui texto selecionável; documento digitalizado requer OCR.'};
+ }catch(e){return {results:[],total:0,error:'Falha ao ler o PDF: '+String(e.message||e)};}
+}
+async function searchBooks(query,systemId='all',limit=30){
+ const books=(await listBooks()).filter(b=>systemId==='all'||b.systemId===systemId);
+ const matches=[],errors=[];
+ for(const book of books){
+  const result=await searchPdf(book.id,query,30,0);
+  if(result.error){errors.push(book.name+': '+result.error);continue;}
+  matches.push(...result.results);
+ }
+ matches.sort((a,b)=>b.score-a.score||a.title.localeCompare(b.title)||a.page-b.page);
+ return {results:matches.slice(0,Math.max(1,Math.min(100,Number(limit)||30))),total:matches.length,books:books.length,errors:errors.slice(0,6)};
 }
 app.whenReady().then(()=>{
  app.setAppUserModelId('dev.rpgmesa.mastermind');
@@ -353,7 +381,11 @@ app.whenReady().then(()=>{
   switch(method){
    case 'save-png':return saveFile(args[0],args[1],'.png');
    case 'save-pdf':return saveFile(args[0],args[1],'.pdf');
-   case 'pick-pdf':return choosePdf();
+   case 'pick-pdf':return choosePdf(args[0]);
+    case 'index-book':return indexBook(args[0]);
+    case 'book-status':return bookStatus(args[0]);
+    case 'remove-book':return removeBook(args[0]);
+    case 'search-library':return searchBooks(args[0],args[1],args[2]);
    case 'list-books':return listBooks();
    case 'search-book':return searchPdf(args[0],args[1],args[2],args[3]);
    case 'open-book':return openPdf(args[0]);
