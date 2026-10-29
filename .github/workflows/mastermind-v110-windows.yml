@@ -1,8 +1,8 @@
-name: Mastermind 1.1.1 - Windows Atelie corrigido
+name: Mastermind 1.1.2 - Windows Chromium moderno Godot
 on:
   push:
     branches:
-      - fix/mastermind-v111-windows-atelier-health
+      - fix/mastermind-v112-windows-electron-modern-godot
   workflow_dispatch:
 permissions:
   contents: read
@@ -114,8 +114,8 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $setup = Get-ChildItem dist -Filter 'Mastermind-v1.1.1-Windows-*-Setup.exe' | Select-Object -First 1
-          $portable = Get-ChildItem dist -Filter 'Mastermind-v1.1.1-Windows-*-Portable.exe' | Select-Object -First 1
+          $setup = Get-ChildItem dist -Filter 'Mastermind-v1.1.2-Windows-*-Setup.exe' | Select-Object -First 1
+          $portable = Get-ChildItem dist -Filter 'Mastermind-v1.1.2-Windows-*-Portable.exe' | Select-Object -First 1
           if (!$setup -or !$portable) { throw 'Setup.exe ou Portable.exe ausente' }
           if ($setup.Length -lt 40000000 -or $portable.Length -lt 40000000) { throw 'Instalador Windows incompleto' }
           @($setup,$portable) | ForEach-Object {
@@ -125,10 +125,10 @@ jobs:
           Get-Content dist/SHA256-Windows.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: Mastermind-1.1.1-Windows-Atelie-Corrigido
+          name: Mastermind-1.1.2-Windows-Godot-WebGL
           path: |
-            dist/Mastermind-v1.1.1-Windows-*-Setup.exe
-            dist/Mastermind-v1.1.1-Windows-*-Portable.exe
+            dist/Mastermind-v1.1.2-Windows-*-Setup.exe
+            dist/Mastermind-v1.1.2-Windows-*-Portable.exe
             dist/SHA256-Windows.txt
           if-no-files-found: error
           retention-days: 90
