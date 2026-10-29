@@ -156,3 +156,37 @@ body.mastermind-desktop.mastermind-landscape .r09-overlay {
   padding:12px!important;
  }
 }
+
+/* Biblioteca local de regras (PDFs dos usuários) — desktop, sem modificar a versão Android. */
+body.mastermind-desktop .desktop-book-drawer{width:100%;max-width:none;min-width:0;display:grid;gap:13px;padding:clamp(13px,2vw,26px)}
+body.mastermind-desktop .desktop-book-drawer h3{margin:0;color:var(--fg);font:600 clamp(19px,2vw,27px) Georgia,serif}
+body.mastermind-desktop .desktop-book-guide{margin:0;color:var(--muted);font-size:12px;line-height:1.6}
+body.mastermind-desktop .desktop-book-tools{display:grid;grid-template-columns:minmax(165px,220px) auto minmax(230px,1fr) auto auto;gap:9px;align-items:center;min-width:0}
+body.mastermind-desktop .desktop-book-tools select,
+body.mastermind-desktop .desktop-book-tools input,
+body.mastermind-desktop .desktop-book-actions input{min-width:0;width:100%;background:var(--bg);color:var(--fg);border:1px solid var(--line);padding:10px;border-radius:9px;box-sizing:border-box}
+body.mastermind-desktop .desktop-book-tools button,
+body.mastermind-desktop .desktop-book-actions button,
+body.mastermind-desktop .desktop-book-hit button{border:1px solid var(--line);color:var(--fg);background:var(--panel2);border-radius:9px;padding:10px 12px;cursor:pointer;white-space:nowrap;font-size:12px}
+body.mastermind-desktop .desktop-book-tools button:hover,
+body.mastermind-desktop .desktop-book-actions button:hover,
+body.mastermind-desktop .desktop-book-hit button:hover{border-color:var(--accent)}
+body.mastermind-desktop .desktop-book-tools .desktop-library-import{margin:0;background:var(--accent-soft);border-color:var(--accent);width:auto}
+body.mastermind-desktop .desktop-library-message{font-size:12px;color:var(--muted)}
+body.mastermind-desktop .desktop-books-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,390px),1fr));gap:12px}
+body.mastermind-desktop .desktop-book-row{display:flex;flex-direction:column;align-items:stretch;gap:12px;min-width:0}
+body.mastermind-desktop .desktop-book-row-head{display:grid;gap:4px}
+body.mastermind-desktop .desktop-book-row-head strong{font-size:13px;overflow-wrap:anywhere}
+body.mastermind-desktop .desktop-book-row-head span{color:var(--muted);font-size:11px}
+body.mastermind-desktop .desktop-index-status{color:var(--accent);font-size:11px}
+body.mastermind-desktop .desktop-book-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+body.mastermind-desktop .desktop-book-actions input{flex:1 1 175px}
+body.mastermind-desktop .desktop-book-actions .desktop-delete-pdf{color:#d9a7a4}
+body.mastermind-desktop .desktop-book-row .desktop-search-results{min-width:0;width:100%;max-height:360px;overflow:auto;display:grid;gap:9px}
+body.mastermind-desktop .desktop-global-book-hits{display:grid;gap:10px;max-height:560px;overflow:auto;min-width:0}
+body.mastermind-desktop .desktop-book-hit{min-width:0;overflow-wrap:anywhere;display:grid;gap:7px}
+body.mastermind-desktop .desktop-book-hit button{text-align:left;white-space:normal;color:var(--accent)}
+body.mastermind-desktop .desktop-book-hit p{margin:0;line-height:1.6;color:var(--fg);white-space:pre-wrap}
+body.mastermind-desktop .desktop-library-import-shortcut{width:100%;border:1px solid var(--accent);border-radius:10px;background:var(--accent-soft);color:var(--fg);padding:10px;font-size:12px;text-align:left;margin-bottom:13px;cursor:pointer}
+@media(max-width:1200px){body.mastermind-desktop .desktop-book-tools{grid-template-columns:minmax(170px,1fr) auto minmax(180px,2fr) auto}body.mastermind-desktop .desktop-book-tools button:last-child{grid-column:1/-1}}
+@media(max-width:840px){body.mastermind-desktop .desktop-book-tools{display:flex;flex-wrap:wrap}body.mastermind-desktop .desktop-book-tools input{flex:1 1 260px}body.mastermind-desktop .desktop-books-list{grid-template-columns:1fr}}

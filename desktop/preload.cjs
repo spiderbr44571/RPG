@@ -3,11 +3,12 @@ const {contextBridge,ipcRenderer}=require('electron');
 const action=(method,...args)=>ipcRenderer.invoke('mastermind:action',{method,args});
 const sync=(method,...args)=>ipcRenderer.sendSync('mastermind:sync',{method,args});
 contextBridge.exposeInMainWorld('MastermindDesktop',Object.freeze({
- platform:process.platform,version:'1.1.5',
+ platform:process.platform,version:'1.1.6',
  action,
  onGodotStatus:callback=>ipcRenderer.on('mastermind:godot-status',(_e,value)=>callback(value)),
  onCapture:callback=>ipcRenderer.on('mastermind:lyime-capture-ready',()=>callback()),
- onPdf:callback=>ipcRenderer.on('mastermind:pdf-selected',(_e,value)=>callback(value))
+ onPdf:callback=>ipcRenderer.on('mastermind:pdf-selected',(_e,value)=>callback(value)),
+ onBookIndex:callback=>ipcRenderer.on('mastermind:book-index',(_e,value)=>callback(value))
 }));
 contextBridge.exposeInMainWorld('RpgSheetPdfBridge',Object.freeze({
  savePdf:(name,base64)=>{action('save-pdf',name,base64).catch(console.error);},

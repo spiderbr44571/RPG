@@ -1,7 +1,7 @@
 {
   "name": "mastermind-rpg-desktop",
   "private": true,
-  "version": "1.1.5",
+  "version": "1.1.6",
   "scripts": {
     "test": "python3 tests/runtime/prepare.py && playwright test",
     "start": "electron .",
@@ -105,5 +105,8 @@
       "artifactName": "Mastermind-v${version}-Windows-${arch}-Portable.${ext}"
     },
     "compression": "maximum"
+  },
+  "dependencies": {
+    "pdfjs-dist": "3.11.174"
   }
 }

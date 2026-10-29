@@ -11,7 +11,7 @@
  const notify=msg=>window.RPG_DEMO?.notify?.(msg);
  const shortMsg=v=>String(v??'').slice(0,250);
  const localKey='mastermind51-custom-sheets';
- const unsupported=id=>validSys(id)&&!['ordem-paranormal','d-d','gurps'].includes(id);
+ const unsupported=id=>validSys(id)&&!['ordem-paranormal','d-d','gurps','chamado-de-ctchulhu'].includes(id);
  let activeBook='',activePage=0,seenProgress='',openSystemId='',lastSearchQuery='';
  const systemHost=()=>$('#r51-book-library');
  function list(){
