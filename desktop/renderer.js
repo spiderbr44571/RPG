@@ -102,65 +102,93 @@ function shortcuts(){
  });
 }
 function desktopBooks(){
- const sidebar=$('.sidebar');
- if(!sidebar)return;
- const b=el('button','desktop-library-import','＋ Importar PDF local');
- b.type='button';
- b.addEventListener('click',async()=>{
-  try{
-   const result=await desktop.action('pick-pdf');
-   if(result?.name)toast('PDF adicionado: '+result.name);
-  }catch(error){toast('Falha ao importar PDF: '+error.message);}
- });
- const bottom=sidebar.querySelector('.sidebar-bottom');
- sidebar.insertBefore(b,bottom);
+ const library=$('#screen-library');if(!library)return;
+ const systems=[{id:'all',title:'Todos os sistemas'},{id:'custom',title:'Sem sistema definido'},...(window.RPG15_SYSTEMS?.systems||[]).map(x=>({id:x.id,title:x.title}))];
  const drawer=el('section','desktop-book-drawer');
- drawer.innerHTML='<h3>Livros locais <button type="button" class="desktop-books-refresh">↻</button></h3><div class="desktop-books-list">Carregando…</div>';
- const library=$('#screen-library');
- if(library)library.append(drawer);
- const list=drawer.querySelector('.desktop-books-list');
- const refresh=async()=>{
+ const title=el('h3',null,'Meus livros locais · pesquisa offline');
+ const guide=el('p','desktop-book-guide','Anexe PDFs pessoais, organize por sistema e encontre termos e regras por página. Tudo fica salvo apenas neste computador.');
+ const tools=el('div','desktop-book-tools');
+ const system=el('select','desktop-book-system');system.setAttribute('aria-label','Sistema dos PDFs');
+ for(const x of systems){const opt=el('option',null,x.title);opt.value=x.id;system.append(opt);}
+ const add=el('button','desktop-library-import','＋ Anexar PDFs');
+ const global=el('input','desktop-global-books-query');global.placeholder='Pergunte algo ou pesquise termos em todos os PDFs…';global.type='search';global.setAttribute('aria-label','Pesquisar regras nos PDFs');
+ const submit=el('button',null,'Pesquisar regras');const message=el('small','desktop-library-message');
+ const results=el('div','desktop-global-book-hits');
+ const list=el('div','desktop-books-list');
+ const reload=el('button',null,'↻ Atualizar livros');
+ tools.append(system,add,global,submit,reload);drawer.append(title,guide,tools,message,results,list);library.append(drawer);
+ const state=id=>desktop.action('book-status',id).catch(()=>({state:'error'}));
+ async function refresh(){
   try{
-   const books=await desktop.action('list-books');
-   list.replaceChildren();
-   if(!books.length){list.textContent='Nenhum PDF local importado. Use Importar PDF local.';return;}
-   books.forEach(book=>{
-    const row=el('div','desktop-book-row');
-    const name=el('span',null,book.name);
-    const open=el('button',null,'Abrir');
-    open.addEventListener('click',()=>desktop.action('open-book',book.id).catch(e=>toast(e.message)));
-    const search=el('button',null,'Pesquisar');
-    search.addEventListener('click',()=>{
-     const existing=row.querySelector('.desktop-search');
-     if(existing){existing.remove();return;}
-     const panel=el('div','desktop-search');
-     const field=el('input');field.placeholder='Pergunte ou digite palavras-chave…';field.type='search';
-     const results=el('div','desktop-search-results');
-     const run=async()=>{
-      if(!field.value.trim())return;
-      results.textContent='Pesquisando no PDF…';
-      try{
-       const found=await desktop.action('search-book',book.id,field.value,12,0);
-       results.replaceChildren();
-       if(found.error){results.textContent=found.error;return;}
-       if(!found.results?.length){results.textContent='Nenhuma correspondência.';return;}
-       found.results.forEach(hit=>{
-        const card=el('article','desktop-book-hit');
-        card.append(el('strong',null,'Página '+hit.page),el('p',null,hit.excerpt));
-        results.append(card);
-       });
-      }catch(error){results.textContent='Falha na pesquisa: '+error.message;}
-     };
-     field.addEventListener('keydown',e=>{if(e.key==='Enter')run();});
-     const button=el('button',null,'Buscar');button.addEventListener('click',run);
-     panel.append(field,button,results);row.append(panel);field.focus();
-    });
-    row.append(name,open,search);list.append(row);
-   });
-  }catch(error){list.textContent='Erro: '+error.message;}
+   const books=await desktop.action('list-books');list.replaceChildren();
+   const selected=system.value;const relevant=books.filter(b=>selected==='all'||b.systemId===selected);
+   message.textContent=books.length+' PDF(s) no computador · '+relevant.length+' neste filtro.';
+   if(!relevant.length){list.textContent='Nenhum PDF anexado neste sistema. Use Anexar PDFs.';return;}
+   for(const book of relevant){
+    const row=el('div','desktop-book-row'),head=el('div','desktop-book-row-head');
+    row.dataset.bookId=book.id;
+    const name=el('strong',null,book.name);
+    const sys=systems.find(s=>s.id===book.systemId);
+    const status=el('small','desktop-index-status','Verificando índice…');
+    head.append(name,el('span',null,sys?.title||book.systemId),status);
+    const open=el('button',null,'Abrir PDF');
+    open.onclick=()=>desktop.action('open-book',book.id).catch(err=>toast(err.message));
+    const index=el('button',null,'Indexar / atualizar');
+    index.onclick=async()=>{status.textContent='Lendo páginas localmente…';try{const d=await desktop.action('index-book',book.id);status.textContent=d.state==='ready'?'Pesquisável: '+d.pages+' páginas':'PDF digitalizado · OCR necessário';}catch(e){status.textContent='Falha: '+e.message;}};
+    const remove=el('button','desktop-delete-pdf','Remover');
+    remove.onclick=async()=>{if(!confirm('Remover somente este livro local e seu índice?'))return;await desktop.action('remove-book',book.id);await refresh();};
+    const lookup=el('input','desktop-book-query');lookup.type='search';lookup.placeholder='Pesquisar somente neste livro';lookup.setAttribute('aria-label','Pesquisar em '+book.name);
+    const go=el('button',null,'Buscar no livro'),hits=el('div','desktop-search-results');
+    function showHits(found){
+     hits.replaceChildren();
+     if(found.error){hits.textContent=found.error;return;}
+     if(!found.results?.length){hits.textContent='Nenhum resultado encontrado.';return;}
+     hits.append(el('small',null,found.total+' página(s) encontrada(s)'));
+     for(const hit of found.results){
+      const card=el('article','desktop-book-hit');
+      const go=el('button',null,'Página '+hit.page+' · abrir livro');
+      go.onclick=()=>desktop.action('open-book',book.id).catch(e=>toast(e.message));
+      card.append(go,el('p',null,hit.excerpt||''));hits.append(card);
+     }
+    }
+    const query=async()=>{if(!lookup.value.trim())return;hits.textContent='Pesquisando e indexando as páginas localmente…';try{showHits(await desktop.action('search-book',book.id,lookup.value,20,0));}catch(e){hits.textContent='Pesquisa falhou: '+e.message;}};
+    go.onclick=query;lookup.onkeydown=e=>{if(e.key==='Enter')query();};
+    const actions=el('div','desktop-book-actions');actions.append(open,index,remove,lookup,go);
+    row.append(head,actions,hits);list.append(row);
+    state(book.id).then(x=>{status.textContent=x.state==='ready'?'Pesquisável · '+x.pages+' páginas':x.state==='no_text'?'Sem texto · OCR necessário':x.state==='indexing'?'Indexando… '+(x.done||0)+'/'+(x.total||'?'):x.state==='error'?'Falha de indexação': 'Aguardando leitura';});
+   }
+  }catch(err){list.textContent='Não foi possível ler a biblioteca: '+err.message;}
+ }
+ async function searchAll(){
+  if(!global.value.trim())return;
+  results.textContent='Procurando regras nos PDFs locais, por página…';
+  try{
+   const found=await desktop.action('search-library',global.value,system.value,50);results.replaceChildren();
+   results.append(el('p',null,found.total+' resultado(s) em '+found.books+' livro(s).'));
+   for(const hit of found.results||[]){
+    const article=el('article','desktop-book-hit');
+    const link=el('button',null,hit.title+' · página '+hit.page);
+    link.onclick=()=>desktop.action('open-book',hit.bookId).catch(e=>toast(e.message));
+    article.append(link,el('p',null,hit.excerpt));results.append(article);
+   }
+   if(found.errors?.length)results.append(el('small',null,found.errors.join(' | ').slice(0,650)));
+  }catch(err){results.textContent='Erro na pesquisa: '+err.message;}
+ }
+ add.onclick=async()=>{
+  try{
+   const found=await desktop.action('pick-pdf',system.value==='all'?'custom':system.value);
+   if(found?.length){toast(found.length+' PDF(s) anexado(s) e enviados para indexação local.');await refresh();}
+  }catch(e){toast('Não foi possível importar PDFs: '+e.message);}
  };
- drawer.querySelector('.desktop-books-refresh').addEventListener('click',refresh);
- desktop.onPdf(()=>{refresh();toast('PDF importado.');});
+ reload.onclick=refresh;submit.onclick=searchAll;global.onkeydown=e=>{if(e.key==='Enter')searchAll();};system.onchange=()=>{results.replaceChildren();refresh();};
+ desktop.onPdf(()=>refresh());
+ desktop.onBookIndex(update=>{for(const row of list.querySelectorAll('.desktop-book-row')){if(!row.querySelector('strong'))continue;}
+  const status=list.querySelector('.desktop-book-row[data-book-id="'+update.id+'"] .desktop-index-status');
+  if(status)status.textContent=update.state==='indexing'?'Indexando '+update.done+'/'+(update.total||'?'):update.state==='ready'?'Pesquisável · '+update.total+' páginas':update.state==='no_text'?'PDF digitalizado: OCR necessário':update.message||update.state;
+ });
+ document.addEventListener('mastermind:system-open',e=>{if(e.detail?.systemId&&systems.some(s=>s.id===e.detail.systemId)){system.value=e.detail.systemId;refresh();}});
+ const side=$('.sidebar'),bottom=side?.querySelector('.sidebar-bottom');
+ if(side&&bottom){const shortcut=el('button','desktop-library-import-shortcut','＋ Anexar PDFs');shortcut.onclick=()=>{window.RPG_DEMO?.navigate('library');add.click();};side.insertBefore(shortcut,bottom);}
  refresh();
 }
 function fixMobileStrings(){
