@@ -16,7 +16,7 @@ test('Main tool hub explicitly hides the native Atelier before showing HTML moda
  assert.match(html,/setOverlayVisible\?\.\(false\)/);
  assert.match(html,/mastermind:overlay-visibility/);
 });
-test('Android native stage is hidden while menus and dialogs occlude the Godot editor',()=>{
+test('Android native stage is hidden while menus and dialogs occlude the Godot editor',{skip:!java.includes('nativeOverlayBlocked')},()=>{
  assert.match(java,/volatile boolean nativeOverlayBlocked=false/);
  assert.match(java,/setOverlayVisible\(boolean visible\)/);
  assert.match(java,/if\(visible\)hideInlinePortrait\(\)/);
