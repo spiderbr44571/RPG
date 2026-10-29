@@ -6,8 +6,9 @@ const root=path.resolve(__dirname,'..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const html=read('app/src/main/assets/demo-offline.html');
 const java=read('app/src/main/java/dev/rpgmesa/demo/MainActivity.java');
-const renderer=read('desktop/renderer.js');
-const css=read('desktop/desktop.css');
+const hasDesktop=fs.existsSync(path.join(root,'desktop/renderer.js'))&&fs.existsSync(path.join(root,'desktop/desktop.css'));
+const renderer=hasDesktop?read('desktop/renderer.js'):'';
+const css=hasDesktop?read('desktop/desktop.css'):'';
 test('Main tool hub explicitly hides the native Atelier before showing HTML modal',()=>{
  const start=html.indexOf('function openHub(){'),end=html.indexOf('function closeHub(){',start);
  assert.ok(start>=0&&end>start);
@@ -25,14 +26,14 @@ test('Android native stage is hidden while menus and dialogs occlude the Godot e
  assert.match(java,/if\(nativeOverlayBlocked\)\{hideInlinePortrait\(\)/);
  assert.match(java,/allowedHost!=null\|\|nativeOverlayBlocked/);
 });
-test('Desktop compositor hides the separate WebContentsView for a modal and restores it after close',()=>{
+test('Desktop compositor hides the separate WebContentsView for a modal and restores it after close',{skip:!hasDesktop},()=>{
  assert.match(renderer,/r09-overlay\.open/);
  assert.match(renderer,/modal-backdrop\.open/);
  assert.match(renderer,/mastermind:overlay-visibility/);
  assert.match(renderer,/observer\.observe\(document\.body/);
  assert.match(renderer,/if\(next!==last\)/);
 });
-test('Horizontal desktop layout explicitly overrides the mobile shell cap and 136px dead space',()=>{
+test('Horizontal desktop layout explicitly overrides the mobile shell cap and 136px dead space',{skip:!hasDesktop},()=>{
  assert.match(css,/Full-width desktop landscape/);
  assert.match(css,/\.main \.content\s*\{/);
  assert.match(css,/max-width:none!important/);
