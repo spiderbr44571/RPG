@@ -3,7 +3,7 @@ const {contextBridge,ipcRenderer}=require('electron');
 const action=(method,...args)=>ipcRenderer.invoke('mastermind:action',{method,args});
 const sync=(method,...args)=>ipcRenderer.sendSync('mastermind:sync',{method,args});
 contextBridge.exposeInMainWorld('MastermindDesktop',Object.freeze({
- platform:'linux',version:'1.0.6',
+ platform:'linux',version:'1.0.7',
  action,
  onGodotStatus:callback=>ipcRenderer.on('mastermind:godot-status',(_e,value)=>callback(value)),
  onCapture:callback=>ipcRenderer.on('mastermind:lyime-capture-ready',()=>callback()),
