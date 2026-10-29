@@ -41,7 +41,7 @@ test('CoC investigator has eight correct percentile characteristics and safe pri
 });
 test('CoC d100 skill roll accepts hard, extreme and critical and tracks improvement',()=>{
  const c=E.newCharacter();c.skills['Encontrar']=60;c.skillChecks=['Encontrar'];
- assert.equal(E.roll(60,()=>0).outcome,'critical');
+ let calls=0;assert.equal(E.roll(60,()=>calls++===0?.11:0).outcome,'critical');
  const r=E.roll(60,()=>.17);
  assert.ok(r.rolled>=1&&r.rolled<=100);
  assert.ok(['regular','hard','extreme','critical','fail','fumble'].includes(r.outcome));
