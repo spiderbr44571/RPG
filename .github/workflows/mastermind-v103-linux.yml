@@ -59,6 +59,10 @@ jobs:
         env:
           ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
         run: timeout 120s xvfb-run -a -s "-screen 0 1440x900x24" node desktop/tests/e2e-packaged.cjs dist/linux-unpacked/mastermind
+      - name: Validar pesquisa PDF e investigador CoC 7e no Linux instalado
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: timeout 110s xvfb-run -a -s "-screen 0 1440x900x24" node desktop/tests/e2e-pdf-coc.cjs dist/linux-unpacked/mastermind
       - name: Canvas de campanha - sem linhas pontilhadas automaticas e ligacao manual persistente
         env:
           ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
