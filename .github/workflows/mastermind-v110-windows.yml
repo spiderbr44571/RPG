@@ -121,6 +121,13 @@ jobs:
         run: |
           node desktop/tests/e2e-windows-packaged.cjs
           if ($LASTEXITCODE -ne 0) { throw 'O aplicativo Windows empacotado falhou no teste real' }
+      - name: Verificar PDF indexado e CoC 7e no executavel Windows
+        shell: pwsh
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: |
+          node desktop/tests/e2e-pdf-coc.cjs dist/win-unpacked/Mastermind.exe
+          if ($LASTEXITCODE -ne 0) { throw 'PDF ou investigador CoC falhou no Windows empacotado' }
       - name: Validar Canvas exclusivamente manual no executavel Windows
         shell: pwsh
         env:
