@@ -272,7 +272,7 @@ html[data-paranormal="medo"] .v10-result:before{border-radius:45% 5% 45% 5%}
 <section id="screen-atelier85" class="screen p90-atelier-screen" aria-label="Ateliê 2D com Godot direto">
   <div class="p86-shell p90-shell">
     <header class="p90-header">
-      <div class="p90-brandline">MASTERMIND · ATELIÊ 2D · v0.90</div>
+      <div class="p90-brandline">MASTERMIND · ATELIÊ 2D · v0.93</div>
       <div class="p90-header-row">
         <h1>Pixel Portrait Creator</h1>
         <button type="button" class="p86-btn" data-p86-action="sheet">Abrir ficha</button>
@@ -1394,7 +1394,7 @@ const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.quer
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const get=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}};
 const set=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch{return false}};
-const svgHome=`<svg class="r09-home-svg" viewBox="0 0 100 100" aria-hidden="true"><path class="r09-home-roof" d="M8 46 49 12 67 27V19h13v19l12 9-9 12-34-28-33 28Z"/><path class="r09-home-body" d="M21 54 49 31 78 54v34H21Z"/><path class="r09-home-door" d="M41 88V66a8 8 0 0 1 16 0v22Z" stroke="none"/></svg>`;
+const svgMenu=`<svg class="r09-chocolate-menu" viewBox="0 0 100 100" role="img" aria-label="Menu em grade de nove quadrados"><g class="r09-chocolate-tiles"><rect class="r09-chocolate-tile" x="20" y="20" width="15" height="15" rx="1.5"/><rect class="r09-chocolate-tile" x="43" y="20" width="15" height="15" rx="1.5"/><rect class="r09-chocolate-tile" x="66" y="20" width="15" height="15" rx="1.5"/><rect class="r09-chocolate-tile" x="20" y="43" width="15" height="15" rx="1.5"/><rect class="r09-chocolate-tile" x="43" y="43" width="15" height="15" rx="1.5"/><rect class="r09-chocolate-tile" x="66" y="43" width="15" height="15" rx="1.5"/><rect class="r09-chocolate-tile" x="20" y="66" width="15" height="15" rx="1.5"/><rect class="r09-chocolate-tile" x="43" y="66" width="15" height="15" rx="1.5"/><rect class="r09-chocolate-tile" x="66" y="66" width="15" height="15" rx="1.5"/></g></svg>`;
 const tools=[
  ['library','Biblioteca','book-open','Livros, sistemas e regras'],
  ['sheet','Fichas','users','Personagens, poderes e retratos'],
@@ -1420,7 +1420,7 @@ const icons={
  palette:'<path d="M12 3a9 9 0 0 0 0 18h1a2 2 0 0 0 1-4 2 2 0 0 1 1-3h2a4 4 0 0 0 4-4C21 6 17 3 12 3Z"/><circle cx="7" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="16" cy="8" r="1"/>',
  house:'<path d="m3 11 9-8 9 8v10h-6v-7H9v7H3Z"/>'};
 const icon=name=>`<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round">${icons[name]||icons.dice}</svg>`;
-// The home icon opens the main menu. Dice are rolled only inside the dedicated dice tool.
+// The 3x3 chocolate grid opens the main menu. Dice stay in their own dedicated tool.
 const visual=document.createElement('style');visual.id='rpg09-style';visual.textContent=`
 .rpg08-mobile-bar,.rpg08-sheet,.rpg08-scrim,#rpg07-settings-quick{display:none!important}
 .sidebar{display:none!important}
@@ -1459,7 +1459,7 @@ const visual=document.createElement('style');visual.id='rpg09-style';visual.text
 document.head.append(visual);
 // Hide the old floating desktop/mobile navigation, but keep every existing view routable.
 $$('.rpg08-mobile-bar,.rpg08-sheet,.rpg08-scrim').forEach(el=>el.remove());
-const dock=document.createElement('div');dock.className='r09-dock';dock.innerHTML=`<div class="r09-dock-label">Abrir ferramentas</div><button type="button" class="r09-die" id="r09-dice" aria-label="Abrir menu principal do Mastermind" title="Abrir menu principal" aria-expanded="false">${svgHome}</button>`;
+const dock=document.createElement('div');dock.className='r09-dock';dock.innerHTML=`<div class="r09-dock-label">Abrir ferramentas</div><button type="button" class="r09-die" id="r09-dice" aria-label="Abrir menu principal do Mastermind" title="Abrir menu principal" aria-expanded="false">${svgMenu}</button>`;
 const overlay=document.createElement('div');overlay.className='r09-overlay';overlay.id='r09-overlay';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-label','Central de ferramentas');
 overlay.innerHTML=`<section class="r09-hub"><div class="r09-head"><div><div class="r09-kicker">CENTRAL DA MESA</div><h2 class="r09-title">Escolha seu próximo <i>caminho.</i></h2><p class="r09-sub">Todas as ferramentas em um só lugar. Abrir esta central não realiza rolagens.</p></div><button class="r09-close" type="button" aria-label="Fechar ferramentas">×</button></div><div class="r09-grid">${tools.map(([id,title,ico,sub])=>`<button class="r09-tool" type="button" data-r09-tool="${id}">${icon(ico)}<strong>${title}</strong><small>${sub}</small></button>`).join('')}</div></section>`;
 document.body.append(overlay,dock);
@@ -1672,6 +1672,12 @@ html body #r09-dice .die-shell{fill:#ddb5cd!important;stroke:#fff0e0!important;s
 html body #r09-dice .die-wire{stroke:#37253d!important;stroke-width:2.8!important;opacity:1!important}
 html body #r09-dice .r09-die-num{fill:#201522!important;font:900 29px system-ui,sans-serif!important;opacity:1!important}
 @media(max-width:600px){html body .r09-dock{bottom:calc(14px + env(safe-area-inset-bottom))!important}}
+/* Chocolate menu: nove quadrados que acompanham as cores configuradas para o sistema. */
+html body #r09-dice .r09-chocolate-menu{display:block!important;overflow:visible;filter:drop-shadow(0 1px 1px #0008)}
+html body #r09-dice .r09-chocolate-tile{fill:var(--fg,#f5e8dd)!important;stroke:none!important;transition:fill .2s ease,transform .2s ease}
+html body #r09-dice:hover .r09-chocolate-tile,html body #r09-dice[aria-expanded="true"] .r09-chocolate-tile{fill:var(--accent,#c7a87b)!important}
+@media(prefers-reduced-motion:reduce){html body #r09-dice .r09-chocolate-tile{transition:none}}
+
 </style><style id="r36-clean-sheet-css">
 .r36-ritual-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
 .rpg06-known{gap:10px;flex-wrap:wrap}
@@ -1685,5 +1691,5 @@ html body #r09-dice .r09-die-num{fill:#201522!important;font:900 29px system-ui,
 .r37-inventory-warning{border-radius:9px;border:1px solid #d29b66;background:#3a2a23;color:#f2d2ac;padding:12px;margin:0;line-height:1.6}
 .r37-inventory-ok{color:#91dabb;font-size:12px;margin:0}
 .r37-over{border-color:#e5aa77!important;color:#e8b88c}
-@media(max-width:450px){.r37-category-grid{grid-template-columns:1fr}}</style><script src="mastermind39_ui.js"></script><script src="mastermind40_canvas_images.js"></script><script src="mastermind42_workspace.js"></script><script src="mastermind59_class_catalog.js"></script><script src="mastermind56_local_powers.js"></script><link rel="stylesheet" href="mastermind60_identity.css"><link rel="stylesheet" href="mastermind_coc7.css"><script src="mastermind_coc7_engine.js"></script><script src="mastermind_coc7_ui.js"></script><script src="pixelportrait86_companion.js"></script>
+@media(max-width:450px){.r37-category-grid{grid-template-columns:1fr}}</style><script src="mastermind39_ui.js"></script><script src="mastermind40_canvas_images.js"></script><script src="mastermind42_workspace.js"></script><script src="mastermind59_class_catalog.js"></script><script src="mastermind56_local_powers.js"></script><link rel="stylesheet" href="mastermind60_identity.css"><link rel="stylesheet" href="mastermind_coc7.css"><link rel="stylesheet" href="mastermind_coc7_android.css"><script src="mastermind_coc7_engine.js"></script><script src="mastermind_coc7_ui.js"></script><script src="pixelportrait86_companion.js"></script>
 <link rel="stylesheet" href="mastermind_sheet_studio.css"><script src="mastermind_sheet_studio.js"></script><script src="pdf-lib.min.js"></script><script src="mastermind_ordem_template.js"></script><script src="mastermind_system_pdf.js"></script><script src="mastermind_system_editor.js"></script></body></html>
