@@ -134,7 +134,13 @@ window.addEventListener('rpg:roll',e=>{
  $('#mss-roll-formula').textContent=(Array.isArray(d.faces)?'['+d.faces.join(', ')+']':'')+(d.bonus!=null?' + '+d.bonus:'')+' = '+num;
  $('#mss-roll').classList.remove('mss-roll-new');void $('#mss-roll').offsetWidth;$('#mss-roll').classList.add('mss-roll-new');
 });
-const observer=new MutationObserver(()=>{if(sheet.classList.contains('active'))setTimeout(updateSummary,40);});
+let wasActive=sheet.classList.contains('active');
+const observer=new MutationObserver(()=>{
+ const active=sheet.classList.contains('active');
+ if(active&&!wasActive){present(state.system);}
+ else if(active)setTimeout(updateSummary,40);
+ wasActive=active;
+});
 observer.observe(sheet,{attributes:true,attributeFilter:['class']});
 present(state.system);
 window.MastermindSheetStudio={get currentSystem(){return SYS[state.system].key},open(system,id){
