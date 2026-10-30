@@ -1,8 +1,8 @@
-name: Mastermind Android v0.93 — PDF e Chamado de Cthulhu
+name: Mastermind Android v0.93 — Estudio de Fichas
 on:
   push:
     branches:
-      - feature/android-v093-pdf-cthulhu
+      - feature/android-v093-sheet-studio
   workflow_dispatch:
 permissions:
   contents: write
