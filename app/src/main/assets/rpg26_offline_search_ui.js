@@ -108,7 +108,7 @@
    '<p>Principais passagens localizadas no PDF, sem interpretação por IA:</p><ul>'+highlights+'</ul></section>':'';
   const list=hits.map(item=>'<article class="r45-pdf-hit"><div><strong>Página '+Number(item.page)+
    ' do arquivo PDF</strong><p>'+esc(cleanExcerpt(item.excerpt)||'Trecho encontrado nesta página.')+
-   '</p></div><button type="button" data-r45-page="'+Number(item.page)+'">Abrir página ↗</button></article>').join('');
+   '</p>'+(item.encodingWarning?'<small class="r51-encoding-note">'+esc(item.encodingWarning)+'</small>':'')+'</div><button type="button" data-r45-page="'+Number(item.page)+'">Abrir página ↗</button></article>').join('');
   if(append&&old){
    const rows=old.querySelector('.r45-pdf-hit-list');
    rows?.insertAdjacentHTML('beforeend',list);
