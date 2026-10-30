@@ -29,7 +29,7 @@
   return 0;
  }
  function list(v){return Array.isArray(v)?v:[]}
- function asName(v){return typeof v==='string'?v:String(v?.name??v?.nome??v?.id??'')}
+ function asName(v){return root.MastermindItemNames?.format?.(v)|| (typeof v==='string'?v:String(v?.name??v?.nome??v?.id??''))}
  function wrapText(value,font,size,maxWidth,limit){
   const words=plain(value).split(/\s+/).filter(Boolean),lines=[];let line='';
   for(const word of words){
