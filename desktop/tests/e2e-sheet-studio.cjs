@@ -36,7 +36,7 @@ const path=require('node:path'),fs=require('node:fs');
   await page.locator('#mss-native-stage .coc-shell').waitFor({state:'visible',timeout:10000});
   assert.equal(await page.evaluate(()=>window.MastermindSheetStudio.currentSystem),'chamado-de-ctchulhu');
   await page.locator('[data-mss-tab="history"]').click();
-  assert.equal(await page.locator('[data-mss-tab="history"]').getAttribute('aria-selected'),'true');
+  assert.equal(await page.locator('button[data-mss-tab="history"]').getAttribute('aria-selected'),'true');
   await page.locator('[data-mss-side="abilities"]').click();
   assert.equal(await page.locator('[data-mss-side="abilities"]').getAttribute('aria-selected'),'true');
   await page.locator('#mss-filter').fill('Ritual');
