@@ -35,7 +35,7 @@ test('Compatible fields are matched by literal form names and custom attributes'
  assert.equal(mod.match('Nome',data),'Ana Silva');
  assert.equal(mod.match('AGENTE.Nome',data),'Ana Silva');
  assert.equal(mod.match('NEX',data),'45%');
- assert.equal(mod.match('Ocultismo',data),'10');
+ assert.equal(mod.match('Ocultismo',data),'+10');
  assert.equal(mod.match('CampoSemCorrespondencia',data),null);
 });
 let pdf=null;
