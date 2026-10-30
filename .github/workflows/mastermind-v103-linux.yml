@@ -39,8 +39,9 @@ jobs:
           node --check app/src/main/assets/mastermind_coc7_engine.js
           node --check app/src/main/assets/mastermind_coc7_ui.js
           node --check app/src/main/assets/mastermind_sheet_studio.js
+          node --check app/src/main/assets/mastermind_sheet_studio.js
           node --check app/src/main/assets/rpg11_campaigns.js
-          node --test desktop/tests/desktop.test.cjs desktop/tests/godot-health.test.cjs desktop/tests/pdf-coc.test.cjs tests/mastermind_manual_canvas.test.cjs tests/mastermind_atelier_overlay.test.cjs tests/mastermind_sheet_studio.test.cjs
+          node --test desktop/tests/desktop.test.cjs desktop/tests/godot-health.test.cjs desktop/tests/pdf-coc.test.cjs tests/mastermind_manual_canvas.test.cjs tests/mastermind_atelier_overlay.test.cjs tests/mastermind_sheet_studio.test.cjs tests/mastermind_sheet_studio.test.cjs
       - name: Testar servidor, fichas, grid e paisagem em Electron real
         env:
           ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
@@ -61,6 +62,10 @@ jobs:
           ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
         run: timeout 120s xvfb-run -a -s "-screen 0 1440x900x24" node desktop/tests/e2e-packaged.cjs dist/linux-unpacked/mastermind
       - name: Testar novo Estudio de Fichas no Electron Linux real
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: timeout 140s xvfb-run -a -s "-screen 0 1920x1080x24" node desktop/tests/e2e-sheet-studio.cjs dist/linux-unpacked/mastermind
+      - name: Testar novo Estudio de Fichas em Linux real (quatro sistemas)
         env:
           ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
         run: timeout 140s xvfb-run -a -s "-screen 0 1920x1080x24" node desktop/tests/e2e-sheet-studio.cjs dist/linux-unpacked/mastermind
