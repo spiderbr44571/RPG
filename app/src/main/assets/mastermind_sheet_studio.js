@@ -30,7 +30,9 @@ function safeImage(url){return /^(data:image\/(?:png|jpeg|webp);base64,[a-z0-9+/
 function cards(){const s=info(),v=Object.entries(s.attrs||{});$('#mss-stat-strip').innerHTML=v.slice(0,state.system==='coc'?8:6).map(([key,val])=>'<div class="mss-stat"><small>'+esc(key)+'</small><strong>'+esc(val)+'</strong></div>').join('')||'<p>Use o editor abaixo para definir atributos.</p>';}
 function currentAbilityNames(){
  const s=catalog()?.current||{},a=state.system==='ordem'?s.powers||[]:state.system==='dnd'?[...(s.features||[]),...(s.spells||[])]:state.system==='gurps'?[...(s.advantages||[]),...(s.spells||[])]:[...(s.spells||[]),...(s.inventory||[])];
- return a.map(x=>typeof x==='string'?x:x?.name||x?.title||'').filter(Boolean);
+ const system=SYS[state.system]?.key,overrides=['powers','abilities','rituals'].flatMap(kind=>window.MastermindSystemEditor?.list?.(system,kind)||[]);
+ const custom=overrides.map(x=>x?.name||'').filter(Boolean);
+ return [...new Set([...a.map(x=>typeof x==='string'?x:x?.name||x?.title||'').filter(Boolean),...custom])];
 }
 function side(){
  const data=info(),names=state.right==='skills'?Object.entries(data.skills||{}).map(([key,val])=>[key,typeof val==='object'?(val.level??val.value??val.points??'—'):val]):currentAbilityNames().map(x=>[x,'']);
