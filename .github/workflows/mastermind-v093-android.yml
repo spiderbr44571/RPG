@@ -32,7 +32,7 @@ jobs:
       - name: Testes Android, CoC, PDFs, Godot e compatibilidade
         run: |
           set -euo pipefail
-          node --test tests/mastermind_v093_android.test.cjs
+          node --test tests/mastermind_v093_android.test.cjs tests/mastermind_sheet_studio.test.cjs
           node tests/pixelportrait90.test.cjs
           node tests/gurps4.test.cjs
           node tests/mastermind_v74.test.cjs
@@ -71,6 +71,6 @@ jobs:
             gh release upload "$TAG" Mastermind-v0.93-Android-Sheet-Studio.apk Mastermind-v0.93-Android-SHA256.txt --clobber
           else
             gh release create "$TAG" Mastermind-v0.93-Android-Sheet-Studio.apk Mastermind-v0.93-Android-SHA256.txt \
-              --target "$GITHUB_SHA" --title "Mastermind Android v0.93 — PDFs e Chamado de Cthulhu" \
+              --target "$GITHUB_SHA" --title "Mastermind Android v0.93 — Estúdio de fichas" \
               --notes "APK Android v0.93 experimental, com estúdio unificado de fichas de Ordem, D&D, GURPS e Cthulhu, temas personalizados, animações acessíveis e leitor e indexador local de PDFs pessoais por sistema, Chamado de Cthulhu 7e (fichas, rolagens d100 e integração de campanha), exportação JSON no seletor nativo Android, e interface adaptada ao toque. Preserva as funcionalidades anteriores (Ordem Paranormal, D&D, GURPS, mesa, canvas e Ateliê Godot). Os livros comerciais não são distribuídos. Builds de desenvolvimento podem ser assinadas por chave diferente das versões antigas: faça backup de personagens e PDFs antes de qualquer desinstalação."
           fi
