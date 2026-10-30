@@ -48,8 +48,8 @@ for(const fragment of ["pointerDegrees=(e,el)","addEventListener('pointerdown'",
 }
 assert.match(html,/\.m75-rotary-dial/);assert.match(html,/touch-action:none!important/);
 assert.match(editor,/Escurecer somente salas fechadas sem iluminação/);
-assert.match(read('demo-offline.html'),/>v0\.(?:75|76|76\.1|76\.2|77|78|79|80|81|82|82\.1|83|84|85|85\.1|86|87|88|89|90|91|93|94|95|96)<\/small>/);
-assert.match(fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:75|76|77|78|79|80|81|82|83|84|85|86|87|88|89|90|91|92|93|94|95|96|97|98|99|100)/);
+assert.match(read('demo-offline.html'),/>v0\.(?:75|76|76\.1|76\.2|77|78|79|80|81|82|82\.1|83|84|85|85\.1|86|87|88|89|90|91|93|94|95|96|97)<\/small>/);
+assert.match(fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:75|76|77|78|79|80|81|82|83|84|85|86|87|88|89|90|91|92|93|94|95|96|97|98|99|100|101)/);
 for(const asset of ['rpg31_player_table.js','mastermind69_atmosphere.js','mastermind72_volume.js','rpg29_scene_editor.js'])
  assert.doesNotThrow(()=>new Function(read(asset)),asset);
 console.log('PASS v0.75: isolated unlit rooms, open-door daylight, torch illumination and analog rotation');
