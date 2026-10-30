@@ -21,7 +21,7 @@ lib.append(dashboard);
 const detail=document.createElement('div');detail.className='r15-ui r15-detail';detail.hidden=true;lib.append(detail);
 const palette=[['#3a1729','#a84065'],['#132d3e','#4ba9ba'],['#35230d','#af995d'],['#251a49','#8670cb'],['#223b2b','#77ad89'],['#382015','#b87945']];
 function title(sys){return window.MastermindSystemEditor?.system(sys.id)?.metadata?.name||sys.title}
-function colors(sys){let code=0;for(const x of title(sys)code+=x.charCodeAt(0);return palette[code%palette.length]}
+function colors(sys){let code=0;for(const x of title(sys))code+=x.charCodeAt(0);return palette[code%palette.length]}
 function image(sys){
  const custom=window.MastermindSystemEditor?.system(sys.id)?.metadata?.photo;
  if(/^data:image\/(png|jpeg|webp);base64,/.test(custom||'')&&custom.length<480000)return custom;
@@ -32,7 +32,7 @@ function card(sys){
  const color=colors(sys),thumb=image(sys),ready=sys.implementation==='partial';
  return '<article class="r15-card" style="--deep:'+color[0]+';--soft:'+color[1]+'"><div class="r15-art" data-open-system="'+esc(sys.id)+'" role="button" tabindex="0" aria-label="Abrir '+esc(title(sys))+'"><span class="glyph">✧</span>'+
  (thumb?'<img src="'+thumb+'" alt="Capa do PDF pessoal de Ordem Paranormal">':'')+
- '<div class="name">'+esc(sys.title)+'</div></div><div class="r15-card-info"><strong>'+esc(sys.title)+'</strong><small>'+sys.books.length+' arquivo(s) no Drive</small><span class="r15-tag">'+(ready?'Regras parciais':'Catalogado')+'</span><div class="r15-card-actions"><button data-open-system="'+esc(sys.id)+'">Detalhes ↗</button><button data-fav-system="'+esc(sys.id)+'" title="Marcar favorito" aria-pressed="'+faves.has(sys.id)+'">'+(faves.has(sys.id)?'★':'☆')+'</button></div></div></article>';
+ '<div class="name">'+esc(title(sys))+'</div></div><div class="r15-card-info"><strong>'+esc(sys.title)+'</strong><small>'+sys.books.length+' arquivo(s) no Drive</small><span class="r15-tag">'+(ready?'Regras parciais':'Catalogado')+'</span><div class="r15-card-actions"><button data-open-system="'+esc(sys.id)+'">Detalhes ↗</button><button data-fav-system="'+esc(sys.id)+'" title="Marcar favorito" aria-pressed="'+faves.has(sys.id)+'">'+(faves.has(sys.id)?'★':'☆')+'</button></div></div></article>';
 }
 function visible(sys){const txt=(title(sys)+' '+sys.books.map(b=>b.title).join(' ')).toLocaleLowerCase('pt-BR');
  return (!search||txt.includes(search))&&(filter==='all'||filter==='fav'&&faves.has(sys.id)||filter===sys.implementation);
@@ -90,7 +90,7 @@ function open(id){
  selected=id;dashboard.hidden=true;detail.hidden=false;
  const pal=colors(sys),arr=sys.books.slice().sort((a,b)=>(a.path||[]).join('/').localeCompare((b.path||[]).join('/'),'pt-BR')||a.title.localeCompare(b.title,'pt-BR'));
  detail.innerHTML='<button class="r15-back" id="r15-go-home">← Todos os sistemas</button>'+
- '<section class="r15-detail-hero" style="--deep:'+pal[0]+';--soft:'+pal[1]+'"><div class="eyebrow">BIBLIOTECA · SISTEMA</div><h1>'+esc(sys.title)+'</h1><p>'+sys.books.length+' documento(s) · '+sys.folders.length+' subpasta(s)</p>'+
+ '<section class="r15-detail-hero" style="--deep:'+pal[0]+';--soft:'+pal[1]+'"><div class="eyebrow">BIBLIOTECA · SISTEMA</div><h1>'+esc(title(sys))+'</h1><p>'+sys.books.length+' documento(s) · '+sys.folders.length+' subpasta(s)</p>'+
  '<div class="r15-tag">'+(sys.implementation==='partial'?'Módulo em desenvolvimento':'Acervo catalogado')+'</div>'+
  '<p>Livros, expansões, aventuras e materiais relacionados. Cada fonte mantém seu próprio vínculo ao Drive; regras e criaturas são incorporadas somente após validação.</p>'+
  driveAnchor(sys.folderId,'folder',sys.driveUrl,'Abrir pasta no Drive ↗')+'</section>'+
