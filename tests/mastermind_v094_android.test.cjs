@@ -6,8 +6,8 @@ const E=require('../app/src/main/assets/mastermind_coc7_engine.js');
 test('v0.94 retains original app ID and bumps its version without deleting app data',()=>{
  const gradle=fs.readFileSync(path.join(root,'app/build.gradle'),'utf8');
  assert.match(gradle,/applicationId 'dev\.rpgmesa\.demo'/);
- assert.match(gradle,/versionCode 98/);
- assert.match(gradle,/versionName '0\.94\.0-ordem-powers'/);
+ assert.match(gradle,/versionCode 99/);
+ assert.match(gradle,/versionName '0\.95\.0-pdf-templates'/);
 });
 test('Android personal PDFs stay private, multi-select and index by system without IA',()=>{
  const java=fs.readFileSync(path.join(root,'app/src/main/java/dev/rpgmesa/demo/MainActivity.java'),'utf8');
@@ -31,7 +31,7 @@ test('CoC7 works on Android with local storage, native JSON export, import, and 
  assert.match(html,/mastermind_coc7_engine\.js/);
  assert.match(html,/mastermind_coc7_ui\.js/);
  assert.match(html,/mastermind_coc7_android\.css/);
- assert.match(html,/id="mm-release"[^>]*>v0\.94/);
+ assert.match(html,/id="mm-release"[^>]*>v0\.95/);
  assert.match(ui,/RpgBookBridge\.saveInvestigatorJson/);
  assert.match(ui,/data-coc-import/);
  assert.match(ui,/localStorage\.setItem\(KEY/);
