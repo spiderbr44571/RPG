@@ -126,6 +126,9 @@
   if(bytes.length>12*1024*1024)throw Error('Modelo PDF maior que 12 MB.');
   const pdf=await lib.PDFDocument.load(bytes),all=pdf.getForm().getFields();
   if(!all.length)throw Error('Este modelo não possui campos editáveis (AcroForm). Use um PDF preenchível ou o modelo do Mastermind.');
+  if(system==='ordem'&&root.MastermindOrdemPdfTemplate?.supports(pdf)){
+   return root.MastermindOrdemPdfTemplate.fill(pdf,s,lib,{pack:root.OP13?.pack,calc:root.OP13?.calc?.()});
+  }
   const data=fields(system,s);let filled=0;
   for(const field of all){const value=match(field.getName(),data);if(value===null)continue;
    try{if(typeof field.setText==='function'){field.setText(value.slice(0,240));filled++;}else if(typeof field.select==='function'){field.select(value);filled++;}}catch{/* Locked or incompatible PDF fields are skipped. */}
