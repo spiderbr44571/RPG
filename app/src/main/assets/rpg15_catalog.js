@@ -12,12 +12,13 @@ while(lib.firstChild)old.appendChild(lib.firstChild);
 lib.append(old);
 const dashboard=document.createElement('div');dashboard.className='r15-ui r15-dashboard';
 dashboard.innerHTML='<div class="eyebrow">SEU ACERVO DE RPG</div><div class="r15-head"><div><h1>Biblioteca de <em>mundos.</em></h1><p>Explore sistemas, edições e os livros do seu acervo pessoal.</p></div><div class="r15-count"><strong>'+systems.length+'</strong><small>SISTEMAS CADASTRADOS</small></div></div>'+
- '<section class="r15-hero"><div class="r15-hero-inner"><div class="eyebrow">EM DESTAQUE · MÓDULO INICIAL</div><h2>Ordem<br>Paranormal.</h2><p>O primeiro sistema com módulo de regras, ficha, rituais e mestragem em desenvolvimento.</p><button class="r15-main-btn" data-open-system="ordem-paranormal">Explorar sistema →</button></div></section>'+
+ '<section class="r15-hero"><div class="r15-hero-inner"><div class="eyebrow">BIBLIOTECA MULTISSISTEMA</div><h2>Seus mundos.<br>Suas regras.</h2><p>Explore os sistemas cadastrados, organize seus livros e personalize as regras de cada universo.</p><button class="r15-main-btn" data-show-systems>Explorar sistemas →</button></div></section>'+
  '<div class="r15-search"><input type="search" id="r15-query" placeholder="Buscar sistema, livro ou edição..." aria-label="Buscar sistemas"><div class="r15-filterbar" role="group" aria-label="Filtros"><button data-category="all" aria-pressed="true">Todos</button><button data-category="partial" aria-pressed="false">Em adaptação</button><button data-category="catalog" aria-pressed="false">Catalogados</button><button data-category="fav" aria-pressed="false">Favoritos</button></div></div>'+
 
  '<div class="r15-row-title"><h2>Todos os sistemas</h2><small id="r15-count-results"></small></div><div class="r15-grid" id="r15-grid"></div>'+
  '<p class="r15-footnote">Índice local de links para seu acervo no Google Drive. A classificação indica possíveis fontes de regras, criaturas e expansões; não altera as regras da ficha sem revisão manual.</p>';
 lib.append(dashboard);
+dashboard.querySelector('[data-show-systems]')?.addEventListener('click',()=>dashboard.querySelector('#r15-grid')?.scrollIntoView({behavior:'smooth',block:'start'}));
 const detail=document.createElement('div');detail.className='r15-ui r15-detail';detail.hidden=true;lib.append(detail);
 const palette=[['#3a1729','#a84065'],['#132d3e','#4ba9ba'],['#35230d','#af995d'],['#251a49','#8670cb'],['#223b2b','#77ad89'],['#382015','#b87945']];
 function title(sys){return window.MastermindSystemEditor?.system(sys.id)?.metadata?.name||sys.title}
