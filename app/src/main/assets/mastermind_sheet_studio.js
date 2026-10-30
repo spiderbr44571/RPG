@@ -73,7 +73,8 @@ function navigateTab(id){
  $('#mss-body').dataset.mssActiveTab=id;
 }
 function present(system){
- if(!SYS[system]||state.changing)return;
+ if(!SYS[system])return;
+ if(state.changing){state.pendingSystem=system;return;}
  state.changing=true;
  const stage=native(),prev=state.system;
  state.system=system;localStorage.setItem('mastermind-sheet-studio-system',system);
@@ -94,7 +95,9 @@ function present(system){
  state.tab='stats';state.filter='';$('#mss-filter').value='';
  const nativeLabel=system==='ordem'?'Ordem Paranormal':SYS[system].label;
  $('#mss-native').title='Acesso a todos os campos nativos do sistema '+nativeLabel;
- requestAnimationFrame(()=>{updateSummary();navigateTab('stats');$('#mss-body').classList.add('mss-appearing');state.changing=false;});
+ requestAnimationFrame(()=>{updateSummary();navigateTab('stats');$('#mss-body').classList.add('mss-appearing');state.changing=false;
+  const pending=state.pendingSystem;state.pendingSystem=null;if(pending&&pending!==state.system)present(pending);
+ });
  document.dispatchEvent(new CustomEvent('mastermind:sheet-system-changed',{detail:{systemId:SYS[system].key,from:SYS[prev].key}}));
 }
 function selectCharacter(id){
