@@ -20,18 +20,21 @@ dashboard.innerHTML='<div class="eyebrow">SEU ACERVO DE RPG</div><div class="r15
 lib.append(dashboard);
 const detail=document.createElement('div');detail.className='r15-ui r15-detail';detail.hidden=true;lib.append(detail);
 const palette=[['#3a1729','#a84065'],['#132d3e','#4ba9ba'],['#35230d','#af995d'],['#251a49','#8670cb'],['#223b2b','#77ad89'],['#382015','#b87945']];
-function colors(sys){let code=0;for(const x of sys.title)code+=x.charCodeAt(0);return palette[code%palette.length]}
+function title(sys){return window.MastermindSystemEditor?.system(sys.id)?.metadata?.name||sys.title}
+function colors(sys){let code=0;for(const x of title(sys)code+=x.charCodeAt(0);return palette[code%palette.length]}
 function image(sys){
+ const custom=window.MastermindSystemEditor?.system(sys.id)?.metadata?.photo;
+ if(/^data:image\/(png|jpeg|webp);base64,/.test(custom||'')&&custom.length<480000)return custom;
  if(sys.id!=='ordem-paranormal')return '';
  try{let s=JSON.parse(localStorage.getItem('rpg-v09-cover')||'""');return /^data:image\/(png|jpeg|webp);base64,/.test(s)&&s.length<2000000?s:''}catch{return ''}
 }
 function card(sys){
  const color=colors(sys),thumb=image(sys),ready=sys.implementation==='partial';
- return '<article class="r15-card" style="--deep:'+color[0]+';--soft:'+color[1]+'"><div class="r15-art" data-open-system="'+esc(sys.id)+'" role="button" tabindex="0" aria-label="Abrir '+esc(sys.title)+'"><span class="glyph">✧</span>'+
+ return '<article class="r15-card" style="--deep:'+color[0]+';--soft:'+color[1]+'"><div class="r15-art" data-open-system="'+esc(sys.id)+'" role="button" tabindex="0" aria-label="Abrir '+esc(title(sys))+'"><span class="glyph">✧</span>'+
  (thumb?'<img src="'+thumb+'" alt="Capa do PDF pessoal de Ordem Paranormal">':'')+
  '<div class="name">'+esc(sys.title)+'</div></div><div class="r15-card-info"><strong>'+esc(sys.title)+'</strong><small>'+sys.books.length+' arquivo(s) no Drive</small><span class="r15-tag">'+(ready?'Regras parciais':'Catalogado')+'</span><div class="r15-card-actions"><button data-open-system="'+esc(sys.id)+'">Detalhes ↗</button><button data-fav-system="'+esc(sys.id)+'" title="Marcar favorito" aria-pressed="'+faves.has(sys.id)+'">'+(faves.has(sys.id)?'★':'☆')+'</button></div></div></article>';
 }
-function visible(sys){const txt=(sys.title+' '+sys.books.map(b=>b.title).join(' ')).toLocaleLowerCase('pt-BR');
+function visible(sys){const txt=(title(sys)+' '+sys.books.map(b=>b.title).join(' ')).toLocaleLowerCase('pt-BR');
  return (!search||txt.includes(search))&&(filter==='all'||filter==='fav'&&faves.has(sys.id)||filter===sys.implementation);
 }
 function render(){
@@ -80,7 +83,8 @@ function refreshLocalBook(){
  if(target){target.textContent=source?.textContent?.trim()||'Importe o PDF v1.3 para ativar o leitor local.';}
 }
 document.addEventListener('rpg-book-selected',()=>setTimeout(refreshLocalBook,50));
-function goHome(){if(oldOrder&&oldOrder.parentNode!==old)old.append(oldOrder);selected=null;detail.hidden=true;dashboard.hidden=false;window.scrollTo(0,0)}
+document.addEventListener('mastermind:system-edited',e=>{render();if(selected===e.detail?.systemId){const h=detail.querySelector('.r15-detail-hero h1');if(h)h.textContent=title(systems.find(x=>x.id===selected));}});
+function goHome(){render();if(oldOrder&&oldOrder.parentNode!==old)old.append(oldOrder);selected=null;detail.hidden=true;dashboard.hidden=false;window.scrollTo(0,0)}
 function open(id){
  const sys=systems.find(x=>x.id===id);if(!sys)return;
  selected=id;dashboard.hidden=true;detail.hidden=false;
