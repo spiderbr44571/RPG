@@ -37,20 +37,21 @@
   return [];
  }
  // Snapshot curated defaults once; re-applying edits must not accumulate duplicates.
- const defaults={};
+ const defaults={},originalMeta={};
  function list(id,kind){const d=get(id);return Array.isArray(d.catalogs?.[kind])?clone(d.catalogs[kind]):baseCatalog(id,kind)}
  function apply(id){
   if(!validId(id))return false;
   const override=get(id),sys=system(id);
   if(sys){
-   if(override.title)sys.title=override.title;
-   if(override.description)sys.customDescription=override.description;
+   if(!originalMeta[id])originalMeta[id]={title:sys.title,description:sys.customDescription||''};
+   sys.title=override.title||originalMeta[id].title;
+   sys.customDescription=override.description||originalMeta[id].description;
   }
   if(id==='ordem-paranormal'){
    const op=root.OP13?.pack,cls=root.MastermindClassCatalog;
    if(!op||!cls)return false;
    if(!defaults.ordem){
-    defaults.ordem={powers:clone(cls.classPowers),rules:clone(cls.classPowerRules),paranormal:clone(op.poderesParanormais),rituals:clone(op.rituais),progression:clone(op.progressao)};
+    defaults.ordem={powers:clone(cls.classPowers),rules:clone(cls.classPowerRules),paranormal:clone(op.poderesParanormais),rituals:clone(op.rituais),progression:clone(op.progressao),trails:Object.fromEntries(Object.entries(op.classes||{}).map(([k,v])=>[k,clone(v.trilhas||[])]))};
    }
    const d=defaults.ordem;
    // Mutate the original objects and arrays in place because the feature modules hold their references.
@@ -61,6 +62,7 @@
    op.poderesParanormais.splice(0,op.poderesParanormais.length,...clone(d.paranormal));
    op.rituais.splice(0,op.rituais.length,...clone(d.rituals));
    op.progressao.splice(0,op.progressao.length,...clone(d.progression));
+   for(const [klass,trails] of Object.entries(d.trails))if(op.classes?.[klass])op.classes[klass].trilhas=clone(trails);
    if(Array.isArray(override.catalogs?.powers)){
     for(const [klass] of Object.entries(cls.classPowers))cls.classPowers[klass]=[];
     for(const item of override.catalogs.powers){
@@ -69,6 +71,10 @@
       cls.classPowerRules[item.name]={...(item.requirements||{}),...(item.minNex?{minNex:Number(item.minNex)}:{})};
      }else if(item.kind==='paranormal')op.poderesParanormais.push({nome:item.name,categoria:'poder_paranormal',elemento:item.element||'',descricao:item.description||'',paginaLivro:item.page||0});
     }
+   }
+   if(Array.isArray(override.catalogs?.abilities))for(const [klass,c] of Object.entries(op.classes||{})){
+    const custom=override.catalogs.abilities.filter(x=>x.kind==='trail'&&x.klass===klass).map(x=>x.name);
+    if(custom.length)c.trilhas=custom;
    }
    if(Array.isArray(override.catalogs?.rituals))op.rituais.splice(0,op.rituais.length,...override.catalogs.rituals.map(x=>({id:x.id||norm(x.name).replace(/\s+/g,'-'),nome:x.name,categoria:'ritual',elemento:x.element||'',circulo:Number(x.level)||1,custoBasePE:Number(x.cost)||0,paginaLivro:Number(x.page)||0,resumo:x.description||''})));
    if(Array.isArray(override.catalogs?.progression))op.progressao.splice(0,op.progressao.length,...override.catalogs.progression.map(x=>({nex:Number(x.nex),limitePE:Number(x.peLimit)||0,marco:x.name})).sort((a,b)=>a.nex-b.nex));
