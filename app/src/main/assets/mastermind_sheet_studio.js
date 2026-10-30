@@ -70,7 +70,7 @@ function navigateTab(id){
   const selector=state.system==='dnd'?'#r18-dnd [data-tab="'+target+'"]':state.system==='gurps'?'#r16-gurps [data-tab="'+target+'"]':'#mss-native-stage .coc-shell [data-coc-tab="'+target+'"]';
   const button=$(selector,native());if(button)button.click();
  }
- $('#mss-body').dataset.mssTab=id;
+ $('#mss-body').dataset.mssActiveTab=id;
 }
 function present(system){
  if(!SYS[system]||state.changing)return;
