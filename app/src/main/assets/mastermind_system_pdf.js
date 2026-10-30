@@ -39,7 +39,7 @@
    add('ATRIBUTOS',dict(s.attrs));add('RECURSOS',Object.entries(s.resources||{}).map(([k,v])=>[k,resource(v)]));
    const origin=root.OP13?.pack?.origens?.find(o=>o.nome===(s.origin||s.origem));
    const grades={...Object.fromEntries((origin?.pericias||[]).map(k=>[k,1])),...(s.skills||{})};
-   add('PERÍCIAS',Object.entries(grades).map(([name,rank])=>[name,'+'+(Math.max(0,Math.min(3,Number(rank)||0))*5)]));
+   add('PERÍCIAS',Object.entries(grades).map(([name,rank])=>[name,'+'+([5,10,15].includes(Number(rank))?Number(rank):Math.max(0,Math.min(3,Number(rank)||0))*5)]));
    add('PODERES',listing(s.powerChoices?.length?s.powerChoices.map(v=>(v.name||'')+' · '+(v.type==='transcend'?'Paranormal':'Classe')+' · NEX '+v.nex):s.powers));
    add('RITUAIS',listing(s.rituaisConhecidos));add('INVENTÁRIO',inventory());add('HISTÓRIA',[['Descrição',s.description],['História',s.history]]);
   }else if(system==='dnd'){
