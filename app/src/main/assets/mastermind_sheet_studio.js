@@ -119,7 +119,7 @@ $('#mss-atelier').addEventListener('click',()=>window.RPG_DEMO?.navigate?.('atel
 $('#mss-native').addEventListener('click',()=>{native().scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'start'});});
 shell.addEventListener('click',e=>{
  const tab=e.target.closest('[data-mss-tab]');if(tab){navigateTab(tab.dataset.mssTab);return;}
- const side=e.target.closest('[data-mss-side]');if(side){state.right=side.dataset.mssSide;side();return;}
+ const sideButton=e.target.closest('[data-mss-side]');if(sideButton){state.right=sideButton.dataset.mssSide;side();return;}
  const find=e.target.closest('[data-mss-find]');if(find){navigateTab(state.right==='skills'?'stats':'powers');native().scrollIntoView({behavior:'smooth',block:'nearest'});return;}
 });
 $('#mss-filter').addEventListener('input',e=>{state.filter=e.target.value;side();});
