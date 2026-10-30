@@ -24,7 +24,6 @@ test('Original printable layouts cover real data of all four RPG systems',()=>{
   assert.equal(result.name,sheet.name);
   assert.ok(result.sections.length>=4,system);
   const whole=JSON.stringify(result);
-  assert.ok(whole.includes(sheet.name)===false||typeof result.name==='string'); // name is in title
   if(system==='ordem'){assert.match(whole,/Paradoxo/);assert.match(whole,/Surto Temporal/);assert.match(whole,/NEX/);}
   if(system==='dnd'){assert.match(whole,/Magia de teste/);assert.match(whole,/Mago/);}
   if(system==='gurps'){assert.match(whole,/Acrobacia/);assert.match(whole,/Visão Aguçada/);}
@@ -63,5 +62,6 @@ test('User provided AcroForm PDF keeps its layout and fills actual fields', {ski
 });
 test('Uploaded PDF with no AcroForm fields is rejected instead of guessing coordinates', {skip:!pdf},async()=>{
  const doc=await pdf.PDFDocument.create();doc.addPage([595,842]);
- await assert.rejects(()=>mod.fillUploaded(await doc.save(),'ordem',cases.ordem,pdf),/não possui campos editáveis/);
+ const bytes=await doc.save();
+ await assert.rejects(()=>mod.fillUploaded(bytes,'ordem',cases.ordem,pdf),/não possui campos editáveis/);
 });
