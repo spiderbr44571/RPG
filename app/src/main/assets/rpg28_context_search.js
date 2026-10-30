@@ -9,6 +9,8 @@
 })(typeof window!=='undefined'?window:null,function(){
  'use strict';
  const norm=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
+ const vocabulary=(typeof window!=='undefined'?window.MastermindSearchVocabulary:null)||
+  (typeof module!=='undefined'&&module.exports?require('./mastermind_search_vocabulary.js'):null);
  const stop=new Set('a o as os um uma uns umas de do da dos das em no na nos nas e ou ao aos por para com sem sobre que qual quais como quando onde quem oque voce vc eu me meu minha meus minhas seu sua seus suas isso isto aquele aquela seria posso pode podem poderia quero saber explicar explique fale diga funciona funcionam funcionamento regra regras livro livros rpg sistema sistemas personagem personagens jogo jogos dentro'.split(' '));
  const irregular={dormi:'dormir',dormimos:'dormir',dormindo:'dormir',durmo:'dormir',durma:'dormir',durante:'durante',recupero:'recuperar',recupera:'recuperar',recuperamos:'recuperar',recuperando:'recuperar',recuperei:'recuperar',ganho:'ganhar',ganha:'ganhar',gasto:'gastar',gasta:'gastar',custam:'custo',dura:'duracao',durar:'duracao',descansamos:'descanso',descansando:'descanso',descansar:'descanso',descansa:'descanso',san:'san',pv:'pv',pe:'pe'};
  const stem=w=>{
@@ -74,6 +76,8 @@
   const original=wordset(q);
   const weights=new Map();
   for(const w of original)weights.set(w,2.5);
+  // The aliases affect retrieval, but never invent answers without indexed evidence.
+  for(const w of vocabulary?.variants(question,systemId,65)||[]){if(!weights.has(w))weights.set(w,0.82);}
   const originalStems=new Set(original.map(stem));
   const concepts=[];
   const families=COMMON.concat(SPECIFIC[systemId]||[]);
@@ -95,7 +99,7 @@
   if(systemId==='ordem-paranormal'&&/\b(?:entre missoes|depois da missao|apos a missao|parar depois|pausa da missao)\b/.test(q)){
    weights.set('interludio',3.3);weights.set('descanso',2.8);concepts.push('op-interludio');
   }
-  return {original,terms:[...weights.entries()].slice(0,85).map(([term,weight])=>({term,weight,stem:stem(term)})),concepts,intents};
+  return {original,terms:[...weights.entries()].slice(0,145).map(([term,weight])=>({term,weight,stem:stem(term)})),concepts,intents};
  }
  const cache=new WeakMap();
  function indexDoc(d){
