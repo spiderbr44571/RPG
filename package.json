@@ -1,7 +1,7 @@
 {
   "name": "mastermind-rpg-desktop",
   "private": true,
-  "version": "1.1.8",
+  "version": "1.1.9",
   "scripts": {
     "test": "python3 tests/runtime/prepare.py && playwright test",
     "start": "electron .",
@@ -107,6 +107,7 @@
     "compression": "maximum"
   },
   "dependencies": {
-    "pdfjs-dist": "3.11.174"
+    "pdfjs-dist": "3.11.174",
+    "pdf-lib": "1.17.1"
   }
 }
