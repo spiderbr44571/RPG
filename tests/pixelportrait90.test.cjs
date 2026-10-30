@@ -13,7 +13,7 @@ assert.match(html,/id="screen-atelier85"/);
 assert.match(html,/id="p90-native-stage"/);
 assert.match(html,/id="p90-token-panel"/);
 assert.match(html,/MASTERMIND · ATELIÊ 2D · v0\.(?:90|91|93)/);
-assert.match(html,/>v0\.(?:90|91)<\/small>/);
+assert.match(html,/>v0\.(?:90|91|93)<\/small>/);
 assert.match(html,/id="p86-portrait"/);
 assert.match(html,/id="p86-token"/);
 assert.match(html,/data-p86-action="save"/);
