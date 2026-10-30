@@ -94,7 +94,7 @@
  async function fill(pdf,s,lib=root.PDFLib,context={}){
   if(!supports(pdf))throw Error('Modelo de Ordem Paranormal não reconhecido.');
   if(!lib?.StandardFonts)throw Error('Motor PDF indisponível.');
-  const form=pdf.getForm();
+  const form=pdf.getForm(),formFieldCount=form.getFields().length;
   // Clear all old values first; otherwise previous characters remain in unused slots.
   for(const field of form.getFields()){
    try{if(typeof field.setText==='function')field.setText('');
@@ -123,7 +123,7 @@
    [[72,510,43,33],max('PE')],[[118,539,70,24],cap('PE')],
    [[226,510,42,33],max('SAN')],[[269,538,49,26],cap('SAN')],
    [[71,576,44,33],calc.defesa??s.defense??s.defesa??10+Number(get(attrs,'Agilidade',0))],
-   [[267,574,54,29],s.movement??s.deslocamento??9],
+   [[267,574,54,29],s.movement??s.deslocamento??''],
    [[210,445,42,33],s.determination??''],[[264,474,54,25],s.determinationCurrent??'']
   ])w0(rect,value,{size:12,align:'center'});
   w0([109,637,218,14],s.protection||s.protecao||'',{size:8});
@@ -187,7 +187,7 @@
   const extraPages=renderExtra(pdf,lib,overflow,font,bold);
   pdf.setTitle('Ficha de Ordem Paranormal - '+(s.name||'Agente'));
   pdf.setSubject('Modelo fornecido pelo usuário, preenchido pelo Mastermind; páginas extras quando necessário.');
-  return {bytes:new Uint8Array(await pdf.save()),filled,fields:form.getFields().length,extraPages,recognized:true};
+  return {bytes:new Uint8Array(await pdf.save()),filled,fields:formFieldCount,extraPages,recognized:true};
  }
  return {supports,fill,SKILLS,grade,packSkill};
 });
