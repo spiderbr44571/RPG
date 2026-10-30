@@ -13,7 +13,10 @@ const classPowerCatalog=window.MastermindClassCatalog||{classPowers:{},classPowe
 const classPowers=classPowerCatalog.classPowers||{};
 const classPowerRules=classPowerCatalog.classPowerRules||{};
 function trained(s,name){
- if(Number(s.skills?.[name]||0)>0)return true;
+ const rank=s.skills?.[name];
+ if(typeof rank==='number'&&rank>0)return true;
+ if(typeof rank==='string'&&['treinado','veterano','expert'].includes(rank.toLowerCase()))return true;
+ if(rank&&typeof rank==='object'&&(Number(rank.level??rank.bonus??rank.value??0)>0||['treinado','veterano','expert'].includes(String(rank.rank??rank.training??'').toLowerCase())))return true;
  const origin=op.pack?.origens?.find(x=>x.nome===(s.origin||s.origem));
  return !!origin?.pericias?.includes(name);
 }
@@ -29,8 +32,8 @@ function missingClassRequirements(name,s){
   missing.push('Poder '+rule.power);
  return missing;
 }
-const powers=(op.pack.poderesParanormais||[]).map(x=>({name:x.nome,element:x.elemento,page:x.paginaLivro}));
-let mode='transcend',chosen='',note='',lastChar='';
+const powers=(op.pack.poderesParanormais||[]).map(x=>({name:x.nome,element:x.elemento,page:x.paginaLivro,repeatable:['Aprender Ritual','Resistir a Elemento'].includes(x.nome)}));
+let mode='class',chosen='',note='',lastChar='';
 const current=()=>op.state;
 const records=s=>Array.isArray(s.powerChoices)?s.powerChoices.filter(x=>x&&['class','transcend'].includes(x.type)):[];
 const slots=nex=>milestones.filter(n=>n<=Number(nex||0)).length;
@@ -38,36 +41,44 @@ const selected=()=>pc.selectedId();
 const learned=s=>new Set(Array.isArray(s.powers)?s.powers.map(x=>typeof x==='string'?x:x?.name).filter(Boolean):[]);
 function counts(s){
  const used=records(s);
- return used.reduce((out,r)=>(r.type==='transcend'&&(out[r.element]=(out[r.element]||0)+1),out),{});
+ return used.reduce((out,r)=>{if(r.type==='transcend'){const element=r.element||powers.find(p=>p.name===r.name)?.element;if(element)out[element]=(out[element]||0)+1;}return out;},{});
 }
 function setMessage(msg){note=msg;const tag=$('#v56-feedback');if(tag)tag.textContent=note;}
 function options(s){
  if(mode==='class')return (classPowers[s.class]||[]).map(name=>({name,element:s.class,page:classPowerCatalog.classPowerPage?.[s.class]||0}));
  return powers;
 }
+function isRepeatable(kind,name){return kind==='class'?!!classPowerRules[name]?.repeatable:!!powers.find(p=>p.name===name)?.repeatable;}
+function evaluate(name,s=current(),kind=mode){
+ const missing=[],prev=records(s),limit=slots(s.nex),next=milestones[prev.length];
+ if(!name||name.length>90)missing.push('Escolha um poder válido');
+ if(prev.length>=limit)missing.push('Nenhuma escolha disponível no NEX atual');
+ if(!isRepeatable(kind,name)&&(learned(s).has(name)||prev.some(x=>x.name===name)))missing.push('Já adquirido');
+ if(kind==='class'){
+  if(!(classPowers[s.class]||[]).includes(name))missing.push('Poder incompatível com a classe');
+  else missing.push(...missingClassRequirements(name,s));
+ }else if(kind==='transcend'){
+  if(!powers.some(p=>p.name===name))missing.push('Poder paranormal fora do catálogo');
+  if(name==='Surto Temporal'&&(counts(s).Morte||0)<2)missing.push('Dois poderes de Morte anteriores');
+ }else missing.push('Tipo de poder inválido');
+ return {allowed:missing.length===0,missing,nex:next};
+}
 function card(p,s){
- const repeatable=mode==='class'&&!!classPowerRules[p.name]?.repeatable;
- const existing=learned(s).has(p.name)&&!repeatable;
- const active=chosen===p.name;
- const prior=p.name==='Surto Temporal'&&mode==='transcend';
- const death=counts(s).Morte||0;
- const missing=mode==='class'?missingClassRequirements(p.name,s):(prior&&death<2?['Dois poderes de Morte anteriores']:[]);
- const allowed=missing.length===0;
- const info=!allowed?'Requer '+missing.join(' · '):p.page?'Livro básico · p. '+p.page:'Consultar regras do livro';
+ const status=evaluate(p.name,s),existing=status.missing.includes('Já adquirido');
+ const info=existing?'Já adquirido':!status.allowed?'Requer '+status.missing.join(' · '):p.page?'Livro básico · p. '+p.page:'Consultar regras do livro';
  return '<button type="button" data-v56-select="'+esc(p.name)+'" class="v56-power-card'+
- (active?' chosen':'')+'" '+(!allowed||existing?'disabled':'')+'>'+
- '<strong>'+esc(p.name)+'</strong><span>'+esc(p.element)+'</span><small>'+
- (existing?'Já adquirido':info)+'</small></button>';
+ (chosen===p.name?' chosen':'')+'" '+(!status.allowed?'disabled':'')+' aria-label="'+esc(p.name+(status.allowed?' disponível':' indisponível: '+status.missing.join(', ')))+'">'+
+ '<strong>'+esc(p.name)+'</strong><span>'+esc(p.element)+'</span><small>'+esc(info)+'</small></button>';
 }
 function show(){
  const s=current(),r=records(s),remaining=Math.max(0,slots(s.nex)-r.length);
  const choices=options(s);
  panel.innerHTML='<section id="v56-powers" class="surface-flat op-panel">'+
- '<div class="v56-heading"><div><small>MÓDULO ORDEM PARANORMAL · FICHA REAL</small><h3>✦ Poderes & Transcender</h3>'+
+ '<div class="v56-heading"><div><small>MÓDULO ORDEM PARANORMAL · FICHA REAL</small><h3>✦ Poderes de classe e paranormais</h3>'+
  '<p>Escolha seus poderes por NEX. Transcender utiliza uma escolha de poder de classe; os poderes aprendidos passam a integrar esta ficha e a campanha quando o mestre importar a ficha.</p></div>'+
  '<div class="v56-budget"><strong>'+remaining+' disponíveis</strong><span>'+r.length+' de '+slots(s.nex)+' escolhas · NEX '+Number(s.nex||0)+'%</span></div></div>'+
- '<div class="v56-switch"><button data-v56-mode="transcend" class="'+(mode==='transcend'?'active':'')+'">✧ Transcender</button>'+
- '<button data-v56-mode="class" class="'+(mode==='class'?'active':'')+'">Poder de classe</button></div>'+
+ '<div class="v56-switch"><button data-v56-mode="transcend" class="'+(mode==='transcend'?'active':'')+'">✧ Poderes paranormais (Transcender)</button>'+
+ '<button data-v56-mode="class" class="'+(mode==='class'?'active':'')+'">Poderes de classe</button></div>'+
  '<p class="v56-hint">'+(mode==='transcend'?
  'Você deixará de ganhar SAN nesta evolução. Os pré-requisitos individuais devem ser confirmados com o livro e o mestre.':
  'Poderes do livro básico 1.3 da sua classe, incluindo Treinamento em Perícia. Requisitos são conferidos antes de registrar.')+'</p>'+
@@ -87,33 +98,18 @@ function show(){
 }
 function learn(name){
  name=String(name||'').trim();
- const s=current(),prev=records(s),max=slots(s.nex);
- if(prev.length>=max)return setMessage('Não há escolhas disponíveis neste NEX.');
- if(!name||name.length>90)return setMessage('Selecione o nome de um poder válido.');
- const repeatable=mode==='class'&&!!classPowerRules[name]?.repeatable;
- if(!repeatable&&(learned(s).has(name)||prev.some(x=>x.name===name)))
-  return setMessage('Esse poder já está na sua ficha.');
- if(mode==='transcend'&&!powers.some(p=>p.name===name))return setMessage('Escolha um poder paranormal do catálogo.');
- if(mode==='class'&&!(classPowers[s.class]||[]).includes(name))
-  return setMessage('Este poder não pertence à classe selecionada no livro básico.');
- if(mode==='class'){
-  const requirements=missingClassRequirements(name,s);
-  if(requirements.length)return setMessage('Pré-requisitos não cumpridos: '+requirements.join(', ')+'.');
- }
- if(mode==='transcend'&&name==='Surto Temporal'&&(counts(s).Morte||0)<2)
-  return setMessage('Surto Temporal exige dois poderes paranormais de Morte anteriores.');
- const nex=milestones[prev.length];
- const element=mode==='transcend'?powers.find(p=>p.name===name)?.element||'':'';
- const choice={type:mode,name,nex,...(element?{element}:{}),source:'mastermind-v056'};
+ const s=current(),check=evaluate(name,s);
+ if(!check.allowed){setMessage('Não foi possível aprender: '+check.missing.join(', ')+'.');return false;}
+ const prev=records(s),element=mode==='transcend'?powers.find(p=>p.name===name)?.element||'':'';
+ const choice={type:mode,name,nex:check.nex,...(element?{element}:{}),source:'mastermind-v094'};
  const updated=[...(Array.isArray(s.powerChoices)?s.powerChoices:[]),choice];
  const old=Array.isArray(s.powers)?s.powers:[];
- if(!window.confirm('Registrar '+name+' como escolha de NEX '+nex+'% na ficha '+(s.name||'')+'? Confirme os pré-requisitos com o mestre.'))return;
+ if(!window.confirm('Registrar '+name+' como escolha de NEX '+check.nex+'% na ficha '+(s.name||'')+'? Confirme os efeitos específicos com o mestre.'))return false;
  const alreadyKnown=old.some(x=>(typeof x==='string'?x:x?.name)===name);
- const ok=pc.update(selected(),{powers:alreadyKnown?old:[...old,name],powerChoices:updated});
- if(!ok)return setMessage('Não foi possível salvar a ficha. Nenhum poder foi aprendido.');
- chosen='';note='✓ '+name+' registrado na ficha selecionada (NEX '+nex+'%).';
- app?.notify?.(note);
- show();
+ const id=selected(),ok=id&&pc.update(id,{powers:alreadyKnown?old:[...old,name],powerChoices:updated});
+ if(!ok){setMessage('Não foi possível salvar a ficha. Nenhum poder foi aprendido.');return false;}
+ chosen='';note='✓ '+name+' registrado na ficha selecionada (NEX '+check.nex+'%).';
+ app?.notify?.(note);show();return true;
 }
 panel.addEventListener('click',e=>{
  if(e.target.closest('#v62-power-description')){if(chosen)window.Mastermind62Descriptions?.open?.({systemId:'ordem-paranormal',kind:mode==='class'?'Poder de classe':'Poder paranormal',name:chosen,page:options(current()).find(x=>x.name===chosen)?.page||'',origin:'Ordem Paranormal — Livro de Regras 1.3'});return;}
@@ -137,6 +133,6 @@ $('#rpg05-del-char')?.addEventListener('click',()=>{chosen='';note='';show()});
 $('#op-nex')?.addEventListener('change',()=>setTimeout(show,0));
 $('#op-classe')?.addEventListener('change',()=>setTimeout(()=>{chosen='';show()},0));
 tabs.addEventListener('click',e=>{if(e.target.closest('[data-r14-tab="advancement"]'))setTimeout(show,0)});
-window.Mastermind56Powers={show,open,learn,get count(){return powers.length},get panel(){return panel}};
+window.Mastermind56Powers={show,open,learn,evaluate,setMode(value){if(['class','transcend'].includes(value)){mode=value;chosen='';show();}},get mode(){return mode},get count(){return powers.length},get panel(){return panel}};
 show();
 })();
