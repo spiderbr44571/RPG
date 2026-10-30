@@ -57,6 +57,7 @@
 #mastermind-sheet-studio .mss-native-stage>.mss-system-editor{min-width:0;width:100%;max-width:none}
 #mastermind-sheet-studio .mss-native-stage>.mss-system-editor>section{max-width:none!important;min-width:0}
 #mastermind-sheet-studio #rpg05-sheet-op{max-width:none!important;width:100%;margin:0}
+#mastermind-sheet-studio #rpg05-sheet-op[hidden]{display:none!important}
 #mastermind-sheet-studio #op-view-ficha,#mastermind-sheet-studio #r14-content,#mastermind-sheet-studio #r16-gurps,#mastermind-sheet-studio #r18-dnd{max-width:none!important;min-width:0!important}
 #mastermind-sheet-studio #r14-content .r14-panel{grid-template-columns:minmax(0,1fr)!important}
 #mastermind-sheet-studio .r14-panel .op-panel{margin:0 0 10px;max-width:none!important;min-width:0}
