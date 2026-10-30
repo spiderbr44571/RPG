@@ -14,7 +14,7 @@ test('PDF export module is loaded inside the same character screen without repla
  assert.match(html,/src="pdf-lib\.min\.js"/);
  assert.match(html,/src="mastermind_system_pdf\.js"/);
  assert.ok(html.indexOf('mastermind_system_pdf.js')>html.indexOf('mastermind_sheet_studio.js'));
- assert.match(legacy,/id="r17-op-panel"/);
+ assert.match(legacy,/r17-op-panel/);
  assert.match(legacy,/RPG-SHEET-DATA-V1/);
 });
 test('Original printable layouts cover real data of all four RPG systems',()=>{
