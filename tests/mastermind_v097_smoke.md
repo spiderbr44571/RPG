@@ -1,0 +1,1 @@
+Power edit, system catalog editing and cursed inventory PDF smoke tests are tracked in the new version.
