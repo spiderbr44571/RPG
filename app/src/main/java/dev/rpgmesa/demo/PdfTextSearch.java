@@ -378,7 +378,7 @@ final class PdfTextSearch {
    String sql="SELECT pages.page,pages.body FROM page_fts "+
     "JOIN pages ON pages.page=page_fts.docid WHERE page_fts MATCH ? "+
     "ORDER BY pages.page LIMIT ? OFFSET ?";
-   try(Cursor c=db.rawQuery(sql,new String[]{expression.toString(),Integer.toString(limit),Integer.toString(from)})){
+   try(Cursor c=db.rawQuery(sql,new String[]{match,Integer.toString(limit),Integer.toString(from)})){
     while(c.moveToNext()){
      String body=c.getString(1);
      // Only the 20 visible pages are inspected, never the complete document.
