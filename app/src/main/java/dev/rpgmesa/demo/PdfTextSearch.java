@@ -93,10 +93,49 @@ final class PdfTextSearch {
  private static List<String> tokens(String query){
   Matcher m=WORDS.matcher(norm(query));
   List<String> out=new ArrayList<>();
-  while(m.find()&&out.size()<10){
+  while(m.find()&&out.size()<18){
    String w=m.group();if(!STOP.contains(w)&&!out.contains(w))out.add(w);
   }
   return out;
+ }
+ private static final String[][] ALIASES={
+  {"descanso","repouso","rest","resting","dormir","recuperacao"},
+  {"proficiencia","proficiency","treinamento","expertise"},
+  {"magia","spells","spell","feitico","ritual","conjuracao"},
+  {"concentracao","concentration","concentrar"},
+  {"armadura","armor","defesa","defense"},
+  {"salvaguarda","saving","throw","resistencia"},
+  {"fadiga","fatigue","energia"},
+  {"pericia","pericias","skill","skills","habilidade"},
+  {"vantagem","advantage","advantages"},
+  {"desvantagem","disadvantage","disadvantages"},
+  {"aparar","parry","bloquear","block","esquiva","dodge"},
+  {"sobrecarga","carga","encumbrance"},
+  {"medo","susto","fright","horror"},
+  {"sanidade","sanity","insanidade","insanity"},
+  {"sorte","luck","fortuna"},
+  {"forcado","pushed","pushing","forcar"},
+  {"extremo","extreme","dificil","hard","sucesso","success"},
+  {"mitos","mythos","cthulhu"},
+  {"investigador","investigator","ocupacao","occupation"},
+  {"perseguicao","chase","fuga"},
+  {"combate","combat","fighting","ataque","attack"},
+  {"ferimento","wound","injury","cura","healing"}
+ };
+ private static List<String> synonyms(List<String> original){
+  Set<String> seen=new HashSet<>(original);List<String> out=new ArrayList<>();
+  for(String[] group:ALIASES){
+   boolean triggered=false;
+   for(String term:group)if(original.contains(term)){triggered=true;break;}
+   if(!triggered)continue;
+   for(String term:group)if(!seen.contains(term)&&out.size()<24){out.add(term);seen.add(term);}
+  }
+  return out;
+ }
+ private static String matchQuery(List<String> words){
+  StringBuilder q=new StringBuilder();
+  for(String w:words){if(q.length()>0)q.append(" OR ");q.append(w).append("*");}
+  return q.toString();
  }
  private static JSONObject status(String state,String title,int progress,int total,String message){
   JSONObject j=new JSONObject();
@@ -292,13 +331,15 @@ final class PdfTextSearch {
   },"mastermind-pdf-index-v47").start();
  }
  private static String excerpt(String original,String normalized,String needle){
-  // Output deliberately short: cite the page, do not reproduce the full book.
-  int pos=normalized.indexOf(needle);
-  if(pos<0)pos=0;
-  int start=Math.max(0,Math.min(original.length(),pos-32));
-  int end=Math.min(original.length(),start+130);
-  String s=original.substring(start,end).replaceAll("\\s+"," ").trim();
-  return (start>0?"…":"")+s+(end<original.length()?"…":"");
+  String raw=(original==null?"":original).replace('\uFFFD',' ').replace('\u0000',' ');
+  String candidate="";
+  for(String line:raw.split("\\R"))if(norm(line).contains(needle)){candidate=line;break;}
+  if(candidate.isEmpty())candidate=raw;
+  candidate=candidate.replaceAll("\\s+"," ").trim();
+  int pos=norm(candidate).indexOf(needle),start=0;
+  if(pos>0)start=Math.max(0,(int)(pos*(candidate.length()/(double)Math.max(1,norm(candidate).length())))-46);
+  int end=Math.min(candidate.length(),start+185);
+  return (start>0?"…":"")+candidate.substring(start,end)+(end<candidate.length()?"…":"");
  }
  JSONObject search(String uri,String query,int size,int offset){
   JSONObject result=new JSONObject();JSONArray hits=new JSONArray();
@@ -309,8 +350,8 @@ final class PdfTextSearch {
    result.put("total",0);
    if(!"ready".equals(state)&&!"indexing".equals(state)&&!"partial".equals(state))return result;
    List<String> words=tokens(query);if(words.isEmpty())return result;
-   StringBuilder expression=new StringBuilder();
-   for(String w:words){if(expression.length()>0)expression.append(" OR ");expression.append(w).append("*");}
+   String match=matchQuery(words);
+   boolean expanded=false;
    SQLiteDatabase db=helper.getReadableDatabase();
    // Never return pages from the previous PDF while a newly imported book is loading.
    if(uri==null||!uri.equals(meta(db,"uri")))return result;
@@ -321,13 +362,23 @@ final class PdfTextSearch {
    int limit=Math.min(30,Math.max(1,size));
    int count=0;
    try(Cursor totals=db.rawQuery("SELECT COUNT(*) FROM page_fts WHERE page_fts MATCH ?",
-     new String[]{expression.toString()})){
+     new String[]{match})){
     if(totals.moveToFirst())count=totals.getInt(0);
+   }
+   if(count==0){
+    List<String> alternatives=synonyms(words);
+    if(!alternatives.isEmpty()){
+     match=matchQuery(alternatives);
+     try(Cursor totals=db.rawQuery("SELECT COUNT(*) FROM page_fts WHERE page_fts MATCH ?",new String[]{match})){
+      if(totals.moveToFirst())count=totals.getInt(0);
+     }
+     expanded=count>0;
+    }
    }
    String sql="SELECT pages.page,pages.body FROM page_fts "+
     "JOIN pages ON pages.page=page_fts.docid WHERE page_fts MATCH ? "+
     "ORDER BY pages.page LIMIT ? OFFSET ?";
-   try(Cursor c=db.rawQuery(sql,new String[]{expression.toString(),Integer.toString(limit),Integer.toString(from)})){
+   try(Cursor c=db.rawQuery(sql,new String[]{match,Integer.toString(limit),Integer.toString(from)})){
     while(c.moveToNext()){
      String body=c.getString(1);
      // Only the 20 visible pages are inspected, never the complete document.
@@ -336,12 +387,14 @@ final class PdfTextSearch {
      for(String word:words){if(folded.contains(word)){needle=word;break;}}
      JSONObject hit=new JSONObject();
      hit.put("page",c.getInt(0));
-     hit.put("excerpt",excerpt(body,folded,needle));
+     hit.put("excerpt",excerpt(body,folded,expanded?synonyms(words).get(0):needle));
+     if(body.contains("\uFFFD"))hit.put("encodingWarning","O texto desta página contém caracteres de fonte ilegíveis; consulte a página original.");
      hit.put("title","Página "+c.getInt(0)+" do PDF");
      hits.put(hit);
     }
    }
    result.put("total",count);
+   result.put("expanded",expanded);
    result.put("offset",from);
    result.put("book",meta(db,"title"));
    result.put("indexedPages",status.optInt("progress"));
