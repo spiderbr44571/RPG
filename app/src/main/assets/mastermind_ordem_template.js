@@ -154,14 +154,15 @@
   w1([179,111,27,28],nex?nex+'%':'',{size:9,align:'center'});
   w1([109,146,189,29],rank,{size:10});
   w1([245,92,52,23],calc.peTurn??s.limitePE??'',{size:9,align:'center'});
-  const notes=Array.isArray(s.notes)?s.notes.map(asName).join('\n'):s.notes||s.anotacoes||s.note||'';
+  const notesBase=Array.isArray(s.notes)?s.notes.map(asName).join('\n'):s.notes||s.anotacoes||s.note||'';
+  const notes=[s.trail||s.trilha?'Trilha: '+(s.trail||s.trilha):'',notesBase].filter(Boolean).join(' - ');
   filled+=drawLines(lib,pages[1],[319,69,213,98],notes,font,{size:9,lineHeight:12,maxLines:7});
   const known=context.pack?.rituais||[];
   const powers=list(s.powerChoices).length?s.powerChoices.map(v=>({name:v.name,type:v.type,nex:v.nex})):list(s.powers).map(v=>({name:asName(v),type:'class'}));
   const rituals=list(s.rituaisConhecidos).map(v=>{
    const id=asName(v),data=known.find(q=>q.id===id||q.nome===id);return {name:data?.nome||id,type:'ritual',cost:data?.custo??'',page:data?.paginaLivro??'',description:data?.resumo??''};
   });
-  const abilities=[...powers,...rituals],visible=abilities.slice(0,22),overflow=[];
+  const abilities=[...powers,...rituals],visible=abilities.slice(0,21),overflow=[];
   for(let i=0;i<visible.length;i++){
    const p=visible[i],top=200+16.05*i;
    w1([37,top,161,14],asName(p),{size:8});
