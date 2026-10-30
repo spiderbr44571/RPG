@@ -76,8 +76,9 @@ jobs:
           node --check app/src/main/assets/mastermind_coc7_engine.js
           node --check app/src/main/assets/mastermind_coc7_ui.js
           node --check app/src/main/assets/mastermind_sheet_studio.js
+          node --check app/src/main/assets/mastermind_sheet_studio.js
           node --check desktop/mestragem-linux.js
-          node --test desktop/tests/desktop.test.cjs desktop/tests/godot-health.test.cjs desktop/tests/pdf-coc.test.cjs tests/mastermind_manual_canvas.test.cjs tests/mastermind_atelier_overlay.test.cjs tests/mastermind_sheet_studio.test.cjs
+          node --test desktop/tests/desktop.test.cjs desktop/tests/godot-health.test.cjs desktop/tests/pdf-coc.test.cjs tests/mastermind_manual_canvas.test.cjs tests/mastermind_atelier_overlay.test.cjs tests/mastermind_sheet_studio.test.cjs tests/mastermind_sheet_studio.test.cjs
           if ($LASTEXITCODE -ne 0) { throw 'Testes estaticos falharam' }
       - name: Gerar Mastermind Setup.exe e Portable.exe
         shell: pwsh
@@ -129,6 +130,13 @@ jobs:
         run: |
           node desktop/tests/e2e-sheet-studio.cjs dist/win-unpacked/Mastermind.exe
           if ($LASTEXITCODE -ne 0) { throw 'Estudio de Fichas nao passou nos quatro sistemas' }
+      - name: Testar Estudio de Fichas real no Windows empacotado
+        shell: pwsh
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: |
+          node desktop/tests/e2e-sheet-studio.cjs dist/win-unpacked/Mastermind.exe
+          if ($LASTEXITCODE -ne 0) { throw 'Estudio de Fichas nao funcionou no Windows' }
       - name: Verificar PDF indexado e CoC 7e no executavel Windows
         shell: pwsh
         env:
