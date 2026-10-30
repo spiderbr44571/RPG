@@ -20,7 +20,7 @@
   return n?sheet[n]:defaultValue;
  }
  function grade(v){
-  if(typeof v==='number')return Math.max(0,Math.min(3,Math.floor(v)));
+  if(typeof v==='number')return [5,10,15].includes(v)?v/5:Math.max(0,Math.min(3,Math.floor(v)));
   if(typeof v==='object'&&v!==null)return grade(v.grade??v.rank??v.level??v.training??v.value??0);
   if(typeof v==='string'){
    const n=norm(v);if(n==='treinado')return 1;if(n==='veterano')return 2;if(n==='expert')return 3;
