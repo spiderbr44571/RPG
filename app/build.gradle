@@ -1,4 +1,4 @@
-
+plugins { id 'com.android.application' }
 // A production signing identity must be supplied via private GitHub Actions secrets.
 // Debug APKs signed by separate CI runners are NOT interchangeable upgrades.
 def mmKeyFile=System.getenv('MASTERMIND_ANDROID_KEYSTORE_PATH')
@@ -6,7 +6,6 @@ def mmStorePassword=System.getenv('MASTERMIND_ANDROID_STORE_PASSWORD')
 def mmKeyAlias=System.getenv('MASTERMIND_ANDROID_KEY_ALIAS')
 def mmKeyPassword=System.getenv('MASTERMIND_ANDROID_KEY_PASSWORD')
 
-plugins { id 'com.android.application' }
 android {
  useLibrary 'android.test.runner'
  useLibrary 'android.test.base'
