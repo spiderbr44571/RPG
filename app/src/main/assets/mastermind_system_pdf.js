@@ -15,7 +15,8 @@
  };
  const text=v=>v==null?'—':typeof v==='object'?JSON.stringify(v):String(v);
  const latin=v=>text(v).replace(/[–—]/g,'-').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/[^\u0009\u000A\u000D\u0020-\u00FF]/g,'?');
- const item=v=>typeof v==='string'?v:text(v?.name??v?.nome??v?.title??v?.id??'Item');
+ const item=v=>typeof v==='string'?v:(root.MastermindSystemEditor?.displayItem(v)||text(v?.name??v?.nome??v?.title??v?.id??'Item'));
+ const itemName=item;
  const dict=v=>Object.entries(v||{}).map(([k,x])=>[k,text(x)]);
  const listing=v=>(Array.isArray(v)?v:[]).map((x,i)=>[String(i+1),item(x)]);
  const resource=v=>typeof v==='object'&&v!==null?text(v.current??v.value??v.max??0)+' / '+text(v.max??v.current??v.value??0):text(v);
