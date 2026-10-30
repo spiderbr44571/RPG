@@ -163,7 +163,8 @@
  function refreshResults(query=lastSearchQuery){
   if(!panel.isConnected)return;
   const items=booksFor(scope());
-  const collection=items.slice(0,12);
+  const cap=scope()==='all'?20:60;
+   const collection=items.slice(0,cap);
   if(!bridge()){
    panel.innerHTML='<p class="r51-empty">A pesquisa de PDFs pessoais está disponível no APK Android. Os links do catálogo continuam disponíveis.</p>';
    return;
@@ -184,13 +185,13 @@
     try{res=JSON.parse(bridge().searchPersonalBook(b.id,query,5,0))}catch{}
     if(res?.hits?.length){
      total+=Number(res.total)||res.hits.length;
-     const snippets=res.hits.map(hit=>'<div class="r51-hit"><p>'+esc(hit.excerpt||'Trecho encontrado no livro.')+
-      '</p><button type="button" data-r51-page="'+esc(b.id)+'" data-r51-page-number="'+Math.max(1,Number(hit.page)||1)+'">Página '+Math.max(1,Number(hit.page)||1)+' ↗</button></div>').join('');
-     blocks.push('<article class="r51-result"><h4>'+esc(b.name)+'</h4><small>'+esc(title(b.systemId))+' · '+(Number(res.total)||0)+' página(s) encontradas'+(st.state==='ready'?'':' · busca parcial')+'</small>'+snippets+'</article>');
+     const snippets=res.hits.map(hit=>{const cleaned=window.MastermindSearchVocabulary?.safeExcerpt(hit.excerpt||'')||{text:hit.excerpt||'',corrupted:false};return '<div class="r51-hit"><p>'+esc(cleaned.text||'Trecho encontrado no livro.')+
+      '</p>'+(hit.encodingWarning||cleaned.corrupted?'<small class="r51-encoding-note">'+esc(hit.encodingWarning||'Alguns símbolos do texto não puderam ser lidos; confira a página original.')+'</small>':'')+'<button type="button" data-r51-page="'+esc(b.id)+'" data-r51-page-number="'+Math.max(1,Number(hit.page)||1)+'">Página '+Math.max(1,Number(hit.page)||1)+' ↗</button></div>';}).join('');
+     blocks.push('<article class="r51-result"><h4>'+esc(b.name)+'</h4><small>'+esc(title(b.systemId))+' · '+(Number(res.total)||0)+' página(s) encontradas'+(res.expanded?' · termos relacionados':'')+(st.state==='ready'?'':' · busca parcial')+'</small>'+snippets+'</article>');
     }
    }
   }
-  const more=items.length>12?'<p>Buscando nos primeiros 12 PDFs. Selecione um sistema para reduzir o conjunto de livros.</p>':'';
+  const more=items.length>cap?'<p>Buscando nos primeiros '+cap+' PDFs. Selecione um sistema para ampliar a busca entre seus livros.</p>':'';
   panel.innerHTML='<h3>Ctrl+F nos meus PDFs</h3><p>Busca no texto integral dos arquivos importados e indexados no dispositivo. Trechos curtos com referência à página original.</p>'+
    '<p><strong>'+total+' páginas encontradas</strong> · '+ready+' livro(s) completos'+(partial?' · '+partial+' em indexação':'')+'</p>'+
    (blocks.join('')||'<p class="r51-empty">Ainda não há correspondências nos arquivos locais deste sistema. Confira se seus PDFs foram importados e indexados.</p>')+more;
