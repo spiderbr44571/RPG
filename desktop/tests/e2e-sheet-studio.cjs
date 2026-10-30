@@ -1,0 +1,62 @@
+'use strict';
+/* Test the actual packaged Electron app, using all four real, unmodified RPG editors. */
+const { _electron:electron }=require('@playwright/test');
+const assert=require('node:assert/strict');
+const path=require('node:path'),fs=require('node:fs');
+(async()=>{
+ const binary=path.resolve(process.argv[2]||(process.platform==='win32'?'dist/win-unpacked/Mastermind.exe':'dist/linux-unpacked/mastermind'));
+ assert.ok(fs.existsSync(binary),'Not packaged: '+binary);
+ let app;
+ try{
+  app=await electron.launch({executablePath:binary,args:process.platform==='linux'?['--no-sandbox','--disable-dev-shm-usage']:['--disable-gpu'],env:{...process.env,MASTERMIND_E2E:'1'},timeout:75000});
+  const page=await app.firstWindow({timeout:45000});
+  await page.locator('#screen-sheet').waitFor({state:'attached',timeout:35000});
+  await page.evaluate(()=>window.RPG_DEMO.navigate('sheet'));
+  const studio=page.locator('#mastermind-sheet-studio');
+  await studio.waitFor({state:'visible',timeout:15000});
+  assert.equal(await page.locator('#mss-system option').count(),4,'Expected four distinct rule engines');
+  for(const id of ['mss-portrait','mss-character','mss-stat-strip','mss-native-stage','mss-side-results','mss-resources','mss-roll'])assert.ok(await page.locator('#'+id).count(),'Missing '+id);
+  await page.locator('#mss-system').selectOption('ordem');
+  await page.waitForTimeout(120);
+  assert.ok(await page.locator('#mss-native-stage #op-view-ficha').isVisible(),'Real Ordem editor missing');
+  const before=await page.evaluate(()=>window.MastermindCharacters.list().length);
+  await page.locator('#mss-new').click();
+  await page.waitForTimeout(180);
+  assert.equal(await page.evaluate(()=>window.MastermindCharacters.list().length),before+1,'New agent not persisted via original editor');
+  const options=await page.locator('#mss-character option').count();
+  assert.equal(options,before+1,'Unified selection does not show original agents');
+  await page.locator('#mss-system').selectOption('dnd');
+  await page.locator('#mss-native-stage #r18-dnd').waitFor({state:'visible',timeout:10000});
+  assert.equal(await page.evaluate(()=>window.MastermindSheetStudio.currentSystem),'d-d');
+  assert.equal(await page.locator('#mss-native-stage #rpg05-sheet-op').isVisible(),false,'Ordem should be hidden behind D&D');
+  await page.locator('#mss-system').selectOption('gurps');
+  await page.locator('#mss-native-stage #r16-gurps').waitFor({state:'visible',timeout:10000});
+  assert.equal(await page.evaluate(()=>window.MastermindSheetStudio.currentSystem),'gurps');
+  await page.locator('#mss-system').selectOption('coc');
+  await page.locator('#mss-native-stage .coc-shell').waitFor({state:'visible',timeout:10000});
+  assert.equal(await page.evaluate(()=>window.MastermindSheetStudio.currentSystem),'chamado-de-ctchulhu');
+  await page.locator('[data-mss-tab="history"]').click();
+  assert.equal(await page.locator('button[data-mss-tab="history"]').getAttribute('aria-selected'),'true');
+  await page.locator('[data-mss-side="abilities"]').click();
+  assert.equal(await page.locator('[data-mss-side="abilities"]').getAttribute('aria-selected'),'true');
+  await page.locator('#mss-filter').fill('Ritual');
+  await page.locator('#mss-filter').fill('');
+  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('rpg:roll',{detail:{faces:[8,4],sides:20,bonus:2,total:14,label:'Perícia de teste'}})));
+  assert.equal(await page.locator('#mss-roll-score').textContent(),'14');
+  const metrics=await page.evaluate(()=>{
+   const m=document.querySelector('.mss-layout'),cols=getComputedStyle(m).gridTemplateColumns;
+   const w=document.querySelector('#mastermind-sheet-studio').getBoundingClientRect().width;
+   const main=document.querySelector('#screen-sheet').getBoundingClientRect().width;
+   const css=getComputedStyle(document.querySelector('#mastermind-sheet-studio')).getPropertyValue('--mss-accent');
+   return {cols,w,main,css};
+  });
+  assert.ok(metrics.w>200,'Sheet Studio not measured: '+JSON.stringify(metrics));
+  assert.ok(metrics.css.trim(),'Theme token missing');
+  await page.evaluate(()=>window.RPG_DEMO.navigate('library'));
+  await page.evaluate(()=>window.RPG15.openSystem('gurps'));
+  await page.evaluate(()=>window.RPG_DEMO.navigate('sheet'));
+  await page.waitForTimeout(250);
+  assert.ok(await page.locator('#mss-native-stage .coc-shell').isVisible(),'Returning from library disabled investigator editor');
+  console.log('PASS: OP/D&D/GURPS/CoC, native character creation, modular tabs, roll, responsive layout and library return.');
+ }finally{if(app)await app.close();}
+})().catch(err=>{console.error(err.stack||err);process.exitCode=1;});
