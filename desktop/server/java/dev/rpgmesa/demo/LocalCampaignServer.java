@@ -1763,7 +1763,11 @@ public final class LocalCampaignServer extends NanoHTTPD {
     return paranormalCatalog().optJSONObject("classPowerRules")==null?null:
       paranormalCatalog().getJSONObject("classPowerRules").optJSONObject(name);
   }
-  private boolean repeatableClassPower(String type,String name)throws Exception{
+  private boolean repeatablePower(String type,String name)throws Exception{
+    if("transcend".equals(type)){
+      JSONObject power=powerByName(name);
+      return power!=null&&power.optBoolean("repeatable",false);
+    }
     JSONObject rule="class".equals(type)?classPowerRule(name):null;
     return rule!=null&&rule.optBoolean("repeatable",false);
   }
@@ -1773,7 +1777,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
     int nex=sheet.optInt("nex",5);
     if(powerSlots(nex)<=usedPowerSlots(sheet))
       throw new IllegalArgumentException("Não há escolhas de poder disponíveis no NEX atual.");
-    boolean repeatable=repeatableClassPower(type,name);
+    boolean repeatable=repeatablePower(type,name);
     JSONArray known=sheet.optJSONArray("powers");
     if(!repeatable&&known!=null)for(int i=0;i<known.length();i++){
       Object value=known.opt(i);
@@ -1952,7 +1956,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
             }
           }
           used.put(choice);
-          if(!repeatableClassPower(type,name))powers.put(name);
+          if(!repeatablePower(type,name))powers.put(name);
           else{
             boolean known=false;
             for(int k=0;k<powers.length();k++)if(name.equals(powers.optString(k)))known=true;
