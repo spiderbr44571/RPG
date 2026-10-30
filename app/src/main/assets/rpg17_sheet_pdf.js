@@ -54,7 +54,7 @@
   }else{
    const skills=s.skills||{};lines.push('', 'PERICIAS');
    for(const [key,value] of Object.entries(skills).slice(0,65))lines.push(limit(key,42)+': '+limit(JSON.stringify(value),55));
-   add('INVENTARIO',data.items||[],v=>window.MastermindSystemEditor?.displayItem(v)||v.nome||v.name||'Item');
+   add('INVENTARIO',data.items||[],v=>(typeof window!=='undefined'?window.MastermindSystemEditor?.displayItem(v):null)||v.nome||v.name||'Item');
    add('PODERES',s.powers,v=>typeof v==='string'?v:v.nome||v.name||'Poder');
    add('RITUAIS',s.rituaisConhecidos,v=>typeof v==='string'?v:v.nome||v.name||'Ritual');
   }
