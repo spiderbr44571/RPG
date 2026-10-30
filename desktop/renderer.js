@@ -14,7 +14,7 @@ function mountHeader(){
  const bar=el('div','desktop-titlebar');
  const left=el('div','desktop-titlebar-brand');
  const logo=el('img');logo.src='mastermind_logo.png';logo.alt='';
- left.append(logo,el('strong',null,'MASTERMIND'),el('span',null,'LINUX · v1.1.0'));
+ left.append(logo,el('strong',null,'MASTERMIND'),el('span',null,'LINUX · v1.1.1'));
  const right=el('div','desktop-titlebar-actions');
  const mk=(text,title,action)=>{const b=el('button','desktop-titlebar-btn',text);b.type='button';b.title=title;b.addEventListener('click',action);right.appendChild(b);};
  mk('⌕','Buscar livros',()=>$('#quick-search')?.click());
