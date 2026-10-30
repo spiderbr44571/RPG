@@ -73,12 +73,30 @@
  function reset(id){delete state[id];root.localStorage?.setItem(STORAGE,JSON.stringify(state));root.document?.dispatchEvent(new CustomEvent('mastermind:system-edited',{detail:{systemId:id}}));}
  function defaults(id,type){
   const p=root.OP13?.pack||{},cl=root.MastermindClassCatalog?.classPowers||{};
-  if(id!=='ordem-paranormal')return [];
-  if(type==='powers')return Object.entries(cl).flatMap(([className,names])=>names.map(name=>({id:name,name,className})));
-  if(type==='paranormal')return (p.poderesParanormais||[]).map(x=>({id:x.nome,name:x.nome,element:x.elemento,description:x.resumo||''}));
-  if(type==='rituals')return (p.rituais||[]).map(x=>({id:x.id||x.nome,name:x.nome||x.id,element:x.elemento||'',description:x.resumo||''}));
-  if(type==='skills')return (p.pericias||[]).map(x=>({id:x.nome,name:x.nome,element:x.atributo||''}));
-  if(type==='progression')return (p.progressao||[]).map(x=>({id:String(x.nex),name:'NEX '+x.nex+'%',minNex:x.nex,description:'Limite PE: '+(x.limitePE||'')}));
+  const entry=(v,extra={})=>({id:String(v?.id||v?.nome||v?.name||v),name:String(v?.nome||v?.name||v?.id||v),description:String(v?.resumo||v?.descricao||v?.description||''),...extra});
+  const arr=v=>Array.isArray(v)?v:[];
+  const dict=v=>v&&typeof v==='object'?Object.entries(v):[];
+  if(id==='ordem-paranormal'){
+   if(type==='powers')return Object.entries(cl).flatMap(([className,names])=>arr(names).map(name=>entry(name,{className})));
+   if(type==='paranormal')return arr(p.poderesParanormais).map(x=>entry(x,{element:x.elemento||''}));
+   if(type==='rituals')return arr(p.rituais).map(x=>entry(x,{element:x.elemento||'',cost:x.custoPE||''}));
+   if(type==='skills')return arr(p.pericias).map(x=>entry(x,{element:x.atributo||''}));
+   if(type==='progression')return arr(p.progressao).map(x=>entry('NEX '+x.nex+'%',{minNex:x.nex,description:'Limite PE: '+(x.limitePE||'')}));
+   if(type==='equipment')return [...arr(p.equipamentos?.armas),...arr(p.equipamentos?.gerais),...arr(p.equipamentos?.protecoes),...arr(p.equipamentos?.proteções)].map(entry);
+   if(type==='abilities')return [...arr(p.habilidades),...arr(p.poderesDeOrigem),...arr(p.origens).filter(x=>x.poder).map(x=>({id:'origem-'+x.nome,name:x.poder,description:'Origem: '+x.nome}))].map(entry);
+  }
+  if(id==='d-d'){
+   const e=root.RPG18_DND_ENGINE||{};
+   if(type==='skills')return dict(e.SKILLS).map(([name,attr])=>entry(e.LABELS?.[name]||name,{element:attr}));
+   if(type==='powers'||type==='abilities')return dict(e.CLASSES).map(([name,details])=>entry(e.CLASSES_PT?.[name]||name,{description:'Classe · dado de vida d'+details.hitDie}));
+   if(type==='progression')return Array.from({length:20},(_,i)=>entry('Nível '+(i+1),{minNex:i+1,description:'Bônus de proficiência: +'+(e.proficiencyBonus?.(i+1)||2)}));
+  }
+  if(id==='gurps'){
+   const e=root.GURPS4_ENGINE||{};
+   if(type==='skills')return dict(e.skillBase).map(([difficulty,mod])=>entry('Dificuldade '+difficulty,{description:'Modificador base '+mod}));
+   if(type==='progression')return dict(e.costs).map(([attr,cost])=>entry(attr,{description:'Custo por nível: '+cost+' pontos'}));
+  }
+  // Other systems may have books but no machine-readable rules. Never fabricate book entries.
   return [];
  }
  function powerOptions(kind,className,base){
@@ -109,7 +127,7 @@
    '<div class="mse-actions"><button data-mse-save-meta>Salvar informações</button><button data-mse-reset>Restaurar sistema original</button></div>'+
    '<div class="mse-rule"><label>Editar conteúdo<select id="mse-type">'+Object.entries(TYPES).map(([k,n])=>'<option value="'+k+'" '+(currentType===k?'selected':'')+'>'+esc(n)+'</option>').join('')+'</select></label>'+
    '<button data-mse-new>+ Criar entrada</button></div>'+
-   '<div class="mse-list">'+(items.length?items.slice(0,150).map(v=>'<div><b>'+esc(v.name)+'</b><small>'+esc([v.className,v.element,v.description].filter(Boolean).join(' · ').slice(0,140))+'</small><span><button data-mse-edit="'+esc(v.id)+'">Editar</button><button data-mse-delete="'+esc(v.id)+'">Excluir</button></span></div>').join(''):'<p>Nenhum conteúdo nesta categoria.</p>')+'</div>'+
+   '<div class="mse-list">'+(items.length?items.slice(0,150).map(v=>'<div><b>'+esc(v.name)+'</b><small>'+esc([v.className,v.element,v.description].filter(Boolean).join(' · ').slice(0,140))+'</small><span><button data-mse-edit="'+esc(v.id)+'">Editar</button><button data-mse-delete="'+esc(v.id)+'">Excluir</button></span></div>').join(''):'<p>Não há entradas importadas nesta categoria. Use <b>+ Criar entrada</b> para adicionar regras do seu livro; elas ficam salvas neste sistema.</p>')+'</div>'+
    '<p class="mse-warning">Itens excluídos só são ocultados neste sistema. Personagens existentes não são excluídos.</p><div id="mse-item-editor" hidden></div><small id="mse-message" role="status"></small>';
  }
  function itemForm(item){
