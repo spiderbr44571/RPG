@@ -15,7 +15,7 @@
  };
  const text=v=>v==null?'—':typeof v==='object'?JSON.stringify(v):String(v);
  const latin=v=>text(v).replace(/[–—]/g,'-').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/[^\u0009\u000A\u000D\u0020-\u00FF]/g,'?');
- const item=v=>typeof v==='string'?v:text(v?.name??v?.nome??v?.title??v?.id??'Item');
+ const item=v=>root.MastermindItemNames?.format?.(v)|| (typeof v==='string'?v:text(v?.name??v?.nome??v?.title??v?.id??'Item'));
  const dict=v=>Object.entries(v||{}).map(([k,x])=>[k,text(x)]);
  const listing=v=>(Array.isArray(v)?v:[]).map((x,i)=>[String(i+1),item(x)]);
  const resource=v=>typeof v==='object'&&v!==null?text(v.current??v.value??v.max??0)+' / '+text(v.max??v.current??v.value??0):text(v);
@@ -37,7 +37,9 @@
   if(system==='ordem'){
    add('IDENTIDADE',[['Classe',s.class],['Origem',s.origin||s.origem],['Trilha',s.trail||s.trilha],['NEX',(s.nex??5)+'%'],['Patente',s.rank]]);
    add('ATRIBUTOS',dict(s.attrs));add('RECURSOS',Object.entries(s.resources||{}).map(([k,v])=>[k,resource(v)]));
-   add('PERÍCIAS',dict(s.skills));
+   const origin=root.OP13?.pack?.origens?.find(o=>o.nome===(s.origin||s.origem));
+   const grades={...Object.fromEntries((origin?.pericias||[]).map(k=>[k,1])),...(s.skills||{})};
+   add('PERÍCIAS',Object.entries(grades).map(([name,rank])=>[name,'+'+(Math.max(0,Math.min(3,Number(rank)||0))*5)]));
    add('PODERES',listing(s.powerChoices?.length?s.powerChoices.map(v=>(v.name||'')+' · '+(v.type==='transcend'?'Paranormal':'Classe')+' · NEX '+v.nex):s.powers));
    add('RITUAIS',listing(s.rituaisConhecidos));add('INVENTÁRIO',inventory());add('HISTÓRIA',[['Descrição',s.description],['História',s.history]]);
   }else if(system==='dnd'){
