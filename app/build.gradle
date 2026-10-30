@@ -1,3 +1,11 @@
+
+// A production signing identity must be supplied via private GitHub Actions secrets.
+// Debug APKs signed by separate CI runners are NOT interchangeable upgrades.
+def mmKeyFile=System.getenv('MASTERMIND_ANDROID_KEYSTORE_PATH')
+def mmStorePassword=System.getenv('MASTERMIND_ANDROID_STORE_PASSWORD')
+def mmKeyAlias=System.getenv('MASTERMIND_ANDROID_KEY_ALIAS')
+def mmKeyPassword=System.getenv('MASTERMIND_ANDROID_KEY_PASSWORD')
+
 plugins { id 'com.android.application' }
 android {
  useLibrary 'android.test.runner'
@@ -6,6 +14,22 @@ android {
  compileSdk 35
  defaultConfig { applicationId 'dev.rpgmesa.demo'; minSdk 26; targetSdk 28; versionCode 102; versionName '0.98.0-search'; testInstrumentationRunner 'android.test.InstrumentationTestRunner' }
  compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+ if (mmKeyFile && mmStorePassword && mmKeyAlias && mmKeyPassword) {
+  signingConfigs {
+   mastermind {
+    storeFile file(mmKeyFile)
+    storePassword mmStorePassword
+    keyAlias mmKeyAlias
+    keyPassword mmKeyPassword
+   }
+  }
+  buildTypes {
+   release {
+    signingConfig signingConfigs.mastermind
+   }
+  }
+ }
+
 }
 
 dependencies { implementation 'org.nanohttpd:nanohttpd:2.3.1'; implementation 'com.tom-roush:pdfbox-android:2.0.27.0' }
