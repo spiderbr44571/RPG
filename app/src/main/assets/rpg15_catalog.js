@@ -11,11 +11,10 @@ const old=document.createElement('div');old.id='r15-old';old.hidden=true;
 while(lib.firstChild)old.appendChild(lib.firstChild);
 lib.append(old);
 const dashboard=document.createElement('div');dashboard.className='r15-ui r15-dashboard';
-dashboard.innerHTML='<div class="eyebrow">SEU ACERVO DE RPG</div><div class="r15-head"><div><h1>Biblioteca de <em>mundos.</em></h1><p>Explore sistemas, edições e os livros do seu acervo pessoal.</p></div><div class="r15-count"><strong>'+systems.length+'</strong><small>SISTEMAS CADASTRADOS</small></div></div>'+
- '<section class="r15-hero"><div class="r15-hero-inner"><div class="eyebrow">EM DESTAQUE · MÓDULO INICIAL</div><h2>Ordem<br>Paranormal.</h2><p>O primeiro sistema com módulo de regras, ficha, rituais e mestragem em desenvolvimento.</p><button class="r15-main-btn" data-open-system="ordem-paranormal">Explorar sistema →</button></div></section>'+
+dashboard.innerHTML='<div class="eyebrow">SEU ACERVO DE RPG</div><div class="r15-head"><div><h1>Biblioteca de <em>mundos.</em></h1><p>Explore os sistemas catalogados, livros e edições do seu acervo.</p></div><div class="r15-count"><strong>'+systems.length+'</strong><small>SISTEMAS CADASTRADOS</small></div></div>'+
  '<div class="r15-search"><input type="search" id="r15-query" placeholder="Buscar sistema, livro ou edição..." aria-label="Buscar sistemas"><div class="r15-filterbar" role="group" aria-label="Filtros"><button data-category="all" aria-pressed="true">Todos</button><button data-category="partial" aria-pressed="false">Em adaptação</button><button data-category="catalog" aria-pressed="false">Catalogados</button><button data-category="fav" aria-pressed="false">Favoritos</button></div></div>'+
 
- '<div class="r15-row-title"><h2>Todos os sistemas</h2><small id="r15-count-results"></small></div><div class="r15-grid" id="r15-grid"></div>'+
+ '<div class="r15-row-title"><h2>Sistemas disponíveis</h2><small id="r15-count-results"></small></div><div class="r15-grid" id="r15-grid"></div>'+
  '<p class="r15-footnote">Índice local de links para seu acervo no Google Drive. A classificação indica possíveis fontes de regras, criaturas e expansões; não altera as regras da ficha sem revisão manual.</p>';
 lib.append(dashboard);
 const detail=document.createElement('div');detail.className='r15-ui r15-detail';detail.hidden=true;lib.append(detail);
@@ -31,8 +30,8 @@ function image(sys){
 function card(sys){
  const color=colors(sys),thumb=image(sys),ready=sys.implementation==='partial';
  return '<article class="r15-card" style="--deep:'+color[0]+';--soft:'+color[1]+'"><div class="r15-art" data-open-system="'+esc(sys.id)+'" role="button" tabindex="0" aria-label="Abrir '+esc(title(sys))+'"><span class="glyph">✧</span>'+
- (thumb?'<img src="'+thumb+'" alt="Capa do PDF pessoal de Ordem Paranormal">':'')+
- '<div class="name">'+esc(title(sys))+'</div></div><div class="r15-card-info"><strong>'+esc(sys.title)+'</strong><small>'+sys.books.length+' arquivo(s) no Drive</small><span class="r15-tag">'+(ready?'Regras parciais':'Catalogado')+'</span><div class="r15-card-actions"><button data-open-system="'+esc(sys.id)+'">Detalhes ↗</button><button data-fav-system="'+esc(sys.id)+'" title="Marcar favorito" aria-pressed="'+faves.has(sys.id)+'">'+(faves.has(sys.id)?'★':'☆')+'</button></div></div></article>';
+ (thumb?'<img src="'+thumb+'" alt="Imagem de capa do sistema">':'')+
+ '<div class="name">'+esc(title(sys))+'</div></div><div class="r15-card-info"><strong>'+esc(title(sys))+'</strong><small>'+sys.books.length+' arquivo(s) no acervo</small><span class="r15-tag">'+(ready?'Regras parciais':'Catalogado')+'</span><div class="r15-card-actions"><button data-open-system="'+esc(sys.id)+'">Detalhes ↗</button><button data-fav-system="'+esc(sys.id)+'" title="Marcar favorito" aria-pressed="'+faves.has(sys.id)+'">'+(faves.has(sys.id)?'★':'☆')+'</button></div></div></article>';
 }
 function visible(sys){const txt=(title(sys)+' '+sys.books.map(b=>b.title).join(' ')).toLocaleLowerCase('pt-BR');
  return (!search||txt.includes(search))&&(filter==='all'||filter==='fav'&&faves.has(sys.id)||filter===sys.implementation);
