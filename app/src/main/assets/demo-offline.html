@@ -984,7 +984,7 @@ function renderItems(){
     (warnings.length?'<p class="r37-inventory-warning" role="alert">'+warnings.map(escapeHTML).join(' ')+'</p>':
       '<p class="r37-inventory-ok">Dentro dos limites registrados.</p>');
  }
- container.innerHTML=l.length?l.map((it,i)=>`<div class="rpg05-inventory-row"><div><strong>${escapeHTML(it.nome)}</strong><p class="rpg05-note" style="margin:3px 0">${escapeHTML(describeItem(it))}</p></div><div class="rpg05-controls"><button data-edit-item="${i}" class="rpg05-btn">Configurar</button><button data-remove-item="${i}" class="rpg05-btn">Remover</button></div></div>`).join(''):'<div class="rpg05-empty">Inventário vazio. Adicione um equipamento para começar.</div>';
+ container.innerHTML=l.length?l.map((it,i)=>`<div class="rpg05-inventory-row"><div><strong>${escapeHTML(window.MastermindSystemEditor?.displayItem(it)||it.nome)}</strong><p class="rpg05-note" style="margin:3px 0">${escapeHTML(describeItem(it))}</p></div><div class="rpg05-controls"><button data-edit-item="${i}" class="rpg05-btn">Configurar</button><button data-remove-item="${i}" class="rpg05-btn">Remover</button></div></div>`).join(''):'<div class="rpg05-empty">Inventário vazio. Adicione um equipamento para começar.</div>';
 }
 window.RPG05_inventory={render:renderItems,setItems:list=>{if(!Array.isArray(list))throw Error('Inventario invalido');keepItems(list);renderItems();}};
  // Atualiza os limites quando patente, Força ou personagem são alterados.
@@ -1686,4 +1686,4 @@ html body #r09-dice .r09-die-num{fill:#201522!important;font:900 29px system-ui,
 .r37-inventory-ok{color:#91dabb;font-size:12px;margin:0}
 .r37-over{border-color:#e5aa77!important;color:#e8b88c}
 @media(max-width:450px){.r37-category-grid{grid-template-columns:1fr}}</style><script src="mastermind39_ui.js"></script><script src="mastermind40_canvas_images.js"></script><script src="mastermind42_workspace.js"></script><script src="mastermind59_class_catalog.js"></script><script src="mastermind56_local_powers.js"></script><link rel="stylesheet" href="mastermind60_identity.css"><link rel="stylesheet" href="mastermind_coc7.css"><link rel="stylesheet" href="mastermind_coc7_android.css"><script src="mastermind_coc7_engine.js"></script><script src="mastermind_coc7_ui.js"></script><script src="pixelportrait86_companion.js"></script>
-<link rel="stylesheet" href="mastermind_sheet_studio.css"><script src="mastermind_sheet_studio.js"></script><script src="pdf-lib.min.js"></script><script src="mastermind_ordem_template.js"></script><script src="mastermind_system_pdf.js"></script></body></html>
+<link rel="stylesheet" href="mastermind_sheet_studio.css"><script src="mastermind_sheet_studio.js"></script><script src="pdf-lib.min.js"></script><script src="mastermind_ordem_template.js"></script><script src="mastermind_system_pdf.js"></script><script src="mastermind_system_editor.js"></script></body></html>
