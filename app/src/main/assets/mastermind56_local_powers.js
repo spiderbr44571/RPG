@@ -32,8 +32,8 @@ function missingClassRequirements(name,s){
   missing.push('Poder '+rule.power);
  return missing;
 }
-const powers=(op.pack.poderesParanormais||[]).map(x=>({name:x.nome,element:x.elemento,page:x.paginaLivro,repeatable:['Aprender Ritual','Resistir a Elemento'].includes(x.nome)}));
-let mode='class',chosen='',note='',lastChar='';
+const powers=()=> (op.pack.poderesParanormais||[]).map(x=>({name:x.nome,element:x.elemento,page:x.paginaLivro,repeatable:['Aprender Ritual','Resistir a Elemento'].includes(x.nome)}));
+let mode='class',chosen='',note='',lastChar='',editing=-1;
 const current=()=>op.state;
 const records=s=>Array.isArray(s.powerChoices)?s.powerChoices.filter(x=>x&&['class','transcend'].includes(x.type)):[];
 const slots=nex=>milestones.filter(n=>n<=Number(nex||0)).length;
@@ -41,24 +41,25 @@ const selected=()=>pc.selectedId();
 const learned=s=>new Set(Array.isArray(s.powers)?s.powers.map(x=>typeof x==='string'?x:x?.name).filter(Boolean):[]);
 function counts(s){
  const used=records(s);
- return used.reduce((out,r)=>{if(r.type==='transcend'){const element=r.element||powers.find(p=>p.name===r.name)?.element;if(element)out[element]=(out[element]||0)+1;}return out;},{});
+ return used.reduce((out,r)=>{if(r.type==='transcend'){const element=r.element||powers().find(p=>p.name===r.name)?.element;if(element)out[element]=(out[element]||0)+1;}return out;},{});
 }
 function setMessage(msg){note=msg;const tag=$('#v56-feedback');if(tag)tag.textContent=note;}
 function options(s){
  if(mode==='class')return (classPowers[s.class]||[]).map(name=>({name,element:s.class,page:classPowerCatalog.classPowerPage?.[s.class]||0}));
- return powers;
+ return powers();
 }
-function isRepeatable(kind,name){return kind==='class'?!!classPowerRules[name]?.repeatable:!!powers.find(p=>p.name===name)?.repeatable;}
+function isRepeatable(kind,name){return kind==='class'?!!classPowerRules[name]?.repeatable:!!powers().find(p=>p.name===name)?.repeatable;}
 function evaluate(name,s=current(),kind=mode){
- const missing=[],prev=records(s),limit=slots(s.nex),next=milestones[prev.length];
+ const missing=[],all=records(s),prev=editing>=0?all.filter((_,i)=>i!==editing):all,limit=slots(s.nex),next=editing>=0?all[editing]?.nex:milestones[prev.length];
  if(!name||name.length>90)missing.push('Escolha um poder válido');
  if(prev.length>=limit)missing.push('Nenhuma escolha disponível no NEX atual');
- if(!isRepeatable(kind,name)&&(learned(s).has(name)||prev.some(x=>x.name===name)))missing.push('Já adquirido');
+ const currentEntry=editing>=0?all[editing]?.name:null;
+ if(!isRepeatable(kind,name)&&((learned(s).has(name)&&name!==currentEntry)||prev.some(x=>x.name===name)))missing.push('Já adquirido');
  if(kind==='class'){
   if(!(classPowers[s.class]||[]).includes(name))missing.push('Poder incompatível com a classe');
   else missing.push(...missingClassRequirements(name,s));
  }else if(kind==='transcend'){
-  if(!powers.some(p=>p.name===name))missing.push('Poder paranormal fora do catálogo');
+  if(!powers().some(p=>p.name===name))missing.push('Poder paranormal fora do catálogo');
   if(name==='Surto Temporal'&&(counts(s).Morte||0)<2)missing.push('Dois poderes de Morte anteriores');
  }else missing.push('Tipo de poder inválido');
  return {allowed:missing.length===0,missing,nex:next};
@@ -85,33 +86,50 @@ function show(){
  '<div class="v56-powers-list">'+choices.map(p=>card(p,s)).join('')+'</div>'+
  ''+
  '<button type="button" class="v56-detail" id="v62-power-description" '+(chosen?'':'disabled')+'>📖 Ver descrição do poder selecionado</button>'+ 
- '<button type="button" class="v56-confirm" id="v56-learn" '+(remaining===0?'disabled':'')+'>Adicionar poder à ficha</button>'+
+ '<button type="button" class="v56-confirm" id="v56-learn" '+(remaining===0&&editing<0?'disabled':'')+'>'+(editing>=0?'Salvar substituição':'Adicionar poder à ficha')+'</button>'+(editing>=0?'<button type="button" id="v56-cancel-edit">Cancelar edição</button>':'')+
  '<p id="v56-feedback" role="status">'+esc(note)+'</p>'+
  '<div class="v56-acquired"><h4>Poderes já adquiridos</h4>'+
- (r.length?r.map(x=>'<div class="v56-power-learned"><strong>'+esc(x.name)+'</strong>'+
- '<small>NEX '+Number(x.nex)+'% · '+(x.type==='transcend'?'Transcender · '+esc(x.element||''):'Classe')+'</small></div>').join(''):
+ (r.length?r.map((x,i)=>'<div class="v56-power-learned"><strong>'+esc(x.name)+'</strong>'+
+ '<small>NEX '+Number(x.nex)+'% · '+(x.type==='transcend'?'Transcender · '+esc(x.element||'') :'Classe')+'</small><button data-v56-edit="'+i+'" type="button">Editar</button><button data-v56-delete="'+i+'" type="button">Excluir</button></div>').join(''):
  '<p>Nenhum poder de progressão registrado.</p>')+
  (Array.isArray(s.powers)&&s.powers.length?'<p class="v56-legacy">Poderes e habilidades presentes na ficha: '+
  [...learned(s)].map(esc).join(' · ')+'</p>':'')+'</div>'+
  '<p class="v56-warning">Esta tela registra suas escolhas no personagem local. Na campanha online, decisões e efeitos de combate continuam sujeitos à aprovação do mestre.</p>'+
  '</section>';
 }
+function persistChoices(s,choices,powerList){const id=selected();return Boolean(id&&pc.update(id,{powerChoices:choices,powers:powerList}));}
+function removePower(index){
+ const s=current(),all=records(s),entry=all[index];if(!entry)return false;
+ if(!window.confirm('Remover '+entry.name+' da ficha?'))return false;
+ const next=all.filter((_,i)=>i!==index),still=next.some(x=>x.name===entry.name);
+ const saved=Array.isArray(s.powers)?s.powers:[];
+ const list=saved.filter(x=>{const name=typeof x==='string'?x:x?.name;return name!==entry.name||still;});
+ if(!persistChoices(s,next,list)){setMessage('Falha ao salvar a exclusão.');return false;}
+ editing=-1;chosen='';note='Poder excluído. Confira eventuais dependências.';show();return true;
+}
+function editPower(index){
+ const entry=records(current())[index];if(!entry)return false;
+ editing=index;mode=entry.type;chosen='';note='Substituindo '+entry.name+' da escolha NEX '+entry.nex+'%. Selecione outra opção.';show();return true;
+}
 function learn(name){
- name=String(name||'').trim();
- const s=current(),check=evaluate(name,s);
- if(!check.allowed){setMessage('Não foi possível aprender: '+check.missing.join(', ')+'.');return false;}
- const prev=records(s),element=mode==='transcend'?powers.find(p=>p.name===name)?.element||'':'';
- const choice={type:mode,name,nex:check.nex,...(element?{element}:{}),source:'mastermind-v094'};
- const updated=[...(Array.isArray(s.powerChoices)?s.powerChoices:[]),choice];
- const old=Array.isArray(s.powers)?s.powers:[];
- if(!window.confirm('Registrar '+name+' como escolha de NEX '+check.nex+'% na ficha '+(s.name||'')+'? Confirme os efeitos específicos com o mestre.'))return false;
- const alreadyKnown=old.some(x=>(typeof x==='string'?x:x?.name)===name);
- const id=selected(),ok=id&&pc.update(id,{powers:alreadyKnown?old:[...old,name],powerChoices:updated});
- if(!ok){setMessage('Não foi possível salvar a ficha. Nenhum poder foi aprendido.');return false;}
- chosen='';note='✓ '+name+' registrado na ficha selecionada (NEX '+check.nex+'%).';
- app?.notify?.(note);show();return true;
+ name=String(name||'').trim();const s=current(),check=evaluate(name,s);
+ if(!check.allowed){setMessage('Não foi possível registrar: '+check.missing.join(', ')+'.');return false;}
+ const before=records(s),prior=editing>=0?before[editing]:null;
+ const element=mode==='transcend'?powers().find(p=>p.name===name)?.element||'':'';
+ const choice={type:mode,name,nex:prior?.nex??check.nex,...(element?{element}:{}),source:'mastermind-v097'};
+ const next=prior?before.map((x,i)=>i===editing?choice:x):[...before,choice];
+ const saved=Array.isArray(s.powers)?s.powers:[];
+ const removePrevious=prior&&!next.some((x,i)=>i!==editing&&x.name===prior.name);
+ const trim=removePrevious?saved.filter(x=>(typeof x==='string'?x:x?.name)!==prior.name):saved.slice();
+ const known=trim.some(x=>(typeof x==='string'?x:x?.name)===name);
+ if(!window.confirm((prior?'Substituir '+prior.name+' por ':'Aprender ')+name+' na ficha '+(s.name||'')+'?'))return false;
+ if(!persistChoices(s,next,known?trim:[...trim,name])){setMessage('Não foi possível salvar a escolha.');return false;}
+ editing=-1;chosen='';note='Poder '+name+' registrado na ficha.';app?.notify?.(note);show();return true;
 }
 panel.addEventListener('click',e=>{
+ const remove=e.target.closest('[data-v56-delete]');if(remove){removePower(Number(remove.dataset.v56Delete));return;}
+ const edit=e.target.closest('[data-v56-edit]');if(edit){editPower(Number(edit.dataset.v56Edit));return;}
+ if(e.target.closest('#v56-cancel-edit')){editing=-1;chosen='';show();return;}
  if(e.target.closest('#v62-power-description')){if(chosen)window.Mastermind62Descriptions?.open?.({systemId:'ordem-paranormal',kind:mode==='class'?'Poder de classe':'Poder paranormal',name:chosen,page:options(current()).find(x=>x.name===chosen)?.page||'',origin:'Ordem Paranormal — Livro de Regras 1.3'});return;}
  const which=e.target.closest('[data-v56-mode]');
  if(which){mode=which.dataset.v56Mode;chosen='';note='';show();return;}
@@ -133,6 +151,6 @@ $('#rpg05-del-char')?.addEventListener('click',()=>{chosen='';note='';show()});
 $('#op-nex')?.addEventListener('change',()=>setTimeout(show,0));
 $('#op-classe')?.addEventListener('change',()=>setTimeout(()=>{chosen='';show()},0));
 tabs.addEventListener('click',e=>{if(e.target.closest('[data-r14-tab="advancement"]'))setTimeout(show,0)});
-window.Mastermind56Powers={show,open,learn,evaluate,setMode(value){if(['class','transcend'].includes(value)){mode=value;chosen='';show();}},get mode(){return mode},get count(){return powers.length},get panel(){return panel}};
+window.Mastermind56Powers={show,open,learn,editPower,removePower,evaluate,setMode(value){if(['class','transcend'].includes(value)){mode=value;chosen='';show();}},get mode(){return mode},get count(){return powers().length},get panel(){return panel}};
 show();
 })();
