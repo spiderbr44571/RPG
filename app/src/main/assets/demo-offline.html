@@ -964,8 +964,21 @@ const levels=['0','I','II','III','IV','V','VI','VII','VIII','IX'];
 function describeItem(it){const mods=(it.modificacoes||[]).join(', '),curse=(it.maldicoes||[]).map(x=>x.nome+' ('+x.elemento+')').join(', ');return `Categoria ${levels[totalCategory(it)]||totalCategory(it)} · ${it.categoriaItem.replaceAll('_',' ')} · ${it.espacos??'?'} espaços${mods?' · Modif.: '+mods:''}${curse?' · Maldições: '+curse:''}`}
 const itemPanel=document.createElement('div');itemPanel.className='rpg05-band';itemPanel.id='rpg05-inventory';itemPanel.innerHTML=`<h3>Inventário do agente</h3><p class="rpg05-note">O inventário recebe armas, equipamentos comuns, itens paranormais e itens amaldiçoados. Modificações são mundanas; maldições, sobrenaturais. A primeira maldição soma II na categoria e as seguintes somam I (p.144).</p><div class="rpg05-controls"><select id="rpg05-item-catalog" class="rpg05-input"></select><button class="rpg05-btn primary" id="rpg05-add-item">+ Adicionar</button><button class="rpg05-btn" id="rpg05-custom-item">Criar item</button></div><div id="r37-inventory-summary" class="r37-inventory-summary" aria-live="polite"></div><div id="rpg05-inventory-list"></div>`;
 $('#rpg05-sheet-op').append(itemPanel);
-function fillCatalog(){const all=[...e.armas,...e.gerais];$('#rpg05-item-catalog').innerHTML=all.map((it,i)=>`<option value="${i}">${escapeHTML(it.nome)} · ${escapeHTML(it.categoriaItem)}</option>`).join('')}
+function availableEquipment(){
+ const editor=window.MastermindSystemEditor,source=window.MastermindSystemCatalog;
+ if(!editor||!source)return [...e.armas,...e.gerais];
+ return editor.all('ordem-paranormal','equipment',source.defaults('ordem-paranormal','equipment'))
+ .filter(x=>x.category==='Arma'||x.category==='Equipamento'||(x.categoriaItem&&!['Modificação','Maldição'].includes(x.category)))
+ .map(x=>{const old=x.original||{},category=x.points===''?old.categoriaBase:Number(x.points),slots=x.slots===''?old.espacos:Number(x.slots);
+  return {...old,nome:x.name||old.nome,categoriaItem:old.categoriaItem||(x.category==='Arma'?'arma':'equipamento'),
+    categoriaBase:Number.isFinite(category)?category:old.categoriaBase||0,espacos:Number.isFinite(slots)?slots:old.espacos??1,
+    dano:x.damage||old.dano||'',modificacoes:[],maldicoes:[]};
+ });
+}
+function fillCatalog(){const all=availableEquipment();$('#rpg05-item-catalog').innerHTML=all.map((it,i)=>`<option value="${i}">${escapeHTML(it.nome)} · ${escapeHTML(it.categoriaItem)}</option>`).join('')}
 fillCatalog();
+document.addEventListener('mastermind:system-edited',event=>{if(event.detail?.systemId==='ordem-paranormal')fillCatalog();});
+window.addEventListener('load',fillCatalog,{once:true});
 function renderItems(){
  const container=$('#rpg05-inventory-list');if(!container)return;const l=items();
  const summary=$('#r37-inventory-summary'),budget=window.RPG37_RULES?.inventoryBudget(sys.state,l);
@@ -993,7 +1006,7 @@ window.RPG05_inventory={render:renderItems,setItems:list=>{if(!Array.isArray(lis
  $('#op-atributos')&&new MutationObserver(()=>{if($('#rpg05-inventory-list'))renderItems()})
   .observe($('#op-atributos'),{childList:true,subtree:true});
  document.addEventListener('rpg:character-selected',()=>setTimeout(renderItems,0));
-$('#rpg05-add-item').onclick=()=>{const all=[...e.armas,...e.gerais];const obj=all[Number($('#rpg05-item-catalog').value)];if(!obj)return;keepItems([...items(),{...structuredClone(obj),modificacoes:[],maldicoes:[],uid:Date.now()+'-'+Math.random()}]);renderItems()};
+$('#rpg05-add-item').onclick=()=>{const all=availableEquipment();const obj=all[Number($('#rpg05-item-catalog').value)];if(!obj)return;keepItems([...items(),{...structuredClone(obj),modificacoes:[],maldicoes:[],uid:Date.now()+'-'+Math.random()}]);renderItems()};
 $('#rpg05-custom-item').onclick=()=>editDialog({heading:'Criar item personalizado',fields:[{id:'nome',label:'Nome',value:''},{id:'categoriaItem',label:'Categoria (arma, ferramenta, item_paranormal...)',value:'equipamento'},{id:'categoriaBase',label:'Categoria base (0–4)',type:'number',value:'0'},{id:'espacos',label:'Espaços',type:'number',value:'1'}],onSave:obj=>{if(!obj.nome.trim())return;keepItems([...items(),{nome:obj.nome.trim().slice(0,70),categoriaItem:obj.categoriaItem.trim().slice(0,35),categoriaBase:safeInt(obj.categoriaBase,0,4),espacos:safeInt(obj.espacos,0,20),modificacoes:[],maldicoes:[],uid:Date.now()+'-'+Math.random()}]);renderItems()}});
 $('#rpg05-inventory-list').onclick=ev=>{const rm=ev.target.closest('[data-remove-item]'),ed=ev.target.closest('[data-edit-item]');if(rm){const arr=items();arr.splice(Number(rm.dataset.removeItem),1);keepItems(arr);renderItems();return}if(ed)editInventory(Number(ed.dataset.editItem))};
 function editInventory(index){const it=items()[index];if(!it)return;
