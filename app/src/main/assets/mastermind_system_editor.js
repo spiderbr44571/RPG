@@ -148,7 +148,7 @@
    const f=e.target.files?.[0];if(!f)return;
    if(!['image/png','image/jpeg','image/webp'].includes(f.type)||f.size>2*1024*1024){root.alert?.('Escolha uma imagem PNG/JPG/WebP até 2 MB.');return;}
    const reader=new FileReader();
-   reader.onload=()=>{try{setMetadata(currentId,{photo:reader.result});show();}catch(ex){root.alert?.(ex.message)}};
+   reader.onload=()=>{const img=new Image();img.onload=()=>{try{const canvas=doc.createElement('canvas');canvas.width=400;canvas.height=400;const ctx=canvas.getContext('2d');const ratio=Math.max(400/img.width,400/img.height);ctx.drawImage(img,(400-img.width*ratio)/2,(400-img.height*ratio)/2,img.width*ratio,img.height*ratio);const photo=canvas.toDataURL('image/jpeg',.75);setMetadata(currentId,{photo});show();}catch(ex){root.alert?.(ex.message)}};img.onerror=()=>root.alert?.('Imagem inválida');img.src=reader.result;};
    reader.readAsDataURL(f);
   });
   panel.addEventListener('click',e=>{
