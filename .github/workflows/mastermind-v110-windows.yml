@@ -1,8 +1,8 @@
-name: Mastermind 1.1.6 Windows - Pesquisa PDF e Chamado de Cthulhu
+name: Mastermind 1.1.7 Windows - Estudio de fichas nos quatro sistemas
 on:
   push:
     branches:
-      - feature/windows-v116-pdf-cthulhu
+      - feature/windows-v117-sheet-studio
   workflow_dispatch:
 permissions:
   contents: read
@@ -75,8 +75,9 @@ jobs:
           node --check desktop/book-index.cjs
           node --check app/src/main/assets/mastermind_coc7_engine.js
           node --check app/src/main/assets/mastermind_coc7_ui.js
+          node --check app/src/main/assets/mastermind_sheet_studio.js
           node --check desktop/mestragem-linux.js
-          node --test desktop/tests/desktop.test.cjs desktop/tests/godot-health.test.cjs desktop/tests/pdf-coc.test.cjs tests/mastermind_manual_canvas.test.cjs tests/mastermind_atelier_overlay.test.cjs
+          node --test desktop/tests/desktop.test.cjs desktop/tests/godot-health.test.cjs desktop/tests/pdf-coc.test.cjs tests/mastermind_manual_canvas.test.cjs tests/mastermind_atelier_overlay.test.cjs tests/mastermind_sheet_studio.test.cjs
           if ($LASTEXITCODE -ne 0) { throw 'Testes estaticos falharam' }
       - name: Gerar Mastermind Setup.exe e Portable.exe
         shell: pwsh
@@ -121,6 +122,13 @@ jobs:
         run: |
           node desktop/tests/e2e-windows-packaged.cjs
           if ($LASTEXITCODE -ne 0) { throw 'O aplicativo Windows empacotado falhou no teste real' }
+      - name: Validar Estudio de Fichas nos 4 sistemas no Windows empacotado
+        shell: pwsh
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: |
+          node desktop/tests/e2e-sheet-studio.cjs dist/win-unpacked/Mastermind.exe
+          if ($LASTEXITCODE -ne 0) { throw 'Estudio de Fichas nao passou nos quatro sistemas' }
       - name: Verificar PDF indexado e CoC 7e no executavel Windows
         shell: pwsh
         env:
@@ -153,8 +161,8 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $setup = Get-ChildItem dist -Filter 'Mastermind-v1.1.6-Windows-*-Setup.exe' | Select-Object -First 1
-          $portable = Get-ChildItem dist -Filter 'Mastermind-v1.1.6-Windows-*-Portable.exe' | Select-Object -First 1
+          $setup = Get-ChildItem dist -Filter 'Mastermind-v1.1.7-Windows-*-Setup.exe' | Select-Object -First 1
+          $portable = Get-ChildItem dist -Filter 'Mastermind-v1.1.7-Windows-*-Portable.exe' | Select-Object -First 1
           if (!$setup -or !$portable) { throw 'Setup.exe ou Portable.exe ausente' }
           if ($setup.Length -lt 40000000 -or $portable.Length -lt 40000000) { throw 'Instalador Windows incompleto' }
           @($setup,$portable) | ForEach-Object {
@@ -165,18 +173,18 @@ jobs:
       - name: Publicar instalador Windows normal sem outra copia Portable
         uses: actions/upload-artifact@v4
         with:
-          name: Mastermind-1.1.6-Windows-PDF-CTHULHU-Setup
+          name: Mastermind-1.1.7-Windows-SHEET-STUDIO-Setup
           if-no-files-found: error
           retention-days: 90
           path: |
-            dist/Mastermind-v1.1.6-Windows-*-Setup.exe
+            dist/Mastermind-v1.1.7-Windows-*-Setup.exe
             dist/SHA256-Windows.txt
       - name: Publicar Portable opcional separadamente
         uses: actions/upload-artifact@v4
         with:
-          name: Mastermind-1.1.6-Windows-PDF-CTHULHU-Portable
+          name: Mastermind-1.1.7-Windows-SHEET-STUDIO-Portable
           if-no-files-found: error
           retention-days: 90
           path: |
-            dist/Mastermind-v1.1.6-Windows-*-Portable.exe
+            dist/Mastermind-v1.1.7-Windows-*-Portable.exe
             dist/SHA256-Windows.txt
