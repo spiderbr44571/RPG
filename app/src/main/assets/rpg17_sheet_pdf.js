@@ -53,8 +53,10 @@
    add('HABILIDADES',s.features,v=>v.name||v);
   }else{
    const skills=s.skills||{};lines.push('', 'PERICIAS');
-   for(const [key,value] of Object.entries(skills).slice(0,65))lines.push(limit(key,42)+': '+limit(JSON.stringify(value),55));
-   add('INVENTARIO',data.items||[],v=>v.nome||v.name||'Item');
+   const origin=typeof window!=='undefined'?window.OP13?.pack?.origens?.find(o=>o.nome===s.origin):null;
+   const grades={...Object.fromEntries((origin?.pericias||[]).map(k=>[k,1])),...skills};
+   for(const [key,value] of Object.entries(grades).slice(0,65)){const rank=typeof value==='number'?value:typeof value==='string'?({treinado:1,veterano:2,expert:3}[value.toLowerCase()]??Number(value)||0):Number(value?.grade??value?.level??0);lines.push(limit(key,42)+': +'+(Math.max(0,Math.min(3,rank))*5));}
+   add('INVENTARIO',data.items||[],v=>typeof window!=='undefined'&&window.MastermindItemNames?.format?.(v)||v.nome||v.name||'Item');
    add('PODERES',s.powers,v=>typeof v==='string'?v:v.nome||v.name||'Poder');
    add('RITUAIS',s.rituaisConhecidos,v=>typeof v==='string'?v:v.nome||v.name||'Ritual');
   }
