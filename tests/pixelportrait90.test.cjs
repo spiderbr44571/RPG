@@ -13,7 +13,7 @@ assert.match(html,/id="screen-atelier85"/);
 assert.match(html,/id="p90-native-stage"/);
 assert.match(html,/id="p90-token-panel"/);
 assert.match(html,/MASTERMIND · ATELIÊ 2D · v0\.(?:90|91|93)/);
-assert.match(html,/>v0\.(?:90|91|93|94|95|96|97)<\/small>/);
+assert.match(html,/>v0\.(?:90|91|93|94|95|96|97|98)<\/small>/);
 assert.match(html,/id="p86-portrait"/);
 assert.match(html,/id="p86-token"/);
 assert.match(html,/data-p86-action="save"/);
@@ -70,7 +70,7 @@ assert.match(game,/if\(!moveMode\)return false/,'Godot should retain taps while 
 assert.match(game,/PixelCopy\.request\(activity\.getWindow\(\),rect,bmp/);
 assert.match(game,/receiver\.received\(raw\)/,'Capture must return bytes, not site DOM');
 assert.match(manifest,/<activity android:name="\.PixelPortraitActivity" android:exported="false"/);
-assert.match(gradle,/versionCode (?:94; versionName '0\.90\.0-mastermind-inline-atelier'|97; versionName '0\.93\.0-sheet-studio'|98; versionName '0\.94\.0-ordem-powers'|99; versionName '0\.95\.0-pdf-templates'|100; versionName '0\.96\.0-ordem-template'|101; versionName '0\.97\.0-system-editor')/);
+assert.match(gradle,/versionCode (?:94; versionName '0\.90\.0-mastermind-inline-atelier'|97; versionName '0\.93\.0-sheet-studio'|98; versionName '0\.94\.0-ordem-powers'|99; versionName '0\.95\.0-pdf-templates'|100; versionName '0\.96\.0-ordem-template'|101; versionName '0\.97\.0-system-editor'|102; versionName '0\.98\.0-search')/);
 const clip=(stage,scroll)=>Math.max(0,Math.min(stage.y+stage.h,scroll.y+scroll.h)-Math.max(stage.y,scroll.y));
 assert.equal(clip({y:100,h:500},{y:0,h:600}),500);
 assert.equal(clip({y:-150,h:500},{y:80,h:700}),270);
