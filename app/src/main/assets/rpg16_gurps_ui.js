@@ -48,10 +48,33 @@ function renderSkills(s){
  const level=E.skillLevel(x,{...s.attrs,Per:d.per,Will:d.will});
  return '<tr><td><strong>'+esc(x.name)+'</strong><small>'+esc(x.specialty||'')+'</small></td><td>'+esc(x.attr)+' / '+esc(x.diff)+'</td><td>'+esc(x.points)+' pt</td><td><b>'+(level??'—')+'</b></td><td class="g-actions"><button data-roll="skill:'+i+'" aria-label="Rolar perícia">🎲</button> <button type="button" data-g62-detail="skills:'+i+'">Descrição</button> <button data-edit-skill="'+i+'" aria-label="Editar perícia '+esc(x.name)+'">Editar</button> <button data-remove="skills:'+i+'" aria-label="Excluir perícia">×</button></td></tr>'}).join('');
  return '<section class="g-panel"><div class="g-heading"><div><h3>Perícias, especializações e técnicas</h3><p class="g-muted">Use Editar para corrigir uma perícia sem excluí-la; o vínculo com armas e os registros existentes são preservados.</p></div><strong class="g-chip">'+p.skills+' pontos investidos</strong></div><div class="g-scroller"><table class="g-table"><thead><tr><th>Perícia</th><th>Base</th><th>Pontos</th><th>NH</th><th>Ações</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+(s.skills?.length?'':'<p class="g-empty">Nenhuma perícia cadastrada.</p>')+'</section>'+
- '<section class="g-panel" id="g-skill-editor"><h3>'+(edit?'Editar perícia':'Adicionar perícia')+'</h3><div class="g-col"><label><span>Selecionar uma perícia do GURPS Lite (opcional)</span><select id="g-skill-suggest"><option value="">Perícia personalizada ou escolher da lista</option>'+(window.GURPS4_LITE_SKILLS||[]).map((k,i)=>'<option value="'+i+'">'+esc(k.name)+' · '+k.attr+'/'+k.diff+'</option>').join('')+'</select></label><label><span>Nome</span><input id="g-skill-name" value="'+esc(edit?.name||'')+'" placeholder="Ex.: Furtividade" maxlength="100"></label><label><span>Especialização (se exigida)</span><input id="g-skill-spec" value="'+esc(edit?.specialty||'')+'" maxlength="90" placeholder="Ex.: Pistola / NT 8"></label><label><span>Atributo</span><select id="g-skill-attr">'+optsAttrs(edit?.attr||'DX')+'</select></label><label><span>Dificuldade</span><select id="g-skill-diff">'+selects(edit?.diff||'A',[['E','Fácil (F)'],['A','Média (M)'],['H','Difícil (D)'],['VH','Muito Difícil (MD)']])+'</select></label><label><span>Pontos investidos</span><input id="g-skill-pts" type="number" min="1" max="1000" step="1" value="'+esc(edit?.points??1)+'"></label><label><span>Bônus/penalidade de NH</span><input id="g-skill-bonus" type="number" step="1" value="'+esc(edit?.bonus??0)+'" min="-30" max="30"></label></div><div class="g-controls"><button class="g-primary" data-add="skill">'+(edit?'Salvar alterações':' + Adicionar perícia')+'</button>'+(edit?'<button data-cancel-skill="1">Cancelar edição</button>':'')+'</div><p class="g-muted">O NH e os pontos totais são recalculados ao salvar. Mudanças afetam somente o personagem selecionado.</p></section>'+
+ '<section class="g-panel" id="g-skill-editor"><h3>'+(edit?'Editar perícia':'Adicionar perícia')+'</h3><div class="g-col"><label><span>Selecionar uma perícia do GURPS Lite (opcional)</span><select id="g-skill-suggest"><option value="">Perícia personalizada ou escolher da lista</option>'+skillCatalog().map((k,i)=>'<option value="'+i+'">'+esc(k.name)+' · '+k.attr+'/'+k.diff+'</option>').join('')+'</select></label><label><span>Nome</span><input id="g-skill-name" value="'+esc(edit?.name||'')+'" placeholder="Ex.: Furtividade" maxlength="100"></label><label><span>Especialização (se exigida)</span><input id="g-skill-spec" value="'+esc(edit?.specialty||'')+'" maxlength="90" placeholder="Ex.: Pistola / NT 8"></label><label><span>Atributo</span><select id="g-skill-attr">'+optsAttrs(edit?.attr||'DX')+'</select></label><label><span>Dificuldade</span><select id="g-skill-diff">'+selects(edit?.diff||'A',[['E','Fácil (F)'],['A','Média (M)'],['H','Difícil (D)'],['VH','Muito Difícil (MD)']])+'</select></label><label><span>Pontos investidos</span><input id="g-skill-pts" type="number" min="1" max="1000" step="1" value="'+esc(edit?.points??1)+'"></label><label><span>Bônus/penalidade de NH</span><input id="g-skill-bonus" type="number" step="1" value="'+esc(edit?.bonus??0)+'" min="-30" max="30"></label></div><div class="g-controls"><button class="g-primary" data-add="skill">'+(edit?'Salvar alterações':' + Adicionar perícia')+'</button>'+(edit?'<button data-cancel-skill="1">Cancelar edição</button>':'')+'</div><p class="g-muted">O NH e os pontos totais são recalculados ao salvar. Mudanças afetam somente o personagem selecionado.</p></section>'+
  listEditor('Técnicas / Especializações','techniques','Técnica',false,true);
 }
-function traitCatalog(){return window.GURPS4_BASIC_TRAITS||[]}
+function skillCatalog(){
+ const base=window.GURPS4_LITE_SKILLS||[],editor=window.MastermindSystemEditor;
+ if(!editor)return base;
+ const items=editor.all('gurps','skills',base.map(x=>({...x,id:x.name,element:x.attr,category:'Perícia',description:'Dificuldade: '+x.diff})));
+ return items.map(x=>({...x,attr:x.element||x.attr||'DX',diff:x.diff||'A'}));
+}
+function traitCatalog(){
+ const base=window.GURPS4_BASIC_TRAITS||[],editor=window.MastermindSystemEditor;
+ if(!editor)return base;
+ const groups=[['powers',['advantages']],['paranormal',['disadvantages']],['abilities',['quirks','perks']]];
+ return groups.flatMap(([type,groups])=>{
+  const original=base.filter(x=>groups.includes(x.category));
+  const lookup=new Map(original.map(x=>[x.category+'::'+x.name,x]));
+  const rows=original.map(x=>({...x,id:x.category+'::'+x.name,name:x.namePt||x.name,points:x.points??'',page:x.pagePt||x.reference}));
+  return editor.all('gurps',type,rows).map(x=>{
+   const old=lookup.get(x.id)||{},value=x.points;
+   const numeric=value===''||value==null?null:Number(value);
+   const category=groups.includes(x.category)?x.category:(type==='abilities'&&numeric!=null&&numeric<0?'quirks':groups[0]);
+   return {...old,...x,name:old.name||x.name,namePt:x.name,category,
+    points:numeric===null?null:Number.isFinite(numeric)?numeric:old.points??null,
+    reference:x.page||old.reference||'',per:old.per??null,base:old.base??null};
+  });
+ });
+}
 function traitLabel(x){return x?.namePt||x?.name||''}
 function traitAlt(x){return x?.namePt&&x.namePt!==x.name?' ('+x.name+')':''}
 function traitTypes(key){
@@ -245,7 +268,7 @@ function onChange(ev){
  if(t.id?.startsWith('g-trait-levels-')){traitLevelsChanged(t.id.slice('g-trait-levels-'.length));return}
  if(t.id==='g-switch'){editingSkillIndex=-1;selected=t.value;tab='identidade';rerender();return}
  if(t.id==='g-skill-suggest'){
-  const selectedSample=(window.GURPS4_LITE_SKILLS||[])[Number(t.value)];
+  const selectedSample=skillCatalog()[Number(t.value)];
   if(t.value!==''&&selectedSample){
    host.querySelector('#g-skill-name').value=selectedSample.name;
    host.querySelector('#g-skill-attr').value=selectedSample.attr;
