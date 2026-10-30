@@ -183,7 +183,8 @@
       "element": "Geral",
       "page": 114,
       "prerequisite": null,
-      "needsMasterReview": true
+      "needsMasterReview": true,
+      "repeatable": true
     },
     {
       "id": "p22",
@@ -191,7 +192,8 @@
       "element": "Geral",
       "page": 114,
       "prerequisite": null,
-      "needsMasterReview": true
+      "needsMasterReview": true,
+      "repeatable": true
     }
   ],
   "classPowers": {
