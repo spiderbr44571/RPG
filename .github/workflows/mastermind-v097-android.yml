@@ -45,7 +45,7 @@ jobs:
         run: |
           set -euo pipefail
           node --test tests/mastermind_v097_android.test.cjs tests/mastermind_sheet_studio.test.cjs tests/mastermind_v094_powers.test.cjs
-          NODE_PATH="$PWD/.mm-pdf-deps/node_modules" node --test tests/mastermind_v095_pdf_templates.test.cjs tests/mastermind_v097_ordem_template.test.cjs
+          NODE_PATH="$PWD/.mm-pdf-deps/node_modules" node --test tests/mastermind_v095_pdf_templates.test.cjs tests/mastermind_v096_ordem_template.test.cjs tests/mastermind_v097_system_editor.test.cjs
           node tests/pixelportrait90.test.cjs
           node tests/gurps4.test.cjs
           node tests/mastermind_v74.test.cjs
