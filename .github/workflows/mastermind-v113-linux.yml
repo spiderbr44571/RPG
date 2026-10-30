@@ -1,0 +1,150 @@
+name: Mastermind 1.1.3 Linux — Fichas PDF por sistema
+on:
+  push:
+    branches:
+      - feature/linux-v113-pdf-modelos
+  pull_request:
+    branches:
+      - fix/mastermind-v103-linux-mestragem-paisagem
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  linux-build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Dependências Linux
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends xvfb zstd desktop-file-utils
+          npm install --no-audit --no-fund
+          cp node_modules/pdf-lib/dist/pdf-lib.min.js app/src/main/assets/pdf-lib.min.js
+          test -s app/src/main/assets/pdf-lib.min.js
+      - name: Compilar servidor de campanhas embutido
+        run: bash desktop/server/build.sh
+      - name: Validação sintática e testes locais
+        run: |
+          set -euo pipefail
+          node --check desktop/main.cjs
+          node --check desktop/mestragem-linux.js
+          node --check desktop/renderer.js
+          node --check desktop/book-index.cjs
+          node --check app/src/main/assets/mastermind_coc7_engine.js
+          node --check app/src/main/assets/mastermind_coc7_ui.js
+          node --check app/src/main/assets/mastermind_sheet_studio.js
+          node --check app/src/main/assets/mastermind_system_pdf.js
+          node --check app/src/main/assets/mastermind56_local_powers.js
+          node --check app/src/main/assets/mastermind_sheet_studio.js
+          node --check app/src/main/assets/rpg11_campaigns.js
+          node --test desktop/tests/desktop.test.cjs desktop/tests/godot-health.test.cjs desktop/tests/pdf-coc.test.cjs tests/mastermind_manual_canvas.test.cjs tests/mastermind_atelier_overlay.test.cjs tests/mastermind_sheet_studio.test.cjs tests/mastermind_v094_powers.test.cjs tests/mastermind_v095_pdf_templates.test.cjs
+      - name: Testar servidor, fichas, grid e paisagem em Electron real
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+          MASTERMIND_E2E: '1'
+        run: timeout 140s xvfb-run -a -s "-screen 0 1440x900x24" node desktop/tests/e2e-mestragem.cjs
+      - name: Compilar AppImage e tar.gz
+        run: npx electron-builder --linux AppImage tar.gz --x64 --publish never
+      - name: Garantir integridade de TODOS os assets Godot, fichas e livros após otimizar
+        run: |
+          set -euo pipefail
+          diff -qr app/src/main/assets dist/linux-unpacked/resources/server/assets
+          test -s dist/linux-unpacked/resources/server/mastermind-campaign-server.jar
+          test -s dist/linux-unpacked/resources/app.asar
+          du -h dist/linux-unpacked/resources/app.asar
+          echo 'PASS: todos os assets e o servidor preservados byte a byte'
+      - name: Testar aplicativo Linux empacotado (evita tela escura ERR_FILE_NOT_FOUND)
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: timeout 120s xvfb-run -a -s "-screen 0 1440x900x24" node desktop/tests/e2e-packaged.cjs dist/linux-unpacked/mastermind
+      - name: Testar novo Estudio de Fichas no Electron Linux real
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: timeout 140s xvfb-run -a -s "-screen 0 1920x1080x24" node desktop/tests/e2e-sheet-studio.cjs dist/linux-unpacked/mastermind
+      - name: Validar pesquisa PDF e investigador CoC 7e no Linux instalado
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: timeout 110s xvfb-run -a -s "-screen 0 1440x900x24" node desktop/tests/e2e-pdf-coc.cjs dist/linux-unpacked/mastermind
+      - name: Canvas de campanha - sem linhas pontilhadas automaticas e ligacao manual persistente
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: timeout 100s xvfb-run -a -s "-screen 0 1440x900x24" node desktop/tests/e2e-canvas-manual.cjs dist/linux-unpacked/mastermind
+      - name: Testar menu do Atelie e horizontal 1900px em Electron empacotado
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: timeout 120s xvfb-run -a -s "-screen 0 1920x1080x24" node desktop/tests/e2e-atelier-landscape.cjs dist/linux-unpacked/mastermind
+      - name: Validar tela preta do Atelie no Electron empacotado e recuperar a interface
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: timeout 90s xvfb-run -a -s "-screen 0 1440x900x24" node desktop/tests/e2e-atelier-black.cjs dist/linux-unpacked/mastermind
+      - name: Verificar editor Godot ONLINE real na build empacotada
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: timeout 135s xvfb-run -a -s "-screen 0 1440x900x24" node desktop/tests/e2e-godot-live.cjs dist/linux-unpacked/mastermind
+      - name: Preservar evidência do teste do Godot
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mastermind-Linux-Godot-Diagnostico
+          path: dist/godot-evidence/
+          if-no-files-found: ignore
+      - name: Criar instalador Arch/CachyOS
+        env:
+          MASTERMIND_VERSION: '1.1.3'
+          MASTERMIND_RELEASE: '1'
+        run: |
+          set -euo pipefail
+          bash scripts/package_arch_linux.sh dist/Mastermind-v1.1.3-Linux-x64.tar.gz dist/
+          python3 tests/verify_arch_linux_package.py dist/mastermind-rpg-1.1.3-1-x86_64.pkg.tar.zst
+          test -s dist/Mastermind-v1.1.3-Linux-x86_64.AppImage
+          test -s dist/mastermind-rpg-1.1.3-1-x86_64.pkg.tar.zst
+          sha256sum dist/Mastermind-v1.1.3-Linux-x86_64.AppImage dist/Mastermind-v1.1.3-Linux-x64.tar.gz > dist/SHA256SUMS.txt
+      - name: Publicar apenas Pacman (CachyOS/Arch)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mastermind-1.1.3-Linux-SHEET-STUDIO-Pacman
+          if-no-files-found: error
+          retention-days: 90
+          path: |
+            dist/mastermind-rpg-1.1.3-1-x86_64.pkg.tar.zst
+            dist/mastermind-rpg-1.1.3-1-x86_64.pkg.tar.zst.sha256
+      - name: Publicar AppImage separado (outra distribuicao Linux)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mastermind-1.1.3-Linux-SHEET-STUDIO-AppImage
+          if-no-files-found: error
+          retention-days: 90
+          path: |
+            dist/Mastermind-v1.1.3-Linux-x86_64.AppImage
+            dist/SHA256SUMS.txt
+      - name: Publicar tar.gz separado (Linux avancado)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mastermind-1.1.3-Linux-SHEET-STUDIO-TarGz
+          if-no-files-found: error
+          retention-days: 90
+          path: |
+            dist/Mastermind-v1.1.3-Linux-x64.tar.gz
+            dist/SHA256SUMS.txt
+
+      - name: Publicar pacotes Linux validados no GitHub Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG='mastermind-v1.1.3-linux-pdf-modelos'
+          packages=(dist/mastermind-rpg-1.1.3-1-x86_64.pkg.tar.zst dist/Mastermind-v1.1.3-Linux-x86_64.AppImage dist/Mastermind-v1.1.3-Linux-x64.tar.gz dist/SHA256SUMS.txt)
+          for file in "${packages[@]}"; do test -s "$file"; done
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${packages[@]}" --clobber
+          else
+            gh release create "$TAG" "${packages[@]}" --target "$GITHUB_SHA" --title 'Mastermind Linux v1.1.3 — Exportação PDF por sistema' --notes 'Build experimental. Modelos PDF por sistema de RPG e preenchimento de PDFs pessoais com formulário (AcroForm), além de poderes de Ordem, editor unificado e interface limpa; mantém recursos de mestragem, ateliê, livros e sistemas anteriores. Preserve seus dados antes de atualizar.'
+          fi
