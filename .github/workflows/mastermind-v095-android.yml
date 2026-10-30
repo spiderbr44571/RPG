@@ -59,13 +59,13 @@ jobs:
           python3 tests/verify_apk_v95.py app/build/outputs/apk/debug/app-debug.apk
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-debug.apk
           cp app/build/outputs/apk/debug/app-debug.apk Mastermind-v0.95-Android-Fichas-PDF.apk
-          sha256sum Mastermind-v0.95-Android-Sheet-Studio.apk > Mastermind-v0.95-Android-SHA256.txt
+          sha256sum Mastermind-v0.95-Android-Fichas-PDF.apk > Mastermind-v0.95-Android-SHA256.txt
       - name: Publicar APK no GitHub Actions
         uses: actions/upload-artifact@v4
         with:
           name: Mastermind-v0.95-Android-PDF-4-Sistemas-APK
           path: |
-            Mastermind-v0.95-Android-Sheet-Studio.apk
+            Mastermind-v0.95-Android-Fichas-PDF.apk
             Mastermind-v0.95-Android-SHA256.txt
           if-no-files-found: error
           retention-days: 90
@@ -76,9 +76,9 @@ jobs:
           set -euo pipefail
           TAG="mastermind-v0.95-android-pdf-modelos"
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" Mastermind-v0.95-Android-Sheet-Studio.apk Mastermind-v0.95-Android-SHA256.txt --clobber
+            gh release upload "$TAG" Mastermind-v0.95-Android-Fichas-PDF.apk Mastermind-v0.95-Android-SHA256.txt --clobber
           else
-            gh release create "$TAG" Mastermind-v0.95-Android-Sheet-Studio.apk Mastermind-v0.95-Android-SHA256.txt \
+            gh release create "$TAG" Mastermind-v0.95-Android-Fichas-PDF.apk Mastermind-v0.95-Android-SHA256.txt \
               --target "$GITHUB_SHA" --title "Mastermind Android v0.95 — Exportação em modelos PDF" \
               --notes "APK experimental: fichas PDF originais por Ordem Paranormal, D&D, GURPS e Chamado de Cthulhu. Também aceita PDF pessoal preenchível (AcroForm) com campos correspondentes. Mantém exportação portátil JSON, livros, mestragem, Ateliê, fichas anteriores e personalização. Modelos oficiais não são distribuídos. Faça backup antes de atualizar."
           fi
