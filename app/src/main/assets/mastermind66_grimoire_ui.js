@@ -5,7 +5,17 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 const STORE='mastermind66-homebrew-spells-v1';
 const state={view:'catalog',level:'all',query:'',editing:'',onlyEligible:false};
-const official=()=>root.Mastermind66SpellCatalog||[];
+const official=()=>{
+ const base=root.Mastermind66SpellCatalog||[],editor=root.MastermindSystemEditor;
+ if(!editor)return base;
+ const custom=editor.all('d-d','rituals',base);
+ const keys=E.KEYS||{};
+ return custom.map(x=>{
+  const classes=Array.isArray(x.classes)&&x.classes.length?x.classes:
+   String(x.className||'').split(/[,;]+/).map(v=>keys[v.trim()]||v.trim().toLowerCase()).filter(v=>Object.values(keys).includes(v));
+  return {...x,classes,level:Math.max(0,Math.min(9,Number(x.level)||0)),homebrew:!base.some(b=>b.id===x.id)};
+ });
+};
 function customs(){try{const v=JSON.parse(localStorage.getItem(STORE)||'[]');return Array.isArray(v)?v.filter(x=>x?.homebrew).slice(0,250):[]}catch{return []}}
 const all=()=>[...official(),...customs()];
 const byId=id=>all().find(x=>x.id===id);
