@@ -99,26 +99,27 @@
   const hits=Array.isArray(data.hits)?data.hits:[];
   pdfPageTotal=Number(data.total)||0;pdfPageOffset=offset+hits.length;
   // Síntese extrativa: não inventa explicações; mostra trechos curtos da fonte e página.
-  const highlights=hits.slice(0,3).map(item=>
-   '<li><span>PDF · p. '+Number(item.page)+'</span> '+esc(String(item.excerpt||'').slice(0,180))+'</li>').join('');
+  const cleanExcerpt=text=>(window.MastermindSearchVocabulary?.safeExcerpt(text)?.text||String(text||'').replace(/\uFFFD/g,' '));
+   const highlights=hits.slice(0,3).map(item=>
+   '<li><span>PDF · p. '+Number(item.page)+'</span> '+esc(cleanExcerpt(item.excerpt).slice(0,180))+'</li>').join('');
   const partial=data.complete===false;
   const coverage=partial?' · parcial ('+(Number(data.indexedPages)||0)+' / '+(Number(data.totalPages)||'?')+' páginas indexadas)':'';
   const summary=hits.length?'<section class="r47-snippets"><h4>Resumo dos trechos encontrados</h4>'+
    '<p>Principais passagens localizadas no PDF, sem interpretação por IA:</p><ul>'+highlights+'</ul></section>':'';
   const list=hits.map(item=>'<article class="r45-pdf-hit"><div><strong>Página '+Number(item.page)+
-   ' do arquivo PDF</strong><p>'+esc(item.excerpt||'Trecho encontrado nesta página.')+
+   ' do arquivo PDF</strong><p>'+esc(cleanExcerpt(item.excerpt)||'Trecho encontrado nesta página.')+
    '</p></div><button type="button" data-r45-page="'+Number(item.page)+'">Abrir página ↗</button></article>').join('');
   if(append&&old){
    const rows=old.querySelector('.r45-pdf-hit-list');
    rows?.insertAdjacentHTML('beforeend',list);
-   old.querySelector('.r45-pdf-count').textContent=pdfPageTotal+' páginas com correspondências'+coverage;
+   old.querySelector('.r45-pdf-count').textContent=pdfPageTotal+' páginas com correspondências'+coverage+(data.expanded?' · termos relacionados':'');
    const more=old.querySelector('#r45-pdf-more');if(more)more.hidden=pdfPageOffset>=pdfPageTotal;
    return;
   }
   const panel=document.createElement('section');
   panel.id='r45-pdf-hits';panel.className='r45-pdf-hits';panel.dataset.query=query;
   panel.innerHTML='<h3>Busca rápida no PDF</h3>'+
-   '<p class="r45-pdf-count">'+pdfPageTotal+' páginas com correspondências'+coverage+' · '+esc(data.book||'Livro importado')+'</p>'+summary+
+   '<p class="r45-pdf-count">'+pdfPageTotal+' páginas com correspondências'+coverage+(data.expanded?' · termos relacionados':'')+' · '+esc(data.book||'Livro importado')+'</p>'+summary+
    '<div class="r45-pdf-hit-list">'+(list||'<p class="r26-muted">'+(partial?'Ainda não encontrei este termo nas páginas indexadas. Continuarei procurando enquanto preparo o PDF.':'Nenhuma ocorrência literal encontrada neste PDF.')+'</p>')+'</div>'+
    '<button type="button" id="r45-pdf-more" '+(pdfPageOffset>=pdfPageTotal?'hidden':'')+'>Mostrar mais páginas</button>';
   container.prepend(panel);
