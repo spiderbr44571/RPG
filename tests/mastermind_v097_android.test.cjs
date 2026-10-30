@@ -1,0 +1,68 @@
+'use strict';
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const root=path.join(__dirname,'..'),assets=path.join(root,'app/src/main/assets');
+const read=f=>fs.readFileSync(path.join(assets,f),'utf8');
+const E=require('../app/src/main/assets/mastermind_coc7_engine.js');
+test('v0.97 retains original app ID and bumps its version without deleting app data',()=>{
+ const gradle=fs.readFileSync(path.join(root,'app/build.gradle'),'utf8');
+ assert.match(gradle,/applicationId 'dev\.rpgmesa\.demo'/);
+ assert.match(gradle,/versionCode 101/);
+ assert.match(gradle,/versionName '0\.97\.0-system-editor'/);
+});
+test('Android personal PDFs stay private, multi-select and index by system without IA',()=>{
+ const java=fs.readFileSync(path.join(root,'app/src/main/java/dev/rpgmesa/demo/MainActivity.java'),'utf8');
+ const pdf=fs.readFileSync(path.join(root,'app/src/main/java/dev/rpgmesa/demo/PdfTextSearch.java'),'utf8');
+ assert.match(java,/ACTION_OPEN_DOCUMENT/);
+ assert.match(java,/Intent\.EXTRA_ALLOW_MULTIPLE,true/);
+ assert.match(java,/saveInvestigatorJson\(String filename,String json\)/);
+ assert.match(java,/SAVE_INVESTIGATOR_JSON/);
+ assert.match(java,/saveInvestigatorJson/);
+ assert.match(java,/RpgBookBridge/);
+ assert.match(java,/listPersonalBooks/);
+ assert.match(java,/searchPersonalBook/);
+ assert.match(java,/renderPersonalBookPage/);
+ assert.match(pdf,/CREATE VIRTUAL TABLE page_fts USING fts4/);
+ assert.match(pdf,/PDFTextStripper/);
+ assert.match(pdf,/MIN_FREE_DISK/);
+});
+test('CoC7 works on Android with local storage, native JSON export, import, and 1d100 rolls',()=>{
+ const html=read('demo-offline.html'),ui=read('mastermind_coc7_ui.js');
+ const catalog=read('rpg15_catalog.js'),books=read('mastermind51_private_books.js'),css=read('mastermind_coc7_android.css');
+ assert.match(html,/mastermind_coc7_engine\.js/);
+ assert.match(html,/mastermind_coc7_ui\.js/);
+ assert.match(html,/mastermind_coc7_android\.css/);
+ assert.match(html,/id="mm-release"[^>]*>v0\.96/);
+ assert.match(ui,/RpgBookBridge\.saveInvestigatorJson/);
+ assert.match(ui,/data-coc-import/);
+ assert.match(ui,/localStorage\.setItem\(KEY/);
+ assert.match(catalog,/MastermindCoc7\.mount/);
+ assert.match(books,/chamado-de-ctchulhu/);
+ assert.match(css,/44px/);
+ const investigator=E.newCharacter('Investigadora');
+ assert.equal(investigator.systemId,'chamado-de-ctchulhu');
+ assert.equal(investigator.edition,'7e');
+ assert.equal(E.ATTRS.length,8);
+ assert.deepEqual(E.thresholds(65),{regular:65,hard:32,extreme:13});
+ assert.equal(E.derived(investigator).HP,11);
+ assert.ok(investigator.resources.SAN.max>=investigator.resources.SAN.current);
+});
+test('CoC7 investigators can join the existing campaign server without breaking other systems',()=>{
+ const campaign=read('rpg11_campaigns.js');
+ assert.match(campaign,/data-r11="import-coc"/);
+ assert.match(campaign,/MastermindCoc7\.toCampaignSheet/);
+ assert.match(campaign,/MastermindCoc7\.editRemote/);
+ assert.match(campaign,/import-gurps/);
+ assert.match(campaign,/selectedSheet\(\)/);
+ const c=E.newCharacter();assert.ok(c.resources.HP.max>0);assert.ok(c.resources.MP.max>0);
+ assert.throws(()=>E.validate({systemId:'ordem-paranormal'}));
+});
+test('Android Atelier still uses isolated Godot bridge and the existing app screens',()=>{
+ const java=fs.readFileSync(path.join(root,'app/src/main/java/dev/rpgmesa/demo/MainActivity.java'),'utf8');
+ const html=read('demo-offline.html');
+ assert.match(java,/InlinePixelPortraitStage/);
+ assert.match(java,/nativeStageProbe/);
+ assert.match(html,/id="screen-atelier85"/);
+ assert.match(html,/id="p90-native-stage"/);
+ assert.match(html,/id="screen-master"/);
+ assert.match(html,/mastermind51_private_books\.js/);
+});
