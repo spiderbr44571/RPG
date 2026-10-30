@@ -1,8 +1,8 @@
-name: Mastermind 1.1.0 Linux — Pesquisa PDF e Chamado de Cthulhu
+name: Mastermind 1.1.1 Linux — Estudio de fichas nos quatro sistemas
 on:
   push:
     branches:
-      - feature/linux-v110-pdf-cthulhu
+      - feature/linux-v111-sheet-studio
   pull_request:
     branches:
       - fix/mastermind-v103-linux-mestragem-paisagem
@@ -38,8 +38,10 @@ jobs:
           node --check desktop/book-index.cjs
           node --check app/src/main/assets/mastermind_coc7_engine.js
           node --check app/src/main/assets/mastermind_coc7_ui.js
+          node --check app/src/main/assets/mastermind_sheet_studio.js
+          node --check app/src/main/assets/mastermind_sheet_studio.js
           node --check app/src/main/assets/rpg11_campaigns.js
-          node --test desktop/tests/desktop.test.cjs desktop/tests/godot-health.test.cjs desktop/tests/pdf-coc.test.cjs tests/mastermind_manual_canvas.test.cjs tests/mastermind_atelier_overlay.test.cjs
+          node --test desktop/tests/desktop.test.cjs desktop/tests/godot-health.test.cjs desktop/tests/pdf-coc.test.cjs tests/mastermind_manual_canvas.test.cjs tests/mastermind_atelier_overlay.test.cjs tests/mastermind_sheet_studio.test.cjs tests/mastermind_sheet_studio.test.cjs
       - name: Testar servidor, fichas, grid e paisagem em Electron real
         env:
           ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
@@ -59,6 +61,14 @@ jobs:
         env:
           ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
         run: timeout 120s xvfb-run -a -s "-screen 0 1440x900x24" node desktop/tests/e2e-packaged.cjs dist/linux-unpacked/mastermind
+      - name: Testar novo Estudio de Fichas no Electron Linux real
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: timeout 140s xvfb-run -a -s "-screen 0 1920x1080x24" node desktop/tests/e2e-sheet-studio.cjs dist/linux-unpacked/mastermind
+      - name: Testar novo Estudio de Fichas em Linux real (quatro sistemas)
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: timeout 140s xvfb-run -a -s "-screen 0 1920x1080x24" node desktop/tests/e2e-sheet-studio.cjs dist/linux-unpacked/mastermind
       - name: Validar pesquisa PDF e investigador CoC 7e no Linux instalado
         env:
           ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
@@ -88,39 +98,39 @@ jobs:
           if-no-files-found: ignore
       - name: Criar instalador Arch/CachyOS
         env:
-          MASTERMIND_VERSION: '1.1.0'
+          MASTERMIND_VERSION: '1.1.1'
           MASTERMIND_RELEASE: '1'
         run: |
           set -euo pipefail
-          bash scripts/package_arch_linux.sh dist/Mastermind-v1.1.0-Linux-x64.tar.gz dist/
-          python3 tests/verify_arch_linux_package.py dist/mastermind-rpg-1.1.0-1-x86_64.pkg.tar.zst
-          test -s dist/Mastermind-v1.1.0-Linux-x86_64.AppImage
-          test -s dist/mastermind-rpg-1.1.0-1-x86_64.pkg.tar.zst
-          sha256sum dist/Mastermind-v1.1.0-Linux-x86_64.AppImage dist/Mastermind-v1.1.0-Linux-x64.tar.gz > dist/SHA256SUMS.txt
+          bash scripts/package_arch_linux.sh dist/Mastermind-v1.1.1-Linux-x64.tar.gz dist/
+          python3 tests/verify_arch_linux_package.py dist/mastermind-rpg-1.1.1-1-x86_64.pkg.tar.zst
+          test -s dist/Mastermind-v1.1.1-Linux-x86_64.AppImage
+          test -s dist/mastermind-rpg-1.1.1-1-x86_64.pkg.tar.zst
+          sha256sum dist/Mastermind-v1.1.1-Linux-x86_64.AppImage dist/Mastermind-v1.1.1-Linux-x64.tar.gz > dist/SHA256SUMS.txt
       - name: Publicar apenas Pacman (CachyOS/Arch)
         uses: actions/upload-artifact@v4
         with:
-          name: Mastermind-1.1.0-Linux-PDF-CTHULHU-Pacman
+          name: Mastermind-1.1.1-Linux-SHEET-STUDIO-Pacman
           if-no-files-found: error
           retention-days: 90
           path: |
-            dist/mastermind-rpg-1.1.0-1-x86_64.pkg.tar.zst
-            dist/mastermind-rpg-1.1.0-1-x86_64.pkg.tar.zst.sha256
+            dist/mastermind-rpg-1.1.1-1-x86_64.pkg.tar.zst
+            dist/mastermind-rpg-1.1.1-1-x86_64.pkg.tar.zst.sha256
       - name: Publicar AppImage separado (outra distribuicao Linux)
         uses: actions/upload-artifact@v4
         with:
-          name: Mastermind-1.1.0-Linux-PDF-CTHULHU-AppImage
+          name: Mastermind-1.1.1-Linux-SHEET-STUDIO-AppImage
           if-no-files-found: error
           retention-days: 90
           path: |
-            dist/Mastermind-v1.1.0-Linux-x86_64.AppImage
+            dist/Mastermind-v1.1.1-Linux-x86_64.AppImage
             dist/SHA256SUMS.txt
       - name: Publicar tar.gz separado (Linux avancado)
         uses: actions/upload-artifact@v4
         with:
-          name: Mastermind-1.1.0-Linux-PDF-CTHULHU-TarGz
+          name: Mastermind-1.1.1-Linux-SHEET-STUDIO-TarGz
           if-no-files-found: error
           retention-days: 90
           path: |
-            dist/Mastermind-v1.1.0-Linux-x64.tar.gz
+            dist/Mastermind-v1.1.1-Linux-x64.tar.gz
             dist/SHA256SUMS.txt
