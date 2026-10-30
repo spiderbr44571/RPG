@@ -1,4 +1,4 @@
-/* Mastermind v0.97 — editable per-system local overlays, independent of bundled rulebooks.
+/* Mastermind v0.98 — editable per-system local overlays, independent of bundled rulebooks.
    Never writes to book packs. Undo/restore is possible without destroying characters. */
 (function(root,factory){
  const api=factory(root||{});
@@ -53,7 +53,15 @@
   if(!idNew)throw Error('Identificador inválido.');
   const count=Object.keys(current).length;
   if(count>=MAX_ITEMS&&!Object.prototype.hasOwnProperty.call(current,idNew))throw Error('Limite de '+MAX_ITEMS+' itens personalizados.');
-  const clean={name,description:String(item.description||'').slice(0,12000),className:String(item.className||'').slice(0,100),element:String(item.element||'').slice(0,100),minNex:Math.max(0,Math.min(100,Number(item.minNex)||0)),cost:String(item.cost||'').slice(0,100),requirements:String(item.requirements||'').slice(0,3000)};
+  const clean={
+   name,description:String(item.description||'').slice(0,12000),
+   className:String(item.className||'').slice(0,100),element:String(item.element||'').slice(0,100),
+   minNex:Math.max(0,Math.min(100,Number(item.minNex)||0)),cost:String(item.cost??'').slice(0,100),
+   requirements:String(item.requirements||'').slice(0,3000),category:String(item.category||'').slice(0,90),
+   level:String(item.level??'').slice(0,40),points:String(item.points??'').slice(0,40),
+   slots:String(item.slots??'').slice(0,40),damage:String(item.damage||'').slice(0,100),
+   page:String(item.page??'').slice(0,40)
+  };
   s.overrides={...s.overrides,[type]:{...current,[idNew]:clean}};
   s.deleted={...s.deleted,[type]:blocked.filter(x=>x!==idNew)};
   return put(id,s);
@@ -72,17 +80,23 @@
  }
  function reset(id){delete state[id];root.localStorage?.setItem(STORAGE,JSON.stringify(state));root.document?.dispatchEvent(new CustomEvent('mastermind:system-edited',{detail:{systemId:id}}));}
  function defaults(id,type){
+  const catalog=root.MastermindSystemCatalog?.defaults(id,type);
+  if(Array.isArray(catalog))return catalog;
+  // Safe fallback for old installs before the catalog adapter is loaded.
   const p=root.OP13?.pack||{},cl=root.MastermindClassCatalog?.classPowers||{};
   if(id!=='ordem-paranormal')return [];
   if(type==='powers')return Object.entries(cl).flatMap(([className,names])=>names.map(name=>({id:name,name,className})));
-  if(type==='paranormal')return (p.poderesParanormais||[]).map(x=>({id:x.nome,name:x.nome,element:x.elemento,description:x.resumo||''}));
-  if(type==='rituals')return (p.rituais||[]).map(x=>({id:x.id||x.nome,name:x.nome||x.id,element:x.elemento||'',description:x.resumo||''}));
-  if(type==='skills')return (p.pericias||[]).map(x=>({id:x.nome,name:x.nome,element:x.atributo||''}));
-  if(type==='progression')return (p.progressao||[]).map(x=>({id:String(x.nex),name:'NEX '+x.nex+'%',minNex:x.nex,description:'Limite PE: '+(x.limitePE||'')}));
+  if(type==='paranormal')return (p.poderesParanormais||[]).map(x=>({id:x.nome,name:x.nome,element:x.elemento}));
+  if(type==='rituals')return (p.rituais||[]).map(x=>({id:x.id||x.nome,name:x.nome||x.id}));
+  if(type==='skills')return (p.pericias||[]).map(x=>({id:x.nome,name:x.nome}));
   return [];
  }
  function powerOptions(kind,className,base){
-  const type=kind==='class'?'powers':'paranormal',items=all('ordem-paranormal',type,base);
+  const type=kind==='class'?'powers':'paranormal';
+  const indexed=defaults('ordem-paranormal',type);
+  // Use installed catalog first so changes in Biblioteca affect the actual power chooser.
+  const source=indexed.length?indexed:base;
+  const items=all('ordem-paranormal',type,source);
   return items.filter(x=>kind!=='class'||!x.className||x.className===className);
  }
  function curseNames(v){
@@ -95,22 +109,44 @@
   return name+(curses.length?' ('+curses.join(', ')+')':'');
  }
  const doc=root.document;
- let currentId='',currentType='powers',editId='',mounted=false;
+ let currentId='',currentType='powers',editId='',searchTerm='',visibleCount=80;
  function canMount(){return !!doc?.querySelector('.r15-detail');}
  function detailTitle(id){const original=root.RPG15_SYSTEMS?.systems?.find(s=>s.id===id);return system(id).metadata?.name||original?.title||id;}
  function uiItems(){return all(currentId,currentType,defaults(currentId,currentType));}
+ function renderEntries(){
+  const holder=doc?.getElementById('mse-panel');if(!holder)return;
+  const allItems=uiItems(),query=norm(searchTerm);
+  const items=query?allItems.filter(x=>norm([x.name,x.category,x.className,x.element,x.description,x.id].join(' ')).includes(query)):allItems;
+  const list=holder.querySelector('.mse-list');
+  if(list)list.innerHTML=items.length?items.slice(0,visibleCount).map(v=>{
+    const custom=!!system(currentId).overrides?.[currentType]?.[v.id];
+    const label=custom?'Editado / personalizado':v.source||'Catálogo instalado';
+    const detail=[v.category,v.className,v.element,v.description].filter(Boolean).join(' · ');
+    return '<div><b>'+esc(v.name)+'</b><small>'+esc((label+' · '+detail).slice(0,170))+'</small><span><button type="button" data-mse-edit="'+esc(v.id)+'">Editar</button><button type="button" data-mse-delete="'+esc(v.id)+'">Excluir</button></span></div>';
+   }).join(''):'<p>Nenhuma entrada correspondente. Você pode criar uma entrada personalizada nesta categoria.</p>';
+  const count=holder.querySelector('#mse-count');
+  if(count)count.textContent=items.length+' encontrada(s) · '+allItems.length+' no catálogo';
+  const more=holder.querySelector('#mse-more');
+  if(more)more.hidden=items.length<=visibleCount;
+  const deleted=system(currentId).deleted?.[currentType]||[],removed=holder.querySelector('#mse-removed');
+  if(removed)removed.innerHTML=deleted.length?'<details><summary>'+deleted.length+' entrada(s) ocultada(s) · Restaurar</summary>'+
+    deleted.slice(0,50).map(k=>'<button type="button" data-mse-restore="'+esc(k)+'">'+esc(k)+' · Restaurar</button>').join('')+'</details>':'';
+ }
  function show(){
   const holder=doc?.getElementById('mse-panel');if(!holder)return;
-  const s=system(currentId),items=uiItems();
-  holder.innerHTML='<div class="mse-head"><h3>Editar sistema · '+esc(detailTitle(currentId))+'</h3><p>Personalização local e reversível. Dados oficiais de origem não são sobrescritos. Regras automáticas exigem compatibilidade com o motor do sistema.</p></div>'+
+  const s=system(currentId),labels=root.MastermindSystemCatalog?.labels(currentId)||{};
+  holder.innerHTML='<div class="mse-head"><h3>Editar sistema · '+esc(detailTitle(currentId))+'</h3><p>Entradas carregadas dos catálogos locais de cada RPG. Alterações são reversíveis e não apagam personagens.</p></div>'+
    '<div class="mse-grid"><label>Nome<input id="mse-name" maxlength="100" value="'+esc(s.metadata?.name||detailTitle(currentId))+'"></label><label>Edição<input id="mse-edition" maxlength="80" value="'+esc(s.metadata?.edition||'')+'"></label>'+
    '<label class="mse-wide">Descrição<textarea id="mse-description" rows="2" maxlength="6000">'+esc(s.metadata?.description||'')+'</textarea></label>'+
    '<label class="mse-wide">Imagem do sistema <input type="file" id="mse-photo" accept="image/png,image/jpeg,image/webp"></label></div>'+
    '<div class="mse-actions"><button data-mse-save-meta>Salvar informações</button><button data-mse-reset>Restaurar sistema original</button></div>'+
-   '<div class="mse-rule"><label>Editar conteúdo<select id="mse-type">'+Object.entries(TYPES).map(([k,n])=>'<option value="'+k+'" '+(currentType===k?'selected':'')+'>'+esc(n)+'</option>').join('')+'</select></label>'+
+   '<div class="mse-rule"><label>Editar conteúdo<select id="mse-type">'+Object.entries(TYPES).map(([k,n])=>'<option value="'+k+'" '+(currentType===k?'selected':'')+'>'+esc(labels[k]||n)+'</option>').join('')+'</select></label>'+
    '<button data-mse-new>+ Criar entrada</button></div>'+
-   '<div class="mse-list">'+(items.length?items.slice(0,150).map(v=>'<div><b>'+esc(v.name)+'</b><small>'+esc([v.className,v.element,v.description].filter(Boolean).join(' · ').slice(0,140))+'</small><span><button data-mse-edit="'+esc(v.id)+'">Editar</button><button data-mse-delete="'+esc(v.id)+'">Excluir</button></span></div>').join(''):'<p>Nenhum conteúdo nesta categoria.</p>')+'</div>'+
-   '<p class="mse-warning">Itens excluídos só são ocultados neste sistema. Personagens existentes não são excluídos.</p><div id="mse-item-editor" hidden></div><small id="mse-message" role="status"></small>';
+   '<div class="mse-search"><input id="mse-search" type="search" placeholder="Pesquisar por nome, classe, elemento, descrição..." value="'+esc(searchTerm)+'" aria-label="Pesquisar entradas do sistema"><small id="mse-count"></small></div>'+
+   '<div class="mse-list" aria-live="polite"></div><button id="mse-more" type="button" hidden>Mostrar mais entradas</button><div id="mse-removed"></div>'+
+   '<p class="mse-warning">Criaturas e ameaças continuam no Bestiário. Catálogos editados podem ser consultivos até que o motor do sistema suporte a nova regra.</p>'+
+   '<div id="mse-item-editor" hidden></div><small id="mse-message" role="status"></small>';
+  renderEntries();
  }
  function itemForm(item){
   const host=doc.getElementById('mse-item-editor');if(!host)return;
@@ -118,7 +154,13 @@
   host.hidden=false;host.innerHTML='<h4>'+(editId?'Editar entrada':'Nova entrada')+'</h4><label>Nome<input id="mse-item-name" maxlength="100" value="'+esc(t.name||'')+'"></label>'+
    '<label>Classe (quando aplicável)<input id="mse-item-class" maxlength="100" value="'+esc(t.className||'')+'"></label>'+
    '<label>Elemento ou atributo<input id="mse-item-element" maxlength="100" value="'+esc(t.element||'')+'"></label>'+
-   '<label>NEX mínimo<input id="mse-item-nex" type="number" min="0" max="100" value="'+esc(t.minNex||0)+'"></label>'+
+   '<label>Categoria<input id="mse-item-category" maxlength="90" value="'+esc(t.category||'')+'"></label>'+
+    '<label>NEX mínimo (Ordem)<input id="mse-item-nex" type="number" min="0" max="100" value="'+esc(t.minNex||0)+'"></label>'+
+    '<label>Nível / círculo<input id="mse-item-level" value="'+esc(t.level??'')+'"></label>'+
+    '<label>Pontos / custo-base<input id="mse-item-points" value="'+esc(t.points??'')+'"></label>'+
+    '<label>Espaços / peso<input id="mse-item-slots" value="'+esc(t.slots??'')+'"></label>'+
+    '<label>Dano<input id="mse-item-damage" maxlength="100" value="'+esc(t.damage||'')+'"></label>'+
+    '<label>Página / referência<input id="mse-item-page" value="'+esc(t.page??'')+'"></label>'+
    '<label>Custo<input id="mse-item-cost" maxlength="100" value="'+esc(t.cost||'')+'"></label>'+
    '<label class="mse-wide">Requisitos<textarea id="mse-item-req" rows="2">'+esc(t.requirements||'')+'</textarea></label>'+
    '<label class="mse-wide">Descrição<textarea id="mse-item-desc" rows="3">'+esc(t.description||'')+'</textarea></label>'+
@@ -127,7 +169,7 @@
  }
  function css(){
   if(doc.getElementById('mse-style'))return;
-  const style=doc.createElement('style');style.id='mse-style';style.textContent='.mse-open{display:inline-flex;margin:10px 0;padding:11px 16px;border:1px solid var(--accent);border-radius:10px;background:var(--panel2);color:var(--fg);font-weight:700}.mse{margin:18px 0;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--fg)}.mse[hidden],#mse-item-editor[hidden]{display:none!important}.mse h3{margin:2px 0 7px;font:600 23px Georgia,serif}.mse p{font-size:12px;color:var(--muted)}.mse-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.mse label{display:grid;gap:5px;font-size:12px}.mse input,.mse select,.mse textarea{width:100%;min-width:0;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);font:inherit}.mse-wide{grid-column:1/-1}.mse-actions,.mse-rule{display:flex;gap:9px;align-items:end;flex-wrap:wrap;margin:12px 0}.mse button{border:1px solid var(--accent);background:var(--panel2);color:var(--fg);border-radius:8px;padding:9px 11px;cursor:pointer}.mse button:hover{background:var(--accent);color:var(--bg)}.mse-list{max-height:420px;overflow:auto;display:grid;gap:5px}.mse-list>div{border:1px solid var(--line);padding:10px;border-radius:8px;display:flex;flex-wrap:wrap;align-items:center;gap:8px}.mse-list b{min-width:150px}.mse-list small{color:var(--muted);flex:1;min-width:100px}.mse-list span{display:flex;gap:5px}#mse-item-editor{margin-top:14px;display:grid;gap:9px;padding:13px;border:1px solid var(--accent);border-radius:10px}@media(max-width:650px){.mse-grid{grid-template-columns:1fr}.mse-list>div{display:grid}}';
+  const style=doc.createElement('style');style.id='mse-style';style.textContent='.mse-open{display:inline-flex;margin:10px 0;padding:11px 16px;border:1px solid var(--accent);border-radius:10px;background:var(--panel2);color:var(--fg);font-weight:700}.mse{margin:18px 0;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--fg)}.mse[hidden],#mse-item-editor[hidden]{display:none!important}.mse h3{margin:2px 0 7px;font:600 23px Georgia,serif}.mse p{font-size:12px;color:var(--muted)}.mse-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.mse label{display:grid;gap:5px;font-size:12px}.mse input,.mse select,.mse textarea{width:100%;min-width:0;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);font:inherit}.mse-wide{grid-column:1/-1}.mse-actions,.mse-rule{display:flex;gap:9px;align-items:end;flex-wrap:wrap;margin:12px 0}.mse button{border:1px solid var(--accent);background:var(--panel2);color:var(--fg);border-radius:8px;padding:9px 11px;cursor:pointer}.mse button:hover{background:var(--accent);color:var(--bg)}.mse-list{max-height:420px;overflow:auto;display:grid;gap:5px}.mse-search{display:grid;gap:6px;margin:12px 0}.mse-search small{color:var(--muted)}#mse-more[hidden]{display:none!important}#mse-removed button{margin:5px 5px 5px 0}.mse-list>div{border:1px solid var(--line);padding:10px;border-radius:8px;display:flex;flex-wrap:wrap;align-items:center;gap:8px}.mse-list b{min-width:150px}.mse-list small{color:var(--muted);flex:1;min-width:100px}.mse-list span{display:flex;gap:5px}#mse-item-editor{margin-top:14px;display:grid;gap:9px;padding:13px;border:1px solid var(--accent);border-radius:10px}@media(max-width:650px){.mse-grid{grid-template-columns:1fr}.mse-list>div{display:grid}}';
   doc.head.append(style);
  }
  function attach(){
@@ -143,7 +185,7 @@
   panel.dataset.bound='1';
   button.addEventListener('click',()=>{panel.hidden=!panel.hidden;if(!panel.hidden)show();});
   panel.addEventListener('change',async e=>{
-   if(e.target.id==='mse-type'){currentType=e.target.value;show();return;}
+   if(e.target.id==='mse-type'){currentType=e.target.value;searchTerm='';visibleCount=80;show();return;}
    if(e.target.id!=='mse-photo')return;
    const f=e.target.files?.[0];if(!f)return;
    if(!['image/png','image/jpeg','image/webp'].includes(f.type)||f.size>2*1024*1024){root.alert?.('Escolha uma imagem PNG/JPG/WebP até 2 MB.');return;}
@@ -151,10 +193,13 @@
    reader.onload=()=>{const img=new Image();img.onload=()=>{try{const canvas=doc.createElement('canvas');canvas.width=400;canvas.height=400;const ctx=canvas.getContext('2d');const ratio=Math.max(400/img.width,400/img.height);ctx.drawImage(img,(400-img.width*ratio)/2,(400-img.height*ratio)/2,img.width*ratio,img.height*ratio);const photo=canvas.toDataURL('image/jpeg',.75);setMetadata(currentId,{photo});show();}catch(ex){root.alert?.(ex.message)}};img.onerror=()=>root.alert?.('Imagem inválida');img.src=reader.result;};
    reader.readAsDataURL(f);
   });
+  panel.addEventListener('input',e=>{if(e.target.id==='mse-search'){searchTerm=e.target.value;visibleCount=80;renderEntries();}});
   panel.addEventListener('click',e=>{
    const btn=e.target.closest('button');if(!btn)return;
    try{
-    if(btn.hasAttribute('data-mse-save-meta')){
+    if(btn.id==='mse-more'){visibleCount+=80;renderEntries();return;}
+   if(btn.dataset.mseRestore){restoreItem(currentId,currentType,btn.dataset.mseRestore);show();return;}
+   if(btn.hasAttribute('data-mse-save-meta')){
      setMetadata(currentId,{name:panel.querySelector('#mse-name')?.value||'',edition:panel.querySelector('#mse-edition')?.value||'',description:panel.querySelector('#mse-description')?.value||''});show();
     }else if(btn.hasAttribute('data-mse-reset')){
      if(root.confirm?.('Restaurar apenas personalizações deste sistema? Personagens serão preservados.')){reset(currentId);show();}
@@ -164,7 +209,7 @@
     else if(btn.hasAttribute('data-mse-cancel')){editId='';show();}
     else if(btn.hasAttribute('data-mse-save-item')){
      const val=s=>panel.querySelector('#mse-item-'+s)?.value||'';
-     saveItem(currentId,currentType,{name:val('name'),className:val('class'),element:val('element'),minNex:val('nex'),cost:val('cost'),requirements:val('req'),description:val('desc')},editId);
+     saveItem(currentId,currentType,{name:val('name'),className:val('class'),element:val('element'),minNex:val('nex'),cost:val('cost'),requirements:val('req'),description:val('desc'),category:val('category'),level:val('level'),points:val('points'),slots:val('slots'),damage:val('damage'),page:val('page')},editId);
      editId='';show();
     }
    }catch(ex){root.alert?.(ex.message);const msg=panel.querySelector('#mse-message');if(msg)msg.textContent=ex.message;}
@@ -173,7 +218,7 @@
  }
  if(doc){
   css();
-  doc.addEventListener('mastermind:system-open',e=>{currentId=e.detail?.systemId||'';editId='';const detail=doc.querySelector('.r15-detail');
+  doc.addEventListener('mastermind:system-open',e=>{currentId=e.detail?.systemId||'';editId='';searchTerm='';visibleCount=80;const detail=doc.querySelector('.r15-detail');
    // The library recreates the entire detail element on every system change.
    const button=detail?.querySelector('.mse-open');if(button)button.remove();
    const panel=detail?.querySelector('#mse-panel');if(panel)panel.remove();
