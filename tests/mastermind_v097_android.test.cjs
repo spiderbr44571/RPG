@@ -31,7 +31,7 @@ test('CoC7 works on Android with local storage, native JSON export, import, and 
  assert.match(html,/mastermind_coc7_engine\.js/);
  assert.match(html,/mastermind_coc7_ui\.js/);
  assert.match(html,/mastermind_coc7_android\.css/);
- assert.match(html,/id="mm-release"[^>]*>v0\.96/);
+ assert.match(html,/id="mm-release"[^>]*>v0\.97/);
  assert.match(ui,/RpgBookBridge\.saveInvestigatorJson/);
  assert.match(ui,/data-coc-import/);
  assert.match(ui,/localStorage\.setItem\(KEY/);
