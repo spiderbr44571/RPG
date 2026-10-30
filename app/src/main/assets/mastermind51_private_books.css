@@ -27,7 +27,7 @@
 .r51-result h4{font-size:15px;margin:0 0 5px}
 .r51-result>small{font-size:10px;color:var(--accent);line-height:1.5}
 .r51-hit{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:8px 0;border-bottom:1px solid var(--line)}
-.r51-hit p{flex:1;margin:0;font-size:11px}
+.r51-hit p{flex:1;min-width:0;margin:0;font-size:11px;overflow-wrap:anywhere;word-break:break-word;white-space:normal}
 .r51-hit button{flex-shrink:0}
 .r51-empty{padding:10px;border:1px dashed var(--line);border-radius:10px}
 #r51-book-viewer[hidden]{display:none!important}
@@ -39,3 +39,6 @@
 #r51-viewer-img{width:100%;height:auto}
 #r51-viewer-img[hidden]{display:none!important}
 @media(max-width:600px){.r51-private,.r51-manual{padding:13px}.r51-private-top>button{width:100%}.r51-hit{align-items:stretch;flex-direction:column}.r51-hit button{align-self:flex-start}}
+
+.r51-encoding-note{display:block;max-width:100%;font:500 10px/1.5 system-ui;color:var(--muted);overflow-wrap:anywhere}
+.r51-result,.r51-search,.r51-hit{min-width:0;max-width:100%}
