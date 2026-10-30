@@ -5,7 +5,10 @@
  */
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const pdfjs=require('pdfjs-dist/legacy/build/pdf.js');
-const vocabulary=require('../app/src/main/assets/mastermind_search_vocabulary.js');
+const sharedVocabulary=process.resourcesPath&&fs.existsSync(path.join(process.resourcesPath,'server','assets','mastermind_search_vocabulary.js'))
+ ?path.join(process.resourcesPath,'server','assets','mastermind_search_vocabulary.js')
+ :path.join(__dirname,'..','app','src','main','assets','mastermind_search_vocabulary.js');
+const vocabulary=require(sharedVocabulary);
 const MAX_PDF=250*1024*1024,MAX_PAGES=3500,MAX_PAGE_TEXT=150000;
 const inflight=new Map();
 const stop=new Set(['a','o','as','os','ao','aos','de','do','da','dos','das','e','em','no','na','nos','nas','um','uma','como','qual','quais','quando','para','por','que','se','tem','com','the','and','what','how','are','for','does','funciona','regras','regra']);
