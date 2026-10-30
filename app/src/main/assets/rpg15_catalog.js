@@ -22,6 +22,8 @@ const detail=document.createElement('div');detail.className='r15-ui r15-detail';
 const palette=[['#3a1729','#a84065'],['#132d3e','#4ba9ba'],['#35230d','#af995d'],['#251a49','#8670cb'],['#223b2b','#77ad89'],['#382015','#b87945']];
 function colors(sys){let code=0;for(const x of sys.title)code+=x.charCodeAt(0);return palette[code%palette.length]}
 function image(sys){
+ const custom=window.MastermindSystemEditor?.get?.(sys.id)?.cover;
+ if(custom)return custom;
  if(sys.id!=='ordem-paranormal')return '';
  try{let s=JSON.parse(localStorage.getItem('rpg-v09-cover')||'""');return /^data:image\/(png|jpeg|webp);base64,/.test(s)&&s.length<2000000?s:''}catch{return ''}
 }
@@ -88,7 +90,7 @@ function open(id){
  detail.innerHTML='<button class="r15-back" id="r15-go-home">← Todos os sistemas</button>'+
  '<section class="r15-detail-hero" style="--deep:'+pal[0]+';--soft:'+pal[1]+'"><div class="eyebrow">BIBLIOTECA · SISTEMA</div><h1>'+esc(sys.title)+'</h1><p>'+sys.books.length+' documento(s) · '+sys.folders.length+' subpasta(s)</p>'+
  '<div class="r15-tag">'+(sys.implementation==='partial'?'Módulo em desenvolvimento':'Acervo catalogado')+'</div>'+
- '<p>Livros, expansões, aventuras e materiais relacionados. Cada fonte mantém seu próprio vínculo ao Drive; regras e criaturas são incorporadas somente após validação.</p>'+
+ '<p>'+esc(sys.customDescription||'Livros, expansões, aventuras e materiais relacionados. Cada fonte mantém seu próprio vínculo ao Drive; regras e criaturas são incorporadas somente após validação.')+'</p>'+
  driveAnchor(sys.folderId,'folder',sys.driveUrl,'Abrir pasta no Drive ↗')+'</section>'+
  '<div id="r51-book-library" data-system-id="'+esc(id)+'"></div>'+ 
  '<div id="r15-ordem-book">'+(id==='ordem-paranormal'?localBookSlot():'')+'</div>'+
@@ -131,5 +133,5 @@ dashboard.querySelector('.r15-filterbar').addEventListener('click',e=>{
  dashboard.querySelectorAll('[data-category]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));render();
 });
 render();
-window.RPG15={systemsCount:systems.length,filesCount:systems.reduce((n,s)=>n+s.books.length,0),openSystem:open,home:goHome,bookType,bookSources:(id)=>{const sys=systems.find(x=>x.id===id);return sys?sys.books.map(b=>({id:b.id,title:b.title,kind:bookType(b).label,driveUrl:b.url,path:b.path||[]})):[]}};
+window.RPG15={systemsCount:systems.length,filesCount:systems.reduce((n,s)=>n+s.books.length,0),openSystem:open,home:goHome,refresh:render,bookType,bookSources:(id)=>{const sys=systems.find(x=>x.id===id);return sys?sys.books.map(b=>({id:b.id,title:b.title,kind:bookType(b).label,driveUrl:b.url,path:b.path||[]})):[]}};
 })();
