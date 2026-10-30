@@ -1,0 +1,88 @@
+name: Mastermind Android v0.97 — Editor de sistemas, poderes e maldições
+on:
+  push:
+    branches:
+      - feature/android-v097-system-editor
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  android:
+    name: Testes regressivos e compilacao Android v0.97
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Incorporar biblioteca PDF offline (sem CDN em execução)
+        run: |
+          set -euo pipefail
+          npm install --prefix .mm-pdf-deps --no-audit --no-fund --ignore-scripts pdf-lib@1.17.1
+          cp .mm-pdf-deps/node_modules/pdf-lib/dist/pdf-lib.min.js app/src/main/assets/pdf-lib.min.js
+          test -s app/src/main/assets/pdf-lib.min.js
+      - name: Validar sintaxe das funcionalidades adicionadas
+        run: |
+          set -euo pipefail
+          node --check app/src/main/assets/mastermind_coc7_engine.js
+          node --check app/src/main/assets/mastermind_coc7_ui.js
+          node --check app/src/main/assets/mastermind_sheet_studio.js
+          node --check app/src/main/assets/mastermind_system_pdf.js
+          node --check app/src/main/assets/mastermind_ordem_template.js
+          node --check app/src/main/assets/mastermind_system_editor.js
+          node --check app/src/main/assets/mastermind56_local_powers.js
+          node --check app/src/main/assets/rpg17_sheet_pdf.js
+          node --check app/src/main/assets/mastermind51_private_books.js
+          node --check app/src/main/assets/rpg15_catalog.js
+          node --check app/src/main/assets/rpg11_campaigns.js
+      - name: Testes Android, CoC, PDFs, Godot e compatibilidade
+        run: |
+          set -euo pipefail
+          node --test tests/mastermind_v097_android.test.cjs tests/mastermind_sheet_studio.test.cjs tests/mastermind_v094_powers.test.cjs
+          NODE_PATH="$PWD/.mm-pdf-deps/node_modules" node --test tests/mastermind_v095_pdf_templates.test.cjs tests/mastermind_v096_ordem_template.test.cjs tests/mastermind_v097_system_editor.test.cjs
+          node tests/pixelportrait90.test.cjs
+          node tests/gurps4.test.cjs
+          node tests/mastermind_v74.test.cjs
+          node tests/mastermind_v75.test.cjs
+      - name: Preparar SDK Android
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMANAGER" ]; then SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -path '*/bin/sdkmanager' -type f | sort -V | tail -1)"; fi
+          "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --install 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Compilar APK Android assinado de desenvolvimento
+        run: gradle :app:assembleDebug --no-daemon
+      - name: Conferir assets, pontes nativas e assinatura
+        run: |
+          set -euo pipefail
+          python3 tests/verify_apk_v97.py app/build/outputs/apk/debug/app-debug.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-debug.apk
+          cp app/build/outputs/apk/debug/app-debug.apk Mastermind-v0.97-Android-Editor-Sistemas.apk
+          sha256sum Mastermind-v0.97-Android-Editor-Sistemas.apk > Mastermind-v0.97-Android-SHA256.txt
+      - name: Publicar APK no GitHub Actions
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mastermind-v0.97-Android-EDITOR-SISTEMAS-APK
+          path: |
+            Mastermind-v0.97-Android-Editor-Sistemas.apk
+            Mastermind-v0.97-Android-SHA256.txt
+          if-no-files-found: error
+          retention-days: 90
+      - name: Publicar APK para download direto no GitHub Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="mastermind-v0.97-android-editor-sistemas"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" Mastermind-v0.97-Android-Editor-Sistemas.apk Mastermind-v0.97-Android-SHA256.txt --clobber
+          else
+            gh release create "$TAG" Mastermind-v0.97-Android-Editor-Sistemas.apk Mastermind-v0.97-Android-SHA256.txt \
+              --target "$GITHUB_SHA" --title "Mastermind Android v0.97 — Edição de sistemas e poderes" \
+              --notes "APK experimental: editor local de sistemas na Biblioteca, inclusão e edição de poderes, rituais, evolução e dados do sistema; excluir e substituir poderes nas fichas; maldições no inventário e PDFs. Bônus de perícia de Ordem: +5/+10/+15 conforme treinamento, separado dos dados do atributo. Preserva mestragem, Ateliê, livros, sistema de fichas e exportação PDF. Faça backup antes de atualizar."
+          fi
