@@ -1,14 +1,14 @@
-name: Mastermind Android v0.91 — PDF e Chamado de Cthulhu
+name: Mastermind Android v0.93 — Estudio de Fichas
 on:
   push:
     branches:
-      - feature/android-v091-pdf-cthulhu
+      - feature/android-v093-sheet-studio
   workflow_dispatch:
 permissions:
   contents: write
 jobs:
   android:
-    name: Testes regressivos e compilacao Android v0.91
+    name: Testes regressivos e compilacao Android v0.93
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -25,13 +25,15 @@ jobs:
           set -euo pipefail
           node --check app/src/main/assets/mastermind_coc7_engine.js
           node --check app/src/main/assets/mastermind_coc7_ui.js
+          node --check app/src/main/assets/mastermind_sheet_studio.js
           node --check app/src/main/assets/mastermind51_private_books.js
           node --check app/src/main/assets/rpg15_catalog.js
           node --check app/src/main/assets/rpg11_campaigns.js
       - name: Testes Android, CoC, PDFs, Godot e compatibilidade
         run: |
           set -euo pipefail
-          node --test tests/mastermind_v091_android.test.cjs
+          node --test tests/mastermind_v091_android.test.cjs tests/mastermind_sheet_studio.test.cjs
+          node tests/sheet_pdf.test.cjs
           node tests/pixelportrait90.test.cjs
           node tests/gurps4.test.cjs
           node tests/mastermind_v74.test.cjs
@@ -49,15 +51,15 @@ jobs:
           set -euo pipefail
           python3 tests/verify_apk_v91.py app/build/outputs/apk/debug/app-debug.apk
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-debug.apk
-          cp app/build/outputs/apk/debug/app-debug.apk Mastermind-v0.91-Android-PDF-Cthulhu.apk
-          sha256sum Mastermind-v0.91-Android-PDF-Cthulhu.apk > Mastermind-v0.91-Android-SHA256.txt
+          cp app/build/outputs/apk/debug/app-debug.apk Mastermind-v0.93-Android-Sheet-Studio.apk
+          sha256sum Mastermind-v0.93-Android-Sheet-Studio.apk > Mastermind-v0.93-Android-SHA256.txt
       - name: Publicar APK no GitHub Actions
         uses: actions/upload-artifact@v4
         with:
-          name: Mastermind-v0.91-Android-PDF-e-Cthulhu-APK
+          name: Mastermind-v0.93-Android-Novo-Editor-de-Fichas-APK
           path: |
-            Mastermind-v0.91-Android-PDF-Cthulhu.apk
-            Mastermind-v0.91-Android-SHA256.txt
+            Mastermind-v0.93-Android-Sheet-Studio.apk
+            Mastermind-v0.93-Android-SHA256.txt
           if-no-files-found: error
           retention-days: 90
       - name: Publicar APK para download direto no GitHub Releases
@@ -65,11 +67,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          TAG="mastermind-v0.91-android-pdf-cthulhu"
+          TAG="mastermind-v0.93-android-sheet-studio"
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" Mastermind-v0.91-Android-PDF-Cthulhu.apk Mastermind-v0.91-Android-SHA256.txt --clobber
+            gh release upload "$TAG" Mastermind-v0.93-Android-Sheet-Studio.apk Mastermind-v0.93-Android-SHA256.txt --clobber
           else
-            gh release create "$TAG" Mastermind-v0.91-Android-PDF-Cthulhu.apk Mastermind-v0.91-Android-SHA256.txt \
-              --target "$GITHUB_SHA" --title "Mastermind Android v0.91 — PDFs e Chamado de Cthulhu" \
-              --notes "APK Android v0.91 experimental, com leitor e indexador local de PDFs pessoais por sistema, Chamado de Cthulhu 7e (fichas, rolagens d100 e integração de campanha), exportação JSON no seletor nativo Android, e interface adaptada ao toque. Preserva as funcionalidades anteriores (Ordem Paranormal, D&D, GURPS, mesa, canvas e Ateliê Godot). Os livros comerciais não são distribuídos. Builds de desenvolvimento podem ser assinadas por chave diferente das versões antigas: faça backup de personagens e PDFs antes de qualquer desinstalação."
+            gh release create "$TAG" Mastermind-v0.93-Android-Sheet-Studio.apk Mastermind-v0.93-Android-SHA256.txt \
+              --target "$GITHUB_SHA" --title "Mastermind Android v0.93 — Novo editor de fichas" \
+              --notes "APK Android v0.93 experimental com Estúdio de Fichas: editor unificado, seletores de quatro sistemas/personagens, temas pessoais e animações, preservando Ordem, D&D, GURPS, CoC, biblioteca PDF, mesa, canvas e Godot. É assinado para desenvolvimento: antes de qualquer desinstalação, exporte seus dados."
           fi
