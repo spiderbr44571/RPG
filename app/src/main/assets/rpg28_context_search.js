@@ -39,11 +39,20 @@
   ],
   'd-d':[
    {id:'dnd-descanso',terms:['descanso curto','descanso longo','short rest','long rest','dados de vida','recuperacao']},
-   {id:'dnd-teste',terms:['proficiência','proficiencia','bonus de proficiencia','vantagem','desvantagem','teste de atributo','salvaguarda']}
+   {id:'dnd-teste',terms:['proficiência','proficiencia','bonus de proficiencia','vantagem','desvantagem','teste de atributo','salvaguarda','saving throw','ability check','skill check','proficiency bonus','difficulty class','classe de dificuldade','resistencia']},
+   {id:'dnd-magia',terms:['spell','spellcasting','magia','conjuracao','conjurar','espaco de magia','spell slot','concentration','concentracao','ritual casting','truque','cantrip','componentes verbais','componentes somaticos','descanso longo']},
+   {id:'dnd-combate',terms:['armor class','classe de armadura','ac','ca','hit points','pontos de vida','death saves','salvaguarda contra morte','opportunity attack','ataque de oportunidade','bonus action','acao bonus','reaction','reacao']}
+  ],
+  'chamado-de-ctchulhu':[
+   {id:'coc-sanidade',terms:['sanidade','sanity','san','perda de sanidade','loucura','insanidade','insanity','sanity roll','teste de sanidade','sanidade temporaria','sanidade indefinida']},
+   {id:'coc-pericias',terms:['pericia','skill','habilidade','teste de pericia','sucesso dificil','sucesso extremo','hard success','extreme success','dados bonus','dados penalidade','pushed roll','forcar teste']},
+   {id:'coc-combate',terms:['combate','fight back','esquivar','dodge','manobra de combate','arma de fogo','firearms','dano','ferimentos graves','major wound']},
+   {id:'coc-investigacao',terms:['investigacao','investigar','biblioteca','library use','ocultismo','cthulhu mythos','mitos de cthulhu','sorte','luck','ideia','idea roll']}
   ],
   'gurps':[
-   {id:'gurps-teste',terms:['3d6','teste de habilidade','nivel efetivo','modificador','sucesso','falha']},
-   {id:'gurps-pontos',terms:['pontos de personagem','vantagem','desvantagem','pericia','atributo']}
+   {id:'gurps-teste',terms:['3d6','teste de habilidade','nivel efetivo','modificador','sucesso','falha','margem de sucesso','margem de falha','critical success','critical failure','teste de vontade','teste de percepcao','teste de resistencia','quick contest','disputa rapida']},
+   {id:'gurps-pontos',terms:['pontos de personagem','vantagem','desvantagem','pericia','atributo','character points','peculiaridades','quirks','desvantagens mentais','vantagens fisicas','custo em pontos','nivel de habilidade']},
+   {id:'gurps-combate',terms:['defesa ativa','esquiva','aparar','bloquear','parry','block','dodge','choque','shock','dano por corte','dano por perfuracao','fadiga','fatigue','pontos de vida']}
   ]
  };
  const INTENTS={
