@@ -1,0 +1,222 @@
+name: Mastermind 1.1.12 Windows - Chocolate Menu 3x3
+on:
+  push:
+    branches:
+      - feature/windows-v1112-chocolate-menu
+  workflow_dispatch:
+permissions:
+  contents: write
+
+jobs:
+  compile-server:
+    name: Compilar servidor original de campanhas (Java 17)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Compilar JAR compartilhado com o Android/Linux
+        run: bash desktop/server/build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mastermind-windows-campaign-jar
+          path: desktop/server/dist/mastermind-campaign-server.jar
+          if-no-files-found: error
+          retention-days: 2
+
+  build-windows:
+    name: Windows x64 - build, teste real e instalador
+    runs-on: windows-2022
+    needs: compile-server
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/download-artifact@v4
+        with:
+          name: mastermind-windows-campaign-jar
+          path: desktop/server/dist
+      - name: Instalar dependencias de build
+        run: npm install --no-audit --no-fund
+      - name: Incorporar pdf-lib offline no instalador
+        shell: pwsh
+        run: |
+          Copy-Item node_modules/pdf-lib/dist/pdf-lib.min.js app/src/main/assets/pdf-lib.min.js
+          if (!(Test-Path app/src/main/assets/pdf-lib.min.js)) { throw 'Biblioteca PDF não encontrada' }
+      - name: Criar runtime Java 17 privado (Windows sem instalacao de Java)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $runtime = Join-Path $PWD 'desktop/runtime/windows'
+          if (Test-Path $runtime) { Remove-Item -Recurse -Force $runtime }
+          & (Join-Path $env:JAVA_HOME 'bin/jlink.exe') --add-modules java.base,java.desktop,java.logging,java.management,java.naming,java.net.http,jdk.crypto.ec,jdk.unsupported --output $runtime --strip-debug --no-header-files --no-man-pages --compress=2
+          if ($LASTEXITCODE -ne 0) { throw 'Falha ao gerar runtime Java' }
+          & (Join-Path $runtime 'bin/java.exe') -version
+          if ($LASTEXITCODE -ne 0) { throw 'Java embarcado nao executa' }
+          if (!(Test-Path 'desktop/server/dist/mastermind-campaign-server.jar')) { throw 'JAR ausente' }
+      - name: Criar icone Windows a partir da logo aprovada
+        shell: pwsh
+        run: |
+          python -m pip install --disable-pip-version-check --quiet Pillow
+          if ($LASTEXITCODE -ne 0) { throw 'Falha ao instalar gerador de icones' }
+          New-Item -ItemType Directory -Force build | Out-Null
+          python -c "from PIL import Image; im=Image.open('app/src/main/assets/mastermind_logo.png').convert('RGBA'); im=im.resize((512,512),Image.Resampling.LANCZOS); im.save('build/mastermind.ico',format='ICO',sizes=[(16,16),(24,24),(32,32),(48,48),(64,64),(128,128),(256,256)])"
+          if ($LASTEXITCODE -ne 0) { throw 'Falha ao gerar mastermind.ico' }
+      - name: Validar scripts, regras e configuracao Windows
+        shell: pwsh
+        run: |
+          node --check desktop/main.cjs
+          node --check desktop/campaign-host.cjs
+          node --check desktop/renderer.js
+          node --check desktop/book-index.cjs
+          node --check app/src/main/assets/mastermind_coc7_engine.js
+          node --check app/src/main/assets/mastermind_coc7_ui.js
+          node --check app/src/main/assets/mastermind_sheet_studio.js
+          node --check app/src/main/assets/mastermind_system_pdf.js
+          node --check app/src/main/assets/mastermind_ordem_template.js
+          node --check app/src/main/assets/mastermind_system_editor.js
+          node --check app/src/main/assets/rpg15_catalog.js
+          node --check app/src/main/assets/mastermind39_ui.js
+          node --check app/src/main/assets/rpg17_sheet_pdf.js
+          node --check app/src/main/assets/mastermind56_local_powers.js
+          node --check app/src/main/assets/mastermind_sheet_studio.js
+          node --check desktop/mestragem-linux.js
+          node --test desktop/tests/desktop.test.cjs desktop/tests/godot-health.test.cjs desktop/tests/pdf-coc.test.cjs tests/mastermind_manual_canvas.test.cjs tests/mastermind_atelier_overlay.test.cjs tests/mastermind_sheet_studio.test.cjs tests/mastermind_v094_powers.test.cjs tests/mastermind_v095_pdf_templates.test.cjs tests/mastermind_v096_ordem_template.test.cjs tests/mastermind_v097_system_editor.test.cjs tests/mastermind_chocolate_menu.test.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'Testes estaticos falharam' }
+      - name: Gerar Mastermind Setup.exe e Portable.exe
+        shell: pwsh
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: |
+          npx electron-builder --win nsis portable --x64 --publish never
+          if ($LASTEXITCODE -ne 0) { throw 'electron-builder falhou' }
+      - name: Validar recursos reais do executavel Windows
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = 'dist/win-unpacked'
+          foreach ($file in @('Mastermind.exe','resources/app.asar','resources/server/assets/demo-offline.html','resources/server/assets/mastermind_logo.png','resources/server/mastermind-campaign-server.jar','resources/runtime/windows/bin/java.exe')) {
+            $p = Join-Path $root $file
+            if (!(Test-Path $p)) { throw "Arquivo obrigatorio ausente do Windows: $p" }
+            if ((Get-Item $p).Length -eq 0) { throw "Arquivo vazio: $p" }
+          }
+          $html = Get-Content -Raw (Join-Path $root 'resources/server/assets/demo-offline.html')
+          if ($html -notmatch 'screen-master' -or $html -notmatch 'screen-atelier85') { throw 'Interface incompleta no pacote' }
+          # The app's full original UI remains installed once under resources/server/assets.
+          $origin = Join-Path $PWD 'app/src/main/assets'
+          $installed = Join-Path $root 'resources/server/assets'
+          $origFiles = @(Get-ChildItem $origin -Recurse -File)
+          $destFiles = @(Get-ChildItem $installed -Recurse -File)
+          if ($origFiles.Count -ne $destFiles.Count) { throw "Quantidade de assets alterada: $($origFiles.Count) vs $($destFiles.Count)" }
+          foreach ($asset in $origFiles) {
+            $rel = $asset.FullName.Substring($origin.Length).TrimStart([char[]]@('/',[char]92))
+            $dest = Join-Path $installed $rel
+            if (!(Test-Path $dest)) { throw "Asset perdido na otimização: $rel" }
+            $srcHash = (Get-FileHash -Algorithm SHA256 $asset.FullName).Hash
+            $dstHash = (Get-FileHash -Algorithm SHA256 $dest).Hash
+            if ($srcHash -ne $dstHash) { throw "Asset alterado na otimização: $rel" }
+          }
+          Write-Output "PASS: todos os $($origFiles.Count) arquivos originais idênticos dentro do instalador"
+          # Java executable was verified in the jlink step; the server's --help intentionally exits 1.
+          Write-Output 'PASS: Interface, imagem, JAR e runtime presentes na versao Windows'
+      - name: Testar o binario Windows empacotado (interface e mestragem)
+        shell: pwsh
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: |
+          node desktop/tests/e2e-windows-packaged.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'O aplicativo Windows empacotado falhou no teste real' }
+      - name: Validar Estudio de Fichas nos 4 sistemas no Windows empacotado
+        shell: pwsh
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: |
+          node desktop/tests/e2e-sheet-studio.cjs dist/win-unpacked/Mastermind.exe
+          if ($LASTEXITCODE -ne 0) { throw 'Estudio de Fichas nao passou nos quatro sistemas' }
+      - name: Verificar PDF indexado e CoC 7e no executavel Windows
+        shell: pwsh
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: |
+          node desktop/tests/e2e-pdf-coc.cjs dist/win-unpacked/Mastermind.exe
+          if ($LASTEXITCODE -ne 0) { throw 'PDF ou investigador CoC falhou no Windows empacotado' }
+      - name: Validar Canvas exclusivamente manual no executavel Windows
+        shell: pwsh
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: |
+          node desktop/tests/e2e-canvas-manual.cjs dist/win-unpacked/Mastermind.exe
+          if ($LASTEXITCODE -ne 0) { throw 'Conexoes manuais do Canvas falharam no Windows' }
+      - name: Testar tela horizontal e menu do Atelie no Windows empacotado
+        shell: pwsh
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: |
+          node desktop/tests/e2e-atelier-landscape.cjs dist/win-unpacked/Mastermind.exe
+          if ($LASTEXITCODE -ne 0) { throw 'Falha no menu do Atelie ou no layout horizontal do Windows' }
+      - name: Verificar tela preta do Atelie e mostrar recuperacao no Windows real
+        shell: pwsh
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'
+        run: |
+          node desktop/tests/e2e-atelier-black.cjs dist/win-unpacked/Mastermind.exe
+          if ($LASTEXITCODE -ne 0) { throw 'Atelie Windows nao recuperou de tela preta' }
+      - name: Verificar Setup/Portable e gerar SHA256
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $setup = Get-ChildItem dist -Filter 'Mastermind-v1.1.12-Windows-*-Setup.exe' | Select-Object -First 1
+          $portable = Get-ChildItem dist -Filter 'Mastermind-v1.1.12-Windows-*-Portable.exe' | Select-Object -First 1
+          if (!$setup -or !$portable) { throw 'Setup.exe ou Portable.exe ausente' }
+          if ($setup.Length -lt 40000000 -or $portable.Length -lt 40000000) { throw 'Instalador Windows incompleto' }
+          @($setup,$portable) | ForEach-Object {
+            $hash = (Get-FileHash -Algorithm SHA256 $_.FullName).Hash.ToLowerInvariant()
+            "$hash  $($_.Name)"
+          } | Set-Content -Encoding ascii dist/SHA256-Windows.txt
+          Get-Content dist/SHA256-Windows.txt
+      - name: Publicar instalador Windows normal sem outra copia Portable
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mastermind-1.1.12-Windows-CHOCOLATE-MENU-Setup
+          if-no-files-found: error
+          retention-days: 90
+          path: |
+            dist/Mastermind-v1.1.12-Windows-*-Setup.exe
+            dist/SHA256-Windows.txt
+      - name: Publicar Portable opcional separadamente
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mastermind-1.1.12-Windows-CHOCOLATE-MENU-Portable
+          if-no-files-found: error
+          retention-days: 90
+          path: |
+            dist/Mastermind-v1.1.12-Windows-*-Portable.exe
+            dist/SHA256-Windows.txt
+
+      - name: Publicar instaladores Windows validados no GitHub Releases
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $tag = 'mastermind-v1.1.12-windows-chocolate-menu'
+          $setup = Get-ChildItem dist -Filter 'Mastermind-v1.1.12-Windows-*-Setup.exe' | Select-Object -First 1
+          $portable = Get-ChildItem dist -Filter 'Mastermind-v1.1.12-Windows-*-Portable.exe' | Select-Object -First 1
+          if (!$setup -or !$portable) { throw 'Instaladores ausentes' }
+          $files = @($setup.FullName,$portable.FullName,(Resolve-Path dist/SHA256-Windows.txt).Path)
+          gh release view $tag 2>$null | Out-Null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag @files --clobber
+          } else {
+            gh release create $tag @files --target $env:GITHUB_SHA --title 'Mastermind Windows v1.1.12 — Chocolate menu' --notes 'Build experimental. Ícone chocolate menu 3x3 personalizável. Editor de sistemas, poderes editáveis nas fichas, equipamento amaldiçoado; preenche por posição o modelo de ficha pessoal de Ordem Paranormal; exporta também modelos PDF originais por sistema e PDF pessoal preenchível. Preserva poderes, mestragem, PDF portátil e Ateliê. Faça backup dos personagens.'
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Falha ao publicar Windows Release' }
