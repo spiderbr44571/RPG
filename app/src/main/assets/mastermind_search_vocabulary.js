@@ -59,7 +59,7 @@
   'chamado-de-ctchulhu':[
    ['sanidade','sanity','san','san loss','perda de sanidade','insanidade'],
    ['sorte','luck','luck roll','teste de sorte','pontos de sorte'],
-   ['teste forcado','pushed roll','pushing','forcar teste','forcando rolagem'],
+   ['teste forcado','testes forcados','forcado','forcados','pushed roll','pushed','pushing','forcar teste','forcando rolagem'],
    ['sucesso extremo','extreme success','sucesso dificil','hard success','sucesso regular','regular success'],
    ['dados de bonus','bonus die','bonus dice','dados de penalidade','penalty dice','penalty die'],
    ['mitos de cthulhu','cthulhu mythos','mythos','conhecimento dos mitos','mitos'],
