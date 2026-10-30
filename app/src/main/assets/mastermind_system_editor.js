@@ -3,7 +3,7 @@
 (function(root,factory){
  const api=factory(root||{});
  if(typeof module==='object'&&module.exports)module.exports=api;
- if(root&&root.document)root.MastermindSystemEditor=api;
+ if(root)root.MastermindSystemEditor=api;
 })(typeof window!=='undefined'?window:null,function(root){
  'use strict';
  const STORAGE='mastermind-system-editor-v097';
