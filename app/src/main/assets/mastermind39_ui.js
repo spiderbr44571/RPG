@@ -6,7 +6,7 @@ const glyph=(name)=>'<svg class="icon" aria-hidden="true"><use href="#i-'+name+'
 const tools=[
  ['master','Mesa ao Vivo','map','Cenários, encontros e iniciativa','01'],
  ['sheet','Personagens','user','Fichas, rituais e inventário','02'],
- ['atelier85','Ateliê · lyime','user','Pixel Portrait Creator e tokens','07'],
+ ['atelier85','Ateliê','user','Retrato e token em camadas','07'],
  ['library','Biblioteca','book','Livros e sistemas cadastrados','03'],
  ['ai','Pesquisa offline','search','Encontre regras pelo contexto','04'],
  ['canvas','Canvas infinito','map','Ligações, pistas e notas','05'],
@@ -184,7 +184,7 @@ function boot(){
   host.appendChild(banner);
  }
  setupNavigation();refineModules();renderHome();
- const versionBadge=$('#mm-release');if(versionBadge)versionBadge.textContent='v1.1.6';
+ const versionBadge=$('#mm-release');if(versionBadge)versionBadge.textContent='v1.1.7';
  document.addEventListener('click',event=>{
   const char=event.target.closest('[data-mm39-character]');
   if(char){event.preventDefault();openCharacter(char.dataset.mm39Character);return}

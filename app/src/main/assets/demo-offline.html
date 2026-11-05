@@ -197,7 +197,7 @@ html[data-paranormal="medo"] .v10-result:before{border-radius:45% 5% 45% 5%}
 
 </style><link rel="stylesheet" href="rpg15_catalog.css"><script src="rpg37_rules.js"></script><link rel="stylesheet" href="mastermind38_shell.css">
 <link rel="stylesheet" href="mastermind39_ui.css"><link rel="stylesheet" href="mastermind40_canvas_images.css"><link rel="stylesheet" href="mastermind42_workspace.css"><link rel="stylesheet" href="mastermind44_sheet_rules.css"><link rel="stylesheet" href="mastermind45_pdf_search.css"><link rel="stylesheet" href="mastermind56_local_powers.css">
-<link rel="stylesheet" href="pixelportrait86_companion.css">
+<link rel="stylesheet" href="mastermind99_atelier.css">
 </head>
 <body>
 <div id="mm-loading" role="status" aria-label="Preparando o Mastermind" aria-live="polite"><div class="mm-boot-content"><img class="mm-boot-logo" src="mastermind_logo.png" width="112" height="112" alt="" aria-hidden="true" decoding="async"><strong class="mm-boot-title">Mastermind</strong><small class="mm-boot-subtitle">Preparando seu espaço...</small><span class="mm-boot-progress" aria-hidden="true"></span></div></div>
@@ -268,66 +268,40 @@ html[data-paranormal="medo"] .v10-result:before{border-radius:45% 5% 45% 5%}
  <!-- CHAR SHEET -->
  <section id="screen-sheet" class="screen" aria-label="Fichas"><div class="page-row"><div><div class="eyebrow">Motor determinístico</div><h1 class="page-h">Personagens vivos.</h1><p class="page-sub">Tudo editável, com regras independentes do assistente de IA.</p></div><button class="btn-dark" id="export-character"><svg class="icon"><use href="#i-copy"/></svg>Exportar ficha</button></div>
  <div class="sheet-layout"><div><div class="surface-flat sheet-head"><div class="sheet-top"><div class="char-avatar">K</div><div><h2>Kael Vesper</h2><p>Explorador do Limiar · Nível 4 · Exemplo fictício</p></div></div><div class="sheet-meta"><span class="pill">Sistema: Regras de Demonstração</span><span class="pill">Trilha: Vigia</span><span class="pill">Campanha: Ecos do Véu</span></div></div><div class="surface-flat sheet-attributes"><div class="section-head"><h3>Atributos principais</h3><small>Clique para editar</small></div><div class="attr-grid" id="attribute-grid"></div></div><div class="surface-flat sheet-secondary"><div class="section-head"><h3>Perícias &amp; aptidões</h3><span class="tag">Valores de exemplo</span></div><div id="skill-list"></div><div id="sheet-derived" class="rpg-derived"></div></div></div><aside><div class="surface-flat resource-panel"><h3>Recursos do personagem</h3><div id="resource-list"></div><span class="tag">Cálculo independente de IA</span></div><div class="surface-flat roll-card"><div class="dice-glyph">✳</div><h3>Mesa de rolagens</h3><p>Teste rápido com dado de 20 faces.</p><button class="btn-primary" id="roll-dice"><svg class="icon"><use href="#i-dice"/></svg>Rolar 1d20</button><div class="roll-result" id="roll-result">O resultado aparecerá aqui</div></div></aside></div></section>
- <!-- Mastermind v0.90: isolated native Godot WebView aligned inside this screen. -->
-<section id="screen-atelier85" class="screen p90-atelier-screen" aria-label="Ateliê 2D com Godot direto">
-  <div class="p86-shell p90-shell">
-    <header class="p90-header">
-      <div class="p90-brandline">MASTERMIND · ATELIÊ 2D · v0.93</div>
-      <div class="p90-header-row">
-        <h1>Pixel Portrait Creator</h1>
-        <button type="button" class="p86-btn" data-p86-action="sheet">Abrir ficha</button>
+<!-- Mastermind v0.99: Ateliê em camadas pintadas (offline, substitui o Pixel Portrait Creator). -->
+<section id="screen-atelier85" class="screen ma99-screen" aria-label="Ateliê de personagem">
+  <div id="ma99-atelier" class="ma99">
+    <header class="ma99-head">
+      <div>
+        <div class="ma99-kicker">MASTERMIND · ATELIÊ · v0.99</div>
+        <h1>Ateliê de personagem</h1>
+        <p>Vista o agente peça por peça. Cada peça é pintada no traço de quadrinho sobre o mesmo manequim e recolorida aqui, sem internet.</p>
       </div>
-      <p>Personalize seu personagem <strong>diretamente aqui</strong> usando o Godot original do lyime. O editor carrega automaticamente.</p>
+      <button type="button" class="ma99-btn" data-ma99-action="sheet">Abrir ficha</button>
     </header>
-    <div class="p90-studio-card">
-      <div class="p90-stage-title">
-        <div><strong>Ateliê de personagem</strong><small>Cabelos · rostos · roupas · cores · acessórios</small></div>
-        <span class="p90-live-dot" aria-hidden="true"></span>
-      </div>
-      <div id="p90-native-stage" class="p90-native-stage" role="region" aria-label="Editor Godot Pixel Portrait Creator original incorporado">
-        <div class="p90-stage-placeholder">
-          <span class="p90-spinner" aria-hidden="true"></span>
-          <strong>Iniciando Pixel Portrait Creator…</strong>
-          <small>O criador original será exibido aqui. É necessária conexão com a internet.</small>
+    <section class="ma99-studio">
+      <div class="ma99-file">
+        <div class="ma99-stage ma99-claro" id="ma99-stage"><canvas id="ma99-token" width="880" height="1720" aria-label="Pré-visualização do personagem"></canvas></div>
+        <div class="ma99-stagebar" id="ma99-stagebar"><span>Fundo da prévia</span></div>
+        <p class="ma99-char">Ficha selecionada: <strong id="ma99-character">Selecione uma ficha</strong></p>
+        <div class="ma99-chips" id="ma99-chips"></div>
+        <div class="ma99-actions">
+          <button type="button" class="ma99-btn primary" data-ma99-action="save">Salvar retrato e token na ficha</button>
+          <button type="button" class="ma99-btn" data-ma99-action="random">Sortear cores</button>
+          <button type="button" class="ma99-btn" data-ma99-action="export-corpo">Exportar corpo inteiro PNG</button>
+          <button type="button" class="ma99-btn" data-ma99-action="export-token">Exportar token PNG</button>
         </div>
+        <p id="ma99-status" class="ma99-status" role="status" aria-live="polite">O retrato usa cabeça e ombros; o token redondo vai para o grid.</p>
       </div>
-      <div class="p90-stage-caption">
-        <span>Use os controles de zoom e ajuste acima do editor. Para selecionar peças, mantenha <b>Mover</b> desligado.</span>
-        <button type="button" class="p90-tiny-link" data-p86-action="browser">Abrir no navegador</button>
+      <div class="ma99-bench">
+        <div class="ma99-tabs" role="tablist" id="ma99-tabs"></div>
+        <div class="ma99-panel" id="ma99-panel" role="tabpanel"><p class="ma99-hint">Carregando peças…</p></div>
       </div>
-    </div>
-    <section id="p90-token-panel" class="p86-panel p90-token-panel" aria-label="Retrato e token">
-      <div class="p90-token-title">
-        <div>
-          <h2>Retrato e token</h2>
-          <p>Depois de editar, toque em <strong>Usar imagem na ficha</strong> no rodapé do Godot. Recorte a captura aqui e salve seu personagem.</p>
-        </div>
-      </div>
-      <p>Ficha selecionada: <strong id="p86-character">Selecione uma ficha</strong></p>
-      <label class="p86-import" for="p86-import">Importar PNG ou imagem da galeria</label>
-      <input class="p86-file" type="file" id="p86-import" accept="image/png,image/jpeg,image/webp" aria-label="Selecionar retrato exportado pelo Pixel Portrait Creator">
-      <div class="p86-preview-area">
-        <canvas id="p86-portrait" width="256" height="256" aria-label="Retrato importado. Arraste para ajustar o enquadramento"></canvas>
-        <div class="p86-token-preview"><canvas id="p86-token" width="256" height="256" aria-label="Token circular resultante"></canvas><small>Token para o grid</small></div>
-      </div>
-      <div class="p86-controls">
-        <label>Zoom do retrato <span id="p86-zoom-label">100%</span><input id="p86-zoom" type="range" min="1" max="16" step=".1" value="1"></label>
-        <label>Contorno do token
-          <select id="p86-frame" aria-label="Cor da borda do token">
-            <option value="gold">Bronze</option><option value="silver">Prata</option><option value="dark">Escuro</option>
-          </select>
-        </label>
-      </div>
-      <div class="p86-actions">
-        <button type="button" class="p86-btn primary" data-p86-action="save">Salvar retrato e token na ficha</button>
-        <button type="button" class="p86-btn" data-p86-action="resetCrop">Centralizar recorte</button>
-        <button type="button" class="p86-btn" data-p86-action="exportPortrait">Exportar retrato PNG</button>
-        <button type="button" class="p86-btn" data-p86-action="exportToken">Exportar token PNG</button>
-        <button type="button" class="p86-btn" data-p86-action="clear">Limpar prévia</button>
-      </div>
-      <p id="p86-status" class="p86-status" role="status" aria-live="polite">Ao capturar no editor, a imagem aparecerá aqui. Também pode importar um PNG.</p>
     </section>
-    <div class="p86-footer">Criador e sprites: <a href="https://lyime.itch.io/pixel-portrait-creator" target="_blank" rel="noopener noreferrer">lyime — Pixel Portrait Creator</a>. Carregado do servidor original, sem copiar os arquivos para o APK. Uso pessoal, não comercial.</div>
+    <section class="ma99-gallery">
+      <h2>Modelos prontos</h2>
+      <div class="ma99-presets" id="ma99-presets"></div>
+    </section>
   </div>
 </section>
 <!-- AI SEARCH -->
@@ -1398,7 +1372,7 @@ const svgMenu=`<svg class="r09-chocolate-menu" viewBox="0 0 100 100" role="img" 
 const tools=[
  ['library','Biblioteca','book-open','Livros, sistemas e regras'],
  ['sheet','Fichas','users','Personagens, poderes e retratos'],
- ['atelier85','Ateliê','shirt','Pixel Portrait Creator do lyime e seus tokens'],
+ ['atelier85','Ateliê','shirt','Retrato e token em camadas'],
  ['dice','Rolagens','dice','1d20, 3d20, 4d6 e outros'],
  ['canvas','Canvas infinito','map','Notas, mapas e criaturas'],
  ['bestiary','Bestiário','book','Grimório e monstros'],
@@ -1691,5 +1665,5 @@ html body #r09-dice:hover .r09-chocolate-tile,html body #r09-dice[aria-expanded=
 .r37-inventory-warning{border-radius:9px;border:1px solid #d29b66;background:#3a2a23;color:#f2d2ac;padding:12px;margin:0;line-height:1.6}
 .r37-inventory-ok{color:#91dabb;font-size:12px;margin:0}
 .r37-over{border-color:#e5aa77!important;color:#e8b88c}
-@media(max-width:450px){.r37-category-grid{grid-template-columns:1fr}}</style><script src="mastermind39_ui.js"></script><script src="mastermind40_canvas_images.js"></script><script src="mastermind42_workspace.js"></script><script src="mastermind59_class_catalog.js"></script><script src="mastermind56_local_powers.js"></script><link rel="stylesheet" href="mastermind60_identity.css"><link rel="stylesheet" href="mastermind_coc7.css"><link rel="stylesheet" href="mastermind_coc7_android.css"><script src="mastermind_coc7_engine.js"></script><script src="mastermind_coc7_ui.js"></script><script src="pixelportrait86_companion.js"></script>
+@media(max-width:450px){.r37-category-grid{grid-template-columns:1fr}}</style><script src="mastermind39_ui.js"></script><script src="mastermind40_canvas_images.js"></script><script src="mastermind42_workspace.js"></script><script src="mastermind59_class_catalog.js"></script><script src="mastermind56_local_powers.js"></script><link rel="stylesheet" href="mastermind60_identity.css"><link rel="stylesheet" href="mastermind_coc7.css"><link rel="stylesheet" href="mastermind_coc7_android.css"><script src="mastermind_coc7_engine.js"></script><script src="mastermind_coc7_ui.js"></script><script src="mastermind99_atelier_layers.js"></script><script src="mastermind99_atelier.js"></script>
 <link rel="stylesheet" href="mastermind_sheet_studio.css"><script src="mastermind_sheet_studio.js"></script><script src="pdf-lib.min.js"></script><script src="mastermind_ordem_template.js"></script><script src="mastermind_system_pdf.js"></script><script src="mastermind_system_editor.js"></script></body></html>
