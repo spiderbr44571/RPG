@@ -6,15 +6,15 @@ const pkg=JSON.parse(read('package.json'));
 const main=read('desktop/main.cjs'),preload=read('desktop/preload.cjs'),renderer=read('desktop/renderer.js'),css=read('desktop/desktop.css'),html=read('app/src/main/assets/demo-offline.html');
 test('Linux AppImage and tar.gz packages preserve all original Android assets',()=>{
  assert.equal(pkg.main,'desktop/main.cjs');
- assert.equal(pkg.version,'1.1.12');
+ assert.equal(pkg.version,'1.1.13');
  assert.equal(pkg.build.linux.target[0].target,'AppImage');
  assert.equal(pkg.build.linux.target[1].target,'tar.gz');
  assert.ok(!pkg.build.files.some(x=>x.includes('app/src/main/assets')), 'No duplicate offline UI inside app.asar');
  assert.ok(pkg.build.extraResources.some(x=>x.from==='app/src/main/assets'&&x.to==='server/assets'), 'Full trusted assets remain present outside app.asar');
  assert.equal(pkg.build.compression,'maximum');
  assert.match(html,/id="screen-atelier85"/);
- assert.match(html,/id="p90-native-stage"/);
- assert.match(html,/id="p86-token"/);
+ assert.match(html,/id="ma99-atelier"/);
+ assert.match(html,/id="ma99-token"/);
  assert.match(html,/id="screen-library"/);
 });
 test('Linux native shell has sandboxed local RPG renderer and separate remote Godot',()=>{
