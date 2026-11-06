@@ -31,3 +31,23 @@ test('Camadas trazem as peças base e o cabelo longo esconde a parte de trás so
  assert.match(js,/id:'moletom',nome:'Moletom',camada:'roupa-moletom',cobreTras:true/);
  assert.match(js,/if\(p\.camada&&!CAMADAS\[p\.camada\]\)p\.camada=null/);
 });
+test('Peças que passam do topo do manequim cabem no quadro (moicano inteiro)',()=>{
+ const ctx={window:{}};vm.runInNewContext(read('mastermind99_atelier_layers.js'),ctx);
+ const L=ctx.window.MastermindAtelierLayers;
+ assert.ok(L['cabelo-moicano'].y<0,'moicano deveria subir acima do topo do manequim');
+ const js=read('mastermind99_atelier.js');
+ assert.match(js,/const TOP=Math\.min\(0,/);
+ assert.match(js,/FS=FH\/\(CAMADAS\.H-TOP\)/);
+ assert.match(js,/FY0=FY-TOP\*FS/);
+ assert.match(js,/f\.setTransform\(k\*FS,0,0,k\*FS,FX\*k,FY0\*k\)/);
+ // o topo mais alto de qualquer camada fica dentro da tela de 860px (margem FY=12)
+ const TOP=Math.min(0,...Object.values(L).filter(v=>v&&typeof v==='object').flatMap(v=>[v.y,v.dy].filter(n=>typeof n==='number')));
+ const FS=800/(L.H-TOP);
+ for(const v of Object.values(L))if(v&&typeof v==='object'&&typeof v.y==='number')assert.ok(12+(v.y-TOP)*FS>=12);
+});
+test('Token se afasta só quando o cabelo sobe além da folga',()=>{
+ const js=read('mastermind99_atelier.js');
+ assert.match(js,/function bustBox\(full,k\)/);
+ assert.match(js,/if\(ty>=BUST_FOLGA\)return BUST;/);
+ assert.match(js,/const B=bustBox\(full,k\)/);
+});
