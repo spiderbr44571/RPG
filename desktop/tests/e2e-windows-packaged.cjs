@@ -25,7 +25,7 @@ const path=require('node:path');
    url:location.href,
    win:window.MastermindDesktop?.platform,
    logo:!!document.querySelector('.desktop-titlebar-brand img')?.naturalWidth,
-   hasAtelier:!!document.querySelector('#screen-atelier85 #p90-native-stage'),
+   hasAtelier:!!document.querySelector('#screen-atelier85 #ma99-atelier'),
    hasCanvas:!!document.querySelector('#screen-master'),
    hasSheet:!!document.querySelector('#screen-sheet'),
    desktopBridge:!!window.RpgLocalHost,
