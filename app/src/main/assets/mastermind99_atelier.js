@@ -10,7 +10,9 @@ const host=DOC&&DOC.getElementById('ma99-atelier');
 if(!host||!CAMADAS)return;
 const $=id=>DOC.getElementById('ma99-'+id);
 const TAU=Math.PI*2,PI=Math.PI;
-const W=440,H=860,FH=800,FS=FH/CAMADAS.H,FW=CAMADAS.W*FS,FX=(W-FW)/2,FY=12;
+/* TOP: peça mais alta (pode passar do topo do manequim, y<0); a escala encolhe para tudo caber no quadro */
+const TOP=Math.min(0,...Object.values(CAMADAS).filter(v=>v&&typeof v==='object').flatMap(v=>[v.y,v.dy].filter(n=>typeof n==='number')));
+const W=440,H=860,FH=800,FS=FH/(CAMADAS.H-TOP),FW=CAMADAS.W*FS,FX=(W-FW)/2,FY=12,FY0=FY-TOP*FS;
 
 const EL={
   sangue:{nome:'Sangue',cor:'#c8202f',escuro:'#2c070c',brilho:'#ff4d5e'},
@@ -131,12 +133,12 @@ function drawLayer(ctx,key,color,pele){const L=CAMADAS[key];if(!IMG[key])return;
 const trasCache=new Map();
 function cabeloSemTras(key,color,pele,info){
   const id=[key,color,pele,info.roupa].join('|');if(trasCache.has(id))return trasCache.get(id);
-  const W2=CAMADAS.W,H2=CAMADAS.H,L=CAMADAS[key],RL=CAMADAS[info.roupa];
-  const h=mk(W2,H2),x=h.getContext('2d');x.drawImage(recolor(key,color||'original',pele),L.x,L.y);
-  const m=mk(W2,H2),y=m.getContext('2d');
+  const W2=CAMADAS.W,H2=CAMADAS.H-TOP,L=CAMADAS[key],RL=CAMADAS[info.roupa];
+  const h=mk(W2,H2),x=h.getContext('2d');x.translate(0,-TOP);x.drawImage(recolor(key,color||'original',pele),L.x,L.y);
+  const m=mk(W2,H2),y=m.getContext('2d');y.translate(0,-TOP);
   y.beginPath();info.pts.forEach(([a,b],i)=>y[i?'lineTo':'moveTo'](a,b));y.closePath();y.fillStyle='#000';y.fill();
   y.globalCompositeOperation='destination-in';y.drawImage(IMG[info.roupa],RL.x,RL.y);
-  x.globalCompositeOperation='destination-out';x.drawImage(m,0,0);
+  x.setTransform(1,0,0,1,0,0);x.globalCompositeOperation='destination-out';x.drawImage(m,0,0);
   trasCache.set(id,h);return h;
 }
 function drawFigure(ctx,s){
@@ -152,7 +154,7 @@ function drawFigure(ctx,s){
   }
   pilha.sort((a,b)=>a.z-b.z);
   for(const p of pilha){const D=DEL[p.camada];if(D){ctx.save();ctx.globalCompositeOperation='destination-out';ctx.drawImage(D,CAMADAS[p.camada].dx,CAMADAS[p.camada].dy);ctx.restore();}}
-  pilha.forEach(p=>p.tras&&IMG[p.camada]&&IMG[p.tras.roupa]?ctx.drawImage(cabeloSemTras(p.camada,p.cor,s.pele,p.tras),0,0):drawLayer(ctx,p.camada,p.cor,s.pele));
+  pilha.forEach(p=>p.tras&&IMG[p.camada]&&IMG[p.tras.roupa]?ctx.drawImage(cabeloSemTras(p.camada,p.cor,s.pele,p.tras),0,TOP):drawLayer(ctx,p.camada,p.cor,s.pele));
 }
 
 /* ---------- composição do token ---------- */
@@ -188,7 +190,7 @@ function drawGround(ctx,s,el){
 function render(cv,s){
   const k=cv.width/W,el=EL[s.elemento]||EL.sangue;
   const fc=mk(cv.width,cv.height),f=fc.getContext('2d');
-  f.imageSmoothingQuality='high';f.setTransform(k*FS,0,0,k*FS,FX*k,FY*k);drawFigure(f,s);
+  f.imageSmoothingQuality='high';f.setTransform(k*FS,0,0,k*FS,FX*k,FY0*k);drawFigure(f,s);
   figureEffects(fc,s,el,k);
   const ctx=cv.getContext('2d');ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);
   ctx.setTransform(k,0,0,k,0,0);drawGround(ctx,s,el);ctx.setTransform(1,0,0,1,0,0);
@@ -200,13 +202,20 @@ function render(cv,s){
   if(s.condicao==='morrendo'){ctx.save();ctx.globalCompositeOperation='destination-over';ctx.setTransform(k,0,0,k,0,0);ctx.beginPath();ctx.ellipse(W/2+10,FY+FH-14,110,28,0,0,TAU);ctx.fillStyle='rgba(120,8,18,.85)';ctx.fill();ctx.restore();}
 }
 /* retrato quadrado (cabeça e ombros) e token redondo para o grid */
-const BUST={x:70,y:0,s:300};
+const BUST={x:70,y:0,s:300},BUST_FOLGA=52;
+/* enquadramento do retrato: cabeça e ombros; se o cabelo sobe demais (moicano), afasta só o necessário para caber no círculo */
+function bustBox(full,k){
+  const d=full.getContext('2d').getImageData(0,0,full.width,Math.round(BUST.s*k)).data,w=full.width;let ty=BUST.s;
+  for(let y=0;y<BUST.s*k&&ty===BUST.s;y++)for(let x=0;x<w;x++)if(d[(y*w+x)*4+3]>40){ty=y/k;break;}
+  if(ty>=BUST_FOLGA)return BUST;
+  const y=ty-BUST_FOLGA,s=BUST.s-y;return {x:W/2-s/2,y,s};
+}
 function portraitCanvas(s,size){
   const full=mk(880,1720);render(full,Object.assign({},s,{base:'recorte',efeito:s.efeito==='nevoa'?'nenhum':s.efeito}));
   const c=mk(size,size),x=c.getContext('2d'),k=2;
   x.fillStyle=(EL[s.elemento]||EL.sangue).escuro;x.fillRect(0,0,size,size);
   const g=x.createRadialGradient(size/2,size*.35,size*.05,size/2,size/2,size*.75);g.addColorStop(0,'rgba(255,255,255,.18)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,size,size);
-  x.drawImage(full,BUST.x*k,BUST.y*k,BUST.s*k,BUST.s*k,0,0,size,size);return c;
+  const B=bustBox(full,k),sc=size/(B.s*k);x.drawImage(full,-B.x*k*sc,-B.y*k*sc,full.width*sc,full.height*sc);return c;
 }
 const FRAME={aliado:'#4fc3a1',inimigo:'#e2363f',chefe:'#e0b23c',neutro:'#a3979a'};
 function tokenCanvas(s,size){
