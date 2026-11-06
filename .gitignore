@@ -5,3 +5,4 @@ playwright-report/
 .gradle/
 app/build/
 local.properties
+__pycache__/
