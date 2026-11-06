@@ -51,3 +51,18 @@ test('Token se afasta só quando o cabelo sobe além da folga',()=>{
  assert.match(js,/if\(ty>=BUST_FOLGA\)return BUST;/);
  assert.match(js,/const B=bustBox\(full,k\)/);
 });
+test('Rostos, cabelos novos e barba: todas as peças do catálogo têm camada e o rosto redondo fica à frente das roupas',()=>{
+ const ctx={window:{}};vm.runInNewContext(read('mastermind99_atelier_layers.js'),ctx);
+ const L=ctx.window.MastermindAtelierLayers,js=read('mastermind99_atelier.js');
+ for(const k of ['rosto-redondo','rosto-quadrado','rosto-fino','rosto-delicado','rosto-marcante','rosto-idoso','rosto-jovem','rosto-elfo',
+   'cabelo-ondulado','cabelo-trancas','cabelo-rabo-alto','cabelo-pixie','cabelo-coque-alto','cabelo-chiquinha','cabelo-afro','cabelo-cachos-longos','cabelo-lateral','barba-cheia']){
+  assert.ok(L[k]&&/^data:image\//.test(L[k].src),'faltando '+k);assert.match(js,new RegExp("camada:'"+k+"'"));
+ }
+ assert.match(js,/\{id:'redondo',nome:'Redondo',camada:'rosto-redondo',z:32\}/);
+ assert.match(js,/const CAT_Z=\{rosto:5,calcado:10,calca:20,roupa:30,barba:35,cabelo:40/);
+ assert.match(js,/\['Corpo',\[\['rosto','Formato do rosto','slot'\],\['pele','Tom de pele','swatch',PELES\]\]\]/);
+ assert.match(js,/function P\(o\)\{return Object\.assign\(\{rosto:'',/);
+ // a pele pintada junto com os cabelos segue o tom de pele escolhido (máscara pm)
+ for(const k of ['cabelo-ondulado','cabelo-cachos-longos','cabelo-lateral','cabelo-pixie','cabelo-chiquinha','cabelo-dreads','cabelo-longo'])assert.ok(L[k].pm,'sem máscara de pele: '+k);
+ assert.equal(L['cabelo-raspado'].ref,62,'penugem do raspado acompanha a cor do cabelo');
+});
