@@ -1,4 +1,4 @@
-name: Mastermind Android v0.101 — Cabelos ajustados às orelhas no Ateliê
+name: Mastermind Android v0.102 — Cabelos ajustados às orelhas no Ateliê
 on:
   push:
     branches:
@@ -85,6 +85,6 @@ jobs:
             gh release upload "$TAG" Mastermind-v0.102-Android-Atelie-Orelhas.apk Mastermind-v0.102-Android-SHA256.txt --clobber
           else
             gh release create "$TAG" Mastermind-v0.102-Android-Atelie-Orelhas.apk Mastermind-v0.102-Android-SHA256.txt \
-              --target "$GITHUB_SHA" --title "Mastermind Android v0.101 — Cabelos ajustados às orelhas no Ateliê" \
+              --target "$GITHUB_SHA" --title "Mastermind Android v0.102 — Cabelos ajustados às orelhas no Ateliê" \
               --notes "Mastermind Android v0.102: os cabelos do Ateliê se ajustam à orelha de cada rosto (élfico, jovem, envelhecido e os demais), sem orelha dupla, recortes ou buracos; a mecha do raspado de lado não deixa mais um pedaço cortado sobre a roupa. Mantém tudo da v0.101. Versão Android 106 com o mesmo applicationId; faça backup dos dados."
           fi
