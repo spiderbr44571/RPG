@@ -184,7 +184,7 @@ function boot(){
   host.appendChild(banner);
  }
  setupNavigation();refineModules();renderHome();
- const versionBadge=$('#mm-release');if(versionBadge)versionBadge.textContent='v0.99';
+ const versionBadge=$('#mm-release');if(versionBadge)versionBadge.textContent='v0.100';
  document.addEventListener('click',event=>{
   const char=event.target.closest('[data-mm39-character]');
   if(char){event.preventDefault();openCharacter(char.dataset.mm39Character);return}
