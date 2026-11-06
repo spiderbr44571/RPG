@@ -74,7 +74,7 @@ function history(s){
  return '<section class="g-panel"><h3>Identidade, antecedentes e ambientação</h3><div class="g-col">'+
  [['player','Jogador'],['concept','Conceito'],['campaign','Campanha'],['age','Idade'],['height','Altura'],['weight','Peso / porte'],['appearance','Aparência'],['techLevel','Nível Tecnológico (NT)']].map(([k,v])=>'<label><span>'+v+'</span><input data-root="'+k+'" value="'+esc(s[k]??'')+'" maxlength="140"></label>').join('')+
  '</div><label><span>Histórico e motivações</span><textarea data-root-text="background">'+esc(s.background||'')+'</textarea></label><label><span>Outras anotações</span><textarea data-root-text="notes">'+esc(s.notes||'')+'</textarea></label></section>'+
- '<section class="g-panel"><h3>Retrato e dados salvos</h3><div class="g-col"><label><span>Selecionar retrato local</span><input id="g-portrait" type="file" accept="image/png,image/jpeg,image/webp"></label><label><span>Importar ficha GURPS 4e exportada pelo app</span><input id="g-import" type="file" accept=".json,application/json"></label></div><div class="g-controls"><button data-action="export">Exportar ficha JSON</button><button data-action="duplicate">Duplicar personagem</button><button data-action="delete">Excluir personagem</button></div><p class="g-muted">As fichas ficam neste aparelho. Faça uma cópia JSON antes de desinstalar o APK.</p></section>';
+ '<section class="g-panel"><h3>Retrato e dados salvos</h3><div class="g-col"><label><span>Selecionar retrato local</span><input id="g-portrait" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="g-primary mm61-open-gurps">✦ Criar retrato no Ateliê</button><label><span>Importar ficha GURPS 4e exportada pelo app</span><input id="g-import" type="file" accept=".json,application/json"></label></div><div class="g-controls"><button data-action="export">Exportar ficha JSON</button><button data-action="duplicate">Duplicar personagem</button><button data-action="delete">Excluir personagem</button></div><p class="g-muted">As fichas ficam neste aparelho. Faça uma cópia JSON antes de desinstalar o APK.</p></section>';
 }
 function header(){
  const s=current(),p=E.spent(s);
@@ -256,5 +256,6 @@ function mount(container){
  host=box;host.addEventListener('click',onClick);host.addEventListener('change',onChange);
  active=true;render();return box;
 }
-window.RPG16_GURPS={mount,editRemote,importObject,open:()=>window.RPG15?.openSystem('gurps'),engine:E,get current(){if(!list.length)load();return current()},get all(){if(!list.length)load();return list.slice()},exportAll:()=>downloadJSON(list,'gurps4-personagens.json')};
+function setPortrait(photo,recipe){const c=current();if(!c||typeof photo!=='string'||!/^data:image\/(?:jpeg|png|webp);base64,/.test(photo))return false;c.portrait=photo;if(recipe&&typeof recipe==='object')c.atelie=recipe;rerender();return true}
+window.RPG16_GURPS={mount,setPortrait,editRemote,importObject,open:()=>window.RPG15?.openSystem('gurps'),engine:E,get current(){if(!list.length)load();return current()},get all(){if(!list.length)load();return list.slice()},exportAll:()=>downloadJSON(list,'gurps4-personagens.json')};
 })();

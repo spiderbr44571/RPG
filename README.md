@@ -1,3 +1,21 @@
+# Mastermind v0.61 — Ateliê do personagem
+
+O **Ateliê** monta o visual do personagem peça por peça, no mesmo traço de quadrinho: 9 formatos de rosto, 20 cabelos, barba, 13 roupas e armaduras, 3 calças e bota, com 7 tons de pele e paletas de cor para cabelo, barba e cada peça de roupa. O resultado vira o **retrato da ficha** (420×420, o mesmo formato do "Escolher retrato") e a **receita** das peças fica salva para reabrir e editar depois.
+
+**Onde aparece:**
+
+1. **App Android, ficha de Ordem Paranormal:** botão **✦ Criar no Ateliê** abaixo de "+ Escolher retrato". O retrato é salvo na ficha aberta pelo mesmo caminho das outras edições.
+2. **App Android, ficha GURPS 4e:** aba **História → Retrato e dados salvos → ✦ Criar retrato no Ateliê**.
+3. **Mesa LAN, ficha do jogador no navegador (Ordem e GURPS):** botão **✦ Retrato no Ateliê** no cabeçalho da ficha. Funciona em qualquer navegador conectado à mesa (Android, iPhone, computador). O servidor do celular do mestre salva o retrato na ficha da campanha.
+
+**Peças corrigidas antes da entrada no app:** os cabelos vinham com orelha, testa e contorno do corpo do manequim pintados junto, o que tapava ou manchava o rosto escolhido. Essas partes foram removidas ou passaram a seguir o tom de pele; o rosto **redondo** fica à frente das roupas por ser mais largo que a gola. A barba perdeu os pedaços da gola presos na camada.
+
+**Segurança:** as camadas são imagens locais do APK (`mastermind61_atelier_layers.js`, ~3,4 MB), carregadas só quando o Ateliê é aberto. O servidor LAN só aceita retrato JPEG/PNG/WebP em base64 de até 160 mil caracteres e receita com chaves e valores curtos; o jogador continua sem poder alterar atributos, recursos ou fichas alheias. Acessórios, chapéus e calçados além da bota ainda não têm camadas pintadas e não aparecem.
+
+**Testes:** `tests/mastermind_v61.test.cjs` (camadas, catálogo, receita e servidor) e `tests/e2e/atelier.spec.cjs` (Ateliê no app offline e no navegador do jogador com o servidor Java real). Não desinstale versões antigas: atualize por cima para preservar fichas e campanhas.
+
+---
+
 # Mastermind v0.58 — integração testada das telas e pedidos
 
 Corrige a aba de Poderes que sobrescrevia outras seções, sincronização da ficha LAN, expiração de ações extras e pedidos de turnos antigos. Acrescenta testes reais de navegador/servidor e teste da WebView do APK em emulador no CI.

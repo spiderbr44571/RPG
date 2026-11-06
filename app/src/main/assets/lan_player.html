@@ -29,7 +29,7 @@ section,.panel{background:var(--surface);border:1px solid var(--line);border-rad
 .d20{position:fixed;right:15px;bottom:max(17px,env(safe-area-inset-bottom));width:53px;height:53px;border:2px solid var(--accent);background:var(--surface);color:var(--accent);border-radius:50%;font-weight:800;font-size:19px;box-shadow:0 0 18px color-mix(in srgb,var(--accent) 34%,transparent);z-index:3}
 .d20.roll{animation:fall .7s ease-out}@media(max-width:480px){main{padding:10px 9px 100px}section,.panel{padding:12px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hero img{height:75px;width:68px}.item{align-items:flex-start}.item .actions{justify-content:end}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
-</style><link rel="stylesheet" href="/powers-ui.css"></head><body data-theme="base"><main>
+</style><link rel="stylesheet" href="/powers-ui.css"><link rel="stylesheet" href="/atelier.css"></head><body data-theme="base"><main>
 <header><div><div class="eyebrow">RPG MESA · MINHA CAMPANHA</div><h1 id="campaign">Carregando...</h1><small id="connected">Conectando ao mestre...</small></div><div class="row"><a id="scene-link" href="#" style="border:1px solid var(--accent);padding:10px;border-radius:10px;color:var(--accent);text-decoration:none">▦ Cenário</a><button id="appearance-btn">⚙ Tema</button></div></header>
 <div id="rounds" class="rounds" aria-live="polite"><div><small>Cena</small><strong id="scene">—</strong></div><div><small>Rodada</small><strong id="turn">—</strong></div></div>
 <div id="hero" class="panel">Aguardando ficha...</div>
@@ -232,7 +232,7 @@ async function refresh(force=false){
    if(!s){$('#hero').innerHTML='<h2>Aguardando ficha</h2><p>O mestre deve aprovar ou atribuir seu personagem.</p>';for(const key of ['attributes','skills','inventory','abilities','story'])$('#'+key).innerHTML='<p class="muted">Aguardando personagem...</p>';$('#v55-original-powers').innerHTML='<p class="muted">Aguardando personagem...</p>'}
    else{
     let portrait=s.photo&&/^data:image\/(png|jpeg|webp);base64,/.test(s.photo)?'<img src="'+esc(s.photo)+'" alt="Personagem">':'';
-    $('#hero').innerHTML='<div class="hero">'+portrait+'<div><div class="eyebrow">'+esc(s.class||'Personagem')+'</div><h2>'+esc(s.name||'Agente')+'</h2><span class="pill">NEX '+esc(s.nex??5)+'%</span></div></div>';
+    $('#hero').innerHTML='<div class="hero">'+portrait+'<div><div class="eyebrow">'+esc(s.class||'Personagem')+'</div><h2>'+esc(s.name||'Agente')+'</h2><span class="pill">NEX '+esc(s.nex??5)+'%</span><button type="button" class="mm61-lan-open">✦ Retrato no Ateliê</button></div></div>';
     renderAttributes(s);renderSkills(s);renderInventory(s);renderAbilities(s);if((s.systemId==='ordem-paranormal'||(!s.systemId&&s.class&&s.attrs?.Agilidade!==undefined)))window.MastermindPowerUI?.mountOriginal($('#v55-original-powers'),s);else $('#v55-original-powers').innerHTML='<p>Os poderes paranormais deste módulo pertencem a Ordem Paranormal.</p>';if(tab!=='story'||force)renderStory(s);
    }
   }
@@ -244,4 +244,11 @@ $('#copy-link').onclick=async()=>{if(!ownLink)return message('O link ainda não 
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});window.addEventListener('focus',()=>refresh());
 window.addEventListener('storage',e=>{if(e.key===memoKey){try{prefs=JSON.parse(e.newValue)||{}}catch{prefs={}}appearance();if(tab==='settings')renderSettings();}});
 appearance();renderSettings();activate('attributes');loadCanvas();refresh();setInterval(()=>{if(!document.hidden)refresh()},2000);
-</script></body></html>
+
+/* v0.61: o jogador monta o retrato no Ateliê e salva na própria ficha da campanha. */
+document.addEventListener('click',e=>{
+ if(!e.target.closest('.mm61-lan-open'))return;
+ const s=state&&state.character;if(!s||!window.MastermindAtelier)return;
+ window.MastermindAtelier.open({title:s.name||'Agente',recipe:s.atelie,onSave:r=>saveProfile({photo:r.photo,atelie:r.recipe})});
+});
+</script><script src="/atelier.js"></script></body></html>

@@ -1135,7 +1135,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       if(ch==null)v.put("character",JSONObject.NULL);
       else {
         JSONObject original=ch.getJSONObject("sheet"),pub=new JSONObject();
-        for(String k:new String[]{"name","class","nex","attrs","skills","resources","photo","sheetTheme","rituaisConhecidos","origem","trilha","systemId","effects","origin","trail","inventory","items","history","description","customRolls","powers","powerChoices","defense","notes","edition","mod","currentHP","currentFP","hitPointsMax","hitPointsCurrent","hitPointsTemp","spellSlots","klass","ancestry","level","armorClass","features","attacks","conditions","saveProficiencies","skillProficiencies","expertise","spellcastingAbility","hitDiceUsed","inspiration","speed","pointBudget","advantages","disadvantages","quirks","techniques","weapons","spells","languages","cultures","background","concept","techLevel","portrait","settings","parrySkill","blockSkill"})
+        for(String k:new String[]{"name","class","nex","attrs","skills","resources","photo","atelie","sheetTheme","rituaisConhecidos","origem","trilha","systemId","effects","origin","trail","inventory","items","history","description","customRolls","powers","powerChoices","defense","notes","edition","mod","currentHP","currentFP","hitPointsMax","hitPointsCurrent","hitPointsTemp","spellSlots","klass","ancestry","level","armorClass","features","attacks","conditions","saveProficiencies","skillProficiencies","expertise","spellcastingAbility","hitDiceUsed","inspiration","speed","pointBudget","advantages","disadvantages","quirks","techniques","weapons","spells","languages","cultures","background","concept","techLevel","portrait","settings","parrySkill","blockSkill"})
           if(original.has(k))pub.put(k,original.get(k));
         if(pub.optJSONObject("attrs")!=null && !"gurps".equals(original.optString("systemId")))
           pub.put("attrs",sanitizeAttributes(pub.getJSONObject("attrs")));
@@ -1500,6 +1500,29 @@ public final class LocalCampaignServer extends NanoHTTPD {
     synchronized(lock){
       if(body.length()>4)throw new IllegalArgumentException("Campos extras não permitidos");
       JSONObject sheet=playerSheet(cid,player);
+      // Retrato montado no Ateliê (v0.61): só imagem JPEG/PNG/WebP em base64 e a receita das peças.
+      if(body.has("photo")){
+        String photo=body.optString("photo","");
+        if(photo.length()>160000||!(photo.isEmpty()||photo.matches("data:image/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+")))
+          throw new IllegalArgumentException("Retrato inválido");
+        sheet.put("gurps".equals(sheet.optString("systemId"))?"portrait":"photo",photo);
+      }
+      if(body.has("atelie")){
+        JSONObject recipe=body.optJSONObject("atelie");
+        if(recipe==null||recipe.length()>16||recipe.toString().length()>1200)throw new IllegalArgumentException("Receita do Ateliê inválida");
+        JSONObject safe=new JSONObject();
+        java.util.Iterator<String> keys=recipe.keys();
+        while(keys.hasNext()){
+          String k=keys.next();
+          if(!k.matches("[a-zA-Z]{1,16}"))throw new IllegalArgumentException("Receita do Ateliê inválida");
+          Object v=recipe.get(k);
+          if(v instanceof Number){safe.put(k,((Number)v).intValue());continue;}
+          String t=String.valueOf(v);
+          if(t.length()>24||!t.matches("[a-z0-9#-]*"))throw new IllegalArgumentException("Receita do Ateliê inválida");
+          safe.put(k,t);
+        }
+        sheet.put("atelie",safe);
+      }
       for(String name:new String[]{"history","description"}){
         if(body.has(name)){
           String v=body.optString(name,"");
@@ -1751,6 +1774,9 @@ public final class LocalCampaignServer extends NanoHTTPD {
         if(path.equals("/player-shell.css"))return publishedStyle("mastermind54_player_shell.css");
         if(path.equals("/powers-ui.js"))return publishedScript("mastermind55_player_powers.js");
         if(path.equals("/powers-ui.css"))return publishedStyle("mastermind55_player_powers.css");
+        if(path.equals("/atelier.js"))return publishedScript("mastermind61_atelier.js");
+        if(path.equals("/atelier.css"))return publishedStyle("mastermind61_atelier.css");
+        if(path.equals("/atelier-layers.js"))return publishedScript("mastermind61_atelier_layers.js");
         if(path.equals("/table-master.js"))return publishedScript("rpg31_master_table.js");
         if(path.equals("/table-master.css"))return publishedStyle("rpg31_live.css");
         if(p.length==3&&p[1].equals("scene")){
