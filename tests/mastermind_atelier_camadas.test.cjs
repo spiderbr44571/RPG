@@ -62,7 +62,13 @@ test('Rostos, cabelos novos e barba: todas as peças do catálogo têm camada e 
  assert.match(js,/const CAT_Z=\{rosto:5,calcado:10,calca:20,roupa:30,barba:35,cabelo:40/);
  assert.match(js,/\['Corpo',\[\['rosto','Formato do rosto','slot'\],\['pele','Tom de pele','swatch',PELES\]\]\]/);
  assert.match(js,/function P\(o\)\{return Object\.assign\(\{rosto:'',/);
- // a pele pintada junto com os cabelos segue o tom de pele escolhido (máscara pm)
- for(const k of ['cabelo-ondulado','cabelo-cachos-longos','cabelo-lateral','cabelo-pixie','cabelo-chiquinha','cabelo-dreads','cabelo-longo'])assert.ok(L[k].pm,'sem máscara de pele: '+k);
+  // a pele do manequim foi apagada dos cabelos (aparece a orelha do rosto escolhido); o lado raspado segue o tom de pele
+ assert.ok(L['cabelo-lateral'].pm,'lado raspado sem máscara de pele');
  assert.equal(L['cabelo-raspado'].ref,62,'penugem do raspado acompanha a cor do cabelo');
+});
+test('Cabelos se ajustam à orelha de cada rosto: sem pele do manequim fora da máscara de pele',()=>{
+ const ctx={window:{}};vm.runInNewContext(read('mastermind99_atelier_layers.js'),ctx);
+ const L=ctx.window.MastermindAtelierLayers;
+ assert.match(read('mastermind99_atelier_layers.js'),/cabelos ajustados à orelha de cada rosto/);
+ for(const k of Object.keys(L).filter(k=>k.startsWith('cabelo')))assert.ok(L[k].src&&L[k].m,'camada incompleta: '+k);
 });
