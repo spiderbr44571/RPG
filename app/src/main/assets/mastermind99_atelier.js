@@ -1,4 +1,4 @@
-/* Mastermind v0.99: Ateliê em camadas.
+/* Mastermind Ateliê em camadas (Android v0.101 / Linux v1.1.9 / Windows v1.1.15: rostos, cabelos novos e barba).
  * Cada peça é uma camada pintada sobre o mesmo manequim e recolorida aqui,
  * mantendo sombreado e nanquim. Substitui o acompanhante do lyime.
  * Tudo roda offline: as camadas vêm de mastermind99_atelier_layers.js.
@@ -28,9 +28,15 @@ const ROUPA_CORES=['original','#1f1c21','#3a3a3d','#e6e2dc','#5a1d24','#3b4030',
 /* z: ordem de empilhamento (maior fica por cima). cobre: peças que a armadura esconde.
  * tras: região do cabelo que fica atrás do corpo; some sob roupas com cobreTras. */
 const PECAS={
+  rosto:[{id:'redondo',nome:'Redondo',camada:'rosto-redondo',z:32},{id:'quadrado',nome:'Mandíbula forte',camada:'rosto-quadrado'},{id:'fino',nome:'Fino',camada:'rosto-fino'},
+    {id:'delicado',nome:'Delicado',camada:'rosto-delicado'},{id:'marcante',nome:'Feminino marcante',camada:'rosto-marcante'},{id:'idoso',nome:'Envelhecido',camada:'rosto-idoso'},
+    {id:'jovem',nome:'Jovem',camada:'rosto-jovem'},{id:'elfo',nome:'Élfico',camada:'rosto-elfo'}],
   cabelo:[{id:'topete',nome:'Penteado para trás',camada:'cabelo'},{id:'baguncado',nome:'Bagunçado',camada:'cabelo-baguncado'},{id:'longo',nome:'Longo liso',camada:'cabelo-longo',tras:[[380,250],[560,250],[560,1360],[380,1360]]},{id:'rabo',nome:'Rabo de cavalo',camada:'cabelo-rabo'},
     {id:'cacheado',nome:'Cacheado',camada:'cabelo-cacheado'},{id:'raspado',nome:'Raspado',camada:'cabelo-raspado'},{id:'coque',nome:'Coque',camada:'cabelo-coque'},{id:'moicano',nome:'Moicano',camada:'cabelo-moicano'},
-    {id:'loiro',nome:'Curto ondulado',camada:'cabelo-loiro'},{id:'chanel',nome:'Chanel com franja',camada:'cabelo-chanel'},{id:'dreads',nome:'Dreads',camada:'cabelo-dreads'}],
+    {id:'loiro',nome:'Curto ondulado',camada:'cabelo-loiro'},{id:'chanel',nome:'Chanel com franja',camada:'cabelo-chanel'},{id:'dreads',nome:'Dreads',camada:'cabelo-dreads'},
+    {id:'ondulado',nome:'Longo ondulado',camada:'cabelo-ondulado'},{id:'trancas',nome:'Tranças',camada:'cabelo-trancas'},{id:'rabo-alto',nome:'Rabo alto com franja',camada:'cabelo-rabo-alto'},
+    {id:'pixie',nome:'Pixie',camada:'cabelo-pixie'},{id:'coque-alto',nome:'Coque de bailarina',camada:'cabelo-coque-alto'},{id:'chiquinha',nome:'Maria-chiquinha',camada:'cabelo-chiquinha'},
+    {id:'afro',nome:'Black power',camada:'cabelo-afro'},{id:'cachos-longos',nome:'Cachos longos',camada:'cabelo-cachos-longos'},{id:'lateral',nome:'Raspado de lado',camada:'cabelo-lateral'}],
   barba:[{id:'cheia',nome:'Barba cheia',camada:'barba-cheia'},{id:'cavanhaque',nome:'Cavanhaque',camada:'barba-cavanhaque'}],
   cabeca:[{id:'chapeu',nome:'Chapéu fedora',camada:'acc-chapeu'},{id:'elmo',nome:'Elmo de cavaleiro',camada:'acc-elmo'},{id:'mascaragas',nome:'Máscara de gás',camada:'acc-mascaragas'}],
   roupa:[{id:'camisa',nome:'Camisa social',camada:'camisa',z:15},{id:'camiseta',nome:'Camiseta',camada:'roupa-camiseta',z:15},{id:'terno',nome:'Terno e gravata',camada:'roupa-terno'},
@@ -44,7 +50,8 @@ const PECAS={
     {id:'cachecol',nome:'Cachecol',camada:'acc-cachecol'},{id:'colar',nome:'Colar ocultista',camada:'acc-colar'},{id:'fone',nome:'Fone no pescoço',camada:'acc-fone'},
     {id:'luvas',nome:'Luvas',camada:'acc-luvas'},{id:'coldre',nome:'Coldre',camada:'acc-coldre'},{id:'katana',nome:'Katana nas costas',camada:'acc-katana'}]
 };
-const CAT_Z={calcado:10,calca:20,roupa:30,barba:35,cabelo:40,acessorios:45,cabeca:50};
+/* rosto: 5 fica sob as roupas; o redondo (z 32) fica à frente delas, abaixo de barba e cabelo */
+const CAT_Z={rosto:5,calcado:10,calca:20,roupa:30,barba:35,cabelo:40,acessorios:45,cabeca:50};
 const MULTI=new Set(['acessorios']);
 for(const cat in PECAS)for(const p of PECAS[cat])if(p.camada&&!CAMADAS[p.camada])p.camada=null;
 
@@ -60,11 +67,11 @@ const TABS=[
   ['Cabeça',[['cabelo','Cabelo','slot'],['cabeloCor','Cor do cabelo','swatch',CABELO_CORES],['barba','Barba','slot'],['barbaCor','Cor da barba','swatch',CABELO_CORES],['cabeca','Chapéu, elmo e máscara','slot'],['cabecaCor','Cor','swatch',ROUPA_CORES]]],
   ['Roupa',[['roupa','Roupa e armadura','slot'],['roupaCor','Cor da roupa','swatch',ROUPA_CORES],['calca','Calça','slot'],['calcaCor','Cor da calça','swatch',ROUPA_CORES],['calcado','Calçado','slot'],['calcadoCor','Cor do calçado','swatch',ROUPA_CORES]]],
   ['Acessórios',[['acessorios','Acessórios (vários ao mesmo tempo)','slot']]],
-  ['Corpo',[['pele','Tom de pele','swatch',PELES]]],
+  ['Corpo',[['rosto','Formato do rosto','slot'],['pele','Tom de pele','swatch',PELES]]],
   ['Elemento',[['elemento','Afinidade','elements'],['moldura','Lealdade'],['base','Base no chão'],['acabamento','Acabamento']]],
   ['Cena e efeitos',[['condicao','Condição na cena'],['efeito','Efeito no token']]]
 ];
-function P(o){return Object.assign({barba:'',barbaCor:'original',cabeca:'',cabecaCor:'original',acessorios:[],cabelo:'topete',cabeloCor:'original',roupa:'camisa',roupaCor:'original',calca:'cargo',calcaCor:'original',calcado:'bota',calcadoCor:'original',pele:'original',elemento:'sangue',moldura:'aliado',base:'recorte',acabamento:'cor',condicao:'normal',efeito:'nenhum',semente:7},o);}
+function P(o){return Object.assign({rosto:'',barba:'',barbaCor:'original',cabeca:'',cabecaCor:'original',acessorios:[],cabelo:'topete',cabeloCor:'original',roupa:'camisa',roupaCor:'original',calca:'cargo',calcaCor:'original',calcado:'bota',calcadoCor:'original',pele:'original',elemento:'sangue',moldura:'aliado',base:'recorte',acabamento:'cor',condicao:'normal',efeito:'nenhum',semente:7},o);}
 const PRESETS=[
   {titulo:'Negociador',sub:'aliado · Sangue',st:P({calcaCor:'#1f1c21',calcadoCor:'#1f1c21'})},
   {titulo:'Ocultista',sub:'aliado · Morte',st:P({elemento:'morte',cabelo:'baguncado',pele:'#e0b08a',roupa:'capa',calcaCor:'#3a3a3d',calcadoCor:'#1f1c21',acabamento:'dessaturado',semente:31})},
