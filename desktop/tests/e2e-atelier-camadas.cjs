@@ -3,6 +3,7 @@
  * esconde o cabelo de trás sob o moletom e grava retrato e token na ficha. */
 const { _electron:electron }=require('@playwright/test');
 const assert=require('node:assert/strict'),path=require('node:path'),fs=require('node:fs');
+const {checarEncaixe}=require('../../tests/atelie_encaixe_checagens.cjs');
 (async()=>{
  const binary=path.resolve(process.argv[2]||(process.platform==='win32'?'dist/win-unpacked/Mastermind.exe':'dist/linux-unpacked/mastermind'));
  assert.ok(fs.existsSync(binary),'Mastermind empacotado nao existe: '+binary);
@@ -22,6 +23,8 @@ const assert=require('node:assert/strict'),path=require('node:path'),fs=require(
    let n=0;for(let i=3;i<d.length;i+=4)if(d[i]>0)n++;return n/(c.width*c.height);
   });
   assert.ok(painted>.15,'Personagem nao desenhado: '+painted);
+  const encaixe=await win.evaluate(checarEncaixe);
+  assert.deepEqual(encaixe.erros,[],'Encaixe do Atelie no app empacotado:\n - '+encaixe.erros.join('\n - '));
   const saved=await win.evaluate(()=>{
    const C=window.MastermindCharacters;if(!C?.selectedId?.())return {skip:true};
    window.MastermindAtelier99.save();const ch=C.selected().character;
@@ -34,6 +37,6 @@ const assert=require('node:assert/strict'),path=require('node:path'),fs=require(
    assert.equal(saved.recipe,'moletom');
   }
   assert.deepEqual(errors,[],'Erros na pagina: '+errors.join(' | '));
-  console.log('PASS Atelie em camadas: desenho offline ('+Math.round(painted*100)+'% da tela), '+(saved.skip?'sem ficha selecionada':'retrato e token gravados na ficha')+'.');
+  console.log('PASS Atelie em camadas: desenho offline ('+Math.round(painted*100)+'% da tela), rostos/olhos/barba encaixados em '+encaixe.desenhos+' combinacoes, '+(saved.skip?'sem ficha selecionada':'retrato e token gravados na ficha')+'.');
  }finally{if(client)await client.close();}
 })().catch(e=>{console.error(e.stack||e);process.exitCode=1});
