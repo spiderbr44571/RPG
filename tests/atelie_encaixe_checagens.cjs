@@ -31,12 +31,9 @@ async function checarEncaixe(){
   }
   /* 2) Jovem: a abertura dos olhos é opaca e a esclera é clara (sem o olho do manequim nem manchas de pele) */
   {const c=L['rosto-jovem'],I=await px(c.src);
-    const olhos=[[ // mesmos polígonos de ESCLERA em scripts/atelie_corrigir_rostos.py (esclera inteira até a pálpebra de baixo)
-      151.5,247,152,242,153,239,154,238,155,237,156,236,157,235,158,234,161,233,164,232.5,170,236,182,236,188.5,246,190.5,251,191.5,255.5,190.5,259.5,187.5,263.2,
-      184,264.6,180,265.6,176,266.4,172,266.4,168,265.6,164,264.4,161,263.2,159,263,157,262.2,155,260.2,153,257.8,152,252],[
-      245.5,256.5,246,250,247.5,246,249.5,243.5,252,241.5,255,240,258.5,239,268,240,280,240,286,244.5,289,246,292,248.5,294,251,295,254,294.5,256.5,292.5,260.5,
-      290.5,262.6,288.5,263.8,286.5,265.6,284,267.6,280,269.6,276,271,270,271.6,264,271.6,260,270.8,258,269.8,255,268.2,253,266.4,250.5,262.4,248,260.2]];
-    const iris=[[177,245.5,13.2],[272,249,13.2]]; // IRIS no script
+    // contornos finais da esclera e da íris gravados pelo script (scripts/atelie_corrigir_rostos.py: ESCLERA com AJUSTE_OLHO, IRIS)
+    if(!Array.isArray(c.olhos)||c.olhos.length!==2||!Array.isArray(c.iris))falha('rosto-jovem: camada sem os contornos dos olhos (rode atelie_corrigir_rostos.py)');
+    const olhos=(c.olhos||[]).map(pts=>pts.flat()),iris=c.iris||[];
     const naIris=(X,Y,folga)=>iris.some(([cx,cy,r])=>(X+.5-cx)**2+(Y+.5-cy)**2<=(r+folga)**2);
     const dentro=(pts,X,Y)=>{let s=false;for(let i=0,j=pts.length-2;i<pts.length;j=i,i+=2){const xi=pts[i],yi=pts[i+1],xj=pts[j],yj=pts[j+1];
       if((yi>Y)!==(yj>Y)&&X<(xj-xi)*(Y-yi)/(yj-yi)+xi)s=!s;}return s;};
@@ -63,7 +60,7 @@ async function checarEncaixe(){
       if(!pertoTinta)cinza++;}
     if(cinza>4)falha('rosto-jovem: '+cinza+' pixels de traço cinza solto na esclera');
     // sob a íris, até a pálpebra de baixo, é esclera clara (era uma faixa rabiscada de nanquim)
-    let faixa=[];for(const[X,Y]of[[170,261],[176,263],[181,262],[264,268],[272,269],[279,267]])if(lumEm(X,Y)<185)faixa.push(X+','+Y);
+    let faixa=[];for(const[X,Y]of[[170,261],[176,263],[181,262],[264,265],[272,266],[279,264]])if(lumEm(X,Y)<185)faixa.push(X+','+Y);
     if(faixa.length)falha('rosto-jovem: faixa escura sob a íris em '+faixa.join(' '));
     // a pálpebra de baixo é uma linha contínua de nanquim logo abaixo da esclera
     let semLinha=[];for(const pts of olhos){const xs=[];for(let i=0;i<pts.length;i+=2)xs.push(pts[i]);const a=Math.ceil(Math.min(...xs))+4,b=Math.floor(Math.max(...xs))-4;

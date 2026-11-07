@@ -79,6 +79,71 @@ PALPEBRA = {
     ],
 }
 SS = 4  # supersampling das máscaras desenhadas (borda suave, sem serrilhado)
+# tamanho de cada olho (mesma ordem de ESCLERA): 'sobe' = quantos px a pálpebra de baixo sobe no meio, afinando até os
+# cantos. O olho direito da imagem é pintado maior que o esquerdo; aqui fica parelho. Entre a linha antiga e a nova vira pele.
+AJUSTE_OLHO = {'rosto-jovem': [None, {'sobe': 3.0}]}  # aprovado: pálpebra de baixo do olho direito 3 px acima
+# riscos de cílios do canto de baixo, que ficariam soltos abaixo da linha ajustada
+SOBRAS_OLHO = {'rosto-jovem': [None, [(283, 266), (291, 257), (296, 253), (298, 258), (292, 268), (286, 273), (281, 273)]]}
+
+
+def ajusta_olho(pts, aj, ref):
+    """Olho menor sem mexer nos cílios de cima. ref = (x do canto interno, x do canto externo, y do centro da íris).
+    'sobe': a parte de baixo (abaixo do centro da íris) sobe até aj['sobe'] px no meio, zero nos cantos;
+    'canto': o canto interno (lado de x menor) vem aj['canto'] px para dentro, sumindo 16 px adiante."""
+    if not aj:
+        return pts
+    xa, xb, yc = ref
+    suave = lambda v: v * v * (3 - 2 * v)  # smoothstep: sem quina onde o ajuste começa
+    out = []
+    for x, y in pts:
+        t = suave(min(max(min(x - xa, xb - x) / 14, 0), 1))
+        c = suave(min(max((xa + 16 - x) / 16, 0), 1))
+        out.append((x + aj.get('canto', 0) * c, y - aj.get('sobe', 0) * t if y > yc else y))
+    return out
+
+
+def chaikin(pts, fechado, vezes=2):
+    """Arredonda o contorno (corta as quinas) sem mudar a forma geral."""
+    for _ in range(vezes):
+        n = len(pts)
+        novo = [] if fechado else [pts[0]]
+        for j in range(n if fechado else n - 1):
+            (ax, ay), (bx, by) = pts[j], pts[(j + 1) % n]
+            novo += [(.75 * ax + .25 * bx, .75 * ay + .25 * by), (.25 * ax + .75 * bx, .25 * ay + .75 * by)]
+        pts = novo if fechado else novo + [pts[-1]]
+    return pts
+
+
+def ref_olho(k, i):
+    xs = [x for x, _ in ESCLERA[k][i]]
+    return min(xs), max(xs), IRIS[k][i][1]
+
+
+def aj_olho(k, i):
+    aj = AJUSTE_OLHO.get(k, [])
+    return aj[i] if i < len(aj) else None
+
+
+def canto_olho(k, i):
+    """Contorno do canto interno pintado (bordas da esclera do lado de x menor, de cima para baixo)."""
+    xa = ref_olho(k, i)[0]
+    return sorted([p for p in ESCLERA[k][i] if p[0] < xa + 5], key=lambda p: p[1])
+
+
+def olhos_de(k, tabela):
+    res = []
+    for i, pts in enumerate(tabela.get(k, [])):
+        aj = aj_olho(k, i)
+        novo = ajusta_olho(pts, aj, ref_olho(k, i))
+        if tabela is PALPEBRA and aj and aj.get('canto'):
+            # o canto interno mudou de lugar: a linha sobe pelo novo canto até os cílios de cima
+            novo = [(x - .8, y) for x, y in ajusta_olho(canto_olho(k, i), aj, ref_olho(k, i))] + novo
+        if aj:
+            novo = chaikin(novo, fechado=tabela is ESCLERA)
+        res.append(novo)
+    return res
+
+
 PREFIXO = 'window.MastermindAtelierLayers='
 
 
@@ -247,9 +312,22 @@ def corrige(L, k, corpo, cabeca):
     for pts in OLHOS.get(k, []):
         olho |= poligono(h, w, x0, y0, pts)
     q_escl = np.zeros((h, w))
-    for pts in ESCLERA.get(k, []):
+    for pts in olhos_de(k, ESCLERA):
         q_escl = np.maximum(q_escl, cobertura(h, w, x0, y0, pts=pts))
+    # olho ajustado (AJUSTE_OLHO): o contorno pintado — esclera, linha de baixo com os traços em volta e os riscos do
+    # canto — que sobra fora do olho ajustado vira pele
+    q_pint = np.zeros((h, w))
+    aj_k = AJUSTE_OLHO.get(k, [])
+    for i, pts in enumerate(ESCLERA.get(k, [])):
+        if i < len(aj_k) and aj_k[i]:
+            q_pint = np.maximum(q_pint, cobertura(h, w, x0, y0, pts=pts))
+            q_pint = np.maximum(q_pint, cobertura(h, w, x0, y0, linha=PALPEBRA[k][i], largura=7))
+            if aj_k[i].get('canto'):  # contorno pintado do canto interno antigo
+                q_pint = np.maximum(q_pint, cobertura(h, w, x0, y0, linha=canto_olho(k, i), largura=7))
+            if SOBRAS_OLHO.get(k) and SOBRAS_OLHO[k][i]:
+                q_pint = np.maximum(q_pint, cobertura(h, w, x0, y0, pts=SOBRAS_OLHO[k][i]))
     olho_antigo = olho.copy()
+    zona = np.zeros((h, w))  # pele no lugar do contorno pintado (olho ajustado)
     if ESCLERA.get(k):  # a esclera desenhada segue o traço da pintura: substitui a abertura antiga (ia além do canto)
         olho = q_escl >= .5
     if olho.any():
@@ -296,9 +374,32 @@ def corrige(L, k, corpo, cabeca):
             out[q_escl > 0, 3] = 255
             m *= 1 - q
             pm *= 1 - q
+            # entre a pálpebra pintada e a ajustada: pele, com a cor da pele logo abaixo da linha pintada (mesma coluna)
+            zona = np.clip(q_pint - q_escl, 0, 1)
+            if zona.max() > 0:
+                # pele por difusão a partir da vizinhança (sem traço de nanquim como fonte): emenda sem costura
+                zm = zona > 0
+                lum_v = out[..., :3] @ [.299, .587, .114]
+                mx_v, mn_v = out[..., :3].max(-1), out[..., :3].min(-1)
+                sat_v = (mx_v - mn_v) / np.maximum(mx_v, 1)
+                conhecido = ~zm & (out[..., 3] > 200) & (lum_v > 110) & (q_escl <= 0) & (sat_v > .15)  # pele, não esclera
+                cor = out[..., :3].copy()
+                if ref.sum() > 50:
+                    cor[zm] = pel
+                peso_v = (conhecido | zm).astype(float)
+                ker = np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]], float)
+                for _ in range(120):
+                    soma = np.stack([nd.convolve(cor[..., ch] * peso_v, ker, mode='nearest') for ch in range(3)], -1)
+                    den = nd.convolve(peso_v, ker, mode='nearest')[..., None]
+                    cor[zm] = (soma / np.maximum(den, 1e-6))[zm]
+                z = np.clip(zona * 2, 0, 1)[..., None]  # cobre de vez a pintura antiga (sem fantasma claro)
+                out[..., :3] = out[..., :3] * (1 - z) + cor * z
+                pm = np.maximum(pm, 255 * z[..., 0])
+                out[zm, 3] = 255
+                m *= 1 - zona
             # linha limpa da pálpebra de baixo, logo abaixo da esclera
             lc = np.zeros((h, w))
-            for ln in PALPEBRA.get(k, []):
+            for ln in olhos_de(k, PALPEBRA):
                 lc = np.maximum(lc, cobertura(h, w, x0, y0, linha=ln))
             out[..., :3] = out[..., :3] * (1 - lc[..., None]) + np.array([28., 20., 22.]) * lc[..., None]
             out[lc > 0, 3] = 255
@@ -308,7 +409,7 @@ def corrige(L, k, corpo, cabeca):
         # em volta da abertura, a pintura tinha brilhos brancos (abaixo da pálpebra e nos cantos) que ficavam
         # brancos até em pele escura: entre dois traços viram traço; o resto vira pele (acompanha o tom)
         # (com ESCLERA, a volta da abertura antiga também entra: pálpebra acima dos cílios, como antes)
-        anel = nd.binary_dilation(olho | olho_antigo, iterations=6) & ~olho & (out[..., 3] > 200)
+        anel = nd.binary_dilation(olho | olho_antigo, iterations=6) & ~olho & (out[..., 3] > 200) & ~(zona > 0)
         l2 = out[..., :3] @ [.299, .587, .114]
         mx2, mn2 = out[..., :3].max(-1), out[..., :3].min(-1)
         s2 = (mx2 - mn2) / np.maximum(mx2, 1)
@@ -326,7 +427,7 @@ def corrige(L, k, corpo, cabeca):
             out[resto, :3] = pel
             pm[resto] = 255
         m[claro] = 0
-        anel_tratado = anel
+        anel_tratado = anel | (zona > 0)  # a pele pintada no lugar do contorno não vira esclera
         olho = escl
     st = dict(contorno=corte, semitransparente=int(semi.sum()), fresta=int(fresta.sum()), olho=int(olho.sum()))
     out, m, pm = esclera_neutra(out, m, pm, x0, y0, ((pm0 < 100) & ~anel_tratado) | olho_rep)
@@ -336,6 +437,9 @@ def corrige(L, k, corpo, cabeca):
         pm = np.where(perto, 255, pm)
     c['src'] = enc(out.round().clip(0, 255).astype(np.uint8), 'RGBA')
     c['ajuste'] = 'rosto-3' if k in ESCLERA else 'rosto-2'
+    if k in ESCLERA:  # contornos finais da esclera (com AJUSTE_OLHO) e íris, para os testes medirem o que foi aplicado
+        c['olhos'] = [[[round(x, 2), round(y, 2)] for x, y in pts] for pts in olhos_de(k, ESCLERA)]
+        c['iris'] = [list(v) for v in IRIS[k]]
     if 'm' in c:
         c['m'] = enc(m.round().clip(0, 255).astype(np.uint8), 'L')
     if 'pm' in c:

@@ -57,6 +57,11 @@ test('Rostos, esclera, barba e jaleco corrigidos para encaixar no manequim (scri
  for(const k of ['rosto-redondo','rosto-quadrado','rosto-fino','rosto-delicado','rosto-marcante','rosto-idoso','rosto-elfo'])
   assert.equal(L[k].ajuste,'rosto-2','rosto sem correção de frestas e esclera: '+k);
  assert.equal(L['rosto-jovem'].ajuste,'rosto-3','Jovem sem a esclera inteira até a pálpebra de baixo');
+ assert.equal(L['rosto-jovem'].olhos.length,2,'Jovem sem os contornos finais dos olhos');
+ assert.ok(L['rosto-jovem'].iris.every(([,,r])=>r>12&&r<14),'raio da íris do Jovem fora do medido na pintura');
+ // olho direito da imagem parelho com o esquerdo: pálpebra de baixo 3 px acima da pintada (aprovado)
+ const fundo=pts=>Math.max(...pts.map(p=>p[1]));
+ assert.ok(fundo(L['rosto-jovem'].olhos[1])<270.5&&fundo(L['rosto-jovem'].olhos[1])>267,'pálpebra de baixo do olho direito fora do ajuste aprovado');
  assert.equal(L.corpo.ajuste,'esclera-1','esclera do manequim sem correção');
  assert.equal(L['barba-cheia'].ajuste,'gemini-1','barba cheia deveria vir da pintura sobre o manequim');
  assert.ok(L['barba-cheia'].m&&L['barba-cheia'].ref>20&&L['barba-cheia'].ref<80);
@@ -68,6 +73,7 @@ test('Rostos, esclera, barba e jaleco corrigidos para encaixar no manequim (scri
  assert.match(py,/def esclera_neutra\(/);
  assert.match(py,/ESCLERA = \{\r?\n    'rosto-jovem'/);
  assert.match(py,/PALPEBRA = \{\r?\n    'rosto-jovem'/);
+ assert.match(py,/AJUSTE_OLHO = \{'rosto-jovem': \[None, \{'sobe': 3\.0\}\]\}/);
  assert.match(py,/IRIS = \{'rosto-jovem': \[\(177, 245\.5, 13\.2\), \(272, 249, 13\.2\)\]\}/);
  // vão grande da silhueta (braço/corpo): sombra e contorno branco ficam de fora, aparece o fundo
  const atelier=read('mastermind99_atelier.js');
