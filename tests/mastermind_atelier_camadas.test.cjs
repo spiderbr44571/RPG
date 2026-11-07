@@ -51,16 +51,23 @@ test('Token se afasta só quando o cabelo sobe além da folga',()=>{
  assert.match(js,/if\(ty>=BUST_FOLGA\)return BUST;/);
  assert.match(js,/const B=bustBox\(full,k\)/);
 });
-test('Rostos e barba corrigidos para encaixar no manequim (script de correção aplicado)',()=>{
+test('Rostos, esclera, barba e jaleco corrigidos para encaixar no manequim (scripts de correção aplicados)',()=>{
  const ctx={window:{}};vm.runInNewContext(read('mastermind99_atelier_layers.js'),ctx);
  const L=ctx.window.MastermindAtelierLayers;
  for(const k of ['rosto-redondo','rosto-quadrado','rosto-fino','rosto-delicado','rosto-marcante','rosto-idoso','rosto-jovem','rosto-elfo'])
-  assert.equal(L[k].ajuste,'rosto-1','rosto sem correção de frestas: '+k);
- assert.equal(L['barba-cheia'].ajuste,'encaixe-rosto-1');
- assert.ok(L['barba-cheia'].x<110,'barba deveria abrir até o contorno do rosto');
- const py=fs.readFileSync(path.join(__dirname,'..','scripts/atelie_corrigir_rostos.py'),'utf8');
+  assert.equal(L[k].ajuste,'rosto-2','rosto sem correção de frestas e esclera: '+k);
+ assert.equal(L.corpo.ajuste,'esclera-1','esclera do manequim sem correção');
+ assert.equal(L['barba-cheia'].ajuste,'gemini-1','barba cheia deveria vir da pintura sobre o manequim');
+ assert.ok(L['barba-cheia'].m&&L['barba-cheia'].ref>20&&L['barba-cheia'].ref<80);
+ assert.equal(L['roupa-jaleco'].ajuste,'jaleco-1','jaleco sem a correção do vão, da mão e da perna');
+ const scripts=path.join(__dirname,'..','scripts');
+ const py=fs.readFileSync(path.join(scripts,'atelie_corrigir_rostos.py'),'utf8');
  assert.match(py,/OLHOS = \{\r?\n    'rosto-jovem'/);
  assert.match(py,/CONTORNO = \{\r?\n    'rosto-redondo'/);
+ assert.match(py,/def esclera_neutra\(/);
+ assert.match(fs.readFileSync(path.join(scripts,'atelie_corrigir_jaleco.py'),'utf8'),/VAO = \[/);
+ assert.match(fs.readFileSync(path.join(scripts,'atelie_barba_gemini.py'),'utf8'),/ESCALA, POS = \(553, 1347\), \(3, 0\)/);
+ assert.ok(fs.statSync(path.join(scripts,'atelie_fontes','barba-cheia-gemini.jpg')).size>10000,'fonte da barba ausente');
 });
 test('Rostos, cabelos novos e barba: todas as peças do catálogo têm camada e o rosto redondo fica à frente das roupas',()=>{
  const ctx={window:{}};vm.runInNewContext(read('mastermind99_atelier_layers.js'),ctx);
