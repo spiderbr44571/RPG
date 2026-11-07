@@ -59,7 +59,7 @@ test('Rostos, esclera, barba e jaleco corrigidos para encaixar no manequim (scri
  assert.equal(L.corpo.ajuste,'esclera-1','esclera do manequim sem correção');
  assert.equal(L['barba-cheia'].ajuste,'gemini-1','barba cheia deveria vir da pintura sobre o manequim');
  assert.ok(L['barba-cheia'].m&&L['barba-cheia'].ref>20&&L['barba-cheia'].ref<80);
- assert.equal(L['roupa-jaleco'].ajuste,'jaleco-1','jaleco sem a correção do vão, da mão e da perna');
+ assert.equal(L['roupa-jaleco'].ajuste,'jaleco-2','jaleco sem a correção do vão, da mão (tecido inteiro atrás dela) e da perna');
  const scripts=path.join(__dirname,'..','scripts');
  const py=fs.readFileSync(path.join(scripts,'atelie_corrigir_rostos.py'),'utf8');
  assert.match(py,/OLHOS = \{\r?\n    'rosto-jovem'/);
