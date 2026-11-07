@@ -31,8 +31,13 @@ async function checarEncaixe(){
   }
   /* 2) Jovem: a abertura dos olhos é opaca e a esclera é clara (sem o olho do manequim nem manchas de pele) */
   {const c=L['rosto-jovem'],I=await px(c.src);
-    const olhos=[[ // mesmos polígonos de OLHOS em scripts/atelie_corrigir_rostos.py
-      147,245,149,239,153,233,160,229,177,226,186,232,190,240,192,248,193,252,190,258,184,262,173,264,162,263,155,259,150,253],[240,255,243,248,246,244,250,241,257,238,273,234,290,239,298,249,300,253,292,262,282,265,273,267,257,267,248,265,244,261]];
+    const olhos=[[ // mesmos polígonos de ESCLERA em scripts/atelie_corrigir_rostos.py (esclera inteira até a pálpebra de baixo)
+      151.5,247,152,242,153,239,154,238,155,237,156,236,157,235,158,234,161,233,164,232.5,170,236,182,236,188.5,246,190.5,251,191.5,255.5,190.5,259.5,187.5,263.2,
+      184,264.6,180,265.6,176,266.4,172,266.4,168,265.6,164,264.4,161,263.2,159,263,157,262.2,155,260.2,153,257.8,152,252],[
+      245.5,256.5,246,250,247.5,246,249.5,243.5,252,241.5,255,240,258.5,239,268,240,280,240,286,244.5,289,246,292,248.5,294,251,295,254,294.5,256.5,292.5,260.5,
+      290.5,262.6,288.5,263.8,286.5,265.6,284,267.6,280,269.6,276,271,270,271.6,264,271.6,260,270.8,258,269.8,255,268.2,253,266.4,250.5,262.4,248,260.2]];
+    const iris=[[177,245.5,13.2],[272,249,13.2]]; // IRIS no script
+    const naIris=(X,Y,folga)=>iris.some(([cx,cy,r])=>(X+.5-cx)**2+(Y+.5-cy)**2<=(r+folga)**2);
     const dentro=(pts,X,Y)=>{let s=false;for(let i=0,j=pts.length-2;i<pts.length;j=i,i+=2){const xi=pts[i],yi=pts[i+1],xj=pts[j],yj=pts[j+1];
       if((yi>Y)!==(yj>Y)&&X<(xj-xi)*(Y-yi)/(yj-yi)+xi)s=!s;}return s;};
     let buraco=0,mancha=0,claro=0,total=0;
@@ -49,7 +54,23 @@ async function checarEncaixe(){
       const x=X-c.x,y=Y-c.y,i=(y*I.w+x)*4;if(I.d[i+3]<200)continue;const R=I.d[i],G=I.d[i+1],B=I.d[i+2],mx=Math.max(R,G,B),mn=Math.min(R,G,B);
       if(.299*R+.587*G+.114*B>160&&(mx-mn)/mx<.2)brancoFora++;}
     if(brancoFora>5)falha('rosto-jovem: '+brancoFora+' pixels brancos em volta dos olhos (deveria ser traço ou pele)');
-    r.olhosJovem={total,buraco,mancha,claro,brancoFora};
+    // na esclera, fora da íris: nenhum traço cinza solto (o traço ao lado da íris ficava) — o cinza da sombra fica junto do traço escuro
+    const lumEm=(X,Y)=>{const x=X-c.x,y=Y-c.y,i=(y*I.w+x)*4;return .299*I.d[i]+.587*I.d[i+1]+.114*I.d[i+2];};
+    let cinza=0;
+    for(const pts of olhos)for(let Y=228;Y<274;Y++)for(let X=148;X<298;X++){if(!dentro(pts,X+.5,Y+.5)||naIris(X,Y,1.5))continue;
+      const l=lumEm(X,Y);if(l<95||l>150)continue;let pertoTinta=false;
+      for(let dy=-2;dy<=2&&!pertoTinta;dy++)for(let dx=-2;dx<=2;dx++)if(lumEm(X+dx,Y+dy)<95){pertoTinta=true;break;}
+      if(!pertoTinta)cinza++;}
+    if(cinza>4)falha('rosto-jovem: '+cinza+' pixels de traço cinza solto na esclera');
+    // sob a íris, até a pálpebra de baixo, é esclera clara (era uma faixa rabiscada de nanquim)
+    let faixa=[];for(const[X,Y]of[[170,261],[176,263],[181,262],[264,268],[272,269],[279,267]])if(lumEm(X,Y)<185)faixa.push(X+','+Y);
+    if(faixa.length)falha('rosto-jovem: faixa escura sob a íris em '+faixa.join(' '));
+    // a pálpebra de baixo é uma linha contínua de nanquim logo abaixo da esclera
+    let semLinha=[];for(const pts of olhos){const xs=[];for(let i=0;i<pts.length;i+=2)xs.push(pts[i]);const a=Math.ceil(Math.min(...xs))+4,b=Math.floor(Math.max(...xs))-4;
+      for(let X=a;X<=b;X+=2){let fundo=-1;for(let Y=275;Y>225;Y--)if(dentro(pts,X+.5,Y+.5)){fundo=Y;break;}if(fundo<0||naIris(X,fundo,0))continue;
+        let ok=false;for(let Y=fundo+1;Y<=fundo+3;Y++)if(lumEm(X,Y)<90)ok=true;if(!ok)semLinha.push(X);}}
+    if(semLinha.length>2)falha('rosto-jovem: pálpebra de baixo sem traço em x='+semLinha.join(','));
+    r.olhosJovem={total,buraco,mancha,claro,brancoFora,cinza,faixa:faixa.length,semLinha:semLinha.length};
     if(buraco)falha('rosto-jovem: '+buraco+' pixels abertos nos olhos');
     if(mancha>12)falha('rosto-jovem: '+mancha+' manchas cor de pele dentro dos olhos');
     if(claro<total*.25)falha('rosto-jovem: esclera escura ('+claro+'/'+total+')');}
@@ -73,9 +94,16 @@ async function checarEncaixe(){
     const conta=(pts)=>pts.filter(([X,Y])=>a(X,Y)>0).length;
     const vao=conta([[430,700],[432,740],[435,780],[438,820],[440,850]]),perna=conta([[302,950],[304,970],[306,990]]);
     let buraco=0,sobreMao=0;
-    for(let Y=900;Y<1000;Y++)for(let X=413;X<458;X++){const ci=(Y*W+X)*4,maoAqui=corpo.d[ci+3]>128&&X>=418;
-      if(maoAqui){if(a(X,Y)>0)sobreMao++;}else if(a(X,Y)<200)buraco++;}
-    r.jaleco={vao,buraco,sobreMao,perna};
+    // mão do manequim = pele ou traço; o branco opaco pintado entre os dedos (e a franja clara do traço) não é mão
+    // pele ou traço puro: não leva tecido por cima; branco opaco: leva tecido (vão entre os dedos);
+    // o antisserrilhado cinza do traço (meio tinta, meio branco) pode ter ou não
+    const tipo=ci=>{const R=corpo.d[ci],G=corpo.d[ci+1],B=corpo.d[ci+2],mx=Math.max(R,G,B),mn=Math.min(R,G,B),l=.299*R+.587*G+.114*B,s=(mx-mn)/Math.max(mx,1);
+      return s>=.15||l<40?'mao':l>200&&s<.15?'branco':'meio';};
+    let dedos=0;
+    for(let Y=900;Y<1000;Y++)for(let X=413;X<458;X++){const ci=(Y*W+X)*4,t=corpo.d[ci+3]>128&&X>=418?tipo(ci):'fundo';
+      if(t==='mao'){if(a(X,Y)>0)sobreMao++;}else if(t==='fundo'&&a(X,Y)<200)buraco++;else if(t==='branco'&&a(X,Y)<255)dedos++;}
+    r.jaleco={vao,buraco,sobreMao,perna,dedos};
+    if(dedos)falha('roupa-jaleco: '+dedos+' pixels brancos do manequim perto da mão (vão entre os dedos: deveria aparecer o jaleco)');
     if(vao)falha('roupa-jaleco: tecido pintado no vão entre o corpo e o braço ('+vao+')');
     if(buraco)falha('roupa-jaleco: buraco no tecido perto da mão ('+buraco+' px)');
     if(sobreMao)falha('roupa-jaleco: tecido por cima da mão ('+sobreMao+' px)');
@@ -101,6 +129,20 @@ async function checarEncaixe(){
     if(queixo<200)falha('barba-cheia: não cobre o queixo');
     if(costE>150)falha('barba-cheia: costeleta esquerda longe do contorno do rosto (x='+costE+')');
     if(costD<325)falha('barba-cheia: costeleta direita longe da orelha (x='+costD+')');}
+  /* 4b) vão entre o braço e o corpo: no desenho final aparece o fundo (a sombra e o contorno branco não entram nele),
+         e o contorno branco continua por fora da silhueta */
+  {const TOP=Math.min(0,...Object.values(L).filter(v=>v&&typeof v==='object').flatMap(v=>[v.y,v.dy].filter(n=>typeof n==='number')));
+    const FS=800/(H-TOP),FX=(440-W*FS)/2,FY0=12-TOP*FS,cv=document.createElement('canvas');cv.width=880;cv.height=1720;
+    r.vaoBraco={};
+    for(const[roupa,pts]of[['jaleco',[[431,700],[433,740],[436,790],[439,830]]],['camisa',[[425,700],[429,755],[432,810]]]]){
+      A.render(cv,Object.assign({},A.state(),{roupa,roupaCor:'original',rosto:'',barba:'',acessorios:[],cabeca:'',base:'recorte',efeito:'nenhum',condicao:'normal'}));
+      const g=cv.getContext('2d'),d=g.getImageData(0,0,cv.width,cv.height).data;
+      const al=(X,Y)=>{const x=Math.round((FX+(X+.5)*FS)*2),y=Math.round((FY0+(Y+.5)*FS)*2);return d[(y*cv.width+x)*4+3];};
+      const cheios=pts.filter(([X,Y])=>al(X,Y)>10);
+      let halo=0;for(let i=0;i<d.length;i+=4)if(d[i+3]>200&&d[i]>245&&d[i+1]>245&&d[i+2]>245)halo++;
+      r.vaoBraco[roupa]={cheios:cheios.length,halo};
+      if(cheios.length)falha(roupa+': vão entre o braço e o corpo preenchido (sombra/contorno) em '+cheios.map(p=>p.join(',')).join(' '));
+      if(halo<3000)falha(roupa+': contorno branco da silhueta sumiu ('+halo+' px)');}}
   /* 5) todos os rostos com e sem barba, em três tons de pele, desenham sem erro */
   const base=A.state(),cv=document.createElement('canvas');cv.width=440;cv.height=860;let desenhos=0;
   for(const rosto of['',...A.PECAS.rosto.filter(p=>p.camada).map(p=>p.id)])for(const barba of['','cheia'])for(const pele of['original','#f2d3b8','#5e3b27']){

@@ -8,10 +8,12 @@ O jaleco foi pintado opaco por cima do manequim e trouxe três sobras:
   2. mão (y 875-1040): uma sombra cinza e um contorno de dedos duplicado ficavam sobre o vão e a
      beirada da mão verdadeira. Ali o tecido continua inteiro (cor de cada linha vinda do jaleco ao
      lado, recolorível), com sombra suave junto da mão, e só o formato da mão do manequim sai do
-     jaleco: a mão fica por cima do tecido;
+     jaleco: a mão fica por cima do tecido. O vão entre o polegar e os dedos (fundo branco opaco pintado
+     no manequim) e a franja clara do contorno da mão do lado do tecido recebem tecido na parte branca
+     de cada pixel; o traço continua por cima;
   3. perna (y 880-1090): uma faixa de tecido passava para fora da linha da borda da frente do
      jaleco, por cima da calça. Em cada linha, o que está à esquerda do traço da borda sai.
-Marca "ajuste":"jaleco-2" e não repete. Uso: python3 scripts/atelie_corrigir_jaleco.py [layers.js]
+Marca "ajuste":"jaleco-3" e não repete (rodar sobre as camadas originais: ver atelie_corrigir_rostos.py). Uso: python3 scripts/atelie_corrigir_jaleco.py [layers.js]
 """
 import base64, io, json, sys
 import numpy as np
@@ -43,7 +45,7 @@ def enc_l(arr):
 
 def corrige(L, k='roupa-jaleco'):
     c = L.get(k)
-    if not c or c.get('ajuste') == 'jaleco-2':
+    if not c or c.get('ajuste') in ('jaleco-2', 'jaleco-3'):
         return None
     S = dec(c['src'], 'RGBA').copy()
     corpo = dec(L['corpo']['src'], 'RGBA').astype(int)
@@ -71,6 +73,19 @@ def corrige(L, k='roupa-jaleco'):
     #    e a mão do manequim aparece por cima dele
     zona = poligono(MAO) & ((X <= 458) | (Y < 990))  # à direita dos dedos, embaixo, não há jaleco
     mao = zona & (Cc[..., 3] > 128) & (X >= 418)  # a mão (pele e contorno) do manequim
+    # vão entre o polegar e os dedos: o manequim tem ali fundo branco opaco pintado (não é mão). O jaleco atrás
+    # da mão aparece nele; a borda clara do traço (meio tinta, meio branco) recebe tecido só na parte branca.
+    lum_c = cm @ [.299, .587, .114]
+    sat_c = (mx - mn) / np.maximum(mx, 1)
+    vao_dedos = mao & (lum_c >= 120) & (sat_c < .15)
+    branco = np.clip((lum_c - 30) / 220, 0, 1)  # fração de fundo branco no pixel do manequim
+    mao &= ~vao_dedos
+    # contorno da mão do lado do tecido: o antisserrilhado do manequim foi feito sobre branco e virava franja clara
+    from scipy import ndimage as nd
+    tecido = zona & ~mao
+    franja = mao & (lum_c >= 40) & (sat_c < .15) & nd.binary_dilation(tecido, iterations=2)
+    vao_dedos |= franja
+    mao &= ~franja
     m_jal = dec(c['m'], 'L').astype(float) if 'm' in c else None
     for j in range(h):
         linha = np.where(zona[j] & ~mao[j])[0]
@@ -92,6 +107,10 @@ def corrige(L, k='roupa-jaleco'):
     sombra = zona & ~mao & (dist <= 4)
     fator = (0.72 + 0.07 * dist)[sombra][:, None]
     S[sombra, :3] = (S[sombra, :3].astype(float) * fator).round().clip(0, 255).astype(np.uint8)
+    # no vão dos dedos, só a parte branca vira tecido: o traço da mão continua por cima
+    a = branco[vao_dedos][:, None]
+    S[vao_dedos, :3] = (S[vao_dedos, :3].astype(float) * a + np.array([24., 18., 22.]) * (1 - a)).round().clip(0, 255).astype(np.uint8)
+    n['dedos'] = int(vao_dedos.sum())
     if m_jal is not None:
         c['m'] = enc_l(m_jal)
     z2 = mao
@@ -119,7 +138,7 @@ def corrige(L, k='roupa-jaleco'):
     S[contorno, :3] = (24, 18, 22)
     n['contorno'] = int(contorno.sum())
     c['src'] = enc(S)
-    c['ajuste'] = 'jaleco-2'
+    c['ajuste'] = 'jaleco-3'
     return n
 
 

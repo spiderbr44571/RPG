@@ -21,10 +21,10 @@ const layers=path.resolve(process.env.MASTERMIND_LAYERS||path.join(assets,'maste
   await page.goto(url(path.join(dir,'index.html')));
   await page.waitForFunction(()=>window.MastermindAtelier99,null,{timeout:30000});
   const r=await page.evaluate(checarEncaixe);
-  console.log(JSON.stringify({rostos:r.rostos,olhosJovem:r.olhosJovem,esclera:r.esclera,jaleco:r.jaleco,redondoAbaixoDoQueixo:r.redondoAbaixoDoQueixo,barba:r.barba,desenhos:r.desenhos}));
+  console.log(JSON.stringify({rostos:r.rostos,olhosJovem:r.olhosJovem,esclera:r.esclera,jaleco:r.jaleco,vaoBraco:r.vaoBraco,redondoAbaixoDoQueixo:r.redondoAbaixoDoQueixo,barba:r.barba,desenhos:r.desenhos}));
   assert.deepEqual(erros,[],'Erros na página: '+erros.join(' | '));
   assert.deepEqual(r.erros,[],'Encaixe do Ateliê:\n - '+r.erros.join('\n - '));
   assert.equal(r.desenhos,54);
-  console.log('PASS encaixe do Ateliê: 8 rostos sem frestas, esclera branca em todos, olhos do Jovem limpos, Redondo sem sobras na gola, barba encaixada, jaleco inteiro atrás da mão (vão do braço aberto, perna limpa), traço na bochecha do Redondo e 54 combinações desenhadas.');
+  console.log('PASS encaixe do Ateliê: 8 rostos sem frestas, esclera branca em todos, olhos do Jovem limpos, Redondo sem sobras na gola, barba encaixada, olhos do Jovem com esclera inteira até a pálpebra de baixo (sem faixa rabiscada nem traço cinza), jaleco inteiro atrás da mão e entre os dedos (perna limpa), vão do braço mostrando o fundo, traço na bochecha do Redondo e 54 combinações desenhadas.');
  }finally{await browser.close();fs.rmSync(dir,{recursive:true,force:true});}
 })().catch(e=>{console.error(e.stack||e);process.exitCode=1;});
