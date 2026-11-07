@@ -30,7 +30,7 @@ Todos os arquivos citados foram conferidos no repositório.
 | Girar token | `mastermind52_range.js`, servidor `rotate` | Menu de contexto | Interativo | 2 |
 | Lanterna | ação `m72-flashlight`, servidor `flashlight`, `mastermind72_volume.js` | Ferramenta Lanterna | Interativo (efeito visual) | 2 |
 | Zoom e ajuste do mapa | ações `zoom-in`, `zoom-out`, `fit`, `rpg33_camera.js` | Controle de zoom, roda, pinça, tecla 0 | Interativo | 2 |
-| Abrir o Estúdio a partir da mesa | ação `edit` | Menu da sala | Indicado | 3 |
+| Abrir o Estúdio a partir da mesa | ação `edit` | Menu da sala, Central e Portas | Interativo | 3 |
 | Canvas privado do mestre | `lan_master.html`, servidor `canvas` | Menu da sala e card na Mestragem | Indicado | 3 |
 | Vincular token a jogador | `rpg31_master_table.js` (`r34-token-bind`), servidor `bind` | Aba Jogadores | Desenhado | 2 |
 
@@ -50,19 +50,20 @@ Todos os arquivos citados foram conferidos no repositório.
 
 | Função | Origem | No novo design | No protótipo | Fase |
 |---|---|---|---|---|
-| Fundo de mapa, salas, círculos | `rpg29_scene_editor.js` (`rect`, `circle`) | Ferramenta Desenhar e Estúdio | Interativo (desenho livre, retângulo, círculo) | 3 |
-| Paredes e portas | `rpg29_scene_editor.js` (`wall`, `door`) | Ferramenta Paredes e portas | Indicado | 3 |
-| Névoa: pintar e apagar | `rpg29_scene_editor.js` (`paint`, `erase-paint`) | Ferramenta Névoa: pincel, sala, revelar tudo | Interativo | 2 |
-| Tokens da biblioteca, importar imagens | `rpg29_scene_editor.js` (`token`) | Gaveta Adicionar: Fichas, Bestiário, Objetos | Interativo (arrastar ou tocar) | 2 |
+| Fundo de mapa, salas, círculos | `rpg29_scene_editor.js` (`rect`, `circle`, fundos Ruínas, Floresta e Caverna) | Estúdio: Sala, Terreno, Balde, 6 modelos, imagem de fundo; Mesa: Desenhar | Interativo | 3 |
+| Paredes e portas | `rpg29_scene_editor.js` (`wall`, `door`) | Estúdio: Parede (5 materiais) e Porta (5 tipos); Mesa: abrir e fechar | Interativo | 3 |
+| Névoa: pintar e apagar | `rpg29_scene_editor.js` (`paint`, `erase-paint`) | Névoa na Mesa e Área oculta no Estúdio: pincel, sala, revelar tudo | Interativo | 2 |
+| Tokens da biblioteca, importar imagens | `rpg29_scene_editor.js` (`token`, importação JPG, PNG, WebP) | Gaveta Adicionar da Mesa; Estúdio: 66 objetos e Minhas imagens | Interativo (arrastar ou tocar) | 2 |
 | Criaturas por sistema | `rpg18_bestiary.js`, `rpg19_order_creatures.js` | Gaveta Adicionar > Bestiário | Interativo | 2 |
-| Camadas do mapa e atmosfera | `mastermind68_map_layers.js`, `mastermind69_atmosphere.js` | Estúdio | Fora da fase | 3 |
-| Limites: 60 × 60 casas, 75 áreas, 250 tokens | servidor (`gridNumber`) | Mantidos | Fora da fase | 2 |
+| Camadas do mapa e atmosfera | `mastermind68_map_layers.js`, `mastermind69_atmosphere.js`, `rpg29_scene_editor.js` (Dia, Noite, névoa e escuridão volumétricas) | Estúdio: 9 camadas, horário, clima, efeitos de névoa e escuridão | Interativo | 3 |
+| Limites: 60 × 60 casas, 75 áreas, 250 tokens | servidor (`gridNumber`) | Estúdio limita a cena a 60 × 60 | Interativo (tamanho) | 2 |
 
 ## Jogador
 
 | Função | Origem | No novo design | No protótipo | Fase |
 |---|---|---|---|---|
-| Entrar por convite: nome e escolha de ficha | `lan_join.html` | Tela Entrar pelo IP | Interativo (conexão simulada) | 2 |
+| Entrar por convite: nome e escolha de ficha | `lan_join.html` | Tela Entrar, modo navegador | Interativo (conexão simulada) | 2 |
+| Entrar pelo app com ficha salva no aparelho (novo) | `MainActivity.java` (`CampaignBridge.request`), `rpg11_campaigns.js` (linhas 157 e 161), servidor (`proposedSheet`) | Tela Entrar, modo app: fichas do celular, bloqueio de outro sistema | Interativo (simulado) | 2 |
 | Conectar pelo endereço da rede local | `MainActivity.java` (modo LAN) | Tela Entrar pelo IP | Interativo (simulado) | 2 |
 | Retomar mesa | servidor `/resume/` | "Mesas recentes" na tela Entrar | Desenhado | 2 |
 | Mover só o próprio token, na vez dele | servidor (checagem de `activeId`) | Mesa do jogador | Interativo | 2 |
@@ -103,13 +104,14 @@ Todos os arquivos citados foram conferidos no repositório.
 
 | Função | Origem | No novo design | No protótipo | Fase |
 |---|---|---|---|---|
-| Ateliê de retratos pixel | `mastermind99_atelier*.js`, `pixelportrait86_companion.*`, ponte `RpgPixelPortraitBridge` | Menu lateral e Ficha | Indicado | 3 |
-| Ateliê no desktop com Godot | `desktop/main.cjs`, `desktop/renderer.js`, `desktop/godot-health.cjs` | Menu lateral | Fora da fase | 3 |
+| Ateliê de retratos pixel | `mastermind99_atelier*.js`, `pixelportrait86_companion.*`, ponte `RpgPixelPortraitBridge` | Central e Ficha | Indicado | 3 |
+| Ateliê no desktop com Godot | `desktop/main.cjs`, `desktop/renderer.js`, `desktop/godot-health.cjs` | Central | Fora da fase | 3 |
 | Imagens de criaturas | ponte `RpgCreatureImageBridge` | Tokens e Bestiário | Fora da fase | 3 |
-| Canvas infinito: cartões, ligações, mídia em IndexedDB | `mastermind40_canvas_images.js`, `mastermind42_workspace.js` | Menu lateral e Mestragem | Indicado | 3 |
-| Bestiário completo | `rpg18_bestiary.js` | Menu lateral | Indicado | 3 |
+| Canvas infinito: cartões, ligações, mídia em IndexedDB | `mastermind40_canvas_images.js`, `mastermind42_workspace.js` | Central, Mestragem e menu da sala | Indicado | 3 |
+| Bestiário completo | `rpg18_bestiary.js`, `rpg19_order_creatures.js` | Tela Bestiário: 51 criaturas, filtros, detalhe, adicionar à mesa | Interativo | 3 |
+| Central da mesa | `rpg09.js` | Botão de grade, atalho C, botão na Mesa e no Estúdio | Interativo | 2 |
 | Temas, cor, roda RGB, fontes, escala | `mastermind39_ui.js`, `rpg15_theme_fix.js` | Ajustes | Interativo (tema, cor, grade, nomes) | 3 |
-| Ícones (Tabler, MIT) | `mastermind74_icons.js` | Todo o app; faltam 50 ícones | Interativo | 2 |
+| Ícones (Tabler, MIT) | `mastermind74_icons.js` | Todo o app; faltam 51 ícones | Interativo | 2 |
 
 ## Plataformas e pontes nativas
 

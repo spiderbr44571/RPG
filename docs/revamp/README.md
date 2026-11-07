@@ -1,97 +1,137 @@
 # Revamp da mesa (estilo Owlbear) — Fases 0 e 1
 
-Esta pasta guarda o trabalho das duas primeiras fases do revamp descrito em [`PROMPT.md`](PROMPT.md):
+Esta pasta guarda o trabalho das duas primeiras fases do revamp descrito em [`PROMPT.md`](PROMPT.md).
+
+**Status: revisão 2 do protótipo, aguardando aprovação.** Nada do app foi alterado. O protótipo é uma página
+separada, com dados de exemplo, que não fala com o servidor.
 
 | Arquivo | O que é |
 |---|---|
-| [`INVENTARIO-PARIDADE.md`](INVENTARIO-PARIDADE.md) | Fase 0: cada função e integração atual, o arquivo de origem e onde ela aparece no novo design. |
-| [`prototipo/index.html`](prototipo/index.html) | Fase 1: protótipo navegável de todas as telas principais, com o tutorial guiado funcionando. |
-| [`prototipo/icones.js`](prototipo/icones.js) | Ícones usados no protótipo, do pacote oficial Tabler (mesmo conjunto e licença do app). |
-| [`capturas/`](capturas/) | 22 capturas: desktop, celular em retrato e em paisagem, temas escuro e claro, tutorial em ação. |
+| [`INVENTARIO-PARIDADE.md`](INVENTARIO-PARIDADE.md) | Fase 0: cada função e integração atual, a origem no código e onde ela aparece no novo design. |
+| [`prototipo/index.html`](prototipo/index.html) | Fase 1: estrutura e estilo de todas as telas. |
+| `prototipo/cena.js` | Modelo de cena, 22 terrenos, 66 objetos, regras de passagem e desenho do mapa. Usado pela Mesa e pelo Estúdio. |
+| `prototipo/mesa.js` | Mesa ao vivo (mestre e jogador). |
+| `prototipo/estudio.js` | Estúdio de cenários. |
+| `prototipo/app.js` | Telas de gestão, Central, entrada do jogador, Bestiário, tutorial e rotas. |
+| `prototipo/base.js` | Estado compartilhado e utilidades. |
+| `prototipo/dados.js` | Bestiário gerado de `rpg19_order_creatures.js` e `rpg18_bestiary.js`. Não editar à mão. |
+| `prototipo/icones.js` | 90 ícones do pacote oficial Tabler (MIT), o mesmo conjunto do app. |
+| [`capturas/`](capturas/) | 33 capturas: desktop, celular em retrato e em paisagem, escuro e claro, tutorial em ação. |
 
-**Status: aguardando aprovação.** O prompt pede aprovação do protótipo antes da implementação (Fase 2). Nada do
-app foi alterado: o protótipo é uma página separada, com dados de exemplo, que não fala com o servidor.
+## Como abrir
 
-## Como abrir o protótipo
+Abra `docs/revamp/prototipo/index.html` no navegador. As fontes vêm do Google Fonts quando há internet; sem rede, o
+navegador usa fontes de reserva. A barra tracejada no topo ("Protótipo") troca de tela e não faz parte do design.
 
-Abra `docs/revamp/prototipo/index.html` direto no navegador (Chrome, Edge ou Firefox). As fontes vêm do Google
-Fonts quando há internet; sem rede, o navegador usa fontes de reserva. A barra fina no topo ("Protótipo · Fase 1")
-troca entre as telas e não faz parte do design.
+## Revisão 2: o que mudou a partir do retorno
 
-O que dá para fazer nele:
+### 1. Todo painel tem botão de fechar
 
-- **Mesa do mestre:** arrastar tokens (as casas douradas mostram o alcance da rodada), medir em casas e metros,
-  pintar névoa por casa ou por sala, desenhar, marcar ponto, ligar a lanterna, arrastar criaturas do bestiário para
-  o mapa, clique direito (ou toque longo) num token para o menu de ações, rolar dados (`1d20+3`, `2d6`, `3O+5`),
-  avançar a iniciativa, trocar Combate/Interlúdio no menu da sala, convidar jogadores.
-- **Mesa do jogador:** só o próprio token se move, só na vez dele, e não entra na névoa. Tokens ocultos não
-  aparecem. HUD com Vida, Esforço e Sanidade; ficha e Poderes abrem por cima do mapa.
-- **Entrar pelo IP**, **Mestragem**, **Biblioteca**, **Ficha** e **Ajustes** (tema, cor de destaque, grade, nomes
-  dos tokens, refazer tutoriais, atalhos).
-- **Tutorial:** na primeira visita à Mesa do mestre (11 etapas) ou à tela Entrar (6 etapas do jogador), ou pelo
-  botão "Ver tutorial". Cada etapa destaca o controle real e só avança quando a ação é feita de verdade. "Pular
-  etapa" e "Pular tutorial" ficam sempre visíveis; `Esc` também pula.
+Painéis da mesa (Iniciativa, Biblioteca da mesa, cartão do token, Dados, Convite, ficha do jogador), do Estúdio
+(Biblioteca, Propriedades, confirmações) e das telas (detalhe do Bestiário, Central, boas-vindas do tutorial) ganharam
+um cabeçalho padrão com ✕. A Biblioteca da mesa também tem **Concluir** no rodapé, e o aviso depois de adicionar uma
+criatura diz como fechar. **Esc** fecha o que estiver por cima: menu, Central, gaveta, cartão, ficha.
 
-## O que foi verificado
+### 2. Estúdio de cenários: montagem completa do mapa
 
-- Um script de navegador (Playwright/Chromium) exercitou 12 interações: arrastar token gastando movimento, medir
-  (4 casas = 6 m), pintar névoa, rolar `3O+5`, arrastar criatura do bestiário, avançar iniciativa, menu de
-  contexto e ocultar token, cartão com os dados do catálogo (Carente: Defesa 40, p.188), Interlúdio, e no jogador:
-  token oculto não vaza, token alheio não move, ficha e aba Poderes. Todas passaram, sem erro de console.
-- As 22 capturas foram geradas sem erro de página e sem rolagem horizontal em nenhuma largura.
-- **Não verificado:** WebView do Android e Electron empacotado. O protótipo só rodou no Chromium do ambiente.
+Tela nova (`#estudio`), aberta pela Central, pela Mestragem, pelo menu da sala da mesa ou pelo Painel inicial.
 
-## Achados que mudam o plano
+- **Biblioteca:** 66 objetos em 7 categorias (Mobília 14, Arquitetura 9, Natureza 11, Paranormal 10, Moderno 12,
+  Luzes 5, Efeitos 5), 22 terrenos, 6 modelos prontos (Em branco, Masmorra, Taverna, Clareira na floresta, Caverna,
+  Rua à noite) e importação de imagens próprias (JPG, PNG, WebP), como o editor atual já permite. Tem busca e filtro
+  por categoria. Para colocar, arraste para o mapa ou escolha e toque.
+- **Ferramentas:** Selecionar e mover, Pintar terreno (pincel 1, 2, 3 ou 5 casas), Balde, Sala (piso e paredes de
+  uma vez), Parede (entre cantos da grade), Porta e janela (porta, dupla, secreta, janela, grade), Objeto, Luz, Área
+  oculta (por casa ou por sala), Nota do mestre, Borracha (automática, objetos, paredes, piso) e Mover a vista.
+- **Propriedades da peça:** nome no mapa, coluna e linha, largura e altura, rotação (90° e ajuste fino de 15°),
+  opacidade, tom, camada, visível para os jogadores, bloqueia movimento, bloqueia visão, travada, emite luz (alcance e
+  cor). Também tem duplicar, frente e trás, e excluir.
+- **Cena:** sistema, tamanho (até 60 × 60, o limite do servidor), metros por casa, grade (mostrar, só sobre o piso,
+  intensidade, cor, espessura), fundo, imagem de mapa com opacidade, horário (dia, entardecer, noite) e clima
+  (chuva, neve, neblina).
+- **Camadas:** fundo e terreno, decoração do chão, paredes e portas, objetos, luzes, efeitos, tokens, névoa e notas.
+  Cada uma pode ser escondida ou travada no Estúdio.
+- **Fluxo:** desfazer e refazer (Ctrl Z e Ctrl Y), ver como jogador, salvar rascunho e **Publicar na mesa**. A mesa só
+  muda ao publicar. Fechar com mudanças não publicadas pede confirmação na própria página.
+- **Mesa e Estúdio usam a mesma cena.** O Corredor do Forte agora é montado com as peças do Estúdio. Paredes, portas
+  fechadas e objetos sólidos bloqueiam o movimento na mesa, e a diagonal não corta quina. Na mesa, a ferramenta
+  **Portas** abre e fecha portas durante a sessão.
 
-1. **A paleta citada no prompt estava errada.** `#dca4bd` (rosa) é das páginas LAN antigas (`lan_master.html`,
-   `lan_join.html`). O app principal (v0.107) usa fundo `#0b0d12`, painel `#12151d`, destaque dourado `#c7a87b`,
-   roxo `#9c90dd`, verde `#86bd9c`, e um tema claro (`.light`, destaque `#917149`), definidos em
-   `app/src/main/assets/demo-offline.html`. O protótipo usa esses valores. A correção está anotada em `PROMPT.md`.
-2. **As fontes do app não são empacotadas.** O CSS declara Cormorant Garamond (títulos) e DM Sans (texto), mas não
-   há nenhum arquivo de fonte no repositório. Hoje o app aparece com fontes de reserva (a captura do app atual
-   mostra uma serifa genérica). Para o novo visual ficar igual em todos os aparelhos e offline, as duas fontes
-   (ambas com licença OFL) precisam ser incluídas no APK e no Electron.
-3. **O Owlbear Rodeo está bloqueado pela rede deste ambiente** (`owlbear.rodeo` e `docs.owlbear.rodeo` devolvem
-   403 no proxy). Não foi possível abrir o app e tirar capturas, como o prompt pede. O protótipo segue o modelo de
-   interação descrito no próprio prompt. Para comparar lado a lado, libere esses domínios no acesso de rede do
-   ambiente, ou faça a comparação no seu computador.
-4. **O Godot está em uso no desktop.** `desktop/main.cjs` e `desktop/renderer.js` usam o Godot no Ateliê
-   (`createGame`, `godot-bounds`, `godot-capture`). O health check (`desktop/godot-health.cjs`) não pode ser removido.
-5. **Faltam 50 ícones no app.** O conjunto atual (`mastermind74_icons.js`) tem 44. A mesa nova usa 89; os 50
-   que faltam estão listados no topo de `prototipo/icones.js` e vêm do mesmo pacote Tabler (MIT).
-6. **Movimento de Ordem, a conferir no livro.** O app usa 9 casas como padrão para Ordem Paranormal
-   (`rpg31_master_table.js:61` e `defaultSquares` no servidor). As criaturas do catálogo trazem deslocamento em
-   metros (Carente: `12M`). No protótipo, a Aurora tem 6 casas por valor do próprio token, e as criaturas foram
-   convertidas a 1,5 m por casa. Vale confirmar no livro qual conversão a mesa deve usar antes da Fase 2.
+### 3. Equilíbrio com o resto do app
 
-## Decisões provisórias do protótipo
+A primeira versão tinha uma barra lateral que o app não tem. Agora as telas seguem o app atual:
 
-Estas cinco perguntas continuam abertas. O protótipo assume uma resposta para poder ser desenhado; todas podem mudar.
+- a **Central da mesa** (mesmo título, texto e grade de destinos de `rpg09.js`), aberta pelo botão de grade dourado no
+  rodapé, pelo atalho `C` ou pelo botão de grade na mesa e no Estúdio;
+- o **Painel inicial** com "Seu universo, sob controle.", o cartão "Continuar de onde parou" e as ferramentas
+  numeradas como no app (01 a 07, mais 08 para o Estúdio);
+- topo "Workspace / tela", títulos em Cormorant com itálico dourado, rótulos espaçados e o fundo listrado nas laterais;
+- os painéis da mesa e do Estúdio usam os mesmos títulos, rótulos e cartões das telas de gestão;
+- o **Bestiário** entrou como tela, com as 48 criaturas de Ordem e as 3 do SRD, filtro por elemento, busca e detalhe
+  com a página do livro.
 
-| Pergunta | Assumido no protótipo | Por quê |
-|---|---|---|
-| Tema | Escuro e claro | O app já tem os dois; o claro aparece nas capturas `*-light-*`. |
-| Grade | Quadrada | É a que o servidor e o editor de cenários usam hoje. |
-| Desenho do mapa | Canvas para o mapa, névoa e desenhos; tokens em HTML | Mapas de até 60 × 60 casas ficam leves no Canvas; tokens em HTML facilitam toque, acessibilidade e testes. |
-| Migração | Gradual | A tela nova convive com a antiga até o inventário estar completo. |
-| Versão | v2.0 | Aparece no topo das telas de gestão como "v2.0 · protótipo". |
+### 4. Jogador entra pelo app ou pelo navegador
 
-## Pontos para decidir na revisão
+- **Pelo app (recomendado):** endereço e nome, e a lista de **fichas salvas no celular**. A ficha do mesmo sistema da
+  campanha pode ser enviada para aprovação; as de outro sistema aparecem bloqueadas, com o motivo. Também dá para
+  entrar sem ficha. O mestre recebe uma cópia; a original continua no aparelho.
+- **Pelo navegador:** o convite mostra como entrar pelo app e mantém as opções atuais (esperar o mestre ou enviar um
+  arquivo JSON).
+- A Mestragem e o botão Convidar mostram os dois endereços, e a lista de jogadores indica quem entrou por cada um.
+- **É viável com o que o app já tem:** `MainActivity.java` expõe `CampaignBridge.request(base, chave, método, rota,
+  corpo)`, que a página offline do app já usa para mandar fichas locais a uma campanha (`rpg11_campaigns.js`, linhas
+  157 e 161). O servidor já aceita a ficha proposta pelo jogador (`proposedSheet`, lida em `lan_master.html`). Falta,
+  na Fase 2, ligar a tela de entrada do app a essa rota.
 
-- **Celular em paisagem:** o mapa cabe inteiro, mas fica pequeno (cerca de 26%). Alternativa: abrir já com zoom no
-  token da vez, como acontece no retrato.
-- **Cartão do token:** no desktop ele fica embaixo, no centro. Outra opção, mais próxima do Owlbear, é um menu
-  flutuante colado ao token.
-- **Painel da direita:** abre por padrão no desktop e fica fechado no celular. Dá para inverter.
+## Verificação
+
+- Um roteiro no Chromium exercitou 23 interações. Entre elas:
+  - Central (✕ e Esc);
+  - Bestiário (48 criaturas, detalhe da Carente com PV 700 e p.188, adicionar à mesa oculta);
+  - mesa: arrastar gastando movimento, abrir a porta da capela, adicionar criatura e fechar a gaveta no ✕, fechar
+    cartão, dados, menu e painel;
+  - Estúdio: pintar grama, desenhar sala com paredes, pôr porta, colocar e girar objeto, desfazer e refazer, aplicar
+    modelo com confirmação, noite com chuva, publicar e ver na mesa, confirmação ao sair;
+  - entrada pelo app com ficha salva (ficha de outro sistema bloqueada) e pelo navegador;
+  - jogador: não atravessa porta fechada e fecha a ficha.
+
+  Todas passaram, sem erro de página.
+- As 33 capturas foram geradas sem erro e sem rolagem horizontal.
+- **Não verificado:** WebView do Android e Electron empacotado.
+
+## Achados que continuam valendo
+
+1. **Paleta:** o app usa dourado `#c7a87b` sobre `#0b0d12` (e o tema claro `.light`). O rosa `#dca4bd` do prompt é das
+   páginas LAN antigas. Correção anotada em `PROMPT.md`.
+2. **Fontes não empacotadas:** Cormorant Garamond e DM Sans são declaradas, mas não há arquivo de fonte no
+   repositório. Precisam entrar no APK e no Electron para o visual ser igual offline.
+3. **Owlbear Rodeo bloqueado pela rede deste ambiente** (`owlbear.rodeo`, 403 no proxy). Não houve comparação lado a
+   lado com o app real.
+4. **Godot em uso** no Ateliê do desktop; o health check fica.
+5. **Faltam 51 ícones** no `mastermind74_icons.js` (o app tem 44, o protótipo usa 90). A lista está no topo de
+   `prototipo/icones.js`.
+6. **Movimento de Ordem a conferir no livro:** o app usa 9 casas como padrão; o catálogo traz deslocamento em metros
+   (Carente `12M`). O protótipo converte a 1,5 m por casa e usa 6 casas para a Aurora como valor do token.
+
+## Decisões provisórias
+
+| Pergunta | Assumido no protótipo |
+|---|---|
+| Tema | Escuro e claro |
+| Grade | Quadrada |
+| Desenho do mapa | Canvas para mapa, luz e névoa; tokens em HTML |
+| Migração | Gradual |
+| Versão | v2.0 |
 
 ## Capturas
 
 `desktop-*`: 1280 × 800 · `retrato-*`: 390 × 844 · `paisagem-*`: 844 × 390. Todas em escala 2, JPEG.
 
-- Mestre: `desktop-dark-mesa`, `desktop-light-mesa`, `paisagem-dark-mesa`, `retrato-dark-mesa`
-- Jogador: `desktop-dark-jogador`, `desktop-light-jogador`, `retrato-dark-jogador`, `retrato-light-jogador`,
-  `paisagem-dark-jogador`
-- Gestão: `*-mestragem`, `desktop-dark-biblioteca`, `desktop-dark-ficha`, `desktop-dark-ajustes`
-- Entrada: `desktop-dark-entrar`, `retrato-dark-entrar`
+- Gestão: `*-inicio`, `*-mestragem`, `desktop-dark-central`, `desktop-dark-bestiario`, `desktop-dark-biblioteca`,
+  `desktop-dark-ficha`, `desktop-dark-ajustes`
+- Estúdio: `desktop-dark-estudio`, `desktop-light-estudio`, `retrato-dark-estudio`, `paisagem-dark-estudio`
+- Mesa do mestre: `desktop-dark-mesa`, `desktop-light-mesa`, `retrato-dark-mesa`, `paisagem-dark-mesa`
+- Jogador: `*-jogador` (desktop, retrato e paisagem; escuro e claro)
+- Entrada: `desktop-dark-entrar` (app), `desktop-dark-entrar-navegador`, `retrato-dark-entrar`
 - Tutorial: `desktop-dark-boas-vindas`, `desktop-dark-tutorial-mestre-1`, `desktop-dark-tutorial-mestre-3`,
-  `retrato-dark-tutorial-mestre-1`, `retrato-dark-tutorial-jogador-1`
+  `desktop-dark-tutorial-estudio-3`, `retrato-dark-tutorial-mestre-1`, `retrato-dark-tutorial-jogador-1`

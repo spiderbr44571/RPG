@@ -9,16 +9,15 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap">
 <style>
-/* Mastermind · revamp estilo Owlbear.
-   Layout: mapa em tela cheia como protagonista; ferramentas e painéis flutuam sobre ele.
-   Telas de gestão (Mestragem, Biblioteca, Ficha, Ajustes) mantêm o "workspace" atual do app.
-   Tokens: valores reais de app/src/main/assets/demo-offline.html (escuro = padrão; .light = claro). */
+/* Mastermind · revamp estilo Owlbear, no mesmo idioma visual do app.
+   Layout: telas de gestão = workspace do app (topo + Central); mesa e Estúdio = mapa em tela cheia com painéis flutuantes.
+   Tokens: valores reais de app/src/main/assets/demo-offline.html (escuro = padrão; claro = .light do app). */
 :root{
   --bg:#0b0d12;--sidebar:#0d0f15;--panel:#12151d;--panel2:#181c25;--card:#171a23;
   --line:#292c37;--line-soft:#20232c;--fg:#e8e7e7;--muted:#92939f;--faint:#656978;
   --accent:#c7a87b;--accent-soft:#c7a87b25;--accent-fg:#17131c;
   --purple:#9c90dd;--green:#86bd9c;--danger:#e0707c;--blue:#6db7e0;
-  --glass:#12151de6;--scrim:#04050994;--spot:#040509a6;
+  --glass:#12151de8;--scrim:#04050999;--spot:#040509a6;--band:#ffffff08;
   --shadow:0 12px 40px #0006;--shadow-sm:0 6px 18px #0005;
   --font-head:'Cormorant Garamond',Georgia,'Times New Roman',serif;
   --font-ui:'DM Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
@@ -27,19 +26,13 @@
   color-scheme:dark;
 }
 @media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
-  --bg:#f3f0ea;--sidebar:#e9e6e0;--panel:#fffdf9;--panel2:#eeeae4;--card:#f9f7f2;
-  --line:#d6d1ca;--line-soft:#e6e0d7;--fg:#242632;--muted:#606473;--faint:#8b8b92;
-  --accent:#917149;--accent-soft:#b5966430;--accent-fg:#fffdf9;
-  --purple:#6c65ad;--green:#56876b;--danger:#b8444f;--blue:#2f7fae;
-  --glass:#fffdf9eb;--scrim:#2a241866;--spot:#1d1a1480;
-  --shadow:0 10px 35px #2c27181c;--shadow-sm:0 4px 14px #2c271818;color-scheme:light}}
+  --bg:#f3f0ea;--sidebar:#e9e6e0;--panel:#fffdf9;--panel2:#eeeae4;--card:#f9f7f2;--line:#d6d1ca;--line-soft:#e6e0d7;--fg:#242632;--muted:#606473;--faint:#8b8b92;
+  --accent:#917149;--accent-soft:#b5966430;--accent-fg:#fffdf9;--purple:#6c65ad;--green:#56876b;--danger:#b8444f;--blue:#2f7fae;
+  --glass:#fffdf9ee;--scrim:#2a241866;--spot:#1d1a1480;--band:#2c271808;--shadow:0 10px 35px #2c27181c;--shadow-sm:0 4px 14px #2c271818;color-scheme:light}}
 :root[data-theme="light"]{
-  --bg:#f3f0ea;--sidebar:#e9e6e0;--panel:#fffdf9;--panel2:#eeeae4;--card:#f9f7f2;
-  --line:#d6d1ca;--line-soft:#e6e0d7;--fg:#242632;--muted:#606473;--faint:#8b8b92;
-  --accent:#917149;--accent-soft:#b5966430;--accent-fg:#fffdf9;
-  --purple:#6c65ad;--green:#56876b;--danger:#b8444f;--blue:#2f7fae;
-  --glass:#fffdf9eb;--scrim:#2a241866;--spot:#1d1a1480;
-  --shadow:0 10px 35px #2c27181c;--shadow-sm:0 4px 14px #2c271818;color-scheme:light}
+  --bg:#f3f0ea;--sidebar:#e9e6e0;--panel:#fffdf9;--panel2:#eeeae4;--card:#f9f7f2;--line:#d6d1ca;--line-soft:#e6e0d7;--fg:#242632;--muted:#606473;--faint:#8b8b92;
+  --accent:#917149;--accent-soft:#b5966430;--accent-fg:#fffdf9;--purple:#6c65ad;--green:#56876b;--danger:#b8444f;--blue:#2f7fae;
+  --glass:#fffdf9ee;--scrim:#2a241866;--spot:#1d1a1480;--band:#2c271808;--shadow:0 10px 35px #2c27181c;--shadow-sm:0 4px 14px #2c271818;color-scheme:light}
 
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -48,109 +41,146 @@ body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 var(--font-ui);
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-h1,h2,h3{font-family:var(--font-head);font-weight:600;margin:0;text-wrap:balance;letter-spacing:-.005em}
+h1,h2,h3,h4{font-family:var(--font-head);font-weight:600;margin:0;text-wrap:balance;letter-spacing:-.005em}
+h4{font-size:19px;margin-top:6px}
 .num{font-variant-numeric:tabular-nums}
 .kicker{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:0}
 .muted{color:var(--muted)}.faint{color:var(--faint)}.small{font-size:12.5px}
 .rv-icon{flex:none;display:block}
+.flip .rv-icon,.rv-icon.flip{transform:scaleX(-1)}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 
-/* ---------- Estrutura geral ---------- */
+/* ---------- Estrutura ---------- */
 #root{height:100%;display:flex;flex-direction:column}
-#proto{flex:none;display:flex;align-items:center;gap:6px;padding:6px var(--gut-r) 6px var(--gut-l);border-bottom:1px solid var(--line);background:var(--sidebar);overflow-x:auto;scrollbar-width:none;white-space:nowrap}
+#proto{flex:none;display:flex;align-items:center;gap:4px;padding:6px var(--gut-r) 6px var(--gut-l);border-bottom:1px dashed var(--line);background:var(--sidebar);overflow-x:auto;scrollbar-width:none;white-space:nowrap}
 #proto::-webkit-scrollbar{display:none}
 #proto .tag{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);font-weight:700;margin-right:4px}
-#proto a,#proto button{font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid transparent;color:var(--muted);text-decoration:none;background:none}
+#proto a,#proto button{font-size:12px;padding:4px 9px;border-radius:999px;border:1px solid transparent;color:var(--muted);text-decoration:none;background:none}
 #proto a:hover,#proto button:hover{color:var(--fg);border-color:var(--line)}
 #proto a[aria-current="page"]{color:var(--fg);border-color:var(--accent);background:var(--accent-soft)}
 #proto .sp{flex:1}
 #app{flex:1;min-height:0;position:relative}
 
-/* ---------- Botões e campos (mesmo vocabulário do app: .mm39-button) ---------- */
+/* ---------- Componentes (mesmo vocabulário do app: .mm39-button, .mm-kicker, cartões de 18px) ---------- */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:8px 15px;border-radius:var(--r);border:1px solid var(--line);background:var(--panel2);color:var(--fg);font-weight:600;font-size:13.5px;transition:transform .18s var(--ease),border-color .18s,background .18s;text-decoration:none;white-space:nowrap}
 .btn:hover{border-color:var(--accent);transform:translateY(-1px)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
 .btn.ghost{background:transparent}
 .btn.sm{min-height:32px;padding:5px 11px;font-size:12.5px;border-radius:var(--r-sm)}
-.btn.icon{padding:0;width:40px}
-.btn.sm.icon{width:32px}
+.btn.icon{padding:0;width:40px}.btn.sm.icon{width:32px}
 .btn:disabled{opacity:.45;cursor:not-allowed;transform:none;border-color:var(--line)}
+.btn.danger-btn{color:var(--danger)}
+.btn.pulse{box-shadow:0 0 0 0 var(--accent);animation:pulse 2s var(--ease) infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 8px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.x-btn{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);background:var(--panel2);color:var(--muted);transition:color .15s,border-color .15s}
+.x-btn:hover{color:var(--fg);border-color:var(--accent)}
+.x-btn .rv-icon{width:17px;height:17px}
+.fh{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:12px 12px 8px 14px}
+.fh h3{font-size:21px;line-height:1.15;overflow:hidden;text-overflow:ellipsis}
 .field{display:flex;flex-direction:column;gap:6px;min-width:0}
 .field>label,.label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
-.input,select.input{width:100%;min-height:42px;padding:9px 12px;border-radius:var(--r);border:1px solid var(--line);background:var(--bg);color:var(--fg)}
+.input,select.input{width:100%;min-height:40px;padding:8px 11px;border-radius:var(--r);border:1px solid var(--line);background:var(--bg);color:var(--fg)}
+textarea.input{resize:vertical;min-height:90px}
 .input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
-.seg{display:inline-flex;padding:3px;border-radius:12px;border:1px solid var(--line);background:var(--bg);gap:2px}
-.seg button{border:0;background:transparent;padding:6px 12px;border-radius:9px;color:var(--muted);font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:7px}
+.seg{display:inline-flex;padding:3px;border-radius:12px;border:1px solid var(--line);background:var(--bg);gap:2px;flex-wrap:wrap}
+.seg button{border:0;background:transparent;padding:6px 11px;border-radius:9px;color:var(--muted);font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:7px}
 .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
 .chip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.chip .rv-icon{width:13px;height:13px}
 .chip.gold{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,transparent);background:var(--accent-soft)}
 .chip.ok{color:var(--green);border-color:color-mix(in srgb,var(--green) 45%,transparent)}
 .chip.bad{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 45%,transparent)}
 .chip.violet{color:var(--purple);border-color:color-mix(in srgb,var(--purple) 45%,transparent)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.fchip{border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:999px;padding:5px 11px;font-weight:600;font-size:12.5px}
+.fchip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--faint);flex:none}
 .dot.on{background:var(--green);box-shadow:0 0 0 3px color-mix(in srgb,var(--green) 25%,transparent)}
+.dot.bad-dot{background:var(--danger)}
+.warn-t{display:block;color:var(--danger);font-size:11.5px}
 .bar{height:6px;border-radius:99px;background:var(--line-soft);overflow:hidden}
 .bar i{display:block;height:100%;border-radius:inherit;background:var(--c,var(--green));transition:width .3s var(--ease)}
 .avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 13px var(--font-ui);color:#17131c;flex:none;border:2px solid var(--panel)}
-
-/* ---------- Shell das telas de gestão ---------- */
-.shell{height:100%;display:grid;grid-template-columns:236px minmax(0,1fr)}
-.side{background:var(--sidebar);border-right:1px solid var(--line);display:flex;flex-direction:column;gap:4px;padding:18px 12px;overflow:auto}
-.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px}
-.glyph{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;border:1px solid var(--accent);color:var(--accent);background:var(--accent-soft);font:600 19px var(--font-head);box-shadow:0 0 22px var(--accent-soft);flex:none}
-.brand b{font:600 20px var(--font-head)}
-.nav{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:11px;color:var(--muted);text-decoration:none;font-weight:500;border:1px solid transparent;background:none;width:100%;text-align:left}
-.nav:hover{color:var(--fg);background:var(--panel2)}
-.nav[aria-current="page"]{color:var(--fg);background:var(--accent-soft);border-color:var(--accent);box-shadow:inset 3px 0 var(--accent)}
-.side .grp{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);font-weight:700;padding:14px 11px 4px}
-.side .foot{margin-top:auto;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--panel)}
-.page-wrap{height:100%;overflow:auto;display:flex;flex-direction:column}
-.topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;padding:12px var(--gut-r) 12px var(--gut-l);border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px)}
-.crumb{display:flex;align-items:center;gap:8px;font-size:13px;min-width:0}
-.crumb small{color:var(--accent);font-size:11.5px}
-.topbar .sp{flex:1}
-.page{width:100%;max-width:1180px;margin:0 auto;padding:28px var(--gut-r) 96px var(--gut-l);display:flex;flex-direction:column;gap:22px}
-.hero h1{font-size:clamp(34px,4.4vw,56px);line-height:1.05;margin:8px 0 8px}
-.hero h1 em{color:var(--accent);font-weight:500}
-.hero p{margin:0;color:var(--muted);max-width:62ch}
-.grid{display:grid;gap:16px;grid-template-columns:repeat(12,minmax(0,1fr))}
-.c12{grid-column:span 12}.c8{grid-column:span 8}.c7{grid-column:span 7}.c6{grid-column:span 6}.c5{grid-column:span 5}.c4{grid-column:span 4}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px;min-width:0;display:flex;flex-direction:column;gap:14px}
-.card-h{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.card-h h2{font-size:23px}
-.feature{position:relative;overflow:hidden;background:radial-gradient(ellipse at 95% 0,var(--accent-soft),transparent 60%),var(--panel)}
-.feature h2{font-size:clamp(28px,3.2vw,40px);line-height:1.08;max-width:15ch}
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.between{justify-content:space-between}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}
 .list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
 .item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:13px;background:var(--card);border:1px solid var(--line-soft);min-width:0}
 .item .grow{flex:1;min-width:0}
 .item .grow b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px}.kv span{color:var(--muted)}.kv b{text-align:right;font-weight:600}
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.swatches button{width:30px;height:30px;border-radius:50%;border:2px solid var(--panel);box-shadow:0 0 0 1px var(--line)}
+.swatches.sm button{width:24px;height:24px}
+.swatches button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--fg)}
+.swatches button.none{background:repeating-linear-gradient(45deg,var(--line) 0 3px,transparent 3px 6px)!important}
+kbd{font:600 11.5px var(--font-ui);padding:2px 7px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);white-space:nowrap}
+input[type="range"]{accent-color:var(--accent);width:100%}
+
+/* ---------- Telas de gestão: o "workspace" do app ---------- */
+.pages{position:absolute;inset:0}
+.page-wrap{height:100%;overflow:auto;background:linear-gradient(90deg,var(--band) 0 1px,transparent 1px) 0 0/100% 100%,var(--bg)}
+.page-wrap::before{content:"";position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,var(--band) 0 1px,transparent 1px 4px);-webkit-mask:linear-gradient(90deg,#000 0,transparent 14%,transparent 86%,#000 100%);mask:linear-gradient(90deg,#000 0,transparent 14%,transparent 86%,#000 100%)}
+.topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;padding:12px var(--gut-r) 12px var(--gut-l);border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(12px)}
+.crumb{display:flex;align-items:center;gap:8px;font-size:13px;min-width:0}
+.crumb .home{color:var(--accent);text-decoration:none;font-weight:600}
+.crumb small{color:var(--accent);font-size:11.5px}
+.topbar .sp{flex:1}
+.page{position:relative;width:100%;max-width:1120px;margin:0 auto;padding:30px var(--gut-r) 130px var(--gut-l);display:flex;flex-direction:column;gap:22px}
+.hero h1{font-size:clamp(34px,4.4vw,58px);line-height:1.05;margin:8px 0 8px}
+.hero h1 em,h2 em{color:var(--accent);font-weight:500}
+.hero p{margin:0;color:var(--muted);max-width:62ch}
+.hero-row{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(12,minmax(0,1fr))}
+.c12{grid-column:span 12}.c8{grid-column:span 8}.c7{grid-column:span 7}.c6{grid-column:span 6}.c5{grid-column:span 5}.c4{grid-column:span 4}.c3{grid-column:span 3}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px;min-width:0;display:flex;flex-direction:column;gap:14px}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.card-h h2{font-size:23px}
+.feature{position:relative;overflow:hidden;background:radial-gradient(ellipse at 95% 0,var(--accent-soft),transparent 60%),var(--panel)}
+.feature h2{font-size:clamp(28px,3.2vw,42px);line-height:1.08;max-width:15ch}
+.feature .feature-body{position:relative;z-index:1;display:flex;flex-direction:column;gap:14px;max-width:58%}
+.mini-map{position:absolute;right:-30px;top:18px;width:46%;max-width:360px;aspect-ratio:3/2;border-radius:14px;opacity:.92;box-shadow:var(--shadow);transform:rotate(-4deg)}
+.sigil{position:absolute;right:-60px;top:-60px;width:340px;height:340px;border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);border-radius:50%;pointer-events:none}
+.sigil::before{content:"";position:absolute;inset:60px;border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);border-radius:50%}
+.sigil::after{content:"";position:absolute;left:50%;top:50%;width:90px;height:90px;border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);transform:translate(-50%,-50%) rotate(45deg)}
 .addr{font:600 15px var(--font-ui);letter-spacing:.02em}
+.invite-rows{display:grid;gap:8px}
 .scene-thumbs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.thumb{border-radius:12px;border:1px solid var(--line);overflow:hidden;background:var(--card);text-align:left;padding:0}
+.thumb{border-radius:12px;border:1px solid var(--line);overflow:hidden;background:var(--card);text-align:left;padding:0;text-decoration:none;color:inherit}
 .thumb canvas{display:block;width:100%;aspect-ratio:3/2;height:auto}
 .thumb div{padding:8px 10px;display:flex;flex-direction:column;gap:2px}
 .thumb[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
-.mini-map{position:absolute;right:-30px;top:18px;width:46%;max-width:360px;aspect-ratio:3/2;border-radius:14px;opacity:.9;box-shadow:var(--shadow);transform:rotate(-4deg)}
-.feature .feature-body{position:relative;z-index:1;display:flex;flex-direction:column;gap:14px;max-width:58%}
 .res-row{display:grid;grid-template-columns:76px minmax(0,1fr) 54px;gap:10px;align-items:center;font-size:12.5px}
 .res-row .num{text-align:right;font-weight:600}
-.bnav{display:none}
-
+.tool-card{display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:16px;border:1px solid var(--line);background:var(--panel);color:inherit;text-decoration:none;min-height:150px;transition:border-color .18s,transform .18s var(--ease)}
+.tool-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.tool-card .ti{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent)}
+.tool-card .n{margin-left:auto;font-size:11px;color:var(--faint)}
+.tool-card b{font-size:15px}.tool-card span.d{color:var(--muted);font-size:12.5px}
+.char-card{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center}
+.char-glyph{width:72px;height:88px;border-radius:14px;border:1px solid var(--accent);display:grid;place-items:center;font:600 40px var(--font-head);color:var(--accent);background:var(--accent-soft)}
+#central-fab{position:absolute;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:20;width:68px;height:68px;border-radius:20px;border:2px solid var(--accent);background:var(--panel2);color:var(--accent);display:grid;place-items:center;box-shadow:0 0 30px color-mix(in srgb,var(--accent) 45%,transparent),var(--shadow)}
+#central-fab .rv-icon{width:30px;height:30px}
 /* Biblioteca */
 .sys-chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
-.sys-chips button{flex:none;padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-weight:600;font-size:13px}
-.sys-chips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
 .search-hero{display:flex;gap:10px;align-items:center;padding:8px 8px 8px 16px;border-radius:16px;border:1px solid var(--line);background:var(--panel)}
 .search-hero input{flex:1;min-width:0;border:0;background:transparent;font-size:15px;padding:8px 0}
 .search-hero input:focus{outline:none}
 .snippet{border-left:2px solid var(--accent);padding:10px 14px;background:var(--card);border-radius:0 12px 12px 0}
-.prog{display:flex;flex-direction:column;gap:6px}
-
+/* Bestiário */
+.beasts{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.beast{display:flex;gap:12px;align-items:center;padding:12px;border-radius:14px;border:1px solid var(--line);background:var(--panel);text-align:left;min-width:0}
+.beast:hover,.beast[aria-pressed="true"]{border-color:var(--el)}
+.beast-disc{width:46px;height:46px;flex:none;border-radius:50%;display:grid;place-items:center;font:700 17px var(--font-head);color:#17131c;background:radial-gradient(circle at 32% 28%,color-mix(in srgb,var(--el) 60%,#fff),var(--el) 75%);border:2px solid color-mix(in srgb,var(--el) 70%,#000)}
+.beast-disc.lg{width:72px;height:72px;font-size:26px}
+.beast-body{display:flex;flex-direction:column;gap:5px;min-width:0}
+.beast-body b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.beast-stats{display:flex;gap:10px;font-size:12px;color:var(--muted)}.beast-stats b{color:var(--fg)}
+.beast-hero{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.side-detail{position:fixed;z-index:25;right:var(--gut-r);top:112px;bottom:20px;width:min(380px,calc(100% - 32px));overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px;padding:0 16px 16px}
+.side-detail .fh{padding:14px 0 0}
+@media (min-width:1101px){.page.with-detail{margin-left:max(0px,calc((100% - 1120px - 400px)/2));margin-right:0;max-width:calc(100% - 400px)}}
 /* Ficha */
 .sheet-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:20px;align-items:center}
-.portrait{width:96px;height:96px;border-radius:22px;border:1px solid var(--accent);background:radial-gradient(circle at 30% 25%,#e9cf9f,#7b5d36 70%);display:grid;place-items:center;font:700 40px var(--font-head);color:#1d150b;box-shadow:0 0 30px var(--accent-soft);image-rendering:pixelated}
+.portrait{width:96px;height:96px;border-radius:22px;border:1px solid var(--accent);background:radial-gradient(circle at 30% 25%,#e9cf9f,#7b5d36 70%);display:grid;place-items:center;font:700 40px var(--font-head);color:#1d150b;box-shadow:0 0 30px var(--accent-soft)}
 .attrs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
 .attr{border:1px solid var(--line);border-radius:16px;padding:12px 6px;text-align:center;background:var(--card)}
 .attr b{display:block;font:600 32px/1 var(--font-head);color:var(--fg)}
@@ -160,30 +190,43 @@ h1,h2,h3{font-family:var(--font-head);font-weight:600;margin:0;text-wrap:balance
 .tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
 .power{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center}
 .el{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;border:1px solid var(--line)}
-.el.energia{color:#b392f0;background:#b392f018}.el.conhecimento{color:#e7c56a;background:#e7c56a18}.el.sangue{color:var(--danger);background:color-mix(in srgb,var(--danger) 12%,transparent)}.el.morte{color:var(--muted);background:var(--panel2)}
-
+.el.energia{color:#b392f0;background:#b392f018}.el.conhecimento{color:#e7c56a;background:#e7c56a18}.el.morte{color:var(--muted);background:var(--panel2)}
 /* Ajustes */
 .set-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--line-soft);flex-wrap:wrap}
 .set-row:last-child{border-bottom:0}
 .set-row > div:first-child{min-width:0;flex:1 1 240px}
-.swatches{display:flex;gap:8px}
-.swatches button{width:30px;height:30px;border-radius:50%;border:2px solid var(--panel);box-shadow:0 0 0 1px var(--line)}
-.swatches button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--fg)}
-.keys{width:100%;border-collapse:collapse;font-size:13px}
-.keys td{padding:7px 4px;border-bottom:1px solid var(--line-soft)}
-kbd{font:600 11.5px var(--font-ui);padding:2px 7px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);white-space:nowrap}
-input[type="range"]{accent-color:var(--accent);width:180px}
+.set-row input[type="range"]{width:180px}
+.keys{width:100%;border-collapse:collapse;font-size:13px}.keys td{padding:7px 4px;border-bottom:1px solid var(--line-soft)}
 
-/* ---------- Mesa (VTT) ---------- */
+/* ---------- Central da mesa (igual à do app) ---------- */
+.modal-back{position:fixed;inset:0;z-index:90;background:var(--scrim);display:grid;place-items:center;padding:20px var(--gut-r) 20px var(--gut-l);backdrop-filter:blur(3px)}
+.modal{width:min(460px,100%);background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px}
+.modal h2{font-size:32px;line-height:1.05}
+.central{width:min(900px,100%);max-height:calc(100% - 20px);overflow:auto;background:linear-gradient(180deg,color-mix(in srgb,var(--panel2) 92%,transparent),var(--panel));border:1px solid color-mix(in srgb,var(--accent) 55%,var(--line));border-radius:22px;padding:24px;box-shadow:0 0 60px color-mix(in srgb,var(--accent) 18%,transparent),var(--shadow);display:flex;flex-direction:column;gap:18px}
+.central h2{font-size:clamp(30px,4vw,46px);line-height:1.05;margin-top:6px}
+.central-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.central-card{display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:16px;border:1px solid var(--line);background:color-mix(in srgb,var(--card) 70%,transparent);color:inherit;text-decoration:none;min-height:116px;transition:border-color .15s,transform .15s var(--ease)}
+.central-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.central-card .rv-icon{width:24px;height:24px;color:var(--accent)}
+.central-card b{display:flex;align-items:center;gap:8px;font-size:15px;flex-wrap:wrap}
+.central-card span:last-child{color:var(--muted);font-size:12.5px}
+
+/* ---------- Mesa e Estúdio (VTT) ---------- */
 .vtt{position:absolute;inset:0;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,var(--panel2),var(--bg) 70%);user-select:none;-webkit-user-select:none}
 .stage{position:absolute;inset:0;touch-action:none;cursor:grab}
 .stage.panning{cursor:grabbing}
-.stage[data-tool="measure"],.stage[data-tool="draw"],.stage[data-tool="fog"],.stage[data-tool="pin"]{cursor:crosshair}
+.stage[data-tool="measure"],.stage[data-tool="draw"],.stage[data-tool="fog"],.stage[data-tool="pin"],.stage[data-tool="doors"],.stage[data-tool="terrain"],.stage[data-tool="fill"],.stage[data-tool="room"],.stage[data-tool="wall"],.stage[data-tool="door"],.stage[data-tool="stamp"],.stage[data-tool="light"],.stage[data-tool="note"],.stage[data-tool="erase"]{cursor:crosshair}
+.stage[data-tool="select"]{cursor:default}
 .world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
 .world.anim{transition:transform .28s var(--ease)}
 .world canvas{position:absolute;left:0;top:0;pointer-events:none}
 .map-shadow{position:absolute;inset:0;border-radius:6px;box-shadow:0 30px 80px #000a;pointer-events:none}
 .tokens{position:absolute;inset:0}
+.weather{position:absolute;inset:0;pointer-events:none}
+.weather.w-chuva{background:repeating-linear-gradient(105deg,transparent 0 14px,rgba(180,210,240,.16) 14px 15px);background-size:60px 60px;animation:rain .5s linear infinite}
+.weather.w-neve{background-image:radial-gradient(circle,rgba(255,255,255,.75) 1.5px,transparent 2px),radial-gradient(circle,rgba(255,255,255,.5) 1px,transparent 1.5px);background-size:70px 70px,40px 40px;animation:snow 6s linear infinite}
+.weather.w-neblina{background:radial-gradient(ellipse at 30% 40%,rgba(220,226,235,.18),transparent 55%),radial-gradient(ellipse at 75% 70%,rgba(220,226,235,.14),transparent 55%)}
+@keyframes rain{to{background-position:-20px 60px}}@keyframes snow{to{background-position:30px 70px,-20px 40px}}
 .tok{position:absolute;display:grid;place-items:center;transition:left .22s var(--ease),top .22s var(--ease);touch-action:none}
 .tok.drag{transition:none;z-index:5;filter:drop-shadow(0 14px 18px #000a)}
 .tok-disc{width:86%;height:86%;border-radius:50%;display:grid;place-items:center;font:700 calc(var(--s,1)*15px)/1 var(--font-head);color:#18130c;border:3px solid var(--ring);background:radial-gradient(circle at 32% 28%,var(--hi),var(--lo) 72%);box-shadow:0 4px 10px #0009,inset 0 -6px 10px #0004;transform:rotate(var(--rot,0deg));transition:transform .2s var(--ease)}
@@ -202,45 +245,42 @@ input[type="range"]{accent-color:var(--accent);width:180px}
 .pin{position:absolute;width:0;height:0;pointer-events:none}
 .pin i{position:absolute;left:-14px;top:-14px;width:28px;height:28px;border-radius:50%;border:3px solid #c7a87b;animation:ping 1.4s var(--ease) 3 forwards}
 .pin b{position:absolute;left:-5px;top:-5px;width:10px;height:10px;border-radius:50%;background:#c7a87b;animation:fade 4s forwards}
-@keyframes ping{from{transform:scale(.4);opacity:1}to{transform:scale(2.6);opacity:0}}
-@keyframes fade{0%,70%{opacity:1}to{opacity:0}}
+@keyframes ping{from{transform:scale(.4);opacity:1}to{transform:scale(2.6);opacity:0}}@keyframes fade{0%,70%{opacity:1}to{opacity:0}}
 .measure-label{position:absolute;transform:translate(-50%,-140%);font:700 13px var(--font-ui);padding:4px 9px;border-radius:9px;background:#c7a87b;color:#17131c;white-space:nowrap;pointer-events:none;box-shadow:0 4px 12px #0007}
-
 .float{position:absolute;z-index:10;background:var(--glass);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);backdrop-filter:blur(16px) saturate(1.15);-webkit-backdrop-filter:blur(16px) saturate(1.15)}
-.ibtn{position:relative;width:42px;height:42px;border-radius:11px;border:0;background:transparent;color:var(--muted);display:grid;place-items:center;transition:background .15s,color .15s}
+.ibtn{position:relative;width:42px;height:42px;border-radius:11px;border:0;background:transparent;color:var(--muted);display:grid;place-items:center;transition:background .15s,color .15s;flex:none}
+.ibtn.sm{width:32px;height:32px}
 .ibtn:hover{background:var(--panel2);color:var(--fg)}
 .ibtn[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
+.ibtn:disabled{opacity:.35;cursor:not-allowed}
 .ibtn.has-sub::after{content:"";position:absolute;right:5px;bottom:5px;border:3px solid transparent;border-right-color:currentColor;border-bottom-color:currentColor;opacity:.6}
 .tip{position:absolute;left:calc(100% + 12px);top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:9px;background:var(--fg);color:var(--bg);font-weight:600;font-size:12.5px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .12s .25s;z-index:30}
 .tip kbd{background:transparent;color:inherit;border-color:currentColor;opacity:.75}
 .ibtn:hover .tip,.ibtn:focus-visible .tip{opacity:1}
+.st-top .tip,.room .tip,.people .tip{left:50%;top:calc(100% + 10px);transform:translateX(-50%)}
 .tools{left:var(--gut-l);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:2px;padding:6px}
 .tools .sep{height:1px;background:var(--line);margin:4px 6px}
 .room{left:var(--gut-l);top:14px;display:flex;align-items:center;gap:4px;padding:5px}
-.room-btn{display:flex;align-items:center;gap:10px;padding:4px 10px 4px 4px;border:0;background:transparent;border-radius:11px;text-align:left;min-width:0}
+.room-btn{display:flex;align-items:center;gap:10px;padding:4px 10px;border:0;background:transparent;border-radius:11px;text-align:left;min-width:0}
 .room-btn:hover{background:var(--panel2)}
-.room-btn .glyph{width:34px;height:34px;font-size:17px}
-.room-btn b{display:block;font:600 16px/1.1 var(--font-head);white-space:nowrap}
+.room-btn b{display:block;font:600 17px/1.1 var(--font-head);white-space:nowrap}
 .room-btn small{display:block;color:var(--muted);font-size:11.5px;white-space:nowrap}
 .state-chip{margin:0 4px}
 .people{right:var(--gut-r);top:14px;display:flex;align-items:center;gap:6px;padding:5px 5px 5px 10px}
-.stack{display:flex}
-.stack .avatar{margin-left:-8px;position:relative}
-.stack .avatar:first-child{margin-left:0}
+.stack{display:flex}.stack .avatar{margin-left:-8px;position:relative}.stack .avatar:first-child{margin-left:0}
 .stack .avatar .dot{position:absolute;right:-2px;bottom:-2px;border:2px solid var(--panel)}
-.optbar{left:50%;top:14px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:5px 6px 5px 12px;max-width:min(640px,calc(100% - 640px));overflow-x:auto;scrollbar-width:none}
+.optbar{left:50%;top:14px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:5px 6px 5px 12px;max-width:min(680px,calc(100% - 640px));overflow-x:auto;scrollbar-width:none}
 .optbar::-webkit-scrollbar{display:none}
-.optbar .t{font-weight:700;font-size:12.5px;white-space:nowrap;margin-right:4px}
-.optbar .hint{color:var(--muted);font-size:12.5px;white-space:nowrap;padding-right:6px}
-.optbar .sep{flex:none;width:1px;height:20px;background:var(--line);margin:0 2px}
 .optbar:empty{display:none}
-@media (max-width:600px){.hide-sm{display:none}}
-.opt{border:1px solid transparent;background:transparent;color:var(--muted);border-radius:9px;padding:6px 10px;display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:12.5px;white-space:nowrap}
+.optbar .t{font-weight:700;font-size:12.5px;white-space:nowrap;margin-right:4px}
+.optbar .hint{color:var(--muted);font-size:12.5px;white-space:nowrap;padding-right:6px;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.optbar .sep{flex:none;width:1px;height:20px;background:var(--line);margin:0 2px}
+.opt{border:1px solid transparent;background:transparent;color:var(--muted);border-radius:9px;padding:6px 10px;display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:12.5px;white-space:nowrap;text-decoration:none}
 .opt:hover{color:var(--fg);background:var(--panel2)}
 .opt[aria-pressed="true"]{color:var(--fg);border-color:var(--accent);background:var(--accent-soft)}
 .cdot{width:16px;height:16px;border-radius:50%;border:2px solid var(--panel)}
 .panel{right:var(--gut-r);top:72px;bottom:76px;width:300px;display:flex;flex-direction:column;overflow:hidden}
-.panel-tabs{display:flex;gap:2px;padding:6px;border-bottom:1px solid var(--line)}
+.panel-tabs{display:flex;gap:2px;padding:0 6px 6px;border-bottom:1px solid var(--line)}
 .panel-tabs button{flex:1;border:0;background:transparent;color:var(--muted);padding:7px 6px;border-radius:9px;font-weight:600;font-size:12.5px;display:flex;align-items:center;justify-content:center;gap:6px}
 .panel-tabs button[aria-selected="true"]{background:var(--panel2);color:var(--fg)}
 .panel-body{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
@@ -256,7 +296,8 @@ input[type="range"]{accent-color:var(--accent);width:180px}
 .dice{left:var(--gut-l);bottom:16px;padding:4px}
 .dice-btn{width:auto;padding:0 14px 0 10px;display:flex;gap:8px;color:var(--fg);font-weight:600}
 .pop{position:absolute;z-index:40;background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:12px;display:flex;flex-direction:column;gap:10px}
-.dice-pop{left:var(--gut-l);bottom:70px;width:min(330px,calc(100% - 32px))}
+.pop .fh{padding:0}
+.dice-pop{left:var(--gut-l);bottom:70px;width:min(340px,calc(100% - 32px))}
 .dgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
 .dgrid button{padding:8px 0;border-radius:10px;border:1px solid var(--line);background:var(--card);font-weight:700;font-size:12.5px}
 .dgrid button:hover{border-color:var(--accent)}
@@ -266,13 +307,14 @@ input[type="range"]{accent-color:var(--accent);width:180px}
 .die-face.kept{border-color:var(--accent);color:var(--accent)}
 .die-face.roll{animation:tumble .5s var(--ease)}
 @keyframes tumble{0%{transform:rotate(-200deg) scale(.4);opacity:0}100%{transform:none;opacity:1}}
-.menu{min-width:230px;padding:6px;gap:2px}
+.menu{min-width:240px;padding:6px;gap:2px}
 .menu button,.menu a{display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border-radius:9px;border:0;background:transparent;text-align:left;font-weight:500;color:var(--fg);text-decoration:none}
 .menu button:hover,.menu a:hover{background:var(--panel2)}
 .menu .danger{color:var(--danger)}
 .menu hr{border:0;border-top:1px solid var(--line);margin:4px 2px}
 .menu .mh{padding:6px 10px 2px;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:700}
-.tcard{left:50%;bottom:16px;transform:translateX(-50%);width:min(600px,calc(100% - 2*170px));padding:12px 14px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center}
+.tcard{left:50%;bottom:16px;transform:translateX(-50%);width:min(620px,calc(100% - 2*170px));padding:12px 52px 12px 14px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center}
+.tcard-x{position:absolute;right:10px;top:10px;width:30px;height:30px}
 .tcard .disc{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font:700 20px var(--font-head);border:3px solid var(--ring);background:radial-gradient(circle at 32% 28%,var(--hi),var(--lo) 72%);color:#18130c}
 .tcard.foe .disc{color:#fff3f3}
 .tcard h3{font-size:21px;line-height:1.1}
@@ -280,957 +322,335 @@ input[type="range"]{accent-color:var(--accent);width:180px}
 .tcard .meta b{color:var(--fg);font-weight:600}
 .tcard .hp{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:8px;align-items:center;margin-top:8px;font-size:12px}
 .tcard .actions{display:flex;flex-direction:column;gap:6px}
-.drawer{left:calc(var(--gut-l) + 66px);top:72px;bottom:76px;width:290px;display:flex;flex-direction:column;overflow:hidden}
+.drawer{left:calc(var(--gut-l) + 66px);top:72px;bottom:76px;width:300px;display:flex;flex-direction:column;overflow:hidden}
 .drawer .panel-body{gap:6px}
+.drawer-foot{display:flex;gap:8px;justify-content:space-between;padding:10px 12px;border-top:1px solid var(--line)}
 .asset{display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;border:1px solid var(--line-soft);background:var(--card);cursor:grab;touch-action:none;text-align:left;width:100%}
 .asset:hover{border-color:var(--accent)}
 .asset[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
 .asset .disc{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font:700 14px var(--font-head);border:2px solid var(--ring);background:radial-gradient(circle at 32% 28%,var(--hi),var(--lo) 72%);color:#18130c;flex:none}
 .asset.foe .disc{color:#fff3f3}
-.asset .grow{flex:1;min-width:0}
-.asset b{display:block;font-size:13px}
-.asset small{color:var(--muted);font-size:11.5px}
-.drag-ghost{position:fixed;z-index:60;pointer-events:none;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font:700 16px var(--font-head);border:3px solid var(--ring);background:radial-gradient(circle at 32% 28%,var(--hi),var(--lo) 72%);color:#18130c;transform:translate(-50%,-50%);box-shadow:0 12px 24px #000a}
+.asset .grow{flex:1;min-width:0}.asset b{display:block;font-size:13px}.asset small{color:var(--muted);font-size:11.5px}
+.drag-ghost,.tile-ghost{position:fixed;z-index:60;pointer-events:none;transform:translate(-50%,-50%)}
+.drag-ghost{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font:700 16px var(--font-head);border:3px solid var(--ring);background:radial-gradient(circle at 32% 28%,var(--hi),var(--lo) 72%);color:#18130c;box-shadow:0 12px 24px #000a}
+.tile-ghost{width:72px;height:72px;border-radius:12px;background:#0b0d12cc;border:2px solid var(--accent)}
 .toast{position:absolute;left:50%;bottom:110px;transform:translateX(-50%);z-index:45;padding:9px 14px;border-radius:12px;background:var(--fg);color:var(--bg);font-weight:600;font-size:13px;box-shadow:var(--shadow);max-width:calc(100% - 32px);text-align:center;animation:toast .25s var(--ease)}
 @keyframes toast{from{opacity:0;transform:translate(-50%,8px)}}
 .banner{left:50%;top:66px;transform:translateX(-50%);padding:6px 12px;display:flex;gap:8px;align-items:center;font-weight:600;font-size:12.5px;border-radius:999px;white-space:nowrap}
 .banner.you{border-color:var(--accent);color:var(--accent)}
-
-/* HUD do jogador */
 .hud{left:50%;bottom:14px;transform:translateX(-50%);width:min(760px,calc(100% - 2*90px));padding:10px 12px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center}
 .hud .disc{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;font:700 24px var(--font-head);border:2px solid var(--accent);background:radial-gradient(circle at 30% 25%,#e9cf9f,#7b5d36 70%);color:#1d150b}
 .hud .bars{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.hud .bars div{font-size:11.5px;color:var(--muted);display:flex;flex-direction:column;gap:3px;min-width:0}
-.hud .bars b{color:var(--fg)}
+.hud .bars div{font-size:11.5px;color:var(--muted);display:flex;flex-direction:column;gap:3px;min-width:0}.hud .bars b{color:var(--fg)}
 .hud .hud-actions{display:flex;gap:6px}
 .hud .hud-actions .btn{flex-direction:column;gap:2px;min-height:50px;padding:6px 10px;font-size:11px;min-width:58px}
 .sheet{position:absolute;z-index:35;left:50%;bottom:0;width:min(720px,100%);height:min(78%,640px);transform:translate(-50%,104%);transition:transform .3s var(--ease);background:var(--panel);border:1px solid var(--line);border-bottom:0;border-radius:20px 20px 0 0;box-shadow:var(--shadow);display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px)}
 .sheet.open{transform:translate(-50%,0)}
 .sheet .grab{width:44px;height:5px;border-radius:9px;background:var(--line);margin:8px auto 2px}
 .sheet .sheet-body{flex:1;overflow:auto;padding:14px 18px 20px;display:flex;flex-direction:column;gap:14px}
+.sheet .fh{align-items:center}
 
-/* Entrar */
-.join{position:absolute;inset:0;overflow:auto;display:grid;place-items:center;padding:24px var(--gut-r) 24px var(--gut-l)}
+/* ---------- Estúdio ---------- */
+.st-top{left:var(--gut-l);right:var(--gut-r);top:14px;display:flex;align-items:center;gap:8px;padding:6px 8px}
+.st-title{display:flex;flex-direction:column;min-width:0;flex:0 1 260px}
+.st-name{border:0;background:transparent;font:600 19px/1.15 var(--font-head);padding:0;min-width:0;width:100%;color:var(--fg)}
+.st-name:focus{outline:none;box-shadow:0 1px 0 var(--accent)}
+.st-group{display:flex;align-items:center;gap:2px}
+.st-group .sep{width:1px;height:22px;background:var(--line);margin:0 4px}
+.st-sp{flex:1}
+.st-tools{top:84px;transform:none}
+.st-lib{left:calc(var(--gut-l) + 66px);top:84px;bottom:56px;width:300px;display:flex;flex-direction:column;overflow:hidden}
+.st-panel{right:var(--gut-r);top:84px;bottom:56px;width:300px;display:flex;flex-direction:column;overflow:hidden}
+.st-opt{top:84px;left:50%;transform:translateX(-50%);max-width:calc(100% - 2*400px)}
+.st-status{left:50%;bottom:12px;transform:translateX(-50%);padding:6px 12px;font-size:12px;color:var(--muted);white-space:nowrap;max-width:calc(100% - 300px);overflow:hidden;text-overflow:ellipsis}
+.vtt[data-view="estudio"] .zoom{bottom:8px;right:auto;left:var(--gut-l)}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.tile{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 4px;border-radius:12px;border:1px solid var(--line-soft);background:var(--card);touch-action:none;min-width:0}
+.tile:hover{border-color:var(--accent)}
+.tile[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.tile canvas{width:100%;max-width:64px;aspect-ratio:1;border-radius:8px;background:#101216}
+.tiles.terr canvas{max-width:none;border-radius:8px}
+.tile span{font-size:11px;line-height:1.2;text-align:center;color:var(--muted);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.erase-sw{width:100%;aspect-ratio:1;display:grid;place-items:center;border-radius:8px;border:1px dashed var(--line);color:var(--muted)}
+.tmpl{display:grid;grid-template-columns:120px minmax(0,1fr);gap:10px;align-items:center;padding:6px;border-radius:12px;border:1px solid var(--line-soft);background:var(--card);text-align:left}
+.tmpl:hover{border-color:var(--accent)}
+.tmpl canvas{width:100%;aspect-ratio:8/5;border-radius:8px;background:#101216}
+.tmpl span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.prop-thumb{width:56px;height:56px;border-radius:10px;background:#101216;flex:none}
+.grid2f{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.switch-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:12px;border:1px solid var(--line-soft);background:var(--card);text-align:left;width:100%}
+.switch-row span:first-child{display:flex;flex-direction:column;min-width:0}
+.switch-row small{font-size:11.5px}
+.switch{flex:none;width:36px;height:20px;border-radius:99px;background:var(--line);position:relative;transition:background .15s}
+.switch::after{content:"";position:absolute;left:3px;top:3px;width:14px;height:14px;border-radius:50%;background:var(--fg);transition:transform .15s var(--ease)}
+.switch-row[aria-pressed="true"] .switch{background:var(--accent)}
+.switch-row[aria-pressed="true"] .switch::after{transform:translateX(16px);background:var(--accent-fg)}
+.range-row{display:flex;flex-direction:column;gap:4px;font-size:13px}
+.range-row .val{color:var(--muted)}
+.layer-row{display:flex;align-items:center;gap:6px;padding:6px 6px 6px 10px;border-radius:12px;background:var(--card);border:1px solid var(--line-soft)}
+.layer-row .grow{flex:1;display:flex;flex-direction:column;min-width:0}.layer-row small{font-size:11.5px}
+.mini-sw{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
+.mini-sw button{padding:0;border:2px solid transparent;border-radius:8px;background:none}
+.mini-sw button[aria-pressed="true"]{border-color:var(--accent)}
+.mini-sw canvas{display:block;width:100%;aspect-ratio:1;border-radius:6px}
+
+/* ---------- Entrar ---------- */
+.join{position:absolute;inset:0;overflow:auto;display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px var(--gut-r) 28px var(--gut-l)}
 .join-bg{position:absolute;inset:0;overflow:hidden}
-.join-bg canvas{position:absolute;left:50%;top:50%;width:140%;min-width:1100px;transform:translate(-50%,-50%) rotate(-6deg);filter:blur(3px) saturate(.9);opacity:.55}
-.join-bg::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,color-mix(in srgb,var(--bg) 55%,transparent),var(--bg) 78%)}
-.join-card{position:relative;width:min(460px,100%);padding:26px;border-radius:24px;background:var(--glass);border:1px solid var(--line);box-shadow:var(--shadow);backdrop-filter:blur(18px);display:flex;flex-direction:column;gap:18px}
+.join-bg canvas{position:absolute;left:50%;top:50%;width:140%;min-width:1100px;transform:translate(-50%,-50%) rotate(-6deg);filter:blur(3px) saturate(.9);opacity:.5}
+.join-bg::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,color-mix(in srgb,var(--bg) 50%,transparent),var(--bg) 78%)}
+.join-mode{position:relative;display:flex;align-items:center;gap:10px;padding:6px 6px 6px 12px;border-radius:999px;border:1px dashed var(--line);background:var(--glass);font-size:12px;color:var(--faint);flex-wrap:wrap;justify-content:center}
+.join-card{position:relative;width:min(480px,100%);padding:24px;border-radius:24px;background:var(--glass);border:1px solid var(--line);box-shadow:var(--shadow);backdrop-filter:blur(18px);display:flex;flex-direction:column;gap:16px}
 .join-card h1{font-size:38px;line-height:1.05}
 .join-card h1 em{color:var(--accent);font-weight:500}
+.glyph{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;border:1px solid var(--accent);color:var(--accent);background:var(--accent-soft);font:600 19px var(--font-head);box-shadow:0 0 22px var(--accent-soft);flex:none}
 .status-line{display:flex;align-items:center;gap:8px;font-size:13px;padding:9px 12px;border-radius:12px;background:var(--card);border:1px solid var(--line-soft)}
+.sheet-list{display:flex;flex-direction:column;gap:6px}
+.sheet-pick{display:flex;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:var(--card);cursor:pointer}
+.sheet-pick:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.sheet-pick.off{opacity:.6;cursor:not-allowed}
+.sheet-pick input{accent-color:var(--accent)}
+.sheet-pick .grow{flex:1;display:flex;flex-direction:column;min-width:0}
+.sheet-av{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font:700 18px var(--font-head);color:#17131c;flex:none}
+.sheet-av.empty{background:var(--panel2);color:var(--muted);border:1px dashed var(--line)}
 .radio{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card);cursor:pointer}
 .radio:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
 .radio input{accent-color:var(--accent);margin-top:3px}
+.app-cta{display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:14px;border:1px solid color-mix(in srgb,var(--accent) 50%,var(--line));background:var(--accent-soft)}
+.app-cta .rv-icon{color:var(--accent);margin-top:2px}
+.app-cta ol{margin:6px 0 0;padding-left:18px;color:var(--muted);font-size:12.5px}
 
-/* Tutorial */
+/* ---------- Tutorial ---------- */
 .tut-spot{position:fixed;z-index:80;border-radius:14px;box-shadow:0 0 0 200vmax var(--spot);outline:2px solid var(--accent);outline-offset:2px;pointer-events:none;transition:all .28s var(--ease)}
 .tut-spot::after{content:"";position:absolute;inset:-8px;border-radius:18px;border:2px solid var(--accent);animation:spot 1.6s var(--ease) infinite;opacity:0}
 @keyframes spot{0%{opacity:.8;transform:scale(.96)}100%{opacity:0;transform:scale(1.08)}}
 .tut-card{position:fixed;z-index:81;width:min(350px,calc(100vw - 32px));background:var(--panel);border:1px solid var(--accent);border-radius:18px;box-shadow:var(--shadow);padding:16px;display:flex;flex-direction:column;gap:10px;transition:left .28s var(--ease),top .28s var(--ease)}
-.tut-card h3{font-size:24px;line-height:1.1}
-.tut-card p{margin:0}
+.tut-card h3{font-size:24px;line-height:1.1}.tut-card p{margin:0}
 .tut-try{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;background:var(--accent-soft);border:1px dashed var(--accent)}
 .tut-try.done{border-style:solid;background:color-mix(in srgb,var(--green) 16%,transparent);border-color:var(--green)}
-.tut-steps{display:flex;gap:4px}
-.tut-steps i{flex:1;height:3px;border-radius:9px;background:var(--line)}
-.tut-steps i.on{background:var(--accent)}
-.training{position:fixed;z-index:82;left:50%;top:44px;transform:translateX(-50%);padding:5px 12px;border-radius:999px;background:var(--accent);color:var(--accent-fg);font-weight:700;font-size:12px;white-space:nowrap;box-shadow:var(--shadow-sm)}
-.modal-back{position:fixed;inset:0;z-index:90;background:var(--scrim);display:grid;place-items:center;padding:20px var(--gut-r) 20px var(--gut-l)}
-.modal{width:min(440px,100%);background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px}
-.modal h2{font-size:32px;line-height:1.05}
-.modal h2 em{color:var(--accent);font-weight:500}
+.tut-steps{display:flex;gap:4px}.tut-steps i{flex:1;height:3px;border-radius:9px;background:var(--line)}.tut-steps i.on{background:var(--accent)}
 
 /* ---------- Responsivo ---------- */
-@media (max-width:1100px){.c8,.c7,.c6,.c5,.c4{grid-column:span 12}.optbar{max-width:calc(100% - 520px)}}
-@media (max-width:900px){
-  .shell{grid-template-columns:minmax(0,1fr)}
-  .side{display:none}
-  .bnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:20;justify-content:space-around;padding:6px var(--gut-r) calc(6px + env(safe-area-inset-bottom,0px)) var(--gut-l);background:var(--glass);border-top:1px solid var(--line);backdrop-filter:blur(14px)}
-  .bnav a{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10.5px;color:var(--muted);text-decoration:none;padding:4px 8px;border-radius:10px;font-weight:600}
-  .bnav a[aria-current="page"]{color:var(--accent)}
-  .feature .feature-body{max-width:100%}
-  .mini-map{display:none}
-  .sheet-head{grid-template-columns:auto minmax(0,1fr)}
-  .sheet-head .sh-actions{grid-column:1/-1}
-}
+@media (max-width:1100px){.c8,.c7,.c6,.c5,.c4,.c3{grid-column:span 12}.optbar{max-width:calc(100% - 520px)}.st-opt{max-width:calc(100% - 2*390px)}}
+@media (max-width:900px){.feature .feature-body{max-width:100%}.mini-map{display:none}.sheet-head{grid-template-columns:auto minmax(0,1fr)}.sheet-head .sh-actions{grid-column:1/-1}.central-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.st-opt{left:var(--gut-l);right:var(--gut-r);transform:none;max-width:none;top:134px}.st-status{display:none}}
 @media (max-width:760px){
   .optbar{left:var(--gut-l);right:var(--gut-r);top:66px;transform:none;max-width:none}
   .banner{top:118px}
-  .panel{left:var(--gut-l);right:var(--gut-r);top:auto;bottom:66px;width:auto;max-height:55%}
-  .drawer{left:var(--gut-l);right:var(--gut-r);top:auto;bottom:66px;width:auto;max-height:55%}
+  .panel,.drawer,.st-lib,.st-panel{left:var(--gut-l);right:var(--gut-r);top:auto;bottom:66px;width:auto;max-height:58%}
+  .vtt[data-view="estudio"] .st-lib,.vtt[data-view="estudio"] .st-panel{bottom:10px;max-height:52%}
   .zoom{display:none}
   .tcard{width:calc(100% - var(--gut-l) - var(--gut-r));bottom:66px;grid-template-columns:auto minmax(0,1fr)}
   .tcard .actions{grid-column:1/-1;flex-direction:row;flex-wrap:wrap}
-  .room-btn small{display:none}
-  .state-chip{display:none}
-  .people .stack{display:none}
+  .room-btn small,.state-chip,.people .stack{display:none}
   .hud{width:calc(100% - var(--gut-l) - var(--gut-r));grid-template-columns:auto minmax(0,1fr);gap:10px}
-  .hud .hud-actions{grid-column:1/-1}
-  .hud .hud-actions .btn{flex:1}
-  .attrs{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
-  .attr b{font-size:26px}
+  .hud .hud-actions{grid-column:1/-1}.hud .hud-actions .btn{flex:1}
+  .attrs{gap:6px}.attr b{font-size:26px}
   .scene-thumbs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .st-title{flex-basis:120px}.st-group .sep,.st-group [data-sa="grid"]{display:none}.hide-sm{display:none}
+  .st-tools{top:134px;max-height:calc(100% - 200px);overflow:auto}
+  .st-title .kicker,.st-top .central-open{display:none}.st-title{flex:1 1 auto}.st-top{gap:4px}.st-top .btn.sm{padding:5px 9px}
+  .central{padding:18px}.central-grid{gap:8px}.central-card{min-height:96px;padding:12px}
 }
-.optbar .hint{min-width:0;overflow:hidden;text-overflow:ellipsis}
 @media (max-height:460px){
   .tools{top:72px;transform:none;flex-direction:row;flex-wrap:nowrap}
   .tools .sep{width:1px;height:auto;margin:6px 4px}
-  .tip{left:50%;top:calc(100% + 10px);transform:translateX(-50%)}
+  .tools .tip{left:50%;top:calc(100% + 10px);transform:translateX(-50%)}
   .optbar{top:72px;left:auto;right:var(--gut-r);transform:none;max-width:calc(100% - 500px)}
   .banner{top:128px}
   .tcard .actions,.tcard .meta span:nth-child(n+3),.tcard .chip.bad,.tcard .small.faint{display:none}
-  .tcard{padding:8px 12px;gap:10px;grid-template-columns:auto minmax(0,1fr)}
-  .tcard .disc{width:40px;height:40px;font-size:16px}
-  .tcard h3{font-size:18px}
-  .hud{bottom:8px;padding:6px 10px;grid-template-columns:auto minmax(0,1fr) auto}
-  .hud .hud-actions{grid-column:auto}
-  .hud .disc{width:40px;height:40px;font-size:18px}
-  .hud .hud-actions .btn{min-height:40px;padding:4px 8px}
-  .panel,.drawer{top:62px;bottom:8px;max-height:none;left:auto;width:290px}
-  .tcard{bottom:8px;width:min(380px,calc(100% - 300px));grid-template-columns:auto minmax(0,1fr)}
-  .tcard .actions{grid-column:auto;flex-direction:column}
+  .tcard{bottom:8px;width:min(380px,calc(100% - 300px));padding:8px 44px 8px 12px;gap:10px;grid-template-columns:auto minmax(0,1fr)}
+  .tcard .disc{width:40px;height:40px;font-size:16px}.tcard h3{font-size:18px}
+  .hud{bottom:8px;padding:6px 10px;grid-template-columns:auto minmax(0,1fr) auto}.hud .hud-actions{grid-column:auto}
+  .hud .disc{width:40px;height:40px;font-size:18px}.hud .hud-actions .btn{min-height:40px;padding:4px 8px}
+  .panel,.drawer,.st-lib,.st-panel{top:62px;bottom:8px;max-height:none;left:auto;width:290px}
+  .st-tools{top:72px;overflow-x:auto;max-width:calc(100% - 32px)}
+  .st-lib,.st-panel{top:124px}
+  .st-opt{top:auto;bottom:8px;left:var(--gut-l);right:auto;transform:none;max-width:calc(100% - 250px)}
+  .vtt[data-view="estudio"] .zoom{left:auto;right:var(--gut-r)}
 }
 </style>
-<script src="icones.js"></script>
+<script src="icones.js"></script><script src="dados.js"></script><script src="cena.js"></script><script src="base.js"></script><script src="mesa.js"></script><script src="estudio.js"></script>
 </head>
 <body>
 <div id="root">
   <nav id="proto" aria-label="Telas do protótipo">
-    <span class="tag">Protótipo · Fase 1</span>
-    <a href="#mestragem">Mestragem</a>
-    <a href="#mesa">Mesa do mestre</a>
-    <a href="#entrar">Entrar pelo IP</a>
-    <a href="#jogador">Mesa do jogador</a>
-    <a href="#biblioteca">Biblioteca</a>
-    <a href="#ficha">Ficha</a>
-    <a href="#ajustes">Ajustes</a>
-    <span class="sp"></span>
-    <button type="button" id="proto-tut">Ver tutorial</button>
-    <button type="button" id="proto-theme">Alternar tema</button>
+    <span class="tag">Protótipo</span>
+    <a href="#inicio">Início</a><a href="#mestragem">Mestragem</a><a href="#mesa">Mesa do mestre</a><a href="#estudio">Estúdio</a><a href="#entrar">Entrar</a><a href="#jogador">Mesa do jogador</a><a href="#bestiario">Bestiário</a><a href="#biblioteca">Biblioteca</a><a href="#ficha">Ficha</a><a href="#ajustes">Personalização</a>
+    <span class="sp"></span><button type="button" id="proto-tut">Ver tutorial</button><button type="button" id="proto-theme">Alternar tema</button>
   </nav>
 
   <div id="app">
-    <!-- ================= SHELL DE GESTÃO ================= -->
-    <div class="shell" id="shell">
-      <aside class="side" aria-label="Navegação principal">
-        <div class="brand"><span class="glyph">✧</span><b>Mastermind</b></div>
-        <a class="nav" href="#mestragem" data-i="crown">Mestragem</a>
-        <a class="nav" href="#mesa" data-i="map">Mesa ao vivo</a>
-        <a class="nav" href="#ficha" data-i="user">Personagens</a>
-        <button class="nav soon" type="button" data-i="palette" data-soon="Ateliê">Ateliê</button>
-        <div class="grp">Consulta</div>
-        <a class="nav" href="#biblioteca" data-i="books">Biblioteca</a>
-        <button class="nav soon" type="button" data-i="search" data-soon="Pesquisa offline">Pesquisa offline</button>
-        <button class="nav soon" type="button" data-i="layout-grid" data-soon="Canvas">Canvas infinito</button>
-        <button class="nav soon" type="button" data-i="skull" data-soon="Bestiário">Bestiário</button>
-        <div class="grp">App</div>
-        <a class="nav" href="#ajustes" data-i="settings">Ajustes</a>
-        <div class="foot small"><div class="row" style="gap:8px"><span class="dot on"></span><b>Servidor ligado</b></div><div class="muted num">192.168.0.12:8765</div></div>
-      </aside>
-
+    <!-- ================= TELAS DE GESTÃO (workspace do app) ================= -->
+    <div class="pages" id="pages">
       <div class="page-wrap" id="page-wrap">
         <header class="topbar">
-          <div class="crumb"><span class="muted">Workspace</span><span class="faint">/</span><b id="crumb-title">Mestragem</b><small>v2.0 · protótipo</small></div>
+          <div class="crumb"><a class="home" href="#inicio">Workspace</a><span class="faint">/</span><b id="crumb-title">Visão geral</b><small>v2.0 · protótipo</small></div>
           <span class="sp"></span>
-          <button class="btn sm ghost" type="button" data-soon="Busca de livros"><span data-i="search"></span><span class="hide-sm">Buscar livros</span> <kbd>⌘K</kbd></button>
+          <a class="btn sm ghost" href="#biblioteca"><span data-i="search"></span><span class="hide-sm">Consultar regras</span></a>
           <button class="btn sm icon ghost theme-toggle" type="button" aria-label="Alternar tema"><span data-i="sun"></span></button>
         </header>
 
-        <!-- MESTRAGEM -->
-        <section class="page" data-view="mestragem" aria-labelledby="h-mestragem">
-          <div class="hero">
-            <p class="kicker">Mestragem · campanha</p>
-            <h1 id="h-mestragem">Crônicas do <em>Vale Cinzento.</em></h1>
-            <p>Ordem Paranormal 1.3 · 4 jogadores · dados de exemplo para o protótipo.</p>
-          </div>
+        <!-- INÍCIO -->
+        <section class="page" data-view="inicio" aria-labelledby="h-inicio">
+          <div class="hero-row"><div class="hero"><p class="kicker">Mastermind / Área de trabalho</p><h1 id="h-inicio">Seu universo, <em>sob controle.</em></h1><p>Personagens, mundos e sessões no mesmo espaço. Seus dados e sua personalização continuam aqui.</p></div><a class="btn" href="#ajustes"><span data-i="adjustments"></span>Personalizar</a></div>
           <div class="grid">
-            <article class="card feature c8">
-              <canvas class="mini-map" id="mini-map" width="600" height="400" aria-hidden="true"></canvas>
-              <div class="feature-body">
-                <p class="kicker">Mesa ao vivo</p>
-                <h2>A mesa está pronta para abrir.</h2>
-                <div class="row small"><span class="dot on"></span><span>Rede local</span><span class="addr num">192.168.0.12:8765</span><span class="chip">código K7Q-2M</span></div>
-                <div class="row">
-                  <a class="btn primary" href="#mesa"><span data-i="map"></span>Abrir mesa ao vivo</a>
-                  <button class="btn copy-invite" type="button"><span data-i="link"></span>Copiar convite</button>
+            <article class="card feature c7"><div class="sigil" aria-hidden="true"></div><div class="feature-body" style="max-width:100%"><p class="kicker">Próxima sessão</p><h2>O mundo está esperando pelo mestre.</h2><p class="muted" style="margin:0;max-width:44ch">Prepare a cena no Estúdio, abra a mesa e convide os jogadores pelo app.</p><div class="row"><a class="btn primary" href="#mestragem"><span data-i="crown"></span>Abrir Mestragem</a><a class="btn" href="#estudio"><span data-i="brush"></span>Estúdio de cenários</a></div></div></article>
+            <article class="card c5"><div class="card-h"><p class="kicker">Continuar de onde parou</p><span class="small muted">3 fichas</span></div>
+              <div class="char-card"><div class="char-glyph">A</div><div style="min-width:0"><p class="kicker" style="color:var(--muted)">Personagem selecionado</p><h2 style="font-size:30px">Aurora</h2><div class="row" style="gap:6px;margin-top:6px"><span class="chip">Combatente</span><span class="chip">NEX 35%</span></div></div></div>
+              <div class="res-row"><span>Vida</span><div class="bar"><i style="width:75%;--c:var(--danger)"></i></div><span class="num">18/24</span></div>
+              <div class="res-row"><span>Esforço</span><div class="bar"><i style="width:71%;--c:var(--blue)"></i></div><span class="num">5/7</span></div>
+              <div class="res-row"><span>Sanidade</span><div class="bar"><i style="width:75%;--c:var(--purple)"></i></div><span class="num">12/16</span></div>
+              <div class="row"><a class="btn primary" href="#ficha" style="flex:1"><span data-i="user"></span>Abrir esta ficha</a><a class="btn" href="#jogador"><span data-i="map"></span>Mesa</a></div></article>
+          </div>
+          <div><p class="kicker">Acesso rápido</p><h2 style="font-size:30px;margin-top:4px">Ferramentas</h2></div>
+          <div class="grid">
+            <a class="tool-card c3" href="#mesa"><div class="row"><span class="ti" data-i="map"></span><span class="n">01</span></div><b>Mesa ao vivo</b><span class="d">Cenários, encontros e iniciativa</span></a>
+            <a class="tool-card c3" href="#ficha"><div class="row"><span class="ti" data-i="user"></span><span class="n">02</span></div><b>Personagens</b><span class="d">Fichas, rituais e inventário</span></a>
+            <a class="tool-card c3" href="#biblioteca"><div class="row"><span class="ti" data-i="books"></span><span class="n">03</span></div><b>Biblioteca</b><span class="d">Livros e sistemas cadastrados</span></a>
+            <a class="tool-card c3" href="#estudio"><div class="row"><span class="ti" data-i="brush"></span><span class="n">08</span></div><b>Estúdio de cenários <span class="chip gold">Novo</span></b><span class="d">Terreno, paredes, objetos e luz</span></a>
+            <a class="tool-card c3" href="#biblioteca" data-soon="Pesquisa offline"><div class="row"><span class="ti" data-i="search"></span><span class="n">04</span></div><b>Pesquisa offline</b><span class="d">Encontre regras pelo contexto</span></a>
+            <a class="tool-card c3" href="#" data-soon="Canvas infinito"><div class="row"><span class="ti" data-i="layout-grid"></span><span class="n">05</span></div><b>Canvas infinito</b><span class="d">Ligações, pistas e notas</span></a>
+            <a class="tool-card c3" href="#bestiario"><div class="row"><span class="ti" data-i="skull"></span><span class="n">06</span></div><b>Bestiário</b><span class="d">Criaturas e habilidades</span></a>
+            <a class="tool-card c3" href="#" data-soon="Ateliê"><div class="row"><span class="ti" data-i="palette"></span><span class="n">07</span></div><b>Ateliê</b><span class="d">Retrato e token em camadas</span></a>
+          </div>
+        </section>
+
+        <!-- MESTRAGEM -->
+        <section class="page" data-view="mestragem" aria-labelledby="h-mestragem" hidden>
+          <div class="hero"><p class="kicker">Mestragem · campanha</p><h1 id="h-mestragem">Crônicas do <em>Vale Cinzento.</em></h1><p>Ordem Paranormal 1.3 · 4 jogadores · dados de exemplo para o protótipo.</p></div>
+          <div class="grid">
+            <article class="card feature c8"><canvas class="mini-map" id="mini-map" width="600" height="400" aria-hidden="true"></canvas>
+              <div class="feature-body"><p class="kicker">Mesa ao vivo</p><h2>A mesa está pronta para abrir.</h2>
+                <div class="row small"><span class="dot on"></span><span>Servidor na rede local</span><span class="chip">Cenário: <b id="mest-scene" style="margin-left:4px">Corredor do Forte</b></span></div>
+                <div class="invite-rows">
+                  <div class="item"><span data-i="device-mobile" class="faint"></span><span class="grow"><span class="small muted">Pelo app Mastermind (recomendado)</span><span class="addr num" style="display:block">192.168.0.12:8765</span></span><button class="btn sm" type="button" data-copy="192.168.0.12:8765"><span data-i="copy"></span>Copiar</button></div>
+                  <div class="item"><span data-i="world" class="faint"></span><span class="grow"><span class="small muted">Pelo navegador</span><span class="small num" style="display:block;overflow:hidden;text-overflow:ellipsis">http://192.168.0.12:8765/join/vale-cinzento/K7Q-2M</span></span><button class="btn sm" type="button" data-copy="http://192.168.0.12:8765/join/vale-cinzento/K7Q-2M"><span data-i="copy"></span>Copiar</button></div>
                 </div>
-              </div>
-            </article>
-
-            <article class="card c4">
-              <div class="card-h"><h2>Ritmo</h2><span class="chip gold num" id="round-chip">Rodada 2</span></div>
-              <div class="seg" role="group" aria-label="Modo da sessão" id="mode-seg">
-                <button type="button" data-mode="combat" aria-pressed="true"><span data-i="swords"></span>Combate</button>
-                <button type="button" data-mode="interlude" aria-pressed="false"><span data-i="coffee"></span>Interlúdio</button>
-              </div>
-              <p class="small muted" id="mode-text" style="margin:0">Movimento pela iniciativa. Testes sempre livres.</p>
-            </article>
-
-            <article class="card c7">
-              <div class="card-h"><h2>Jogadores</h2><span class="chip ok">3 conectados</span></div>
+                <div class="row"><a class="btn primary" href="#mesa"><span data-i="map"></span>Abrir mesa ao vivo</a><a class="btn" href="#estudio"><span data-i="brush"></span>Estúdio de cenários</a></div>
+              </div></article>
+            <article class="card c4"><div class="card-h"><h2>Ritmo</h2><span class="chip gold num" id="round-chip">Rodada 2</span></div>
+              <div class="seg" role="group" aria-label="Modo da sessão" id="mode-seg"><button type="button" data-mode="combat" aria-pressed="true"><span data-i="swords"></span>Combate</button><button type="button" data-mode="interlude" aria-pressed="false"><span data-i="coffee"></span>Interlúdio</button></div>
+              <p class="small muted" id="mode-text" style="margin:0">Movimento pela iniciativa. Testes sempre livres.</p></article>
+            <article class="card c7"><div class="card-h"><h2>Jogadores</h2><span class="chip ok">3 conectados</span></div>
               <ul class="list">
-                <li class="item"><span class="avatar" style="background:#c7a87b">AN</span><div class="grow"><b>Ana</b><span class="small muted">Aurora · token vinculado</span></div><span class="dot on" title="Conectada"></span></li>
-                <li class="item"><span class="avatar" style="background:#86bd9c">DI</span><div class="grow"><b>Diego</b><span class="small muted">Brás · token vinculado</span></div><span class="dot on" title="Conectado"></span></li>
-                <li class="item"><span class="avatar" style="background:#9c90dd">LI</span><div class="grow"><b>Lia</b><span class="small muted">Sem ficha atribuída</span></div><select class="input" style="width:auto;min-height:34px;padding:5px 10px" aria-label="Atribuir ficha para Lia"><option>Atribuir ficha…</option><option>Aurora</option><option>Brás</option></select></li>
-                <li class="item"><span class="avatar" style="background:#6db7e0">RA</span><div class="grow"><b>Rafa</b><span class="small muted">Enviou uma ficha para aprovação</span></div><button class="btn sm" type="button" data-soon="Revisar ficha">Revisar</button><button class="btn sm primary" type="button" data-soon="Aprovar ficha">Aprovar</button></li>
-              </ul>
-            </article>
-
-            <article class="card c5">
-              <div class="card-h"><h2>Pedidos</h2><span class="chip gold">2 aguardando</span></div>
+                <li class="item"><span class="avatar" style="background:#c7a87b">AN</span><div class="grow"><b>Ana</b><span class="small muted">Aurora · enviada pelo app, aprovada</span></div><span class="chip"><span data-i="device-mobile"></span>app</span><span class="dot on" title="Conectada"></span></li>
+                <li class="item"><span class="avatar" style="background:#86bd9c">DI</span><div class="grow"><b>Diego</b><span class="small muted">Brás · token vinculado</span></div><span class="chip"><span data-i="world"></span>navegador</span><span class="dot on" title="Conectado"></span></li>
+                <li class="item"><span class="avatar" style="background:#9c90dd">LI</span><div class="grow"><b>Lia</b><span class="small muted">Entrou sem ficha</span></div><select class="input" style="width:auto;min-height:34px;padding:5px 10px" aria-label="Atribuir ficha para Lia"><option>Atribuir ficha…</option><option>Aurora</option><option>Brás</option></select></li>
+                <li class="item"><span class="avatar" style="background:#6db7e0">RA</span><div class="grow"><b>Rafa</b><span class="small muted">Enviou "Kael" pelo app · D&amp;D 5e, outro sistema</span></div><button class="btn sm" type="button" data-soon="Revisar ficha">Revisar</button></li>
+              </ul></article>
+            <article class="card c5"><div class="card-h"><h2>Pedidos</h2><span class="chip gold">2 aguardando</span></div>
               <ul class="list">
                 <li class="item"><span class="el energia"><span data-i="bolt"></span></span><div class="grow"><b>Campo Protetor</b><span class="small muted">Diego pediu para Brás · Energia</span></div><button class="btn sm icon" type="button" aria-label="Recusar" data-soon="Recusar pedido"><span data-i="x"></span></button><button class="btn sm icon primary" type="button" aria-label="Aprovar" data-soon="Aprovar pedido"><span data-i="check"></span></button></li>
                 <li class="item"><span class="el conhecimento"><span data-i="eye"></span></span><div class="grow"><b>Precognição</b><span class="small muted">Ana pediu para Aurora · Conhecimento</span></div><button class="btn sm icon" type="button" aria-label="Recusar" data-soon="Recusar pedido"><span data-i="x"></span></button><button class="btn sm icon primary" type="button" aria-label="Aprovar" data-soon="Aprovar pedido"><span data-i="check"></span></button></li>
-              </ul>
-              <p class="small faint" style="margin:0">Poderes registrados na ficha só valem na mesa depois da sua aprovação.</p>
-            </article>
-
-            <article class="card c8">
-              <div class="card-h"><h2>Cenários</h2><button class="btn sm" type="button" data-soon="Estúdio de cenários"><span data-i="plus"></span>Novo cenário</button></div>
+              </ul><p class="small faint" style="margin:0">Poderes registrados na ficha só valem na mesa depois da sua aprovação.</p></article>
+            <article class="card c8"><div class="card-h"><h2>Cenários</h2><a class="btn sm" href="#estudio"><span data-i="plus"></span>Novo no Estúdio</a></div>
               <div class="scene-thumbs">
-                <button class="thumb" type="button" aria-current="true" onclick="location.hash='#mesa'"><canvas data-thumb="0" width="300" height="200"></canvas><div><b>Corredor do Forte</b><span class="chip gold" style="align-self:flex-start">Publicado</span></div></button>
-                <button class="thumb" type="button" data-soon="Trocar cenário"><canvas data-thumb="1" width="300" height="200"></canvas><div><b>Capela Submersa</b><span class="small muted">Rascunho</span></div></button>
-                <button class="thumb" type="button" data-soon="Trocar cenário"><canvas data-thumb="2" width="300" height="200"></canvas><div><b>Estrada Velha</b><span class="small muted">Rascunho</span></div></button>
-              </div>
-            </article>
-
-            <article class="card c4">
-              <div class="card-h"><h2>Fichas</h2><a class="btn sm ghost" href="#ficha">Abrir</a></div>
+                <a class="thumb" href="#estudio" aria-current="true"><canvas data-thumb="0" width="300" height="200"></canvas><div><b>Corredor do Forte</b><span class="chip gold" style="align-self:flex-start">Publicado</span></div></a>
+                <a class="thumb" href="#estudio"><canvas data-thumb="1" width="300" height="200"></canvas><div><b>Caverna</b><span class="small muted">Rascunho</span></div></a>
+                <a class="thumb" href="#estudio"><canvas data-thumb="2" width="300" height="200"></canvas><div><b>Rua à noite</b><span class="small muted">Rascunho</span></div></a>
+              </div></article>
+            <article class="card c4"><div class="card-h"><h2>Fichas</h2><a class="btn sm ghost" href="#ficha">Abrir</a></div>
               <div class="res-row"><span>Aurora</span><div class="bar"><i style="width:75%;--c:var(--danger)"></i></div><span class="num">18/24</span></div>
               <div class="res-row"><span>Brás</span><div class="bar"><i style="width:100%;--c:var(--danger)"></i></div><span class="num">21/21</span></div>
               <div class="row"><span class="chip bad">Aurora · Sangrando · 2 turnos</span></div>
-              <button class="btn" type="button" data-soon="Canvas da campanha"><span data-i="layout-grid"></span>Canvas privado · 6 cartões</button>
-            </article>
+              <button class="btn" type="button" data-soon="Canvas da campanha"><span data-i="layout-grid"></span>Canvas privado · 6 cartões</button></article>
           </div>
+        </section>
+
+        <!-- BESTIÁRIO -->
+        <section class="page" data-view="bestiario" aria-labelledby="h-best" hidden>
+          <div class="hero"><p class="kicker">Bestiário</p><h1 id="h-best">Criaturas e <em>ameaças.</em></h1><p>Dados do catálogo do app: as 48 criaturas de Ordem Paranormal 1.3 e as do SRD de D&amp;D 5e. Habilidades especiais ficam no livro.</p></div>
+          <div class="row between"><div class="seg" id="best-sys" role="group" aria-label="Sistema"><button type="button" data-sys="ordem" aria-pressed="true">Ordem Paranormal</button><button type="button" data-sys="dnd" aria-pressed="false">D&amp;D 5e</button></div>
+            <label class="search-hero" for="best-q" style="flex:1 1 260px;max-width:420px;padding:2px 6px 2px 14px"><span data-i="search" class="muted"></span><input id="best-q" placeholder="Procurar criatura"></label></div>
+          <div class="row between"><div class="chips" id="best-els"><button type="button" class="fchip" data-el="all" aria-pressed="true">Todos</button><button type="button" class="fchip" data-el="Sangue">Sangue</button><button type="button" class="fchip" data-el="Morte">Morte</button><button type="button" class="fchip" data-el="Conhecimento">Conhecimento</button><button type="button" class="fchip" data-el="Energia">Energia</button><button type="button" class="fchip" data-el="Medo">Medo</button></div><span class="small muted num" id="best-count"></span></div>
+          <div class="beasts" id="best-grid"></div>
+          <aside class="side-detail" id="best-detail" hidden aria-label="Detalhes da criatura"></aside>
         </section>
 
         <!-- BIBLIOTECA -->
         <section class="page" data-view="biblioteca" aria-labelledby="h-bib" hidden>
-          <div class="hero">
-            <p class="kicker">Biblioteca</p>
-            <h1 id="h-bib">Livros e <em>regras.</em></h1>
-            <p>39 sistemas catalogados. A busca usa apenas os livros que você importou e as regras cadastradas.</p>
-          </div>
-          <div class="sys-chips" role="group" aria-label="Sistema">
-            <button type="button" aria-pressed="true">Ordem Paranormal</button>
-            <button type="button" aria-pressed="false">D&amp;D</button>
-            <button type="button" aria-pressed="false">Tormenta 20</button>
-            <button type="button" aria-pressed="false">Chamado de Cthulhu</button>
-            <button type="button" aria-pressed="false">GURPS</button>
-            <button type="button" aria-pressed="false">Cyberpunk RED</button>
-            <button type="button" aria-pressed="false">Blades In The Dark</button>
-            <button type="button" aria-pressed="false">+ 32 sistemas</button>
-          </div>
+          <div class="hero"><p class="kicker">Biblioteca</p><h1 id="h-bib">Livros e <em>regras.</em></h1><p>39 sistemas catalogados. A busca usa apenas os livros que você importou e as regras cadastradas.</p></div>
+          <div class="sys-chips chips" role="group" aria-label="Sistema"><button type="button" class="fchip" aria-pressed="true">Ordem Paranormal</button><button type="button" class="fchip">D&amp;D</button><button type="button" class="fchip">Tormenta 20</button><button type="button" class="fchip">Chamado de Cthulhu</button><button type="button" class="fchip">GURPS</button><button type="button" class="fchip">Cyberpunk RED</button><button type="button" class="fchip">Blades In The Dark</button><button type="button" class="fchip">+ 32 sistemas</button></div>
           <label class="search-hero" for="bib-q"><span data-i="search" class="muted"></span><input id="bib-q" placeholder="Pergunte como na mesa: quando durmo, o que recupero?"><button class="btn sm primary" type="button" data-soon="Consulta">Consultar</button></label>
           <div class="grid">
-            <article class="card c7">
-              <div class="card-h"><h2>Resultado de exemplo</h2><span class="chip">Consulta offline · sem IA</span></div>
-              <div class="snippet"><p class="small muted" style="margin:0 0 6px">Seu PDF · página física indicada</p><p style="margin:0">O trecho do seu livro aparece aqui, curto e com o número da página, para você abrir a página original.</p></div>
-              <div class="row"><button class="btn sm" type="button" data-soon="Abrir página"><span data-i="file-text"></span>Abrir página</button><span class="small faint">O app não inventa regras: se não houver trecho indexado, ele diz isso.</span></div>
-            </article>
-            <article class="card c5">
-              <div class="card-h"><h2>Seus PDFs</h2><button class="btn sm" type="button" data-soon="Adicionar PDFs"><span data-i="upload"></span>Adicionar</button></div>
-              <div class="item" style="flex-direction:column;align-items:stretch">
-                <div class="row between"><b>Livro de regras (seu PDF)</b><span class="chip gold num">212/300</span></div>
-                <div class="bar"><i style="width:70.6%;--c:var(--accent)"></i></div>
-                <div class="row between small"><span class="muted">Indexando no aparelho. A busca já cobre as páginas prontas.</span><button class="btn sm" type="button" data-soon="Retomar indexação"><span data-i="refresh"></span>Retomar</button></div>
-              </div>
-            </article>
-            <article class="card c12">
-              <div class="card-h"><h2>Google Drive</h2><span class="chip">Somente links</span></div>
-              <div class="row between"><p class="muted" style="margin:0;max-width:70ch">209 livros catalogados como links e metadados. Eles abrem na sua conta do Drive; o app não guarda cópia dos arquivos. No D&amp;D, por exemplo, são 9 documentos.</p><button class="btn" type="button" data-soon="Drive"><span data-i="world"></span>Abrir no Drive</button></div>
-            </article>
+            <article class="card c7"><div class="card-h"><h2>Resultado de exemplo</h2><span class="chip">Consulta offline · sem IA</span></div><div class="snippet"><p class="small muted" style="margin:0 0 6px">Seu PDF · página física indicada</p><p style="margin:0">O trecho do seu livro aparece aqui, curto e com o número da página, para você abrir a página original.</p></div><div class="row"><button class="btn sm" type="button" data-soon="Abrir página"><span data-i="file-text"></span>Abrir página</button><span class="small faint">Se não houver trecho indexado, o app diz isso em vez de inventar.</span></div></article>
+            <article class="card c5"><div class="card-h"><h2>Seus PDFs</h2><button class="btn sm" type="button" data-soon="Adicionar PDFs"><span data-i="upload"></span>Adicionar</button></div><div class="item" style="flex-direction:column;align-items:stretch"><div class="row between"><b>Livro de regras (seu PDF)</b><span class="chip gold num">212/300</span></div><div class="bar"><i style="width:70.6%;--c:var(--accent)"></i></div><div class="row between small"><span class="muted">Indexando no aparelho. A busca já cobre as páginas prontas.</span><button class="btn sm" type="button" data-soon="Retomar indexação"><span data-i="refresh"></span>Retomar</button></div></div></article>
+            <article class="card c12"><div class="card-h"><h2>Google Drive</h2><span class="chip">Somente links</span></div><div class="row between"><p class="muted" style="margin:0;max-width:70ch">209 livros catalogados como links e metadados. Eles abrem na sua conta do Drive; o app não guarda cópia dos arquivos. No D&amp;D, por exemplo, são 9 documentos.</p><button class="btn" type="button" data-soon="Drive"><span data-i="world"></span>Abrir no Drive</button></div></article>
           </div>
         </section>
 
         <!-- FICHA -->
         <section class="page" data-view="ficha" aria-labelledby="h-ficha" hidden>
-          <div class="card">
-            <div class="sheet-head">
-              <div class="portrait" aria-hidden="true">A</div>
-              <div style="min-width:0">
-                <p class="kicker">Personagem · Ana</p>
-                <h1 id="h-ficha" style="font-size:44px;line-height:1">Aurora</h1>
-                <div class="row small" style="margin-top:8px"><span class="chip gold">Combatente</span><span class="chip">NEX 35%</span><span class="chip">Ordem Paranormal 1.3</span><span class="chip faint">exemplo</span></div>
-              </div>
-              <div class="row sh-actions">
-                <button class="btn" type="button" data-soon="Exportar PDF"><span data-i="file-export"></span>Exportar PDF</button>
-                <button class="btn" type="button" data-soon="Ateliê"><span data-i="palette"></span>Ateliê</button>
-                <a class="btn primary" href="#mesa"><span data-i="map"></span>Ver na mesa</a>
-              </div>
-            </div>
-          </div>
+          <div class="card"><div class="sheet-head"><div class="portrait" aria-hidden="true">A</div><div style="min-width:0"><p class="kicker">Personagem · Ana</p><h1 id="h-ficha" style="font-size:44px;line-height:1">Aurora</h1><div class="row small" style="margin-top:8px"><span class="chip gold">Combatente</span><span class="chip">NEX 35%</span><span class="chip">Ordem Paranormal 1.3</span><span class="chip">exemplo</span></div></div>
+            <div class="row sh-actions"><button class="btn" type="button" data-soon="Exportar PDF"><span data-i="file-export"></span>Exportar PDF</button><button class="btn" type="button" data-soon="Ateliê"><span data-i="palette"></span>Ateliê</button><a class="btn primary" href="#jogador"><span data-i="map"></span>Ver na mesa</a></div></div></div>
           <div class="grid">
-            <article class="card c5">
-              <h2>Recursos</h2>
-              <div class="res-row"><span>Vida</span><div class="bar"><i style="width:75%;--c:var(--danger)"></i></div><span class="num">18/24</span></div>
-              <div class="res-row"><span>Esforço</span><div class="bar"><i style="width:71%;--c:var(--blue)"></i></div><span class="num">5/7</span></div>
-              <div class="res-row"><span>Sanidade</span><div class="bar"><i style="width:75%;--c:var(--purple)"></i></div><span class="num">12/16</span></div>
-              <div class="attrs" aria-label="Atributos">
-                <div class="attr"><b>2</b><span>AGI</span></div><div class="attr"><b>3</b><span>FOR</span></div><div class="attr"><b>1</b><span>INT</span></div><div class="attr"><b>1</b><span>PRE</span></div><div class="attr"><b>2</b><span>VIG</span></div>
-              </div>
-            </article>
-            <article class="card c7">
-              <div class="tabs" role="tablist" aria-label="Seções da ficha">
-                <button role="tab" type="button" aria-selected="false">Resumo</button><button role="tab" type="button" aria-selected="false">Perícias</button><button role="tab" type="button" aria-selected="false">Habilidades</button><button role="tab" type="button" aria-selected="false">Rituais</button><button role="tab" type="button" aria-selected="true">Poderes e Transcender</button><button role="tab" type="button" aria-selected="false">Inventário</button><button role="tab" type="button" aria-selected="false">Aparência</button>
-              </div>
-              <ul class="list">
-                <li class="item power"><span class="el energia"><span data-i="bolt"></span></span><div class="grow"><b>Golpe de Sorte</b><span class="small muted">Energia · NEX 15%</span></div><span class="chip ok">Aprovado</span></li>
-                <li class="item power"><span class="el conhecimento"><span data-i="eye"></span></span><div class="grow"><b>Precognição</b><span class="small muted">Conhecimento · NEX 30%</span></div><span class="chip gold">Aguardando mestre</span></li>
-                <li class="item power"><span class="el morte"><span data-i="hourglass"></span></span><div class="grow"><b>Surto Temporal</b><span class="small muted">Morte · exige 2 poderes de Morte aprovados</span></div><span class="chip">Bloqueado</span></li>
-              </ul>
-              <p class="small faint" style="margin:0">Transcender conta como escolha de poder. Ao aprová-lo, o mestre aplica a renúncia ao ganho de Sanidade.</p>
-            </article>
+            <article class="card c5"><h2 style="font-size:23px">Recursos</h2>
+              <div class="res-row"><span>Vida</span><div class="bar"><i style="width:75%;--c:var(--danger)"></i></div><span class="num">18/24</span></div><div class="res-row"><span>Esforço</span><div class="bar"><i style="width:71%;--c:var(--blue)"></i></div><span class="num">5/7</span></div><div class="res-row"><span>Sanidade</span><div class="bar"><i style="width:75%;--c:var(--purple)"></i></div><span class="num">12/16</span></div>
+              <div class="attrs" aria-label="Atributos"><div class="attr"><b>2</b><span>AGI</span></div><div class="attr"><b>3</b><span>FOR</span></div><div class="attr"><b>1</b><span>INT</span></div><div class="attr"><b>1</b><span>PRE</span></div><div class="attr"><b>2</b><span>VIG</span></div></div></article>
+            <article class="card c7"><div class="tabs" role="tablist" aria-label="Seções da ficha"><button role="tab" type="button" aria-selected="false">Resumo</button><button role="tab" type="button" aria-selected="false">Perícias</button><button role="tab" type="button" aria-selected="false">Habilidades</button><button role="tab" type="button" aria-selected="false">Rituais</button><button role="tab" type="button" aria-selected="true">Poderes e Transcender</button><button role="tab" type="button" aria-selected="false">Inventário</button><button role="tab" type="button" aria-selected="false">Aparência</button></div>
+              <ul class="list"><li class="item power"><span class="el energia"><span data-i="bolt"></span></span><div class="grow"><b>Golpe de Sorte</b><span class="small muted">Energia · NEX 15%</span></div><span class="chip ok">Aprovado</span></li><li class="item power"><span class="el conhecimento"><span data-i="eye"></span></span><div class="grow"><b>Precognição</b><span class="small muted">Conhecimento · NEX 30%</span></div><span class="chip gold">Aguardando mestre</span></li><li class="item power"><span class="el morte"><span data-i="hourglass"></span></span><div class="grow"><b>Surto Temporal</b><span class="small muted">Morte · exige 2 poderes de Morte aprovados</span></div><span class="chip">Bloqueado</span></li></ul>
+              <p class="small faint" style="margin:0">Transcender conta como escolha de poder. Ao aprová-lo, o mestre aplica a renúncia ao ganho de Sanidade.</p></article>
           </div>
         </section>
 
-        <!-- AJUSTES -->
+        <!-- PERSONALIZAÇÃO -->
         <section class="page" data-view="ajustes" aria-labelledby="h-aj" hidden>
-          <div class="hero"><p class="kicker">Ajustes</p><h1 id="h-aj">Do seu <em>jeito.</em></h1><p>As escolhas valem só neste aparelho. Elas não mudam o mapa, os tokens nem as regras da mesa.</p></div>
+          <div class="hero"><p class="kicker">Personalização</p><h1 id="h-aj">Do seu <em>jeito.</em></h1><p>As escolhas valem só neste aparelho. Elas não mudam o mapa, os tokens nem as regras da mesa.</p></div>
           <div class="grid">
-            <article class="card c7">
-              <h2>Aparência</h2>
-              <div>
-                <div class="set-row"><div><b>Tema</b><div class="small muted">Escuro é o padrão do Mastermind.</div></div><div class="seg" role="group" aria-label="Tema" id="theme-seg"><button type="button" data-t="dark" aria-pressed="true"><span data-i="moon"></span>Escuro</button><button type="button" data-t="light" aria-pressed="false"><span data-i="sun"></span>Claro</button></div></div>
-                <div class="set-row"><div><b>Cor de destaque</b><div class="small muted">A roda RGB continua disponível para cores livres.</div></div><div class="swatches" id="swatches"><button type="button" aria-label="Latão" style="background:#c7a87b" data-c="#c7a87b" aria-pressed="true"></button><button type="button" aria-label="Rosa" style="background:#dca4bd" data-c="#dca4bd" aria-pressed="false"></button><button type="button" aria-label="Lavanda" style="background:#9c90dd" data-c="#9c90dd" aria-pressed="false"></button><button type="button" aria-label="Sálvia" style="background:#86bd9c" data-c="#86bd9c" aria-pressed="false"></button><button type="button" aria-label="Sangue" style="background:#e0707c" data-c="#e0707c" aria-pressed="false"></button></div></div>
-                <div class="set-row"><div><b>Grade do mapa</b><div class="small muted">Intensidade das linhas na mesa.</div></div><input type="range" id="grid-alpha" min="0" max="30" value="12" aria-label="Intensidade da grade"></div>
-                <div class="set-row"><div><b>Nomes dos tokens</b><div class="small muted">Mostrar sempre, em vez de só ao passar o cursor.</div></div><div class="seg" role="group" aria-label="Nomes" id="names-seg"><button type="button" data-n="0" aria-pressed="true">Ao passar</button><button type="button" data-n="1" aria-pressed="false">Sempre</button></div></div>
-              </div>
-            </article>
-            <article class="card c5">
-              <h2>Ajuda</h2>
-              <button class="btn" type="button" id="redo-master"><span data-i="help"></span>Refazer tutorial do mestre</button>
-              <button class="btn" type="button" id="redo-player"><span data-i="help"></span>Refazer tutorial do jogador</button>
-              <h3 style="font-size:19px;margin-top:6px">Atalhos da mesa</h3>
-              <table class="keys"><tbody>
-                <tr><td>Mover tokens</td><td><kbd>V</kbd></td></tr><tr><td>Medir</td><td><kbd>M</kbd></td></tr><tr><td>Desenhar</td><td><kbd>D</kbd></td></tr><tr><td>Névoa</td><td><kbd>F</kbd></td></tr><tr><td>Marcar ponto</td><td><kbd>P</kbd></td></tr><tr><td>Lanterna</td><td><kbd>L</kbd></td></tr><tr><td>Rolar d20</td><td><kbd>R</kbd></td></tr><tr><td>Próximo na iniciativa</td><td><kbd>N</kbd></td></tr><tr><td>Mover o mapa</td><td><kbd>Espaço</kbd> + arrastar</td></tr><tr><td>Zoom</td><td>roda ou pinça · <kbd>0</kbd> ajusta</td></tr>
-              </tbody></table>
-            </article>
+            <article class="card c7"><h2 style="font-size:23px">Aparência</h2><div>
+              <div class="set-row"><div><b>Tema</b><div class="small muted">Escuro é o padrão do Mastermind.</div></div><div class="seg" role="group" aria-label="Tema" id="theme-seg"><button type="button" data-t="dark" aria-pressed="true"><span data-i="moon"></span>Escuro</button><button type="button" data-t="light" aria-pressed="false"><span data-i="sun"></span>Claro</button></div></div>
+              <div class="set-row"><div><b>Cor de destaque</b><div class="small muted">A roda RGB continua disponível para cores livres.</div></div><div class="swatches" id="swatches"><button type="button" aria-label="Latão" style="background:#c7a87b" data-c="#c7a87b" aria-pressed="true"></button><button type="button" aria-label="Rosa" style="background:#dca4bd" data-c="#dca4bd" aria-pressed="false"></button><button type="button" aria-label="Lavanda" style="background:#9c90dd" data-c="#9c90dd" aria-pressed="false"></button><button type="button" aria-label="Sálvia" style="background:#86bd9c" data-c="#86bd9c" aria-pressed="false"></button><button type="button" aria-label="Sangue" style="background:#e0707c" data-c="#e0707c" aria-pressed="false"></button></div></div>
+              <div class="set-row"><div><b>Grade do mapa</b><div class="small muted">Intensidade das linhas na mesa, só neste aparelho.</div></div><input type="range" id="grid-alpha" min="0" max="30" value="12" aria-label="Intensidade da grade"></div>
+              <div class="set-row"><div><b>Nomes dos tokens</b><div class="small muted">Mostrar sempre, em vez de só ao passar o cursor.</div></div><div class="seg" role="group" aria-label="Nomes" id="names-seg"><button type="button" data-n="0" aria-pressed="true">Ao passar</button><button type="button" data-n="1" aria-pressed="false">Sempre</button></div></div></div></article>
+            <article class="card c5"><h2 style="font-size:23px">Ajuda</h2>
+              <button class="btn" type="button" id="redo-master"><span data-i="help"></span>Refazer tutorial da mesa (mestre)</button><button class="btn" type="button" id="redo-studio"><span data-i="help"></span>Refazer tutorial do Estúdio</button><button class="btn" type="button" id="redo-player"><span data-i="help"></span>Refazer tutorial do jogador</button>
+              <h3 style="font-size:19px;margin-top:6px">Atalhos</h3>
+              <table class="keys"><tbody><tr><td>Central</td><td><kbd>C</kbd></td></tr><tr><td>Mesa: mover, medir, desenhar, névoa</td><td><kbd>V</kbd> <kbd>M</kbd> <kbd>D</kbd> <kbd>F</kbd></td></tr><tr><td>Mesa: portas, marcar, lanterna</td><td><kbd>O</kbd> <kbd>P</kbd> <kbd>L</kbd></td></tr><tr><td>Estúdio: terreno, balde, sala, parede</td><td><kbd>B</kbd> <kbd>G</kbd> <kbd>R</kbd> <kbd>W</kbd></td></tr><tr><td>Estúdio: porta, objeto, luz, borracha</td><td><kbd>O</kbd> <kbd>S</kbd> <kbd>L</kbd> <kbd>E</kbd></td></tr><tr><td>Girar peça · desfazer · duplicar</td><td><kbd>[</kbd> <kbd>]</kbd> · <kbd>Ctrl Z</kbd> · <kbd>Ctrl D</kbd></td></tr><tr><td>Fechar painel ou menu</td><td><kbd>Esc</kbd></td></tr><tr><td>Mover o mapa</td><td><kbd>Espaço</kbd> + arrastar</td></tr></tbody></table></article>
           </div>
         </section>
       </div>
-
-      <nav class="bnav" aria-label="Navegação principal">
-        <a href="#mestragem"><span data-i="crown"></span>Mestragem</a>
-        <a href="#mesa"><span data-i="map"></span>Mesa</a>
-        <a href="#ficha"><span data-i="user"></span>Fichas</a>
-        <a href="#biblioteca"><span data-i="books"></span>Biblioteca</a>
-        <a href="#ajustes"><span data-i="settings"></span>Ajustes</a>
-      </nav>
+      <button id="central-fab" type="button" aria-label="Abrir a Central da mesa"><span data-i="layout-grid"></span></button>
     </div>
 
-    <!-- ================= MESA DO MESTRE ================= -->
+    <!-- ================= MESA, ESTÚDIO E JOGADOR ================= -->
     <section class="vtt" data-view="mesa" id="vtt-master" aria-label="Mesa ao vivo do mestre" hidden></section>
-
-    <!-- ================= MESA DO JOGADOR ================= -->
+    <section class="vtt" data-view="estudio" id="studio" aria-label="Estúdio de cenários" hidden></section>
     <section class="vtt" data-view="jogador" id="vtt-player" aria-label="Mesa do jogador" hidden></section>
 
-    <!-- ================= ENTRAR PELO IP ================= -->
+    <!-- ================= ENTRAR ================= -->
     <section class="vtt" data-view="entrar" aria-labelledby="h-join" hidden>
-      <div class="join-bg" aria-hidden="true"><canvas id="join-map" width="1152" height="768"></canvas></div>
+      <div class="join-bg" aria-hidden="true"><canvas id="join-map"></canvas></div>
       <div class="join">
-        <form class="join-card" id="join-form" novalidate>
+        <div class="join-mode"><span>Protótipo · ver a tela</span><div class="seg" id="join-mode" role="group" aria-label="Onde o jogador está"><button type="button" data-jm="app" aria-pressed="true"><span data-i="device-mobile"></span>No app Mastermind</button><button type="button" data-jm="web" aria-pressed="false"><span data-i="world"></span>No navegador</button></div></div>
+
+        <form class="join-card" id="join-app" novalidate>
           <div class="row" style="gap:12px"><span class="glyph">✧</span><span class="kicker">Mastermind · mesa na rede local</span></div>
           <h1 id="h-join">Entrar na <em>mesa.</em></h1>
-          <p class="muted" style="margin:-6px 0 0">Use o endereço que aparece na tela de Mestragem do mestre. O celular precisa estar no mesmo Wi-Fi.</p>
-          <div class="field">
-            <label for="join-addr">Endereço da mesa</label>
-            <div class="row" style="flex-wrap:nowrap"><input class="input num" id="join-addr" value="192.168.0.12:8765" inputmode="url" autocomplete="off" spellcheck="false"><button class="btn" type="button" id="join-test">Testar</button></div>
-          </div>
+          <p class="muted" style="margin:-6px 0 0">Use o endereço que aparece na Mestragem do mestre. O celular precisa estar no mesmo Wi-Fi.</p>
+          <div class="field"><label for="join-addr">Endereço da mesa</label><div class="row" style="flex-wrap:nowrap"><input class="input num" id="join-addr" value="192.168.0.12:8765" inputmode="url" autocomplete="off" spellcheck="false"><button class="btn" type="button" id="join-test">Testar</button></div></div>
           <div class="status-line" id="join-status" role="status"><span class="dot"></span><span>Toque em Testar para procurar a mesa.</span></div>
           <div class="field"><label for="join-nick">Seu nome na mesa</label><input class="input" id="join-nick" value="Ana" autocomplete="nickname"></div>
-          <div class="field">
-            <span class="label">Personagem</span>
-            <label class="radio"><input type="radio" name="join-sheet" checked><span><b>Esperar o mestre</b><br><span class="small muted">Ele atribui uma ficha da campanha para você.</span></span></label>
-            <label class="radio"><input type="radio" name="join-sheet"><span><b>Enviar minha ficha</b><br><span class="small muted">Arquivo JSON. O mestre revisa antes de aprovar.</span></span></label>
-          </div>
-          <button class="btn primary" type="submit" id="join-btn" style="min-height:48px;font-size:15px">Entrar na mesa<span data-i="arrow-right"></span></button>
-          <div class="field"><span class="label">Mesas recentes</span>
-            <div class="item"><span class="avatar" style="background:#c7a87b">VC</span><div class="grow"><b>Crônicas do Vale Cinzento</b><span class="small muted num">192.168.0.12:8765 · como Ana</span></div><button class="btn sm" type="button" id="join-resume">Retomar</button></div>
-          </div>
-          <p class="small faint" style="margin:0">Protótipo: o teste de conexão é simulado e nenhum endereço é acessado.</p>
+          <div class="field"><span class="label">Fichas salvas neste celular</span><div class="sheet-list" id="join-sheets"></div><span class="small faint">O mestre recebe uma cópia para aprovar. A original continua no seu celular.</span></div>
+          <button class="btn primary" type="submit" id="join-btn" style="min-height:48px;font-size:15px">Entrar na mesa</button>
+          <div class="field"><span class="label">Mesas recentes</span><div class="item"><span class="avatar" style="background:#c7a87b">VC</span><div class="grow"><b>Crônicas do Vale Cinzento</b><span class="small muted num">192.168.0.12:8765 · como Ana</span></div><button class="btn sm" type="button" id="join-resume">Retomar</button></div></div>
+          <p class="small faint" style="margin:0">Protótipo: a conexão é simulada e nenhum endereço é acessado.</p>
+        </form>
+
+        <form class="join-card" id="join-web" novalidate hidden>
+          <div class="row" style="gap:12px"><span class="glyph">✧</span><span class="kicker">Convite · Crônicas do Vale Cinzento</span></div>
+          <h1>Entrar pelo <em>navegador.</em></h1>
+          <div class="app-cta"><span data-i="device-mobile"></span><div><b>Tem o app Mastermind?</b><div class="small muted">Entre por ele para usar as fichas salvas no seu celular.</div><ol><li>Abra o app e toque em Entrar numa mesa.</li><li>Digite <b class="num">192.168.0.12:8765</b>.</li><li>Escolha sua ficha e envie ao mestre.</li></ol></div></div>
+          <div class="field"><label for="web-nick">Seu nome na mesa</label><input class="input" id="web-nick" value="Diego" autocomplete="nickname"></div>
+          <div class="field"><span class="label">Personagem</span>
+            <label class="radio"><input type="radio" name="web-sheet" checked><span><b>Esperar o mestre</b><br><span class="small muted">Ele atribui uma ficha da campanha para você.</span></span></label>
+            <label class="radio"><input type="radio" name="web-sheet"><span><b>Enviar arquivo de ficha</b><br><span class="small muted">Arquivo JSON exportado do app. O mestre revisa antes de aprovar.</span></span></label></div>
+          <div class="status-line" id="web-status" role="status"><span class="dot on"></span><span>Convite válido · mestre online (simulado)</span></div>
+          <button class="btn primary" type="submit" id="web-btn" style="min-height:48px;font-size:15px">Entrar na mesa<span data-i="arrow-right"></span></button>
         </form>
       </div>
     </section>
   </div>
 </div>
-
-<script>
-(()=>{
-'use strict';
-/* ============ Utilidades ============ */
-const $=(s,el=document)=>el.querySelector(s), $$=(s,el=document)=>[...el.querySelectorAll(s)];
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const ic=(n,c)=>window.RevampIcons?RevampIcons.render(n,c):'';
-const store={get(k){try{return localStorage.getItem(k)}catch(_){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(_){}},del(k){try{localStorage.removeItem(k)}catch(_){}}};
-const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-function hydrateIcons(root=document){$$('[data-i]',root).forEach(el=>{if(el.dataset.done)return;el.dataset.done=1;el.insertAdjacentHTML('afterbegin',ic(el.dataset.i))})}
-let bus=[];const on=f=>bus.push(f),emit=(e,d)=>bus.forEach(f=>f(e,d));
-function toast(msg,host){const h=host||document.querySelector('[data-view]:not([hidden]).vtt')||$('#app');$$('.toast',h).forEach(t=>t.remove());const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=msg;
- // fica acima do cartão do token ou do HUD, quando houver
- const under=[...h.querySelectorAll('.tcard:not([hidden]),.hud')].reduce((m,el)=>Math.max(m,h.getBoundingClientRect().bottom-el.getBoundingClientRect().top),0);if(under)t.style.bottom=(under+12)+'px';
- h.appendChild(t);setTimeout(()=>t.remove(),2600)}
-async function copyText(text){try{await navigator.clipboard.writeText(text);return true}catch(_){return false}}
-
-/* ============ Dados (exemplo + catálogo real) ============ */
-const CELL=48,COLS=24,ROWS=16,W=COLS*CELL,H=ROWS*CELL;
-const SIZE={'PEQUENO':1,'MÉDIO':1,'GRANDE':2,'ENORME':3};
-const NOTE='Dados essenciais indexados. Habilidades, condições e ações adicionais: consulte o livro original.';
-// Valores de app/src/main/assets/rpg19_order_creatures.js
-const CREATURES={
- 'Carente':{system:'Ordem Paranormal',element:'Sangue',hp:700,defense:40,attack:'4O+35',damage:'2d8+20',speed:'12M',size:'GRANDE',initiative:'4O+15',source:'Ordem Paranormal RPG v1.3 · p.188'},
- 'Aberração de Carne':{system:'Ordem Paranormal',element:'Sangue',hp:70,defense:19,attack:'3O+10',damage:'2d6+6',speed:'9M',size:'GRANDE',initiative:'O',source:'Ordem Paranormal RPG v1.3 · p.182'},
- 'Dama de Sangue':{system:'Ordem Paranormal',element:'Sangue',hp:105,defense:20,attack:'3O+10',damage:'2d6+5',speed:'12M',size:'ENORME',initiative:'2O',source:'Ordem Paranormal RPG v1.3 · p.190'}
-};
-const DND=['Goblin','Lobo','Esqueleto'];
-const COLORS={pc:{ring:'#c7a87b',hi:'#f0d9ad',lo:'#8a6a3d'},ally:{ring:'#86bd9c',hi:'#c9ecd6',lo:'#3f7357'},foe:{ring:'#e0707c',hi:'#d4606d',lo:'#5b1621'},npc:{ring:'#9c90dd',hi:'#d5cff7',lo:'#4b4386'},obj:{ring:'#92939f',hi:'#d9d6cf',lo:'#5d5a54'}};
-const PLAYERS=[{id:'ana',name:'Ana',ini:'AN',color:'#c7a87b',online:true,char:'Aurora'},{id:'diego',name:'Diego',ini:'DI',color:'#86bd9c',online:true,char:'Brás'},{id:'lia',name:'Lia',ini:'LI',color:'#9c90dd',online:true,char:null},{id:'rafa',name:'Rafa',ini:'RA',color:'#6db7e0',online:false,char:null}];
-const ROOMS=[{id:'entrada',name:'Entrada',x:1,y:4,w:7,h:8,c:'#3b3731'},{id:'corredor',name:'Corredor',x:8,y:6,w:8,h:4,c:'#35322d'},{id:'salao',name:'Salão',x:16,y:2,w:7,h:12,c:'#3c352d'},{id:'capela',name:'Capela',x:9,y:1,w:6,h:4,c:'#30343a'},{id:'cela',name:'Cela',x:9,y:11,w:6,h:4,c:'#34312b'}];
-const DOORS=[[11,5],[12,10]];
-const FLOOR=new Set();ROOMS.forEach(r=>{for(let y=r.y;y<r.y+r.h;y++)for(let x=r.x;x<r.x+r.w;x++)FLOOR.add(x+','+y)});DOORS.forEach(([x,y])=>FLOOR.add(x+','+y));
-const roomAt=(x,y)=>ROOMS.find(r=>x>=r.x&&x<r.x+r.w&&y>=r.y&&y<r.y+r.h);
-const isFloor=(x,y)=>FLOOR.has(x+','+y);
-
-function freshState(){
- const fog=new Set();['capela','cela'].forEach(id=>{const r=ROOMS.find(r=>r.id===id);for(let y=r.y;y<r.y+r.h;y++)for(let x=r.x;x<r.x+r.w;x++)fog.add(x+','+y)});
- DOORS.forEach(([x,y])=>fog.add(x+','+y));
- return {
-  tokens:[
-   {id:'aurora',name:'Aurora',ini:'AU',kind:'pc',owner:'ana',x:3,y:7,size:1,speed:6,used:0,res:{Vida:[18,24],Esforço:[5,7],Sanidade:[12,16]},cls:'Combatente · NEX 35%',effects:['Sangrando · 2 turnos']},
-   {id:'bras',name:'Brás',ini:'BR',kind:'ally',owner:'diego',x:4,y:9,size:1,speed:6,used:0,res:{Vida:[21,21],Esforço:[4,6],Sanidade:[10,14]},cls:'Especialista · NEX 25%',effects:[]},
-   mkCreature('Carente',18,6,'carente'),
-   Object.assign(mkCreature('Dama de Sangue',18,9,'dama'),{hidden:true}),
-   mkCreature('Aberração de Carne',11,2,'aberracao')
-  ],
-  fog, strokes:[], mode:'combat', light:false,
-  init:{entries:[{id:'carente',score:31},{id:'aurora',score:18},{id:'dama',score:14},{id:'bras',score:12}],idx:1,round:2},
-  log:[{who:'Mestre',text:'Carente: ataque 4O+35',faces:[7,15,3,11],kept:15,total:50,vis:'public'}]
- };
-}
-function mkCreature(name,x,y,id){const c=CREATURES[name];return {id:id||('c'+Math.random().toString(36).slice(2,7)),name,ini:initials(name),kind:'foe',x,y,size:c?SIZE[c.size]||1:1,speed:c?Math.round(parseInt(c.speed)/1.5):6,used:0,hp:c?[c.hp,c.hp]:null,creature:name,dnd:!c,rot:0}}
-function initials(n){const p=n.split(/\s+/).filter(w=>w.length>2||/^[A-Z]/.test(w));return ((p[0]||n)[0]+((p[1]||'')[0]||n[1]||'')).toUpperCase()}
-let S=freshState();
-
-/* ============ Pintura do mapa (procedural, determinística) ============ */
-function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-function shade(hex,amt){const n=parseInt(hex.slice(1),16);let r=(n>>16)+amt,g=(n>>8&255)+amt,b=(n&255)+amt;return`rgb(${clamp(r,0,255)},${clamp(g,0,255)},${clamp(b,0,255)})`}
-function paintMap(cv,scale,opt={}){
- const g=cv.getContext('2d');g.setTransform(scale,0,0,scale,0,0);const R=rng(opt.seed||7);
- g.fillStyle='#101216';g.fillRect(0,0,W,H);
- for(let i=0;i<2600;i++){g.fillStyle=`rgba(255,255,255,${R()*0.035})`;g.fillRect(R()*W,R()*H,1+R()*3,1+R()*3)}
- for(let i=0;i<60;i++){g.fillStyle=`rgba(0,0,0,${0.15+R()*0.2})`;g.beginPath();g.arc(R()*W,R()*H,10+R()*40,0,7);g.fill()}
- // pisos
- FLOOR.forEach(k=>{const[x,y]=k.split(',').map(Number);const r=roomAt(x,y);const base=r?r.c:'#4a3a28';
-  g.fillStyle=shade(base,Math.round((R()-.5)*14));g.fillRect(x*CELL,y*CELL,CELL,CELL);
-  g.strokeStyle='rgba(0,0,0,.28)';g.lineWidth=1.5;g.strokeRect(x*CELL+1.5,y*CELL+1.5,CELL-3,CELL-3);
-  g.strokeStyle='rgba(255,255,255,.035)';g.beginPath();g.moveTo(x*CELL+3,y*CELL+CELL-3);g.lineTo(x*CELL+3,y*CELL+3);g.lineTo(x*CELL+CELL-3,y*CELL+3);g.stroke();
-  if(R()<.16){g.strokeStyle='rgba(0,0,0,.35)';g.lineWidth=1;g.beginPath();let cx=x*CELL+R()*CELL,cy=y*CELL+R()*CELL;g.moveTo(cx,cy);for(let i=0;i<3;i++){cx+= (R()-.5)*18;cy+=(R()-.5)*18;g.lineTo(cx,cy)}g.stroke()}});
- // tapete do salão
- g.fillStyle='#4e2230';g.fillRect(18*CELL+6,5*CELL+6,3*CELL-12,6*CELL-12);g.strokeStyle='#9b7a4a';g.lineWidth=3;g.strokeRect(18*CELL+12,5*CELL+12,3*CELL-24,6*CELL-24);
- g.strokeStyle='rgba(155,122,74,.5)';g.lineWidth=1;g.strokeRect(18*CELL+20,5*CELL+20,3*CELL-40,6*CELL-40);
- // círculo ritual na capela
- const cx=12*CELL,cy=3*CELL;g.strokeStyle='rgba(224,112,124,.55)';g.lineWidth=2.5;g.beginPath();g.arc(cx,cy,62,0,7);g.stroke();g.beginPath();g.arc(cx,cy,48,0,7);g.stroke();
- g.beginPath();for(let i=0;i<5;i++){const a=-Math.PI/2+i*4*Math.PI/5;g[i?'lineTo':'moveTo'](cx+Math.cos(a)*48,cy+Math.sin(a)*48)}g.closePath();g.stroke();
- // sangue no corredor
- g.fillStyle='rgba(110,18,28,.75)';[[13.3,7.6,16],[13.7,8.1,10],[12.8,8.3,7],[14.4,7.2,6]].forEach(([x,y,r])=>{g.beginPath();g.ellipse(x*CELL,y*CELL,r,r*.7,R()*3,0,7);g.fill()});
- // pilares
- [[17,3],[21,3],[17,12],[21,12]].forEach(([x,y])=>{g.fillStyle='#24211d';g.beginPath();g.arc(x*CELL+CELL/2,y*CELL+CELL/2,17,0,7);g.fill();g.strokeStyle='#5c544a';g.lineWidth=3;g.stroke();g.fillStyle='rgba(255,255,255,.08)';g.beginPath();g.arc(x*CELL+CELL/2-5,y*CELL+CELL/2-5,6,0,7);g.fill()});
- // mesa e caixotes na entrada
- g.fillStyle='#5a3e25';g.fillRect(2*CELL+6,5*CELL+10,2*CELL-12,CELL-20);g.strokeStyle='#2c1d10';g.lineWidth=2;g.strokeRect(2*CELL+6,5*CELL+10,2*CELL-12,CELL-20);
- [[6,10],[6,11],[5,11]].forEach(([x,y])=>{g.fillStyle='#6b4a2b';g.fillRect(x*CELL+7,y*CELL+7,CELL-14,CELL-14);g.strokeStyle='#2c1d10';g.strokeRect(x*CELL+7,y*CELL+7,CELL-14,CELL-14);g.beginPath();g.moveTo(x*CELL+7,y*CELL+7);g.lineTo(x*CELL+CELL-7,y*CELL+CELL-7);g.stroke()});
- // grades da cela
- g.strokeStyle='#6d6a64';g.lineWidth=3;for(let i=0;i<6;i++){g.beginPath();g.moveTo((9+i)*CELL+24,13*CELL);g.lineTo((9+i)*CELL+24,15*CELL);g.stroke()}
- // paredes
- g.lineCap='round';
- FLOOR.forEach(k=>{const[x,y]=k.split(',').map(Number);[[0,-1,x,y,x+1,y],[0,1,x,y+1,x+1,y+1],[-1,0,x,y,x,y+1],[1,0,x+1,y,x+1,y+1]].forEach(([dx,dy,x1,y1,x2,y2])=>{if(isFloor(x+dx,y+dy))return;
-  g.strokeStyle='#08090b';g.lineWidth=11;g.beginPath();g.moveTo(x1*CELL,y1*CELL);g.lineTo(x2*CELL,y2*CELL);g.stroke();
-  g.strokeStyle='#5b564e';g.lineWidth=5;g.beginPath();g.moveTo(x1*CELL,y1*CELL);g.lineTo(x2*CELL,y2*CELL);g.stroke()})});
- // portas
- DOORS.forEach(([x,y])=>{g.fillStyle='#7a5530';g.fillRect(x*CELL+4,y*CELL+CELL/2-6,CELL-8,12);g.strokeStyle='#2c1d10';g.lineWidth=2;g.strokeRect(x*CELL+4,y*CELL+CELL/2-6,CELL-8,12);g.fillStyle='#c7a87b';g.fillRect(x*CELL+CELL-14,y*CELL+CELL/2-2,4,4)});
- // velas
- [[2,4.6],[7.4,8],[16.4,7],[22.5,7],[11,6.3]].forEach(([x,y])=>{const px=x*CELL,py=y*CELL,gr=g.createRadialGradient(px,py,0,px,py,70);gr.addColorStop(0,'rgba(255,190,110,.32)');gr.addColorStop(1,'rgba(255,190,110,0)');g.fillStyle=gr;g.beginPath();g.arc(px,py,70,0,7);g.fill();g.fillStyle='#ffe2a8';g.beginPath();g.arc(px,py,3,0,7);g.fill()});
- // grade
- const ga=opt.gridAlpha??.12;if(ga>0){g.strokeStyle=`rgba(255,255,255,${ga})`;g.lineWidth=1;g.beginPath();FLOOR.forEach(k=>{const[x,y]=k.split(',').map(Number);g.rect(x*CELL+.5,y*CELL+.5,CELL,CELL)});g.stroke()}
-}
-function paintThumb(cv,variant){const t=document.createElement('canvas');t.width=W;t.height=H;paintMap(t,1,{seed:7+variant*11,gridAlpha:.08});const g=cv.getContext('2d');g.fillStyle='#101216';g.fillRect(0,0,cv.width,cv.height);
- const s=Math.max(cv.width/W,cv.height/H)*(variant?1.6:1),ox=variant===1?-cv.width*.55:variant===2?-cv.width*.15:0,oy=variant===1?0:variant===2?-cv.height*.5:0;
- g.save();if(variant===1){g.filter='hue-rotate(160deg) saturate(.8)'}if(variant===2){g.filter='sepia(.5)'}g.drawImage(t,ox,oy,W*s,H*s);g.restore()}
-
-/* ============ Dados (rolagem) ============ */
-function parseRoll(f){f=String(f).replace(/\s+/g,'').toUpperCase();let m=f.match(/^(\d*)O([+-]\d+)?$/);if(m)return{n:+m[1]||1,s:20,b:+(m[2]||0),mode:'highest',label:f};
- m=f.match(/^(\d*)D(\d+)([+-]\d+)?$/);if(m&&+m[2]>1)return{n:Math.min(+m[1]||1,30),s:+m[2],b:+(m[3]||0),mode:null,label:f.replace('D','d')};return null}
-function doRoll(formula,mode){const p=parseRoll(formula);if(!p)return null;const faces=Array.from({length:p.n},()=>1+Math.floor(Math.random()*p.s));const md=p.mode||mode||'sum';
- let kept=null,base;if(md==='highest'){kept=Math.max(...faces);base=kept}else if(md==='lowest'){kept=Math.min(...faces);base=kept}else base=faces.reduce((a,b)=>a+b,0);return{faces,kept,total:base+p.b,label:p.label,mode:md}}
-
-/* ============ Mesa (motor compartilhado mestre/jogador) ============ */
-class Table{
- constructor(root,role){
-  this.root=root;this.role=role;this.me=role==='player'?'aurora':null;
-  this.z=1;this.px=0;this.py=0;this.tool='move';this.variant={draw:'pen',fog:'hide',wall:'wall'};this.color='#c7a87b';
-  this.sel=role==='player'?'aurora':'aurora';this.pointers=new Map();this.space=false;this.measure=null;this.pending=null;this.panelTab='init';
-  this.build();this.paintBase();this.fit(false);this.render();
-  on((e)=>{if(e==='state')this.render()});
- }
- visibleTokens(){return S.tokens.filter(t=>this.role==='master'||(!t.hidden&&!this.cellsOf(t).every(k=>S.fog.has(k))))}
- cellsOf(t){const a=[];for(let y=t.y;y<t.y+t.size;y++)for(let x=t.x;x<t.x+t.size;x++)a.push(x+','+y);return a}
- tok(id){return S.tokens.find(t=>t.id===id)}
- activeId(){const e=S.init.entries[S.init.idx];return e?e.id:null}
- build(){
-  const R=this.root,M=this.role==='master';
-  R.innerHTML=`
-  <div class="stage" data-tool="move"><div class="world"><div class="map-shadow"></div><canvas class="cv-map"></canvas><canvas class="cv-fx"></canvas><div class="tokens"></div><canvas class="cv-veil"></canvas><div class="pins"></div></div></div>
-  <div class="float room"><button class="room-btn" type="button" aria-haspopup="menu"><span class="glyph">✧</span><span><b>Vale Cinzento</b><small>Corredor do Forte</small></span>${ic('chevron-down')}</button><span class="chip gold state-chip num"></span></div>
-  <div class="float tools" role="toolbar" aria-label="Ferramentas do mapa" aria-orientation="vertical"></div>
-  <div class="float optbar" aria-live="polite"></div>
-  <div class="float people">${M?`<button class="btn sm invite-btn" type="button">${ic('link')}Convidar</button>`:''}<div class="stack">${PLAYERS.filter(p=>p.online).map(p=>`<span class="avatar" title="${esc(p.name)}" style="background:${p.color}">${p.ini}<span class="dot on"></span></span>`).join('')}</div><button class="ibtn panel-toggle" type="button" aria-label="Mostrar ou ocultar painel" aria-pressed="true">${ic('layout-sidebar-right')||ic('list-numbers')}</button></div>
-  <div class="float banner" hidden></div>
-  <aside class="float panel" aria-label="Painel da mesa"><div class="panel-tabs" role="tablist">
-    <button type="button" role="tab" data-ptab="init" aria-selected="true">${ic('list-numbers')}Iniciativa</button>
-    <button type="button" role="tab" data-ptab="log" aria-selected="false">${ic('dice-5')}Rolagens</button>
-    ${M?`<button type="button" role="tab" data-ptab="players" aria-selected="false">${ic('users')}Jogadores</button>`:''}
-  </div><div class="panel-body"></div></aside>
-  ${M?`<aside class="float drawer" aria-label="Adicionar ao mapa" hidden><div class="panel-tabs" role="tablist"><button type="button" role="tab" data-dtab="sheets" aria-selected="true">Fichas</button><button type="button" role="tab" data-dtab="beasts" aria-selected="false">Bestiário</button><button type="button" role="tab" data-dtab="objs" aria-selected="false">Objetos</button></div><div class="panel-body"></div></aside>`:''}
-  <div class="float zoom"><button class="ibtn" type="button" data-z="-1" aria-label="Diminuir zoom">${ic('zoom-out')}</button><span class="num zoom-v">100%</span><button class="ibtn" type="button" data-z="1" aria-label="Aumentar zoom">${ic('zoom-in')}</button><button class="ibtn" type="button" data-z="0" aria-label="Ajustar mapa à tela">${ic('focus-2')}</button></div>
-  ${M?`<div class="float dice"><button class="ibtn dice-btn" type="button" aria-haspopup="dialog">${ic('dice-5')}Dados</button></div>`:''}
-  <div class="float tcard" hidden></div>
-  ${M?'':`<div class="float hud"></div><div class="sheet" role="dialog" aria-label="Ficha da Aurora"><div class="grab"></div><div class="sheet-body"></div></div>`}`;
-  this.stage=$('.stage',R);this.world=$('.world',R);this.tokensEl=$('.tokens',R);this.pinsEl=$('.pins',R);
-  this.cvMap=$('.cv-map',R);this.cvFx=$('.cv-fx',R);this.cvVeil=$('.cv-veil',R);
-  const dpr=Math.min(window.devicePixelRatio||1,1.5);this.dpr=dpr;
-  [this.cvMap,this.cvFx,this.cvVeil].forEach(c=>{c.width=W*dpr;c.height=H*dpr;c.style.width=W+'px';c.style.height=H+'px'});
-  this.world.style.width=W+'px';this.world.style.height=H+'px';
-  this.buildTools();this.bind();
-  if(window.innerWidth<760||window.innerHeight<460){$('.panel',R).hidden=true;$('.panel-toggle',R).setAttribute('aria-pressed','false')}
- }
- buildTools(){
-  const M=this.role==='master';
-  const tools=M?[['move','pointer','Mover','V'],['measure','ruler','Medir','M'],['draw','brush','Desenhar','D',1],['fog','cloud-fog','Névoa','F',1],['wall','wall','Paredes e portas','W',1],['pin','map-pin','Marcar ponto','P'],'|',['light','bulb','Lanterna','L','toggle'],['add','plus','Adicionar ao mapa','A','toggle'],'|',['undo','arrow-back-up','Desfazer desenho','Ctrl Z','action']]
-   :[['move','pointer','Mover','V'],['measure','ruler','Medir','M'],['pin','map-pin','Marcar ponto','P'],['inspect','eye','Inspecionar','I'],'|',['light','bulb','Lanterna','L','toggle']];
-  $('.tools',this.root).innerHTML=tools.map(t=>t==='|'?'<div class="sep" role="separator"></div>':`<button class="ibtn ${t[4]===1?'has-sub':''}" type="button" data-tool="${t[0]}" aria-label="${t[2]}" aria-pressed="${t[0]==='move'}">${ic(t[1])}<span class="tip">${t[2]}<kbd>${t[3]}</kbd></span></button>`).join('');
- }
- paintBase(){paintMap(this.cvMap,this.dpr,{gridAlpha:GRID_ALPHA})}
- /* ---- câmera ---- */
- apply(anim){this.world.classList.toggle('anim',!!anim);this.world.style.transform=`translate(${this.px}px,${this.py}px) scale(${this.z})`;$('.zoom-v',this.root).textContent=Math.round(this.z*100)+'%';if(Tut.flow)requestAnimationFrame(()=>Tut.place())}
- // Ajusta o mapa à área livre entre os controles flutuantes (ferramentas, painel, HUD).
- fit(anim=true){const r=this.stage.getBoundingClientRect();if(!r.width)return;
-  const phone=r.width<760,short=r.height<460,P=this.role==='player',panelOn=!$('.panel',this.root).hidden&&!phone;
-  let L=phone?16:84,R=panelOn?332:16,T=phone?(P?116:116):76,B=phone?(P?190:80):(P?118:84);
-  if(short){L=16;T=124;B=P?78:70;R=panelOn?320:16}
-  const aw=Math.max(80,r.width-L-R),ah=Math.max(80,r.height-T-B);
-  if(phone&&!short){const me=this.tok(P?'aurora':this.sel)||this.tok('aurora');this.z=clamp(ah/H*.95,.35,1);
-   const cx=me?(me.x+me.size/2)*CELL:W/2;this.px=clamp(L+aw/2-cx*this.z,L+aw-W*this.z,L);this.py=T+(ah-H*this.z)/2}
-  else{this.z=clamp(Math.min(aw/W,ah/H),.25,2.5);this.px=L+(aw-W*this.z)/2;this.py=T+(ah-H*this.z)/2}
-  this.apply(anim)}
- tokenAtPoint(cx,cy){const c=this.cellAt(cx,cy);return this.visibleTokens().slice().reverse().find(t=>c.x>=t.x&&c.x<t.x+t.size&&c.y>=t.y&&c.y<t.y+t.size)}
- zoomAt(f,cx,cy){const r=this.stage.getBoundingClientRect();const x=cx-r.left,y=cy-r.top;const nz=clamp(this.z*f,.3,3);this.px=x-(x-this.px)*(nz/this.z);this.py=y-(y-this.py)*(nz/this.z);this.z=nz;this.apply(false)}
- toWorld(cx,cy){const r=this.stage.getBoundingClientRect();return{x:(cx-r.left-this.px)/this.z,y:(cy-r.top-this.py)/this.z}}
- cellAt(cx,cy){const p=this.toWorld(cx,cy);return{x:Math.floor(p.x/CELL),y:Math.floor(p.y/CELL),wx:p.x,wy:p.y}}
- /* ---- regras de alcance (BFS, sem cortar quinas, respeitando névoa para jogador) ---- */
- reach(t){const left=S.mode==='interlude'?99:t.speed-t.used;const out=new Map();if(left<=0||t.size>1)return out;
-  const q=[[t.x,t.y,0]],seen=new Set([t.x+','+t.y]);
-  while(q.length){const[x,y,d]=q.shift();if(d>0)out.set(x+','+y,d);if(d>=left)continue;
-   for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]){const nx=x+dx,ny=y+dy,k=nx+','+ny;if(seen.has(k)||!isFloor(nx,ny))continue;
-    if(dx&&dy&&(!isFloor(x+dx,y)||!isFloor(x,y+dy)))continue;if(this.role==='player'&&S.fog.has(k))continue;seen.add(k);q.push([nx,ny,d+1])}}
-  S.tokens.forEach(o=>{if(o.id!==t.id)this.cellsOf(o).forEach(k=>out.delete(k))});return out}
- canDrag(t){if(this.role==='master')return true;if(t.owner!=='ana')return 'Você só move o seu token.';if(S.mode==='combat'&&this.activeId()!==t.id)return 'Aguarde a sua vez na iniciativa.';return true}
- /* ---- eventos ---- */
- bind(){
-  const st=this.stage,R=this.root;
-  st.addEventListener('wheel',e=>{e.preventDefault();this.zoomAt(Math.exp(-e.deltaY*(e.ctrlKey?.012:.0016)),e.clientX,e.clientY)},{passive:false});
-  // Com setPointerCapture o contextmenu chega no palco; o token é achado pela casa sob o cursor.
-  st.addEventListener('contextmenu',e=>{e.preventDefault();const t=this.tokenAtPoint(e.clientX,e.clientY);if(t&&this.role==='master')this.openCtx(t.id,e.clientX,e.clientY)});
-  st.addEventListener('pointerdown',e=>this.down(e));
-  st.addEventListener('pointermove',e=>this.move(e));
-  st.addEventListener('pointerup',e=>this.up(e));st.addEventListener('pointercancel',e=>this.up(e,true));
-  R.addEventListener('click',e=>this.click(e));
-  window.addEventListener('resize',()=>{if(!R.hidden)this.fit(false)});
- }
- down(e){
-  this.closePops();
-  this.stage.setPointerCapture(e.pointerId);this.pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
-  if(this.pointers.size===2){this.pinch={d:this.pdist(),z:this.z};this.drag=null;this.pan=null;return}
-  const tokEl=e.target.closest('.tok'),c=this.cellAt(e.clientX,e.clientY);
-  if(this.pending){this.placePending(c.x,c.y);return}
-  if(e.button===2&&tokEl){this.select(tokEl.dataset.id);return}
-  if(e.button===1||this.space||e.button===2){this.startPan(e);return}
-  if(tokEl&&(this.tool==='move'||this.tool==='inspect')){const t=this.tok(tokEl.dataset.id);this.select(t.id);
-   if(this.tool==='inspect')return;
-   this.longPress=setTimeout(()=>{if(this.drag&&!this.drag.moved&&this.role==='master'){this.openCtx(t.id,e.clientX,e.clientY);this.drag=null}},550);
-   const ok=this.canDrag(t);if(ok!==true){this.denied=ok;this.drag={t,blocked:true,sx:e.clientX,sy:e.clientY};return}
-   // select() redesenha os tokens: pega o elemento novo, não o que recebeu o clique
-   const p=this.toWorld(e.clientX,e.clientY);this.drag={t,el:this.tokensEl.querySelector(`[data-id="${t.id}"]`),ox:p.x-t.x*CELL,oy:p.y-t.y*CELL,sx:e.clientX,sy:e.clientY,moved:false,reach:this.reach(t)};this.renderFx();return}
-  if(this.tool==='move'||this.tool==='inspect'){if(!tokEl&&this.role==='master'||!tokEl){this.select(null)}this.startPan(e);return}
-  if(this.tool==='measure'){this.measure={a:c,b:c};this.renderFx();return}
-  if(this.tool==='draw'){const p=this.toWorld(e.clientX,e.clientY);
-   if(this.variant.draw==='erase'){this.eraseAt(p);this.erasing=true;return}
-   this.stroke={kind:this.variant.draw,color:this.color,pts:[[p.x,p.y]]};S.strokes.push(this.stroke);this.renderFx();return}
-  if(this.tool==='fog'){if(this.variant.fog==='room-hide'||this.variant.fog==='room-show'){const r=roomAt(c.x,c.y);if(r){for(let y=r.y;y<r.y+r.h;y++)for(let x=r.x;x<r.x+r.w;x++)this.variant.fog==='room-hide'?S.fog.add(x+','+y):S.fog.delete(x+','+y);toast((this.variant.fog==='room-hide'?'Sala oculta: ':'Sala revelada: ')+r.name);emit('fog:painted');emit('state')}return}
-   this.fogPaint=true;this.paintFogAt(c);return}
-  if(this.tool==='pin'){this.addPin(c.wx,c.wy);return}
-  if(this.tool==='wall'){toast('Paredes e portas são editadas no Estúdio de cenários (Fase 3).');return}
- }
- move(e){
-  if(!this.pointers.has(e.pointerId))return;this.pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
-  if(this.pinch&&this.pointers.size===2){const pts=[...this.pointers.values()];const f=this.pdist()/this.pinch.d*this.pinch.z/this.z;this.zoomAt(f,(pts[0].x+pts[1].x)/2,(pts[0].y+pts[1].y)/2);return}
-  if(this.pan){this.px=this.pan.px+e.clientX-this.pan.x;this.py=this.pan.py+e.clientY-this.pan.y;this.apply(false);return}
-  if(this.drag){const d=this.drag;if(Math.hypot(e.clientX-d.sx,e.clientY-d.sy)>5){d.moved=true;clearTimeout(this.longPress)}
-   if(d.blocked||!d.moved)return;const p=this.toWorld(e.clientX,e.clientY);d.el.classList.add('drag');
-   d.el.style.left=(p.x-d.ox)+'px';d.el.style.top=(p.y-d.oy)+'px';
-   const tx=Math.floor((p.x-d.ox+CELL/2)/CELL),ty=Math.floor((p.y-d.oy+CELL/2)/CELL);d.cell={x:tx,y:ty};
-   let cost=d.reach.get(tx+','+ty);const showBudget=this.role==='player'||d.t.id===this.activeId();
-   let lab=d.el.querySelector('.drag-cost');if(!lab){lab=document.createElement('span');lab.className='drag-cost num';d.el.appendChild(lab)}
-   if(!showBudget||d.t.size>1){lab.textContent=d.t.name;lab.classList.remove('over')}
-   else if(S.mode==='interlude'){lab.textContent='Interlúdio · livre';lab.classList.remove('over')}
-   else if(cost!=null){lab.textContent=`${cost} de ${d.t.speed-d.t.used} casas`;lab.classList.remove('over')}
-   else{lab.textContent=(tx===d.t.x&&ty===d.t.y)?'Origem':'Fora do alcance';lab.classList.toggle('over',!(tx===d.t.x&&ty===d.t.y))}
-   return}
-  if(this.measure){this.measure.b=this.cellAt(e.clientX,e.clientY);this.renderFx();return}
-  if(this.stroke){const p=this.toWorld(e.clientX,e.clientY);if(this.stroke.kind==='pen')this.stroke.pts.push([p.x,p.y]);else this.stroke.pts[1]=[p.x,p.y];this.renderFx();return}
-  if(this.erasing){this.eraseAt(this.toWorld(e.clientX,e.clientY));return}
-  if(this.fogPaint){this.paintFogAt(this.cellAt(e.clientX,e.clientY))}
- }
- up(e,cancel){
-  this.pointers.delete(e.pointerId);clearTimeout(this.longPress);
-  if(this.pinch){if(this.pointers.size<2)this.pinch=null;return}
-  if(this.pan){this.pan=null;this.stage.classList.remove('panning');return}
-  if(this.drag){const d=this.drag;this.drag=null;
-   if(d.blocked){if(this.denied&&Math.hypot(e.clientX-d.sx,e.clientY-d.sy)>5)toast(this.denied);this.denied=null;return}
-   d.el.classList.remove('drag');d.el.querySelector('.drag-cost')?.remove();
-   if(!d.moved||cancel||!d.cell){this.render();return}
-   const{x,y}=d.cell,t=d.t;
-   if(this.role==='master'){
-    if(x<0||y<0||x+t.size>COLS||y+t.size>ROWS){this.render();return}
-    const cost=d.reach.get(x+','+y);if(t.id===this.activeId()&&cost!=null&&S.mode==='combat')t.used+=cost;
-    t.x=x;t.y=y;S.log.unshift({who:'Mestre',text:`${t.name} foi movido`});emit('token:moved',t.id);emit('state');return}
-   const cost=d.reach.get(x+','+y);
-   if(cost==null){toast(S.fog.has(x+','+y)?'Essa área está oculta.':'Fora do alcance desta rodada.');this.render();return}
-   if(S.mode==='combat')t.used+=cost;t.x=x;t.y=y;S.log.unshift({who:'Ana',text:`Aurora andou ${cost} casa${cost>1?'s':''}`});emit('token:moved',t.id);emit('state');return}
-  if(this.measure){const m=this.measure;this.measure=null;const d=Math.max(Math.abs(m.a.x-m.b.x),Math.abs(m.a.y-m.b.y));if(d>0){this.lastMeasure={...m,until:Date.now()+1800};setTimeout(()=>this.renderFx(),1900);emit('measure:done')}this.renderFx();return}
-  if(this.stroke){const s=this.stroke;this.stroke=null;if(s.pts.length<2)S.strokes.pop();this.renderFx();return}
-  if(this.erasing){this.erasing=false;return}
-  if(this.fogPaint){this.fogPaint=false;emit('fog:painted');emit('state')}
- }
- pdist(){const p=[...this.pointers.values()];return Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)||1}
- startPan(e){this.pan={x:e.clientX,y:e.clientY,px:this.px,py:this.py};this.stage.classList.add('panning')}
- paintFogAt(c){if(c.x<0||c.y<0||c.x>=COLS||c.y>=ROWS)return;const k=c.x+','+c.y;const hide=this.variant.fog==='hide';if(hide?S.fog.has(k):!S.fog.has(k))return;hide?S.fog.add(k):S.fog.delete(k);this.renderVeil()}
- eraseAt(p){const before=S.strokes.length;S.strokes=S.strokes.filter(s=>!s.pts.some(([x,y])=>Math.hypot(x-p.x,y-p.y)<18));if(S.strokes.length!==before)this.renderFx()}
- addPin(x,y){const el=document.createElement('div');el.className='pin';el.style.left=x+'px';el.style.top=y+'px';el.innerHTML='<i></i><b></b>';this.pinsEl.appendChild(el);setTimeout(()=>el.remove(),4200);toast(this.role==='master'?'Ponto marcado para todos.':'Você marcou um ponto no mapa.');emit('pin:placed')}
- placePending(x,y){const p=this.pending;this.pending=null;$$('.asset',this.root).forEach(a=>a.setAttribute('aria-pressed','false'));if(!isFloor(x,y)){toast('Solte o token dentro do mapa.');return}
-  const t=p.kind==='creature'?mkCreature(p.name,x,y):{id:'o'+Date.now(),name:p.name,ini:initials(p.name),kind:p.kind,x,y,size:1,speed:0,used:0};
-  if(t.size>1){t.x=Math.min(t.x,COLS-t.size);t.y=Math.min(t.y,ROWS-t.size)}
-  S.tokens.push(t);this.select(t.id);S.log.unshift({who:'Mestre',text:`${t.name} entrou no mapa`});toast(t.name+' adicionado ao mapa.');emit('token:added',t.id);emit('state')}
- select(id){this.sel=id;this.renderTokens();this.renderCard();this.renderFx()}
- /* ---- cliques na interface flutuante ---- */
- click(e){
-  const b=e.target.closest('button');if(!b||!this.root.contains(b))return;
-  if(b.dataset.tool){this.pickTool(b.dataset.tool);return}
-  if(b.dataset.opt){const[k,v]=b.dataset.opt.split(':');if(k==='color')this.color=v;else if(k==='fogall'){if(v==='show')S.fog.clear();else ROOMS.forEach(r=>{for(let y=r.y;y<r.y+r.h;y++)for(let x=r.x;x<r.x+r.w;x++)S.fog.add(x+','+y)});emit('fog:painted');emit('state');toast(v==='show'?'Mapa todo revelado.':'Mapa todo oculto.')}
-   else if(k==='clear'){S.strokes=[];this.renderFx()}else this.variant[k]=v;this.renderOpts();return}
-  if(b.dataset.z!=null){const z=+b.dataset.z;if(!z)this.fit();else{const r=this.stage.getBoundingClientRect();this.zoomAt(z>0?1.2:1/1.2,r.left+r.width/2,r.top+r.height/2)}return}
-  if(b.dataset.ptab){this.panelTab=b.dataset.ptab;this.renderPanel();if(b.dataset.ptab==='players')emit('players:opened');return}
-  if(b.dataset.dtab){this.drawerTab=b.dataset.dtab;this.renderDrawer();return}
-  if(b.classList.contains('panel-toggle')){const p=$('.panel',this.root);p.hidden=!p.hidden;b.setAttribute('aria-pressed',String(!p.hidden));if(window.innerWidth>=760)this.fit();return}
-  if(b.classList.contains('room-btn')){this.openRoomMenu(b);return}
-  if(b.classList.contains('invite-btn')){this.openInvite(b);return}
-  if(b.classList.contains('dice-btn')||b.classList.contains('hud-dice')){this.openDice();return}
-  if(b.dataset.act)this.act(b.dataset.act,b);
- }
- pickTool(t){
-  if(t==='light'){S.light=!S.light;emit('state');toast(S.light?'Lanterna ligada: só a luz dos personagens ilumina o mapa.':'Lanterna desligada.');return}
-  if(t==='add'){const d=$('.drawer',this.root);d.hidden=!d.hidden;if(!d.hidden){this.drawerTab=this.drawerTab||'beasts';this.renderDrawer();$('.panel',this.root).hidden=window.innerWidth<760||$('.panel',this.root).hidden}this.renderToolState();return}
-  if(t==='undo'){if(S.strokes.length){S.strokes.pop();this.renderFx();toast('Último desenho desfeito.')}else toast('Nada para desfazer.');return}
-  this.tool=t;this.stage.dataset.tool=t;this.renderToolState();this.renderOpts();emit('tool:'+t);this.renderFx();
- }
- renderToolState(){$$('[data-tool]',$('.tools',this.root)).forEach(b=>{const t=b.dataset.tool;b.setAttribute('aria-pressed',String(t===this.tool||(t==='light'&&S.light)||(t==='add'&&!$('.drawer',this.root)?.hidden)))})}
- renderOpts(){
-  const o=$('.optbar',this.root),v=this.variant,P=(k,val,label,i)=>`<button class="opt" type="button" data-opt="${k}:${val}" aria-pressed="${v[k]===val}">${i?ic(i):''}${label}</button>`;
-  const M=this.role==='master';let h='';
-  if(this.tool==='move')h=`<span class="t">Mover</span><span class="hint">${M?'Arraste tokens. Clique direito abre as ações.':'Arraste a Aurora na sua vez.'} Espaço + arrastar move o mapa.</span>`;
-  if(this.tool==='inspect')h=`<span class="t">Inspecionar</span><span class="hint">Toque num token para ver o que você conhece dele.</span>`;
-  if(this.tool==='measure')h=`<span class="t">Medir</span><span class="hint">Arraste de um ponto a outro · 1 casa = 1,5 m</span>`;
-  if(this.tool==='pin')h=`<span class="t">Marcar</span><span class="hint">Toque no mapa para chamar a atenção da mesa.</span>`;
-  if(this.tool==='draw')h=`<span class="t">Desenhar</span>${P('draw','pen','Pincel','brush')}${P('draw','rect','Retângulo','square')}${P('draw','circle','Círculo','circle')}${P('draw','erase','Borracha','eraser')}<span class="sep"></span>${['#c7a87b','#e0707c','#6db7e0','#e8e7e7'].map(c=>`<button class="opt" type="button" data-opt="color:${c}" aria-label="Cor" aria-pressed="${this.color===c}"><span class="cdot" style="background:${c}"></span></button>`).join('')}<button class="opt" type="button" data-opt="clear:1">${ic('trash')}Limpar</button>`;
-  if(this.tool==='fog')h=`<span class="t">Névoa</span>${P('fog','hide','Ocultar','eye-off')}${P('fog','show','Revelar','eye')}${P('fog','room-hide','Ocultar sala','door')}${P('fog','room-show','Revelar sala','door-exit')}<button class="opt" type="button" data-opt="fogall:show">${ic('sun')}Revelar tudo</button>`;
-  if(this.tool==='wall')h=`<span class="t">Paredes</span>${P('wall','wall','Parede','wall')}${P('wall','door','Porta','door')}<span class="hint">Edição completa no Estúdio de cenários.</span>`;
-  o.innerHTML=h;
- }
- /* ---- menus ---- */
- closePops(){$$('.pop',this.root).forEach(p=>p.remove())}
- pop(html,cls,anchor,place){this.closePops();const p=document.createElement('div');p.className='pop '+(cls||'');p.innerHTML=html;this.root.appendChild(p);
-  if(anchor){const r=anchor.getBoundingClientRect(),hr=this.root.getBoundingClientRect();const left=place==='right'?r.right-hr.left-p.offsetWidth:r.left-hr.left;p.style.left=clamp(left,8,hr.width-p.offsetWidth-8)+'px';p.style.top=(r.bottom-hr.top+8)+'px'}
-  hydrateIcons(p);setTimeout(()=>{const close=ev=>{if(!p.contains(ev.target)&&!ev.target.closest('.room-btn,.invite-btn,.dice-btn,.hud-dice')){p.remove();document.removeEventListener('pointerdown',close,true)}};document.addEventListener('pointerdown',close,true)});return p}
- openRoomMenu(b){
-  const M=this.role==='master';
-  this.pop(`<div class="mh">Crônicas do Vale Cinzento</div>
-   ${M?`<div style="padding:6px 8px 8px"><div class="seg" role="group" aria-label="Modo da sessão"><button type="button" data-act="mode-combat" aria-pressed="${S.mode==='combat'}">${ic('swords')}Combate</button><button type="button" data-act="mode-interlude" aria-pressed="${S.mode==='interlude'}">${ic('coffee')}Interlúdio</button></div></div><hr>
-   <div class="mh">Cenários</div><button type="button" data-act="noop">${ic('check')}Corredor do Forte</button><button type="button" data-act="soon" data-what="Trocar cenário">${ic('map')}Capela Submersa</button><button type="button" data-act="soon" data-what="Estúdio de cenários">${ic('brush')}Abrir Estúdio de cenários</button><hr>
-   <button type="button" data-act="canvas">${ic('layout-grid')}Canvas da campanha</button><a href="#mestragem">${ic('crown')}Voltar à Mestragem</a>`:
-   `<button type="button" data-act="sheet">${ic('file-text')}Minha ficha</button><button type="button" data-act="soon" data-what="Caderno">${ic('notes')}Caderno</button><hr><a href="#entrar">${ic('door-exit')}Sair da mesa</a>`}`,'menu',b);
- }
- openInvite(b){this.pop(`<div style="display:flex;flex-direction:column;gap:10px;width:min(300px,80vw)"><b>Convide para a mesa</b><p class="small muted" style="margin:0">No celular do jogador, abra o Mastermind e digite o endereço. A mesa só funciona na rede local.</p><div class="item"><span class="grow"><span class="addr num">192.168.0.12:8765</span><br><span class="small muted">código K7Q-2M</span></span><button class="btn sm" type="button" data-act="copy-invite">${ic('copy')}Copiar</button></div></div>`,'',b,'right')}
- openDice(){
-  const M=this.role==='master';
-  const p=this.pop(`<div class="row between"><b>Dados</b><span class="small muted">calculados pelo servidor</span></div>
-   <div class="dgrid">${['d4','d6','d8','d10','d12','d20','d100'].map(d=>`<button type="button" data-act="die" data-d="${d}">${d}</button>`).join('')}</div>
-   <div class="row" style="flex-wrap:nowrap"><input class="input num" id="dice-f-${this.role}" value="1d20" aria-label="Notação" style="min-height:38px"><button class="btn primary" type="button" data-act="roll">Rolar</button></div>
-   <div class="row between"><div class="seg" role="group" aria-label="Como somar">${[['sum','Soma'],['highest','Maior'],['lowest','Menor']].map(([v,l])=>`<button type="button" data-act="rmode" data-v="${v}" aria-pressed="${(this.rmode||'sum')===v}">${l}</button>`).join('')}</div>
-   ${M?`<div class="seg" role="group" aria-label="Quem vê"><button type="button" data-act="rvis" data-v="public" aria-pressed="${(this.rvis||'public')==='public'}">Todos</button><button type="button" data-act="rvis" data-v="self" aria-pressed="${this.rvis==='self'}">Só eu</button></div>`:''}</div>
-   <div class="dice-result"></div><p class="small faint" style="margin:0">Ordem: use 3O+5 para 3 dados de atributo, fica o maior.</p>`,'dice-pop');
-  if(!M){p.style.left='50%';p.style.transform='translateX(-50%)';p.style.bottom=(this.root.clientHeight<460?'70px':'110px')}
- }
- openCtx(id,x,y){const t=this.tok(id);if(!t)return;this.select(id);const hr=this.root.getBoundingClientRect();
-  const p=this.pop(`<div class="mh">${esc(t.name)}</div>
-   <button type="button" data-act="card">${ic('file-text')}Abrir ficha</button>
-   ${t.hp||t.res?`<button type="button" data-act="hp" data-v="-1">${ic('heart')}Dano −1</button><button type="button" data-act="hp" data-v="1">${ic('heart')}Cura +1</button>`:''}
-   <button type="button" data-act="rotate">${ic('rotate-clockwise')}Girar 45°</button>
-   <button type="button" data-act="hide">${ic(t.hidden?'eye':'eye-off')}${t.hidden?'Mostrar aos jogadores':'Ocultar dos jogadores'}</button>
-   <button type="button" data-act="init-add">${ic('list-numbers')}${S.init.entries.some(e=>e.id===id)?'Já está na iniciativa':'Adicionar à iniciativa'}</button>
-   <hr><button type="button" class="danger" data-act="remove">${ic('trash')}Remover do mapa</button>`,'menu');
-  p.style.left=clamp(x-hr.left,8,hr.width-p.offsetWidth-8)+'px';p.style.top=clamp(y-hr.top,8,hr.height-p.offsetHeight-8)+'px'}
- act(a,b){
-  const t=this.tok(this.sel);
-  const done=()=>{this.closePops();emit('state')};
-  switch(a){
-   case 'mode-combat':case 'mode-interlude':S.mode=a==='mode-combat'?'combat':'interlude';if(S.mode==='interlude')emit('mode:interlude');toast(S.mode==='combat'?'Combate: movimento pela iniciativa.':'Interlúdio: movimento livre, iniciativa pausada.');syncModeSeg();done();break;
-   case 'canvas':toast('O Canvas abriria aqui, só para você. (fora desta fase do protótipo)');emit('canvas:opened');this.closePops();break;
-   case 'soon':toast((b.dataset.what||'Esta parte')+' não está neste protótipo.');this.closePops();break;
-   case 'noop':this.closePops();break;
-   case 'copy-invite':copyText('http://192.168.0.12:8765').then(ok=>{toast(ok?'Endereço copiado.':'Selecione e copie: 192.168.0.12:8765')});emit('invite:copied');this.closePops();break;
-   case 'die':{const i=$(`#dice-f-${this.role}`,this.root);i.value='1'+b.dataset.d;break}
-   case 'rmode':this.rmode=b.dataset.v;$$('[data-act="rmode"]',this.root).forEach(x=>x.setAttribute('aria-pressed',String(x===b)));break;
-   case 'rvis':this.rvis=b.dataset.v;$$('[data-act="rvis"]',this.root).forEach(x=>x.setAttribute('aria-pressed',String(x===b)));break;
-   case 'roll':{const f=$(`#dice-f-${this.role}`,this.root).value;this.rollAndShow(f,this.role==='master'?'Mestre':'Ana',$('.dice-result',this.root));break}
-   case 'card':this.renderCard();this.closePops();break;
-   case 'hp':{if(!t)break;const v=+b.dataset.v*(b.dataset.big?5:1);if(t.hp)t.hp[0]=clamp(t.hp[0]+v,0,t.hp[1]);else if(t.res)t.res.Vida[0]=clamp(t.res.Vida[0]+v,0,t.res.Vida[1]);done();break}
-   case 'rotate':if(t){t.rot=((t.rot||0)+45)%360;done()}break;
-   case 'hide':if(t){t.hidden=!t.hidden;toast(t.hidden?t.name+' agora está oculto dos jogadores.':t.name+' agora está visível.');done()}break;
-   case 'init-add':if(t&&!S.init.entries.some(e=>e.id===t.id)){S.init.entries.push({id:t.id,score:null});this.panelTab='init'}done();break;
-   case 'remove':if(t){S.tokens=S.tokens.filter(x=>x!==t);S.init.entries=S.init.entries.filter(e=>e.id!==t.id);S.init.idx=Math.min(S.init.idx,Math.max(0,S.init.entries.length-1));this.sel=null}done();break;
-   case 'atk':case 'dmg':{const c=CREATURES[t?.creature];if(c){const f=a==='atk'?c.attack:c.damage;this.rollAndShow(f,t.name+(a==='atk'?': ataque':': dano'),null)}break}
-   case 'init-next':if(S.mode==='interlude'){toast('A iniciativa fica pausada no Interlúdio.');break}if(!S.init.entries.length)break;S.init.idx=(S.init.idx+1)%S.init.entries.length;if(S.init.idx===0)S.init.round++;{const n=this.tok(S.init.entries[S.init.idx].id);if(n){n.used=0;this.sel=n.id}S.log.unshift({who:'Mesa',text:`Vez de ${n?n.name:'—'} · rodada ${S.init.round}`})}emit('initiative:next');done();break;
-   case 'init-roll':S.init.entries.forEach(e=>{if(e.score==null){const tk=this.tok(e.id),c=CREATURES[tk?.creature];const r=doRoll(c?c.initiative:'1d20');e.score=r?r.total:10}});S.init.entries.sort((x,y)=>(y.score??-99)-(x.score??-99));S.init.idx=0;toast('Iniciativa rolada para quem estava sem valor.');done();break;
-   case 'init-clear':S.init.entries=[];S.init.idx=0;S.init.round=1;done();break;
-   case 'init-set':{const inp=$('.init-set-v',this.root);const v=parseInt(inp?.value,10);if(!t||isNaN(v)){toast('Digite um número para a iniciativa.');break}const e=S.init.entries.find(e=>e.id===t.id);const cur=S.init.entries[S.init.idx]?.id;if(e)e.score=v;else S.init.entries.push({id:t.id,score:v});S.init.entries.sort((x,y)=>(y.score??-99)-(x.score??-99));S.init.idx=Math.max(0,S.init.entries.findIndex(e=>e.id===cur));done();break}
-   case 'sheet':this.openSheet();this.closePops();break;
-   case 'close-sheet':$('.sheet',this.root).classList.remove('open');break;
-   case 'stab':this.sheetTab=b.dataset.v;this.renderSheet();if(b.dataset.v==='powers')emit('powers:opened');break;
-   case 'power-req':toast('Pedido enviado ao mestre. O poder só vale depois da aprovação.');b.disabled=true;b.textContent='Pedido enviado';break;
-   case 'res':{const me=this.tok('aurora');const[k,d]=b.dataset.v.split('|');const r=me.res[k];r[0]=clamp(r[0]+(+d),0,r[1]);emit('state');break}
-  }
- }
- rollAndShow(f,who,target){const r=doRoll(f,this.rmode);if(!r){toast('Notação inválida. Exemplos: 1d20+3, 2d6, 3O+5');return}
-  const vis=this.role==='master'?(this.rvis||'public'):'public';
-  S.log.unshift({who,text:r.label+(r.mode!=='sum'?(r.mode==='highest'?' · maior':' · menor'):''),faces:r.faces,kept:r.kept,total:r.total,vis});
-  const html=`<div class="result"><div><div>${r.faces.map(v=>`<span class="die-face roll ${r.kept===v?'kept':''}">${v}</span>`).join('')}</div><div class="small muted" style="margin-top:4px">${esc(r.label)}${vis==='self'?' · só você vê':' · todos veem'}</div></div><span class="total num">${r.total}</span></div>`;
-  if(target)target.innerHTML=html;else{toast(`${who}: ${r.label} = ${r.total}`)}
-  emit('dice:rolled');this.panelTab=this.panelTab==='players'?'players':this.panelTab;emit('state')}
- /* ---- render ---- */
- render(){if(!this.stage)return;this.renderTokens();this.renderFx();this.renderVeil();this.renderPanel();this.renderCard();this.renderOpts();this.renderToolState();this.renderChrome();if(this.role==='player'){this.renderHud();this.renderSheet()}}
- renderChrome(){const sc=$('.state-chip',this.root);const act=this.tok(this.activeId());
-  sc.textContent=S.mode==='combat'?`Combate · rodada ${S.init.round}`:'Interlúdio';
-  const bn=$('.banner',this.root);
-  if(this.role==='player'){bn.hidden=false;const mine=act&&act.id==='aurora';bn.className='float banner'+(mine&&S.mode==='combat'?' you':'');bn.innerHTML=S.mode==='interlude'?`${ic('coffee')}Interlúdio · movimento livre`:mine?`${ic('hourglass')}Sua vez · ${Math.max(0,act.speed-act.used)} casas para andar`:`${ic('hourglass')}Vez de ${esc(act?act.name:'—')}`}
-  else{bn.hidden=S.mode!=='interlude';bn.innerHTML=`${ic('coffee')}Interlúdio · movimento livre, iniciativa pausada`}
-  this.stage.classList.toggle('names',SHOW_NAMES)}
- renderTokens(){const act=this.activeId();
-  this.tokensEl.innerHTML=this.visibleTokens().map(t=>{const col=COLORS[t.kind]||COLORS.npc,s=t.size;const hp=t.hp?t.hp[0]/t.hp[1]:t.res?t.res.Vida[0]/t.res.Vida[1]:null;
-   const showBar=hp!=null&&(this.role==='master'||t.kind!=='foe');
-   return `<div class="tok ${t.kind} ${t.id===this.sel?'sel':''} ${t.hidden?'ghosted':''}" data-id="${t.id}" style="left:${t.x*CELL}px;top:${t.y*CELL}px;width:${s*CELL}px;height:${s*CELL}px;--ring:${col.ring};--hi:${col.hi};--lo:${col.lo};--s:${s};--rot:${t.rot||0}deg" aria-label="${esc(t.name)}">
-    <div class="tok-disc">${esc(t.ini)}</div>${showBar?`<div class="tok-bar"><i style="width:${Math.round(hp*100)}%;--c:${hp<.35?'#e0707c':hp<.6?'#e3a85a':'#86bd9c'}"></i></div>`:''}
-    <span class="tok-name">${esc(t.name)}</span>${t.hidden?`<span class="tok-badge" title="Oculto dos jogadores">${ic('eye-off')}</span>`:act===t.id?`<span class="tok-badge turn" title="Vez deste token">${ic('hourglass')}</span>`:''}</div>`}).join('')}
- renderFx(){const g=this.cvFx.getContext('2d');g.setTransform(this.dpr,0,0,this.dpr,0,0);g.clearRect(0,0,W,H);
-  // desenhos
-  S.strokes.forEach(s=>{g.strokeStyle=s.color;g.lineWidth=4;g.lineCap='round';g.lineJoin='round';g.beginPath();const[a,b]=[s.pts[0],s.pts[s.pts.length-1]];
-   if(s.kind==='pen'){s.pts.forEach(([x,y],i)=>g[i?'lineTo':'moveTo'](x,y))}else if(s.kind==='rect'&&b){g.rect(a[0],a[1],b[0]-a[0],b[1]-a[1])}else if(s.kind==='circle'&&b){g.arc(a[0],a[1],Math.hypot(b[0]-a[0],b[1]-a[1]),0,7)}g.stroke()});
-  // alcance
-  const t=this.role==='player'?this.tok('aurora'):this.tok(this.drag?.t?.id||this.sel);
-  if(t&&this.tool==='move'&&(this.role==='player'?t.id==='aurora':true)&&t.size===1&&(S.mode==='interlude'?this.role==='player':t.id===this.activeId())){
-   const r=this.drag?.reach||this.reach(t);g.fillStyle='rgba(199,168,123,.16)';g.strokeStyle='rgba(199,168,123,.5)';g.lineWidth=1;
-   r.forEach((d,k)=>{const[x,y]=k.split(',').map(Number);g.fillRect(x*CELL+2,y*CELL+2,CELL-4,CELL-4);g.beginPath();g.arc(x*CELL+CELL/2,y*CELL+CELL/2,3,0,7);g.fillStyle='rgba(199,168,123,.7)';g.fill();g.fillStyle='rgba(199,168,123,.16)'})}
-  // medição
-  const m=this.measure||(this.lastMeasure&&this.lastMeasure.until>Date.now()?this.lastMeasure:null);
-  $$('.measure-label',this.world).forEach(l=>l.remove());
-  if(m){const ax=m.a.x*CELL+CELL/2,ay=m.a.y*CELL+CELL/2,bx=m.b.x*CELL+CELL/2,by=m.b.y*CELL+CELL/2,d=Math.max(Math.abs(m.a.x-m.b.x),Math.abs(m.a.y-m.b.y));
-   g.strokeStyle='#c7a87b';g.lineWidth=4;g.setLineDash([10,8]);g.beginPath();g.moveTo(ax,ay);g.lineTo(bx,by);g.stroke();g.setLineDash([]);
-   [[ax,ay],[bx,by]].forEach(([x,y])=>{g.fillStyle='#c7a87b';g.beginPath();g.arc(x,y,7,0,7);g.fill();g.strokeStyle='#17131c';g.lineWidth=2;g.stroke()});
-   const l=document.createElement('div');l.className='measure-label num';l.style.left=bx+'px';l.style.top=by+'px';l.textContent=`${d} casa${d===1?'':'s'} · ${(d*1.5).toLocaleString('pt-BR')} m`;this.world.appendChild(l)}}
- renderVeil(){const g=this.cvVeil.getContext('2d');g.setTransform(this.dpr,0,0,this.dpr,0,0);g.clearRect(0,0,W,H);const M=this.role==='master';
-  if(S.light){g.fillStyle=M?'rgba(3,4,8,.45)':'rgba(3,4,8,.88)';g.fillRect(0,0,W,H);g.globalCompositeOperation='destination-out';
-   S.tokens.filter(t=>t.kind==='pc'||t.kind==='ally').forEach(t=>{const x=(t.x+t.size/2)*CELL,y=(t.y+t.size/2)*CELL,gr=g.createRadialGradient(x,y,CELL,x,y,CELL*4.5);gr.addColorStop(0,'rgba(0,0,0,1)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.beginPath();g.arc(x,y,CELL*4.5,0,7);g.fill()});g.globalCompositeOperation='source-over'}
-  if(!this.hatch){const p=document.createElement('canvas');p.width=p.height=12;const pg=p.getContext('2d');pg.strokeStyle='rgba(156,144,221,.55)';pg.lineWidth=2;pg.beginPath();pg.moveTo(0,12);pg.lineTo(12,0);pg.stroke();this.hatch=g.createPattern(p,'repeat')}
-  S.fog.forEach(k=>{const[x,y]=k.split(',').map(Number);if(M){g.fillStyle='rgba(10,12,20,.55)';g.fillRect(x*CELL,y*CELL,CELL,CELL);g.fillStyle=this.hatch;g.fillRect(x*CELL,y*CELL,CELL,CELL)}else{g.fillStyle='#07080b';g.fillRect(x*CELL-.5,y*CELL-.5,CELL+1,CELL+1)}});
-  if(!M){g.strokeStyle='rgba(0,0,0,.6)';g.lineWidth=10;g.filter='blur(6px)';S.fog.forEach(k=>{const[x,y]=k.split(',').map(Number);if(!S.fog.has((x+1)+','+y)||!S.fog.has((x-1)+','+y)||!S.fog.has(x+','+(y+1))||!S.fog.has(x+','+(y-1)))g.strokeRect(x*CELL,y*CELL,CELL,CELL)});g.filter='none'}}
- renderPanel(){const body=$('.panel-body',this.root);$$('[data-ptab]',this.root).forEach(b=>b.setAttribute('aria-selected',String(b.dataset.ptab===this.panelTab)));const M=this.role==='master';
-  if(this.panelTab==='init'){const rows=S.init.entries.map((e,i)=>{const t=this.tok(e.id);if(!t)return'';if(!M&&(t.hidden||this.cellsOf(t).every(k=>S.fog.has(k))))return'';const col=COLORS[t.kind]||COLORS.npc;
-    return `<div class="init-row ${i===S.init.idx?'now':''}"><span class="score num">${e.score??'—'}</span><div style="min-width:0"><b>${esc(t.name)}</b><span class="small muted">${i===S.init.idx?(S.mode==='combat'?'Agora':'Pausado'):t.kind==='foe'?'Inimigo':t.owner?PLAYERS.find(p=>p.id===t.owner)?.name:'Aliado'}${t.hidden?' · oculto':''}</span></div><span class="avatar" style="width:26px;height:26px;font-size:10px;background:${col.ring}">${esc(t.ini)}</span></div>`}).join('');
-   body.innerHTML=`<div class="row between"><span class="label">Rodada <span class="num">${S.init.round}</span></span>${S.mode==='interlude'?'<span class="chip violet">Pausada</span>':''}</div>${rows||'<p class="muted small">Ninguém na iniciativa. Use o menu do token para adicionar.</p>'}
-    ${M?`<div class="row" style="margin-top:4px"><button class="btn sm primary init-next" type="button" data-act="init-next" ${S.mode==='interlude'?'disabled':''}>${ic('player-skip-forward')}Próximo</button><button class="btn sm" type="button" data-act="init-roll">${ic('dice-5')}Rolar faltantes</button><button class="btn sm ghost" type="button" data-act="init-clear">Limpar</button></div>`:'<p class="small faint" style="margin:0">A ordem é definida pelo mestre.</p>'}`}
-  if(this.panelTab==='log'){const rows=S.log.filter(l=>M||l.vis!=='self').slice(0,30).map(l=>`<div class="log-row"><div class="row between" style="flex-wrap:nowrap"><span><b>${esc(l.who)}</b> <span class="muted">${esc(l.text)}</span>${l.vis==='self'?' <span class="chip violet">só você</span>':''}</span>${l.total!=null?`<span class="total num">${l.total}</span>`:''}</div>${l.faces?`<div class="faces num">[${l.faces.join(', ')}]${l.kept!=null?' · fica '+l.kept:''}</div>`:''}</div>`).join('');
-   body.innerHTML=rows||'<p class="muted small">Nenhuma rolagem ainda.</p>'}
-  if(this.panelTab==='players'){body.innerHTML=PLAYERS.map(p=>{const t=S.tokens.find(t=>t.owner===p.id);return `<div class="item"><span class="avatar" style="background:${p.color}">${p.ini}</span><div class="grow"><b>${p.name}</b><span class="small muted">${p.char?p.char+(t?' · token vinculado':' · sem token'):p.id==='rafa'?'Ficha aguardando aprovação':'Sem ficha'}</span></div><span class="dot ${p.online?'on':''}" title="${p.online?'Conectado':'Desconectado'}"></span></div>`}).join('')+'<p class="small faint" style="margin:0">Cada jogador só move o próprio token e só vê o que você revelou.</p>'}
- }
- renderDrawer(){const d=$('.drawer',this.root);if(!d||d.hidden)return;const tab=this.drawerTab||'beasts';$$('[data-dtab]',d).forEach(b=>b.setAttribute('aria-selected',String(b.dataset.dtab===tab)));const body=$('.panel-body',d);
-  const item=(kind,name,sub,k)=>{const col=COLORS[kind]||COLORS.npc;return `<button type="button" class="asset ${kind}" data-asset="${esc(name)}" data-akind="${k}" data-tkind="${kind}" style="--ring:${col.ring};--hi:${col.hi};--lo:${col.lo}"><span class="disc">${esc(initials(name))}</span><span class="grow"><b>${esc(name)}</b><small>${sub}</small></span>${ic('plus')}</button>`};
-  if(tab==='sheets')body.innerHTML=`<p class="small muted" style="margin:0">Fichas atribuídas à campanha.</p>`+[['Aurora','Ana · já está no mapa'],['Brás','Diego · já está no mapa']].map(([n,s])=>item('pc',n,s,'sheet')).join('');
-  if(tab==='beasts')body.innerHTML=`<div class="row between"><span class="label">Ordem Paranormal</span><span class="small muted">48 criaturas</span></div>`+Object.entries(CREATURES).map(([n,c])=>item('foe',n,`${c.size.toLowerCase()} · PV ${c.hp} · ${c.element}`,'creature')).join('')+`<div class="row between" style="margin-top:8px"><span class="label">D&amp;D 5e · SRD</span></div>`+DND.map(n=>item('foe',n,'estatísticas no bestiário D&amp;D','creature')).join('');
-  if(tab==='objs')body.innerHTML=[['Baú','obj'],['Barril','obj'],['Tocha','obj'],['Aliado','npc']].map(([n,k])=>item(k,n,k==='npc'?'token de NPC':'objeto do cenário','obj')).join('');
-  body.insertAdjacentHTML('beforeend','<p class="small faint" style="margin:6px 0 0">Arraste para o mapa, ou toque no item e depois numa casa.</p>');
-  $$('.asset',body).forEach(a=>{a.addEventListener('pointerdown',e=>this.assetDown(e,a))})}
- assetDown(e,a){e.preventDefault();const k=a.dataset.akind,name=a.dataset.asset,kind=a.dataset.tkind;if(k==='sheet'){toast(name+' já está no mapa.');return}
-  const col=COLORS[kind]||COLORS.npc;const gh=document.createElement('div');gh.className='drag-ghost';gh.style.cssText=`--ring:${col.ring};--hi:${col.hi};--lo:${col.lo};left:${e.clientX}px;top:${e.clientY}px`;gh.textContent=initials(name);let moved=false;const sx=e.clientX,sy=e.clientY;
-  const mv=ev=>{if(Math.hypot(ev.clientX-sx,ev.clientY-sy)>6&&!moved){moved=true;document.body.appendChild(gh)}gh.style.left=ev.clientX+'px';gh.style.top=ev.clientY+'px'};
-  const up=ev=>{document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);gh.remove();
-   if(!moved){this.pending={name,kind:k==='creature'?'creature':kind};$$('.asset',this.root).forEach(x=>x.setAttribute('aria-pressed',String(x===a)));toast('Agora toque numa casa do mapa.');return}
-   const over=document.elementFromPoint(ev.clientX,ev.clientY);if(!over||!this.stage.contains(over)){return}const c=this.cellAt(ev.clientX,ev.clientY);this.pending={name,kind:k==='creature'?'creature':kind};this.placePending(c.x,c.y)};
-  document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up)}
- renderCard(){const c=$('.tcard',this.root),t=this.tok(this.sel);const M=this.role==='master';
-  if(!t||(!M&&this.tool!=='inspect'&&t.id==='aurora')||(!M&&this.tool!=='inspect')){c.hidden=true;return}
-  if(!M&&!this.visibleTokens().includes(t)){c.hidden=true;return}
-  const col=COLORS[t.kind]||COLORS.npc,cr=CREATURES[t.creature];c.hidden=false;c.className='float tcard '+t.kind;c.style.cssText=`--ring:${col.ring};--hi:${col.hi};--lo:${col.lo}`;
-  if(!M){c.innerHTML=`<div class="disc">${esc(t.ini)}</div><div><h3>${esc(t.name)}</h3><div class="meta">${t.kind==='foe'?'Criatura · as estatísticas ficam com o mestre':esc(t.cls||'Aliado')}</div></div><div class="actions"><button class="btn sm ghost" type="button" data-act="noop" onclick="this.closest('.tcard').hidden=true">Fechar</button></div>`;return}
-  const hp=t.hp||t.res?.Vida;const pct=hp?Math.round(hp[0]/hp[1]*100):0;const left=t.speed-t.used;
-  c.innerHTML=`<div class="disc">${esc(t.ini)}</div><div style="min-width:0"><div class="row" style="gap:8px"><h3>${esc(t.name)}</h3>${t.hidden?'<span class="chip violet">oculto</span>':''}${t.id===this.activeId()?'<span class="chip gold">na vez</span>':''}</div>
-   <div class="meta">${cr?`<span>Defesa <b class="num">${cr.defense}</b></span><span>Ataque <b>${cr.attack}</b></span><span>Dano <b>${cr.damage}</b></span><span>${cr.size.toLowerCase()} · ${cr.speed.replace('M',' m')}</span>`:t.dnd?'<span>D&amp;D 5e · estatísticas no bestiário do app</span>':t.cls?`<span>${esc(t.cls)}</span><span>Jogador <b>${esc(PLAYERS.find(p=>p.id===t.owner)?.name||'')}</b></span>`:'<span>Objeto</span>'}${t.speed&&t.size===1?`<span>Movimento <b class="num">${S.mode==='interlude'?'livre':Math.max(0,left)+' de '+t.speed}</b></span>`:''}</div>
-   ${hp?`<div class="hp"><span>${t.res?'Vida':'PV'}</span><div class="bar"><i style="width:${pct}%;--c:${pct<35?'var(--danger)':pct<60?'#e3a85a':'var(--green)'}"></i></div><span class="num"><b>${hp[0]}</b>/${hp[1]}</span><span class="row" style="gap:4px;flex-wrap:nowrap"><button class="btn sm icon" type="button" data-act="hp" data-v="-1" aria-label="Dano">−</button><button class="btn sm icon" type="button" data-act="hp" data-v="1" aria-label="Cura">+</button></span></div>`:''}
-   ${t.effects?.length?`<div class="row" style="margin-top:6px">${t.effects.map(e=>`<span class="chip bad">${esc(e)}</span>`).join('')}</div>`:''}
-   ${cr?`<div class="small faint" style="margin-top:6px">${esc(cr.source)} · ${esc(NOTE)}</div>`:''}</div>
-   <div class="actions">${cr?`<button class="btn sm primary" type="button" data-act="atk">${ic('sword')}Atacar</button><button class="btn sm" type="button" data-act="dmg">${ic('droplet')}Dano</button>`:''}<div class="row" style="gap:4px;flex-wrap:nowrap"><input class="input num init-set-v" style="width:56px;min-height:32px;padding:4px 8px" aria-label="Valor de iniciativa" placeholder="Ini"><button class="btn sm" type="button" data-act="init-set">Definir</button></div></div>`}
- renderHud(){const h=$('.hud',this.root),me=this.tok('aurora');if(!h||!me)return;const bar=(k,c)=>{const[v,m]=me.res[k];return `<div><span class="row between" style="flex-wrap:nowrap"><span>${k}</span><b class="num">${v}/${m}</b></span><span class="bar"><i style="width:${Math.round(v/m*100)}%;--c:${c}"></i></span></div>`};
-  h.innerHTML=`<div class="disc" aria-hidden="true">A</div><div style="min-width:0"><div class="row between" style="flex-wrap:nowrap;margin-bottom:6px"><b style="font:600 19px var(--font-head)">Aurora</b><span class="small muted">${esc(me.cls)}</span></div><div class="bars">${bar('Vida','var(--danger)')}${bar('Esforço','var(--blue)')}${bar('Sanidade','var(--purple)')}</div></div>
-   <div class="hud-actions"><button class="btn hud-dice" type="button">${ic('dice-5')}Dados</button><button class="btn hud-sheet" type="button" data-act="sheet">${ic('file-text')}Ficha</button><button class="btn" type="button" data-act="sheet" data-go="1">${ic('sparkles')}Poderes</button></div>`;
-  $$('[data-go]',h).forEach(b=>b.addEventListener('click',()=>{this.sheetTab='powers';this.renderSheet();emit('powers:opened')}))}
- openSheet(){$('.sheet',this.root).classList.add('open');this.sheetTab=this.sheetTab||'summary';this.renderSheet();emit('sheet:opened')}
- renderSheet(){const s=$('.sheet-body',this.root);if(!s)return;const me=this.tok('aurora');const tab=this.sheetTab||'summary';
-  const tabs=[['summary','Resumo'],['skills','Perícias'],['rituals','Rituais'],['powers','Poderes e Transcender'],['inv','Inventário']];
-  s.innerHTML=`<div class="row between"><div><p class="kicker">Ficha · Ana</p><h2 style="font-size:30px">Aurora</h2></div><button class="btn sm icon" type="button" data-act="close-sheet" aria-label="Fechar ficha">${ic('x')}</button></div>
-   <div class="tabs" role="tablist">${tabs.map(([k,l])=>`<button role="tab" type="button" data-act="stab" data-v="${k}" data-sheet-tab="${k}" aria-selected="${tab===k}">${l}</button>`).join('')}</div>
-   ${tab==='powers'?`<ul class="list"><li class="item power"><span class="el energia">${ic('bolt')}</span><div class="grow"><b>Golpe de Sorte</b><span class="small muted">Energia · aprovado</span></div><span class="chip ok">Ativo</span></li><li class="item power"><span class="el energia">${ic('shield')}</span><div class="grow"><b>Campo Protetor</b><span class="small muted">Energia · disponível no NEX 35%</span></div><button class="btn sm primary" type="button" data-act="power-req">Pedir ao mestre</button></li><li class="item power"><span class="el morte">${ic('hourglass')}</span><div class="grow"><b>Surto Temporal</b><span class="small muted">Morte · exige 2 poderes de Morte aprovados</span></div><span class="chip">Bloqueado</span></li></ul>`
-   :tab==='summary'?`${['Vida','Esforço','Sanidade'].map((k,i)=>{const[v,m]=me.res[k];return `<div class="res-row"><span>${k}</span><div class="bar"><i style="width:${Math.round(v/m*100)}%;--c:${['var(--danger)','var(--blue)','var(--purple)'][i]}"></i></div><span class="row" style="gap:4px;flex-wrap:nowrap;justify-content:flex-end"><button class="btn sm icon" type="button" data-act="res" data-v="${k}|-1" aria-label="Diminuir ${k}">−</button><b class="num">${v}/${m}</b><button class="btn sm icon" type="button" data-act="res" data-v="${k}|1" aria-label="Aumentar ${k}">+</button></span></div>`}).join('')}<div class="attrs"><div class="attr"><b>2</b><span>AGI</span></div><div class="attr"><b>3</b><span>FOR</span></div><div class="attr"><b>1</b><span>INT</span></div><div class="attr"><b>1</b><span>PRE</span></div><div class="attr"><b>2</b><span>VIG</span></div></div>`
-   :`<p class="muted">Esta aba usa a ficha completa atual do app. No protótipo, só Resumo e Poderes estão desenhados.</p>`}
-   <p class="small faint" style="margin:0">Ficha de exemplo. A ficha tradicional continua acessível pelo menu da mesa.</p>`}
-}
-function syncModeSeg(){$$('#mode-seg button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===S.mode)));$('#mode-text').textContent=S.mode==='combat'?'Movimento pela iniciativa. Testes sempre livres.':'Movimento livre e iniciativa pausada. Testes sempre livres.';$('#round-chip').textContent=S.mode==='combat'?`Rodada ${S.init.round}`:'Interlúdio'}
-
-/* ============ Preferências ============ */
-let GRID_ALPHA=.12,SHOW_NAMES=false;
-const tables={};
-function table(view){if(view==='mesa'&&!tables.m)tables.m=new Table($('#vtt-master'),'master');if(view==='jogador'&&!tables.p)tables.p=new Table($('#vtt-player'),'player');return view==='mesa'?tables.m:tables.p}
-function setTheme(t){document.documentElement.dataset.theme=t;store.set('mm-rv-theme',t);$$('#theme-seg button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.t===t)));$$('.theme-toggle').forEach(b=>{b.innerHTML=ic(t==='light'?'moon':'sun')})}
-function currentTheme(){return document.documentElement.dataset.theme||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark')}
-
-/* ============ Roteamento ============ */
-const VIEWS=['mestragem','mesa','entrar','jogador','biblioteca','ficha','ajustes'];const SHELL=['mestragem','biblioteca','ficha','ajustes'];
-const TITLES={mestragem:'Mestragem',biblioteca:'Biblioteca',ficha:'Personagens',ajustes:'Ajustes'};
-function route(){const h=location.hash.slice(1);const v=VIEWS.includes(h)?h:'mestragem';
- $('#shell').hidden=!SHELL.includes(v);$$('[data-view]').forEach(s=>s.hidden=s.dataset.view!==v);
- $$('#proto a, .nav, .bnav a').forEach(a=>{if(a.getAttribute('href')==='#'+v)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
- if(TITLES[v])$('#crumb-title').textContent=TITLES[v];
- if(v==='mesa'||v==='jogador'){const t=table(v);requestAnimationFrame(()=>{t.fit(false);t.render()})}
- if(v==='entrar'&&!route.joinPainted){route.joinPainted=1;paintMap($('#join-map'),1,{gridAlpha:.1})}
- if(v==='mestragem'&&!route.thumbs){route.thumbs=1;const mm=$('#mini-map'),t=document.createElement('canvas');t.width=W;t.height=H;paintMap(t,1,{gridAlpha:.1});mm.getContext('2d').drawImage(t,0,0,mm.width,mm.height);$$('[data-thumb]').forEach(c=>paintThumb(c,+c.dataset.thumb))}
- $('#page-wrap').scrollTop=0;Tut.onRoute(v)}
-window.addEventListener('hashchange',route);
-
-/* ============ Tutorial guiado ============ */
-const TUT={
- master:[
-  {view:'mesa',target:'.tools',mobileTarget:'[data-tool="measure"]',title:'Ferramentas do mapa',body:'Cada ferramenta muda o que o clique ou o toque faz no mapa. Passe o cursor num ícone para ver o nome e o atalho.',try:'Escolha a ferramenta Medir, ou aperte M.',done:'tool:measure'},
-  {view:'mesa',target:'[data-tool="add"]',title:'Adicionar ao mapa',body:'Abre as fichas da campanha, o bestiário do sistema e objetos de cenário.',try:'Abra Adicionar e arraste uma criatura para o mapa.',done:'token:added'},
-  {view:'mesa',target:'.tok[data-id="aurora"]',title:'Mover tokens',body:'Arraste o token para outra casa. As casas douradas mostram até onde ele vai com o movimento desta rodada.',try:'Arraste a Aurora para uma casa dourada.',done:'token:moved',prep:t=>{t.pickTool('move');t.select('aurora')}},
-  {view:'mesa',target:'[data-tool="measure"]',title:'Medir distância',body:'Mostra a distância em casas e em metros, como no livro: 1 casa = 1,5 m.',try:'Escolha Medir e arraste de um ponto a outro.',done:'measure:done'},
-  {view:'mesa',target:'[data-tool="fog"]',title:'Névoa',body:'Esconde áreas dos jogadores. Você continua vendo o que há embaixo, em hachura lilás.',try:'Escolha Névoa e pinte algumas casas.',done:'fog:painted'},
-  {view:'mesa',target:'.dice',title:'Dados',body:'As rolagens são calculadas pelo servidor. Você escolhe se todos veem ou só você.',try:'Abra os Dados e role um d20.',done:'dice:rolled'},
-  {view:'mesa',target:'.panel',title:'Iniciativa',body:'A ordem da rodada. No Combate, só o token da vez anda.',try:'Toque em Próximo para passar a vez.',done:'initiative:next',prep:t=>{t.panelTab='init';$('.panel',t.root).hidden=false;t.renderPanel()}},
-  {view:'mesa',target:'[data-ptab="players"]',title:'Jogadores',body:'Quem está conectado, com qual ficha e se o token está vinculado.',try:'Abra a aba Jogadores.',done:'players:opened',prep:t=>{$('.panel',t.root).hidden=false}},
-  {view:'mesa',target:'.invite-btn',title:'Convite',body:'O endereço da mesa na rede local. Os jogadores digitam esse endereço no celular.',try:'Abra Convidar e copie o endereço.',done:'invite:copied'},
-  {view:'mesa',target:'.room-btn',title:'Modo da sessão',body:'No Interlúdio o movimento fica livre e a iniciativa pausa. Os testes continuam liberados.',try:'Abra o menu da sala e escolha Interlúdio.',done:'mode:interlude'},
-  {view:'mesa',target:'.room-btn',title:'Canvas da campanha',body:'Suas pistas, notas e ligações. Os jogadores não recebem esse conteúdo.',try:'No menu da sala, abra o Canvas.',done:'canvas:opened'}
- ],
- player:[
-  {view:'entrar',target:'#join-btn',title:'Entrar na mesa',body:'O endereço vem do mestre. Seu nome identifica você, não o personagem.',try:'Toque em Entrar na mesa.',done:'join:done'},
-  {view:'jogador',target:'.stage',title:'Esta é a mesa',body:'Você vê só o que o mestre revelou. As áreas escuras estão ocultas e não dá para entrar nelas.',try:null,pad:-60},
-  {view:'jogador',target:'.tok[data-id="aurora"]',title:'Seu token',body:'Na sua vez, arraste a Aurora. As casas douradas mostram quanto você ainda pode andar.',try:'Arraste a Aurora para uma casa dourada.',done:'token:moved',prep:t=>{t.pickTool('move');if(S.init.entries[S.init.idx]?.id!=='aurora'){S.init.idx=Math.max(0,S.init.entries.findIndex(e=>e.id==='aurora'));emit('state')}}},
-  {view:'jogador',target:'.hud-dice',title:'Dados',body:'Sua rolagem aparece para toda a mesa, com cada dado.',try:'Abra os Dados e role.',done:'dice:rolled'},
-  {view:'jogador',target:'.hud-sheet',title:'Sua ficha',body:'A ficha abre por cima do mapa, sem sair da cena.',try:'Abra a ficha.',done:'sheet:opened'},
-  {view:'jogador',target:'[data-sheet-tab="powers"]',title:'Poderes e Transcender',body:'Você escolhe o poder e pede ao mestre. Ele só vale na mesa depois da aprovação.',try:'Abra a aba Poderes e Transcender.',done:'powers:opened'}
- ]};
-const Tut={
- flow:null,i:0,el:null,spot:null,chip:null,
- start(flow){this.stop(true);this.flow=flow;this.i=0;
-  if(flow==='master'||flow==='player'){S=freshState();emit('state')}
-  this.spot=document.createElement('div');this.spot.className='tut-spot';this.el=document.createElement('section');this.el.className='tut-card';this.el.setAttribute('role','dialog');this.el.setAttribute('aria-live','polite');this.el.setAttribute('aria-label','Tutorial');
-  document.body.append(this.spot,this.el);this.show()},
- step(){return this.flow?TUT[this.flow][this.i]:null},
- show(){const s=this.step();if(!s){this.finish();return}
-  if(location.hash.slice(1)!==s.view){location.hash='#'+s.view;return}
-  const t=s.view==='mesa'?table('mesa'):s.view==='jogador'?table('jogador'):null;if(s.prep&&t)s.prep(t);
-  const n=TUT[this.flow].length;
-  this.el.innerHTML=`<div class="tut-steps" aria-hidden="true">${TUT[this.flow].map((_,k)=>`<i class="${k<=this.i?'on':''}"></i>`).join('')}</div>
-   <div class="row between"><span class="kicker">Tutorial · ${this.i+1} de ${n}</span><button class="btn sm ghost" type="button" data-t="skip-all">Pular tutorial</button></div>
-   <span class="chip gold" style="align-self:flex-start">${ic('shield')}Campanha de treino · não altera suas campanhas</span>
-   <h3>${esc(s.title)}</h3><p class="muted">${esc(s.body)}</p>
-   ${s.try?`<div class="tut-try" id="tut-try">${ic('hand-move')}<span><b>Experimente:</b> ${esc(s.try)}</span></div>`:''}
-   <div class="row between"><button class="btn sm ghost" type="button" data-t="back" ${this.i?'':'disabled'}>Voltar</button><div class="row">${s.try?'<button class="btn sm" type="button" data-t="next">Pular etapa</button>':'<button class="btn sm primary" type="button" data-t="next">Entendi</button>'}</div></div>`;
-  this.el.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const a=b.dataset.t;if(a==='skip-all')this.finish(true);else if(a==='back'){this.i=Math.max(0,this.i-1);this.show()}else{this.i++;this.show()}});
-  requestAnimationFrame(()=>this.place())},
- place(){const s=this.step();if(!s||!this.el)return;const sel=(innerWidth<640&&s.mobileTarget)||s.target;const tg=document.querySelector(`[data-view="${s.view}"] ${sel}`)||document.querySelector(sel);
-  if(!tg||tg.offsetParent===null&&getComputedStyle(tg).position!=='fixed'){this.spot.style.opacity=0;this.el.style.left='50%';this.el.style.top='50%';this.el.style.transform='translate(-50%,-50%)';return}
-  const r=tg.getBoundingClientRect(),pad=s.pad??6,vw=innerWidth,vh=innerHeight;this.spot.style.opacity=1;
-  const sr={l:Math.max(4,r.left-pad),t:Math.max(4,r.top-pad),w:Math.min(vw-8,r.width+pad*2),h:Math.min(vh-8,r.height+pad*2)};
-  Object.assign(this.spot.style,{left:sr.l+'px',top:sr.t+'px',width:sr.w+'px',height:sr.h+'px'});
-  const cw=this.el.offsetWidth,ch=this.el.offsetHeight;let x,y;this.el.style.transform='none';
-  if(vw<640){x=(vw-cw)/2;y=r.top>vh/2?Math.max(8,sr.t-ch-12):Math.min(vh-ch-8,sr.t+sr.h+12)}
-  else if(sr.l+sr.w+cw+16<vw){x=sr.l+sr.w+14;y=clamp(r.top+r.height/2-ch/2,52,vh-ch-12)}
-  else if(sr.l-cw-16>0){x=sr.l-cw-14;y=clamp(r.top+r.height/2-ch/2,52,vh-ch-12)}
-  else{x=clamp(r.left+r.width/2-cw/2,12,vw-cw-12);y=sr.t+sr.h+ch+14<vh?sr.t+sr.h+12:Math.max(52,sr.t-ch-12)}
-  if(s.pad<0){x=clamp(vw/2-cw/2,12,vw-cw-12);y=clamp(vh/2-ch/2,60,vh-ch-12)}
-  this.el.style.left=x+'px';this.el.style.top=y+'px'},
- event(e){const s=this.step();if(!s||s.done!==e)return;const tr=$('#tut-try');if(tr){tr.classList.add('done');tr.innerHTML=ic('check')+'<span><b>Feito!</b> Indo para a próxima etapa…</span>'}const at=this.i;setTimeout(()=>{if(this.i===at){this.i++;this.show()}},900)},
- onRoute(v){if(!this.flow){maybeWelcome(v);return}const s=this.step();if(s&&s.view===v)setTimeout(()=>this.show(),60)},
- finish(skipped){const f=this.flow;if(f)store.set('mm-rv-tut-'+f,skipped?'skipped':'done');this.stop();if(f&&!skipped)toast('Tutorial concluído. Você pode refazer em Ajustes.');},
- stop(){[this.spot,this.el].forEach(x=>x?.remove());this.flow=null;this.spot=this.el=null}
-};
-on(e=>{Tut.event(e);if(e==='state'){syncModeSeg();if(Tut.flow)requestAnimationFrame(()=>Tut.place())}});
-window.addEventListener('resize',()=>Tut.place());
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&Tut.flow){Tut.finish(true)}});
-function maybeWelcome(v){const flow=v==='mesa'?'master':v==='entrar'?'player':null;if(!flow||store.get('mm-rv-tut-'+flow)||$('.modal-back'))return;
- const b=document.createElement('div');b.className='modal-back';b.innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-labelledby="wl-h"><span class="kicker">${flow==='master'?'Primeira vez na mesa':'Primeira vez como jogador'}</span><h2 id="wl-h">Quer um tour <em>rápido?</em></h2><p class="muted" style="margin:0">${flow==='master'?'São 11 etapas curtas. Cada uma mostra um botão e pede para você testar.':'São 6 etapas curtas: entrar, andar, rolar dados e abrir a ficha.'} Tudo acontece numa campanha de treino. Você pode pular a qualquer momento.</p><div class="row" style="justify-content:flex-end"><button class="btn ghost" type="button" data-w="skip">Pular</button><button class="btn primary" type="button" data-w="go">Fazer o tutorial</button></div></div>`;
- document.body.appendChild(b);b.querySelector('[data-w="go"]').focus();
- b.addEventListener('click',e=>{const w=e.target.closest('[data-w]')?.dataset.w;if(!w)return;b.remove();if(w==='go')Tut.start(flow);else store.set('mm-rv-tut-'+flow,'skipped')})}
-
-/* ============ Ligações das páginas ============ */
-document.addEventListener('click',e=>{const s=e.target.closest('[data-soon]');if(s){toast((s.dataset.soon||'Esta parte')+' não está neste protótipo.',$('#app'))}});
-$$('.copy-invite').forEach(b=>b.addEventListener('click',async()=>{const ok=await copyText('http://192.168.0.12:8765');toast(ok?'Convite copiado.':'Selecione e copie: 192.168.0.12:8765',$('#app'))}));
-$('#mode-seg').addEventListener('click',e=>{const b=e.target.closest('[data-mode]');if(!b)return;S.mode=b.dataset.mode;syncModeSeg();emit('state')});
-$('#theme-seg').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(b)setTheme(b.dataset.t)});
-document.addEventListener('click',e=>{if(e.target.closest('.theme-toggle,#proto-theme'))setTheme(currentTheme()==='light'?'dark':'light')});
-$('#swatches').addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(!b)return;document.documentElement.style.setProperty('--accent',b.dataset.c);document.documentElement.style.setProperty('--accent-soft',b.dataset.c+'25');$$('#swatches button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)))});
-$('#grid-alpha').addEventListener('input',e=>{GRID_ALPHA=e.target.value/100;Object.values(tables).forEach(t=>t.paintBase())});
-$('#names-seg').addEventListener('click',e=>{const b=e.target.closest('[data-n]');if(!b)return;SHOW_NAMES=b.dataset.n==='1';$$('#names-seg button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));emit('state')});
-$('#redo-master').onclick=()=>{store.del('mm-rv-tut-master');Tut.start('master')};
-$('#redo-player').onclick=()=>{store.del('mm-rv-tut-player');Tut.start('player')};
-$('#proto-tut').onclick=()=>{const v=location.hash.slice(1);Tut.start(v==='jogador'||v==='entrar'?'player':'master')};
-$('#join-test').onclick=()=>{const st=$('#join-status'),v=$('#join-addr').value.trim();if(!/^[\w.-]+(:\d{2,5})?$/.test(v)){st.innerHTML='<span class="dot" style="background:var(--danger)"></span><span>Endereço inválido. Use o formato 192.168.0.12:8765.</span>';return}
- st.innerHTML='<span class="dot"></span><span>Procurando a mesa…</span>';setTimeout(()=>{st.innerHTML='<span class="dot on"></span><span><b>Crônicas do Vale Cinzento</b> · mestre online (simulado)</span>'},700)};
-$('#join-form').addEventListener('submit',e=>{e.preventDefault();if(!$('#join-nick').value.trim()){$('#join-status').innerHTML='<span class="dot" style="background:var(--danger)"></span><span>Digite seu nome na mesa.</span>';$('#join-nick').focus();return}emit('join:done');location.hash='#jogador'});
-$('#join-resume').onclick=()=>{emit('join:done');location.hash='#jogador'};
-document.addEventListener('keydown',e=>{if(e.target.closest('input,textarea,select'))return;if(e.code==='Space'&&e.target.closest('button,a'))return;const v=location.hash.slice(1);const t=v==='mesa'?tables.m:v==='jogador'?tables.p:null;if(!t)return;
- if(e.code==='Space'){t.space=true;t.stage.classList.add('panning');e.preventDefault();return}
- const k=e.key.toLowerCase(),map={v:'move',m:'measure',d:'draw',f:'fog',w:'wall',p:'pin',l:'light',i:'inspect',a:'add'};
- if(map[k]&&$(`[data-tool="${map[k]}"]`,t.root)){t.pickTool(map[k]);return}
- if(k==='0')t.fit();if(k==='+'||k==='=')t.zoomAt(1.2,innerWidth/2,innerHeight/2);if(k==='-')t.zoomAt(1/1.2,innerWidth/2,innerHeight/2);
- if(k==='r')t.rollAndShow('1d20',t.role==='master'?'Mestre':'Ana',null);if(k==='n'&&t.role==='master')t.act('init-next');
- if(k==='escape'){t.closePops();t.pending=null;t.select(null)}
- if((k==='delete'||k==='backspace')&&t.role==='master'&&t.sel)t.act('remove');
- if(k==='z'&&(e.ctrlKey||e.metaKey)&&t.role==='master')t.pickTool('undo')});
-document.addEventListener('keyup',e=>{if(e.code==='Space'){Object.values(tables).forEach(t=>{t.space=false;t.stage.classList.remove('panning')})}});
-
-/* ============ Início ============ */
-const savedTheme=store.get('mm-rv-theme');if(savedTheme)setTheme(savedTheme);else $$('.theme-toggle').forEach(b=>{b.innerHTML=ic(currentTheme()==='light'?'moon':'sun')});
-$$('#theme-seg button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.t===currentTheme())));
-hydrateIcons();route();
-window.__revamp={S:()=>S,tables,Tut,store};
-})();
-</script>
+<script src="app.js"></script>
 </body>
 </html>
