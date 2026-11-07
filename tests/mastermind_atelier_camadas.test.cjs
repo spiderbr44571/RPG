@@ -59,8 +59,8 @@ test('Rostos e barba corrigidos para encaixar no manequim (script de correção 
  assert.equal(L['barba-cheia'].ajuste,'encaixe-rosto-1');
  assert.ok(L['barba-cheia'].x<110,'barba deveria abrir até o contorno do rosto');
  const py=fs.readFileSync(path.join(__dirname,'..','scripts/atelie_corrigir_rostos.py'),'utf8');
- assert.match(py,/OLHOS = \{\n    'rosto-jovem'/);
- assert.match(py,/CONTORNO = \{\n    'rosto-redondo'/);
+ assert.match(py,/OLHOS = \{\r?\n    'rosto-jovem'/);
+ assert.match(py,/CONTORNO = \{\r?\n    'rosto-redondo'/);
 });
 test('Rostos, cabelos novos e barba: todas as peças do catálogo têm camada e o rosto redondo fica à frente das roupas',()=>{
  const ctx={window:{}};vm.runInNewContext(read('mastermind99_atelier_layers.js'),ctx);
