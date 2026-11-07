@@ -7,7 +7,7 @@ let chromium;try{({chromium}=require('playwright'))}catch(_){({chromium}=require
 const http=require('http'),fs=require('fs'),os=require('os'),path=require('path'),{spawn}=require('child_process');
 const ROOT=path.join(__dirname,'..'),ASSETS=path.join(ROOT,'app/src/main/assets'),INDEX='file://'+path.join(ASSETS,'revamp/index.html');
 const JAR=path.resolve(process.argv[2]||'desktop/server/dist/mastermind-campaign-server.jar');
-const DATA=fs.mkdtempSync(path.join(os.tmpdir(),'mm-revamp-e2e-')),PORT=8799,BASE='http://127.0.0.1:'+PORT;
+const DATA=fs.mkdtempSync(path.join(os.tmpdir(),'mm-revamp-e2e-')),PORT=8799;let HOST='127.0.0.1',BASE='http://127.0.0.1:'+PORT;
 const S=process.env.MM_SHOTS||null;let KEY='',server;
 function req(method,route,body,headers={}){return new Promise((res,rej)=>{const payload=body==null?'':(typeof body==='string'?body:JSON.stringify(body));
  const r=http.request(BASE+route,{method,headers:Object.assign({'Content-Type':'application/json'},payload?{'Content-Length':Buffer.byteLength(payload)}:{},headers)},x=>{let d='';x.setEncoding('utf8');x.on('data',c=>d+=c);x.on('end',()=>res({status:x.statusCode,body:d}))});r.on('error',rej);if(payload)r.write(payload);r.end()})}
@@ -15,15 +15,15 @@ const M=(m,r,b)=>req(m,r,b,{Authorization:'Bearer '+KEY}).then(x=>JSON.parse(x.b
 const fail=m=>{console.error('FALHOU:',m);process.exitCode=1};
 (async()=>{
  server=spawn('java',['-jar',JAR,DATA,ASSETS,String(PORT)],{stdio:['ignore','pipe','inherit'],env:{...process.env,JAVA_TOOL_OPTIONS:''}});
- await new Promise((ok,no)=>{const t=setTimeout(()=>no(Error('servidor não iniciou')),30000);server.stdout.on('data',d=>{if(String(d).includes('MASTERMIND_SERVER_READY')){clearTimeout(t);ok()}})});
+ await new Promise((ok,no)=>{const t=setTimeout(()=>no(Error('servidor não iniciou')),30000);server.stdout.on('data',d=>{const m=String(d).match(/MASTERMIND_SERVER_READY (\S+) (\d+)/);if(m){HOST=m[1];BASE='http://'+HOST+':'+m[2];clearTimeout(t);ok()}})});
  KEY=JSON.parse(fs.readFileSync(path.join(DATA,'campanhas-android.json'),'utf8')).secret;
  const cid=(await M('POST','/api/admin/campaigns',{name:'Teste '+Date.now().toString(36)})).id;
  const browser=await chromium.launch();const errors=[];
  const mctx=await browser.newContext({viewport:{width:1280,height:820}});const mp=await mctx.newPage();
  mp.on('pageerror',e=>errors.push('mestre: '+e.stack.split('\n').slice(0,3).join(' | ')));
  await mp.exposeFunction('__hostReq',async a=>{const r=await req(a.method,a.route,a.body,{Authorization:'Bearer '+a.secret});return{status:r.status,body:r.body}});
- await mp.addInitScript(k=>{window.RpgLocalHost={status:()=>JSON.stringify({running:true,ip:'127.0.0.1',port:8799}),masterKey:()=>k,start:async()=>{},stop:async()=>{}};
-  window.MastermindDesktop={action:async(m,a)=>{if(m==='campaign-request')return window.__hostReq(a);throw Error('x')}};localStorage.setItem('mm-rv-tut-master','skipped');localStorage.setItem('mm-rv-tut-studio','skipped')},KEY);
+ await mp.addInitScript(k=>{window.RpgLocalHost={status:()=>JSON.stringify({running:true,ip:k.host,port:k.port}),masterKey:()=>k.key,start:async()=>{},stop:async()=>{}};
+  window.MastermindDesktop={action:async(m,a)=>{if(m==='campaign-request')return window.__hostReq(a);throw Error('x')}};localStorage.setItem('mm-rv-tut-master','skipped');localStorage.setItem('mm-rv-tut-studio','skipped')},{key:KEY,host:HOST,port:PORT});
  await mp.goto(INDEX+'#mestragem');
  await mp.waitForSelector('[data-m="choose"]',{timeout:8000});await mp.click(`[data-m="choose"][data-v="${cid}"]`);
  await mp.waitForSelector('[data-m="create-scene"]',{timeout:8000});
