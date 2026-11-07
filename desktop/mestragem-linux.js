@@ -148,7 +148,7 @@ function hidePhoneControls(){
  const controls=$('#r12-host-controls');
  if(controls)controls.hidden=true;
  const head=$('#r11-campaigns .r11-head p');
- if(head)head.textContent='Gerencie fichas, jogadores, cenários, grid e convites diretamente no Linux. O serviço da campanha inicia automaticamente.';
+ if(head)head.textContent='Gerencie fichas, jogadores, cenários, grid e convites diretamente no computador. O serviço da campanha inicia automaticamente.';
  const pass=$('#r11-secret');if(pass)pass.placeholder='Chave da campanha';
 }
 async function connectLocal(){

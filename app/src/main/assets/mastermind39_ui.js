@@ -184,7 +184,11 @@ function boot(){
   host.appendChild(banner);
  }
  setupNavigation();refineModules();renderHome();
- const versionBadge=$('#mm-release');if(versionBadge)versionBadge.textContent='v0.106';
+ // Versão instalada: Android (app/build.gradle) ou desktop Linux/Windows (package.json). Os testes conferem as duas.
+ const MM_VERSAO={android:'v0.107',desktop:'v1.2.0'};
+ const mmVersao=window.MastermindDesktop?MM_VERSAO.desktop:MM_VERSAO.android;
+ const versionBadge=$('#mm-release');if(versionBadge)versionBadge.textContent=mmVersao;
+ const atelieKicker=$('#ma99-atelier .ma99-kicker');if(atelieKicker)atelieKicker.textContent='MASTERMIND · ATELIÊ · '+mmVersao;
  document.addEventListener('click',event=>{
   const char=event.target.closest('[data-mm39-character]');
   if(char){event.preventDefault();openCharacter(char.dataset.mm39Character);return}

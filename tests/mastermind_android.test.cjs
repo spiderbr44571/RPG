@@ -3,11 +3,13 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),fs=requir
 const root=path.join(__dirname,'..'),assets=path.join(root,'app/src/main/assets');
 const read=f=>fs.readFileSync(path.join(assets,f),'utf8');
 const E=require('../app/src/main/assets/mastermind_coc7_engine.js');
-test('v0.95 retains original app ID and bumps its version without deleting app data',()=>{
+test('Android keeps its app ID and shows the version from build.gradle',()=>{
  const gradle=fs.readFileSync(path.join(root,'app/build.gradle'),'utf8');
  assert.match(gradle,/applicationId 'dev\.rpgmesa\.demo'/);
- assert.match(gradle,/versionCode 99/);
- assert.match(gradle,/versionName '0\.95\.0-pdf-templates'/);
+ const code=Number(gradle.match(/versionCode (\d+)/)[1]),name=gradle.match(/versionName '(\d+)\.(\d+)\.\d+-[a-z0-9-]+'/);
+ assert.ok(code>=111,'versionCode só sobe (atualiza sem apagar os dados)');
+ assert.ok(name,'versionName fora do padrão 0.N.0-descricao');
+ assert.match(read('mastermind39_ui.js'),new RegExp("android:'v"+name[1]+'\\.'+name[2]+"'"),'versão mostrada no app difere do build.gradle');
 });
 test('Android personal PDFs stay private, multi-select and index by system without IA',()=>{
  const java=fs.readFileSync(path.join(root,'app/src/main/java/dev/rpgmesa/demo/MainActivity.java'),'utf8');
@@ -31,7 +33,8 @@ test('CoC7 works on Android with local storage, native JSON export, import, and 
  assert.match(html,/mastermind_coc7_engine\.js/);
  assert.match(html,/mastermind_coc7_ui\.js/);
  assert.match(html,/mastermind_coc7_android\.css/);
- assert.match(html,/id="mm-release"[^>]*>v0\.95/);
+ assert.match(html,/id="mm-release"/);
+ assert.match(read('mastermind39_ui.js'),/versionBadge\.textContent=mmVersao/);
  assert.match(ui,/RpgBookBridge\.saveInvestigatorJson/);
  assert.match(ui,/data-coc-import/);
  assert.match(ui,/localStorage\.setItem\(KEY/);
@@ -56,13 +59,36 @@ test('CoC7 investigators can join the existing campaign server without breaking 
  const c=E.newCharacter();assert.ok(c.resources.HP.max>0);assert.ok(c.resources.MP.max>0);
  assert.throws(()=>E.validate({systemId:'ordem-paranormal'}));
 });
-test('Android Atelier still uses isolated Godot bridge and the existing app screens',()=>{
- const java=fs.readFileSync(path.join(root,'app/src/main/java/dev/rpgmesa/demo/MainActivity.java'),'utf8');
- const html=read('demo-offline.html');
- assert.match(java,/InlinePixelPortraitStage/);
- assert.match(java,/nativeStageProbe/);
+test('Atelier v0.99 replaces lyime with offline painted layers',()=>{
+ const html=read('demo-offline.html'),js=read('mastermind99_atelier.js'),css=read('mastermind99_atelier.css'),ui=read('mastermind39_ui.js');
  assert.match(html,/id="screen-atelier85"/);
- assert.match(html,/id="p90-native-stage"/);
+ assert.match(html,/id="ma99-atelier"/);
+ assert.match(html,/mastermind99_atelier_layers\.js"><\/script><script src="mastermind99_atelier\.js"/);
+ assert.match(html,/mastermind99_atelier\.css/);
+ assert.doesNotMatch(html,/p90-native-stage|pixelportrait86_companion|lyime/);
+ assert.doesNotMatch(ui,/lyime/);
  assert.match(html,/id="screen-master"/);
  assert.match(html,/mastermind51_private_books\.js/);
+ assert.match(js,/source:'mastermind-atelie-camadas'/);
+ assert.match(js,/MastermindCharacters/);
+ assert.match(js,/photo\.length>1800000\|\|tokenImage\.length>1200000/);
+ assert.doesNotMatch(js,/https?:\/\//);
+ assert.match(css,/#screen-atelier85 \.ma99/);
+});
+test('Atelier layers ship every piece the UI offers, and long hair hides its back under hoodie and cape',()=>{
+ const src=read('mastermind99_atelier_layers.js');
+ const ctx={window:{}};require('node:vm').runInNewContext(src,ctx);
+ const L=ctx.window.MastermindAtelierLayers;
+ assert.equal(L.W,560);assert.equal(L.H,1360);
+ for(const k of ['corpo','pele','cabelo','cabelo-longo','roupa-moletom','roupa-capa','camisa','calca','bota'])assert.ok(L[k]&&/^data:image\//.test(L[k].src),'faltando '+k);
+ const js=read('mastermind99_atelier.js');
+ assert.match(js,/id:'longo',nome:'Longo liso',camada:'cabelo-longo',tras:\[\[380,250\]/);
+ assert.match(js,/id:'capa',nome:'Capa',camada:'roupa-capa',cobreTras:true/);
+ assert.match(js,/id:'moletom',nome:'Moletom',camada:'roupa-moletom',cobreTras:true/);
+ for(const m of js.matchAll(/camada:'([a-z-]+)'/g))if(!L[m[1]])assert.match(js,/if\(p\.camada&&!CAMADAS\[p\.camada\]\)p\.camada=null/);
+});
+test('Android keeps the native bridges that the rest of the app uses',()=>{
+ const java=fs.readFileSync(path.join(root,'app/src/main/java/dev/rpgmesa/demo/MainActivity.java'),'utf8');
+ assert.match(java,/RpgSheetPdfBridge/);
+ assert.match(java,/RpgBookBridge/);
 });

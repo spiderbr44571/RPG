@@ -33,7 +33,7 @@ function card(sys){
  const color=colors(sys),thumb=image(sys),ready=sys.implementation==='partial';
  return '<article class="r15-card" style="--deep:'+color[0]+';--soft:'+color[1]+'"><div class="r15-art" data-open-system="'+esc(sys.id)+'" role="button" tabindex="0" aria-label="Abrir '+esc(title(sys))+'"><span class="glyph">✧</span>'+
  (thumb?'<img src="'+thumb+'" alt="Capa do PDF pessoal de Ordem Paranormal">':'')+
- '<div class="name">'+esc(title(sys))+'</div></div><div class="r15-card-info"><strong>'+esc(sys.title)+'</strong><small>'+sys.books.length+' arquivo(s) no Drive</small><span class="r15-tag">'+(ready?'Regras parciais':'Catalogado')+'</span><div class="r15-card-actions"><button data-open-system="'+esc(sys.id)+'">Detalhes ↗</button><button data-fav-system="'+esc(sys.id)+'" title="Marcar favorito" aria-pressed="'+faves.has(sys.id)+'">'+(faves.has(sys.id)?'★':'☆')+'</button></div></div></article>';
+ '<div class="name">'+esc(title(sys))+'</div></div><div class="r15-card-info"><strong>'+esc(title(sys))+'</strong><small>'+sys.books.length+' arquivo(s) no Drive</small><span class="r15-tag">'+(ready?'Regras parciais':'Catalogado')+'</span><div class="r15-card-actions"><button data-open-system="'+esc(sys.id)+'">Detalhes ↗</button><button data-fav-system="'+esc(sys.id)+'" title="Marcar favorito" aria-pressed="'+faves.has(sys.id)+'">'+(faves.has(sys.id)?'★':'☆')+'</button></div></div></article>';
 }
 function visible(sys){const txt=(title(sys)+' '+sys.books.map(b=>b.title).join(' ')).toLocaleLowerCase('pt-BR');
  return (!search||txt.includes(search))&&(filter==='all'||filter==='fav'&&faves.has(sys.id)||filter===sys.implementation);

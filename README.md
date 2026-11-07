@@ -1,3 +1,26 @@
+# Mastermind
+
+Versão atual: **Android v0.107** · **Linux e Windows v1.2.0** — Ateliê com a esclera do rosto Jovem até a pálpebra
+(os dois olhos parelhos), jaleco aparecendo entre os dedos e o vão do braço mostrando o fundo.
+
+## Organização do repositório
+
+- **`main`** tem um código só para as três plataformas: o app (`app/src/main/assets`) é o mesmo no Android e no
+  desktop; `app/` gera o APK e `desktop/` (Electron) gera Linux e Windows.
+- **Versões:** Android em `app/build.gradle` (`versionCode`/`versionName`); Linux e Windows juntos em `package.json`.
+  O número mostrado no app vem de `MM_VERSAO` em `app/src/main/assets/mastermind39_ui.js`, e os testes conferem
+  que ele bate com os dois arquivos.
+- **Builds:** cada push na `main` roda `.github/workflows/android.yml`, `linux.yml` e `windows.yml` (testes no
+  Chromium, no APK e nos executáveis empacotados). Quando a versão ainda não foi publicada, o workflow cria o
+  Release (`mastermind-vX-android-…`, `mastermind-vX-linux`, `mastermind-vX-windows`); uma versão já publicada
+  nunca é sobrescrita. Para publicar, suba a versão.
+- **Versões antigas:** os Releases e tags `mastermind-v…` continuam publicados. As branches das versões anteriores
+  foram guardadas como tags `archive/<nome-da-branch>` (o código de qualquer uma delas continua disponível).
+- **Ateliê:** as camadas de `mastermind99_atelier_layers.js` são geradas pelos scripts em `scripts/atelie_*.py`
+  (veja a docstring de `atelie_corrigir_rostos.py` para regenerar).
+
+## Histórico
+
 # Mastermind v0.58 — integração testada das telas e pedidos
 
 Corrige a aba de Poderes que sobrescrevia outras seções, sincronização da ficha LAN, expiração de ações extras e pedidos de turnos antigos. Acrescenta testes reais de navegador/servidor e teste da WebView do APK em emulador no CI.

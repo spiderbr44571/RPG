@@ -1,14 +1,17 @@
-name: Mastermind Android v0.99 — Ateliê em camadas
+name: Android
+# Testes, APK e Release do Android a partir da main. O Release só é criado quando a versão do
+# app/build.gradle ainda não foi publicada (subir o versionName = novo Release; nada é sobrescrito).
 on:
   push:
-    branches:
-      - feature/android-v099-atelie-camadas
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: write
 jobs:
   android:
-    name: Testes regressivos e compilacao Android v0.99
+    name: Testes regressivos e compilacao Android
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -46,11 +49,17 @@ jobs:
           set -euo pipefail
           node --check app/src/main/assets/mastermind99_atelier.js
           node --check app/src/main/assets/mastermind99_atelier_layers.js
-          node --test tests/mastermind_v099_android.test.cjs tests/mastermind_chocolate_menu.test.cjs tests/mastermind_sheet_studio.test.cjs tests/mastermind_v094_powers.test.cjs
+          node --test tests/mastermind_android.test.cjs tests/mastermind_atelier_camadas.test.cjs tests/mastermind_chocolate_menu.test.cjs tests/mastermind_sheet_studio.test.cjs tests/mastermind_v094_powers.test.cjs
           NODE_PATH="$PWD/.mm-pdf-deps/node_modules" node --test tests/mastermind_v095_pdf_templates.test.cjs tests/mastermind_v096_ordem_template.test.cjs tests/mastermind_v097_system_editor.test.cjs
           node tests/gurps4.test.cjs
           node tests/mastermind_v74.test.cjs
           node tests/mastermind_v75.test.cjs
+      - name: Medir encaixe de rostos, olhos, barba, jaleco e vão do braço num Chromium real
+        run: |
+          set -euo pipefail
+          npm install --prefix .mm-e2e --no-audit --no-fund @playwright/test@1.64.1
+          NODE_PATH="$PWD/.mm-e2e/node_modules" npx --prefix .mm-e2e playwright install --with-deps chromium
+          NODE_PATH="$PWD/.mm-e2e/node_modules" node tests/mastermind_atelie_encaixe.e2e.cjs
       - name: Preparar SDK Android
         run: |
           set -euo pipefail
@@ -62,29 +71,33 @@ jobs:
       - name: Conferir assets, pontes nativas e assinatura
         run: |
           set -euo pipefail
-          python3 tests/verify_apk_v99.py app/build/outputs/apk/debug/app-debug.apk
+          python3 tests/verify_apk.py app/build/outputs/apk/debug/app-debug.apk
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-debug.apk
-          cp app/build/outputs/apk/debug/app-debug.apk Mastermind-v0.99-Android-Atelie-Camadas.apk
-          sha256sum Mastermind-v0.99-Android-Atelie-Camadas.apk > Mastermind-v0.99-Android-SHA256.txt
-      - name: Publicar APK no GitHub Actions
+          NOME=$(sed -n "s/.*versionName '\([0-9]*\.[0-9]*\)\.[0-9]*-\([a-z0-9-]*\)'.*/\1 \2/p" app/build.gradle)
+          VERSAO=${NOME%% *}; DESCR=${NOME#* }
+          echo "VERSAO=$VERSAO" >> "$GITHUB_ENV"; echo "DESCR=$DESCR" >> "$GITHUB_ENV"
+          cp app/build/outputs/apk/debug/app-debug.apk "Mastermind-v$VERSAO-Android.apk"
+          sha256sum "Mastermind-v$VERSAO-Android.apk" > "Mastermind-v$VERSAO-Android-SHA256.txt"
+      - name: Guardar APK no GitHub Actions
         uses: actions/upload-artifact@v4
         with:
-          name: Mastermind-v0.99-Android-ATELIE-CAMADAS-APK
+          name: Mastermind-v${{ env.VERSAO }}-Android-APK
           path: |
-            Mastermind-v0.99-Android-Atelie-Camadas.apk
-            Mastermind-v0.99-Android-SHA256.txt
+            Mastermind-v${{ env.VERSAO }}-Android.apk
+            Mastermind-v${{ env.VERSAO }}-Android-SHA256.txt
           if-no-files-found: error
           retention-days: 90
-      - name: Publicar APK para download direto no GitHub Releases
+      - name: Publicar Release da versão nova
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          TAG="mastermind-v0.99-android-atelie-camadas"
+          TAG="mastermind-v$VERSAO-android-$DESCR"
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" Mastermind-v0.99-Android-Atelie-Camadas.apk Mastermind-v0.99-Android-SHA256.txt --clobber
+            echo "Release $TAG já existe: nada a publicar (suba o versionName para um Release novo)."
           else
-            gh release create "$TAG" Mastermind-v0.99-Android-Atelie-Camadas.apk Mastermind-v0.99-Android-SHA256.txt \
-              --target "$GITHUB_SHA" --title "Mastermind Android v0.99 — Ateliê em camadas" \
-              --notes "Mastermind Android v0.99: novo Ateliê de personagem em camadas pintadas, offline, no lugar do Pixel Portrait Creator do lyime. Vista o agente peça por peça (cabelos, roupas, armaduras, calças, calçados e acessórios), recolora cada peça, escolha elemento, lealdade e efeitos, e salve retrato e token na ficha. Moletom e capa escondem o cabelo de trás. Preserva fichas, biblioteca, pesquisa de regras, mestragem e exportação de PDFs. Versão Android 103 com o mesmo applicationId. A atualização por cima exige a mesma chave de assinatura da instalação anterior; faça backup dos dados."
+            gh release create "$TAG" "Mastermind-v$VERSAO-Android.apk" "Mastermind-v$VERSAO-Android-SHA256.txt" \
+              --target "$GITHUB_SHA" --title "Mastermind Android v$VERSAO" \
+              --notes "Mastermind Android v$VERSAO ($DESCR), gerado da main com todos os testes passando. Mesmo applicationId: atualiza sem apagar os dados (faça backup)."
           fi
