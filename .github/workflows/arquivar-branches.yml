@@ -1,0 +1,47 @@
+name: Arquivar branches antigas
+# Uso manual. Guarda cada branch (menos main e a da sessão atual) numa tag archive/<nome-da-branch> e confere a tag
+# no GitHub. Com apagar=sim, apaga a branch depois que a tag dela confere com o mesmo commit (nada se perde).
+on:
+  workflow_dispatch:
+    inputs:
+      apagar:
+        description: 'Apagar as branches depois de conferir as tags? (sim/nao)'
+        required: true
+        default: 'nao'
+permissions:
+  contents: write
+jobs:
+  arquivar:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Arquivar em tags (e apagar, se pedido)
+        env:
+          APAGAR: ${{ inputs.apagar }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch --prune origin '+refs/heads/*:refs/remotes/origin/*' '+refs/tags/*:refs/tags/*'
+          manter='^(main|ccr-651c55d6-ml0jlu)$'
+          criadas=0; conferidas=0; apagadas=0
+          for b in $(git for-each-ref --format='%(refname:strip=3)' refs/remotes/origin); do
+            [ "$b" = HEAD ] && continue
+            if echo "$b" | grep -qE "$manter"; then continue; fi
+            sha=$(git rev-parse "refs/remotes/origin/$b")
+            tag="archive/$b"
+            if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+              [ "$(git rev-parse "$tag^{commit}")" = "$sha" ] || { echo "::error::$tag já existe com outro commit"; exit 1; }
+            else
+              git tag -a "$tag" "$sha" -m "Branch $b arquivada (main unificada: Android v0.107, desktop v1.2.0)"
+              git push -q origin "refs/tags/$tag"
+              criadas=$((criadas+1))
+            fi
+            [ "$(git ls-remote origin "refs/tags/$tag^{}" | cut -f1)" = "$sha" ] || { echo "::error::tag $tag não confere no GitHub"; exit 1; }
+            conferidas=$((conferidas+1))
+            if [ "$APAGAR" = sim ]; then git push -q origin --delete "$b"; apagadas=$((apagadas+1)); echo "apagada: $b"; fi
+          done
+          echo "tags criadas: $criadas | tags conferidas: $conferidas | branches apagadas: $apagadas" | tee -a "$GITHUB_STEP_SUMMARY"
