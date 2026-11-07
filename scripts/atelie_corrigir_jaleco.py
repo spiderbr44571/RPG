@@ -5,12 +5,13 @@ O jaleco foi pintado opaco por cima do manequim e trouxe três sobras:
   1. vão entre o corpo e o braço (lado direito da imagem, y 620-880): o fundo entre a frente do
      jaleco e a manga veio pintado de tecido, com hachuras cinza do braço do manequim. Ali o
      manequim é fundo: sai o que fica entre a linha da frente do jaleco e a linha da manga;
-  2. mão (y 875-1012): uma sombra cinza e um contorno de dedos duplicado ficavam sobre o vão e a
-     beirada da mão verdadeira. Sai o que está sobre o fundo ou a pele da mão (ficam o punho
-     preto da manga, a barra e o tecido branco da frente); as bordas novas ganham traço de nanquim;
+  2. mão (y 875-1040): uma sombra cinza e um contorno de dedos duplicado ficavam sobre o vão e a
+     beirada da mão verdadeira. Ali o tecido continua inteiro (cor de cada linha vinda do jaleco ao
+     lado, recolorível), com sombra suave junto da mão, e só o formato da mão do manequim sai do
+     jaleco: a mão fica por cima do tecido;
   3. perna (y 880-1090): uma faixa de tecido passava para fora da linha da borda da frente do
      jaleco, por cima da calça. Em cada linha, o que está à esquerda do traço da borda sai.
-Marca "ajuste":"jaleco-1" e não repete. Uso: python3 scripts/atelie_corrigir_jaleco.py [layers.js]
+Marca "ajuste":"jaleco-2" e não repete. Uso: python3 scripts/atelie_corrigir_jaleco.py [layers.js]
 """
 import base64, io, json, sys
 import numpy as np
@@ -34,9 +35,15 @@ def enc(arr):
     return 'data:image/webp;base64,' + base64.b64encode(b.getvalue()).decode()
 
 
+def enc_l(arr):
+    b = io.BytesIO()
+    Image.fromarray(arr.round().clip(0, 255).astype(np.uint8), 'L').save(b, 'PNG', optimize=True)
+    return 'data:image/png;base64,' + base64.b64encode(b.getvalue()).decode()
+
+
 def corrige(L, k='roupa-jaleco'):
     c = L.get(k)
-    if not c or c.get('ajuste') == 'jaleco-1':
+    if not c or c.get('ajuste') == 'jaleco-2':
         return None
     S = dec(c['src'], 'RGBA').copy()
     corpo = dec(L['corpo']['src'], 'RGBA').astype(int)
@@ -60,8 +67,34 @@ def corrige(L, k='roupa-jaleco'):
         return np.array(im).astype(bool)
     # 1: entre a linha da frente do jaleco (esquerda) e a linha de dentro da manga (direita)
     z1 = poligono(VAO)
-    # 2: abaixo do punho, entre a frente do jaleco e a mão: sombra cinza e dedos duplicados; a mão volta a aparecer
-    z2 = poligono(MAO)
+    # 2: abaixo do punho, atrás da mão: o tecido continua inteiro (sem a sombra cinza e os dedos duplicados)
+    #    e a mão do manequim aparece por cima dele
+    zona = poligono(MAO) & ((X <= 458) | (Y < 990))  # à direita dos dedos, embaixo, não há jaleco
+    mao = zona & (Cc[..., 3] > 128) & (X >= 418)  # a mão (pele e contorno) do manequim
+    m_jal = dec(c['m'], 'L').astype(float) if 'm' in c else None
+    for j in range(h):
+        linha = np.where(zona[j] & ~mao[j])[0]
+        if not len(linha):
+            continue
+        fonte = [x - x0 for x in range(395, 409) if 0 <= x - x0 < w and S[j, x - x0, 3] > 200 and lum[j, x - x0] > 150]
+        if not fonte:
+            fonte = [x - x0 for x in range(380, 409) if 0 <= x - x0 < w and S[j, x - x0, 3] > 200 and lum[j, x - x0] > 150]
+        if not fonte:
+            continue
+        cor = np.median(S[j, fonte, :3].astype(float), axis=0)
+        S[j, linha, :3] = cor.round().astype(np.uint8)
+        S[j, linha, 3] = 255
+        if m_jal is not None:
+            m_jal[j, linha] = np.median(m_jal[j, fonte])
+    # sombra suave do tecido junto da mão (a mão fica na frente)
+    from scipy import ndimage as nd
+    dist = nd.distance_transform_edt(~mao)
+    sombra = zona & ~mao & (dist <= 4)
+    fator = (0.72 + 0.07 * dist)[sombra][:, None]
+    S[sombra, :3] = (S[sombra, :3].astype(float) * fator).round().clip(0, 255).astype(np.uint8)
+    if m_jal is not None:
+        c['m'] = enc_l(m_jal)
+    z2 = mao
     # 3
     z3 = np.zeros((h, w), bool)
     for yy in range(880, 1090):
@@ -81,12 +114,12 @@ def corrige(L, k='roupa-jaleco'):
     S[tirar, 3] = 0
     # contorno de nanquim (2 px) onde o tecido ficou encostado no fundo aberto, no vão e na mão
     from scipy import ndimage as nd
-    perto = nd.binary_dilation(tirar & ((Y >= 620) & (Y < 1040) & (X >= 395)), iterations=2)
-    contorno = perto & ~tirar & (S[..., 3] > 128) & ~tinta & ~((Y >= 875) & pele)
+    perto = nd.binary_dilation(z1, iterations=2)
+    contorno = perto & ~tirar & (S[..., 3] > 128) & ~tinta
     S[contorno, :3] = (24, 18, 22)
     n['contorno'] = int(contorno.sum())
     c['src'] = enc(S)
-    c['ajuste'] = 'jaleco-1'
+    c['ajuste'] = 'jaleco-2'
     return n
 
 
