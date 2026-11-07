@@ -44,7 +44,15 @@ const PECAS={
     {id:'cachecol',nome:'Cachecol',camada:'acc-cachecol'},{id:'colar',nome:'Colar ocultista',camada:'acc-colar'},{id:'fone',nome:'Fone no pescoço',camada:'acc-fone'},
     {id:'luvas',nome:'Luvas',camada:'acc-luvas'},{id:'coldre',nome:'Coldre',camada:'acc-coldre'},{id:'katana',nome:'Katana nas costas',camada:'acc-katana'}]
 };
-const CAT_Z={calcado:10,calca:20,roupa:30,barba:35,cabelo:40,acessorios:45,cabeca:50};
+/* rosto redondo fica na frente das roupas (bochecha mais larga que o capuz/gola); barba, cabelo e acessórios seguem por cima */
+{const r=PECAS.rosto&&PECAS.rosto.find(p=>p.id==='redondo');if(r)r.z=32;}
+/* "Raspado de lado": a mecha longa desce pela esquerda do pescoço, mas a arte não tem o cabelo de trás.
+   Entre a mecha e a mandíbula sobrava a gola/sombra de pescoço pintada na roupa (bloco cinza hachurado e frestas brancas).
+   nuca: área (pixels da camada) preenchida com o tom escuro do fio, por cima da roupa e por baixo de barba, rosto redondo e fios; a pele da cabeça fica de fora. */
+{const c=PECAS.cabelo.find(p=>p.camada==='cabelo-lateral');if(c)c.nuca=[[134,284],[154,284],[194,372],[190,446],[134,446]];}
+/* rosto com orelha própria: a orelha pintada no cabelo some e a do rosto aparece no lugar */
+{const e=PECAS.rosto&&PECAS.rosto.find(p=>p.id==='elfo');if(e)e.orelha=[[356,196],[384,178],[452,140],[458,166],[404,234],[372,284],[334,286],[336,240],[342,208]];} // contorno da orelha pontuda, em pixels da camada
+const CAT_Z={rosto:5,calcado:10,calca:20,roupa:30,barba:35,cabelo:40,acessorios:45,cabeca:50};
 const MULTI=new Set(['acessorios']);
 for(const cat in PECAS)for(const p of PECAS[cat])if(p.camada&&!CAMADAS[p.camada])p.camada=null;
 
@@ -111,50 +119,222 @@ function tintPx(p,i,R,G,B,ref,t){const s=(.299*p[i]+.587*p[i+1]+.114*p[i+2])/ref
   lift=(.12+.3*Lt/255)*Math.min(1,Math.max(0,s-1.2)),f=c=>{const b=c*k;return Math.min(255,b+(255-b)*lift);};
   p[i]+=(f(R)-p[i])*t;p[i+1]+=(f(G)-p[i+1])*t;p[i+2]+=(f(B)-p[i+2])*t;}
 /* a máscara m diz o que é tecido; pm diz o que é pele nova da peça */
+/* RGBA cru da camada, sem pré-multiplicar (o canvas 2D zera a cor dos pixels de alfa 0; o WebGL preserva) */
+const cruCache=new Map();
+function rgbCru(key){
+  if(cruCache.has(key))return cruCache.get(key);
+  const img=IMG[key],w=img.width,h=img.height;let d=null;
+  try{const c=mk(w,h),gl=c.getContext('webgl',{premultipliedAlpha:false});
+    if(gl){const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,false);gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL,gl.NONE);
+      gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,img);const fb=gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,fb);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,t,0);
+      if(gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE){d=new Uint8Array(w*h*4);gl.readPixels(0,0,w,h,gl.RGBA,gl.UNSIGNED_BYTE,d);}
+      gl.deleteFramebuffer(fb);gl.deleteTexture(t);const lc=gl.getExtension('WEBGL_lose_context');if(lc)lc.loseContext();}}catch(e){d=null;}
+  cruCache.set(key,d);return d;}
+/* olhos dos rostos: o recorte de fundo zerou o alfa dos brancos (esclera, brilho da íris, realce da pálpebra), mas a cor ficou guardada no RGB.
+   Nesses furos aparecia o olho do manequim por baixo, ou o vão aberto pelo recorte del (olho "sobreposto"/furado do rosto Jovem).
+   Na faixa dos olhos, volta a ser opaco: todo pixel do recorte del do próprio rosto e todo branco/cinza claro que difere do manequim e está cercado pelo traço do olho. */
+const OLHOS=[145,222,315,282]; // x0,y0,x1,y1 em pixels do manequim
+let corpoRGB=null;
+function olhosRosto(key,p,w,h){
+  const cru=rgbCru(key);if(!cru)return;
+  const L=CAMADAS[key],D=DEL[key]?maskData(DEL[key],DEL[key].width,DEL[key].height):null,DW=D?DEL[key].width:0,DH=D?DEL[key].height:0;
+  if(!corpoRGB)corpoRGB=maskData(IMG.corpo,CAMADAS.W,CAMADAS.H);
+  const tracoEm=(x,y)=>{if(x<0||y<0||x>=w||y>=h)return false;const i=(y*w+x)*4;return cru[i+3]>200&&Math.max(cru[i],cru[i+1],cru[i+2])<90;};
+  const cercado=(x,y)=>[[1,0],[-1,0],[0,1],[0,-1]].every(([a,b])=>{for(let t=1;t<=12;t++)if(tracoEm(x+a*t,y+b*t))return true;return false;});
+  for(let Y=OLHOS[1];Y<OLHOS[3];Y++)for(let X=OLHOS[0];X<OLHOS[2];X++){
+    const x=X-L.x,y=Y-L.y;if(x<0||y<0||x>=w||y>=h)continue;const i=(y*w+x)*4;if(cru[i+3]>=250)continue;
+    const dx=X-(L.dx||0),dy=Y-(L.dy||0),noDel=D&&dx>=0&&dy>=0&&dx<DW&&dy<DH&&D[(dy*DW+dx)*4+3]>0;
+    let volta=noDel;
+    if(!volta){const r=cru[i],g=cru[i+1],b=cru[i+2],mx=Math.max(r,g,b),mn=Math.min(r,g,b),lum=.299*r+.587*g+.114*b,c=(Y*CAMADAS.W+X)*4;
+      volta=mx&&(mx-mn)/mx<.16&&lum>140&&Math.max(Math.abs(r-corpoRGB[c]),Math.abs(g-corpoRGB[c+1]),Math.abs(b-corpoRGB[c+2]))>60&&cercado(x,y);}
+    if(volta){p[i]=cru[i];p[i+1]=cru[i+1];p[i+2]=cru[i+2];p[i+3]=255;}}
+}
 function recolor(key,color,pele){
   pele=pele||'original';const usaPele=PMASK[key]&&pele!=='original';
   const id=key+'|'+color+'|'+(usaPele?pele:'');if(cache.has(id))return cache.get(id);
   const img=IMG[key],c=mk(img.width,img.height),x=c.getContext('2d');x.drawImage(img,0,0);
-  if(color!=='original'||usaPele){
+  const ehRosto0=/^rosto/.test(key);
+  if(color!=='original'||usaPele||ehRosto0){
     const d=x.getImageData(0,0,c.width,c.height),p=d.data;
+    if(ehRosto0)olhosRosto(key,p,c.width,c.height);
     const w=MASK[key]?maskData(MASK[key],c.width,c.height):null,pw=usaPele?maskData(PMASK[key],c.width,c.height):null;
     const [R,G,B]=color!=='original'?hx(color):[0,0,0],ref=CAMADAS[key].ref||128;
     const [SR,SG,SB]=usaPele?hx(pele):[0,0,0],sref=CAMADAS.pele.ref||170;
+    const ehRosto=/^rosto/.test(key);
     for(let i=0;i<p.length;i+=4){if(!p[i+3])continue;
-      if(pw&&pw[i]>0){tintPx(p,i,SR,SG,SB,sref,pw[i]/255);continue;}
+      let pt=pw?pw[i]/255:0;
+      if(ehRosto&&usaPele){const mx=Math.max(p[i],p[i+1],p[i+2]),mn=Math.min(p[i],p[i+1],p[i+2]),sat=mx?(mx-mn)/mx:0,lum=.299*p[i]+.587*p[i+1]+.114*p[i+2];
+        if(pt>0&&lum>=50&&sat<.1)pt*=Math.max(0,(sat-.04)/.06); // íris/cinza marcado como pele (olho direito do rosto jovem) continua cinza
+        else if(!pt&&p[i+3]<230&&lum>150&&(!w||!w[i]))pt=1;} // realce semitransparente da pálpebra/olheira: acompanha o tom da pele (antes virava mancha clara em pele escura)
+      if(pt>0){tintPx(p,i,SR,SG,SB,sref,pt);continue;}
       if(color!=='original'){const t=w?w[i]/255:1;if(t>0)tintPx(p,i,R,G,B,ref,t);}}
     x.putImageData(d,0,0);
   }
   cache.set(id,c);return c;
 }
-function peca(cat,id){return PECAS[cat].find(p=>p.id===id&&p.camada);}
+function peca(cat,id){return PECAS[cat]?PECAS[cat].find(p=>p.id===id&&p.camada):undefined;} // app ainda sem algumas categorias (rosto)
+/* cabelo: separa os fios da pele pintada junto (testa, orelha, sobrancelha do rosto-base).
+   fios: todo pixel que não é pele recebe a cor escolhida (inclusive contorno e borda fora da máscara m, que antes ficavam na cor original);
+   pele: vai para baixo do rosto (z 4.5), então o rosto escolhido cobre testa/sobrancelha antigas e só sobra onde o rosto não tem nada.
+   Pixel marcado como pele (pm) mas com cor de fio (mecha, raspado) fica com o cabelo, na proporção da distância de cor. */
+const ehCabelo=k=>/^cabelo/.test(k);
+const PELE_ROSTOS='#cba189'; // mediana da pele pintada nos rostos
+const ORELHA_X=336; // x (pixels da camada) a partir do qual fica a orelha direita do manequim
+const splitCache=new Map();
+/* correções de pintura do cabelo feitas em código (sem trocar o PNG):
+   1) mancha pequena marcada como pele (pm) no meio dos fios, com o matiz do fio ou fora da silhueta → volta a ser fio (mecha do "Raspado de lado");
+   2) orelha pintada como fio (m) na zona da orelha → vira pele (fica sob o rosto e recebe o tom de pele, em vez da cor do cabelo);
+   3) furo transparente fechado no alto da cabeça (brilho apagado no recorte) → preenchido com o brilho do próprio fio, para não mostrar a careca. */
+const hueSat=(r,g,b)=>{const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;let hh=0;
+  if(d){if(mx===r)hh=((g-b)/d+6)%6;else if(mx===g)hh=(b-r)/d+2;else hh=(r-g)/d+4;}return[hh*60,mx?d/mx:0];};
+const difMatiz=(a,b)=>{const d=Math.abs(a-b)%360;return Math.min(d,360-d);};
+let corpoAlfa=null;
+function ajustaCabelo(p,SW,w,h,L,HR,SR,dist){
+  const N=w*h,CW=CAMADAS.W,CH=CAMADAS.H;
+  if(!corpoAlfa)corpoAlfa=maskData(IMG.corpo,CW,CH);
+  const naCorpo=j=>{const x=j%w,X=x+L.x,Y=(j-x)/w+L.y;return X>=0&&Y>=0&&X<CW&&Y<CH&&corpoAlfa[(Y*CW+X)*4+3]>128;};
+  const zonaOrelha=j=>{const x=j%w,X=x+L.x,Y=(j-x)/w+L.y;return X>=ORELHA_X-8&&Y>=165&&Y<=290;};
+  const viz=j=>{const x=j%w,o=[];if(x>0)o.push(j-1);if(x<w-1)o.push(j+1);if(j>=w)o.push(j-w);if(j<N-w)o.push(j+w);return o;};
+  const grupo=(j0,teste,visto)=>{const q=[j0];visto[j0]=1;for(let k=0;k<q.length;k++)for(const n of viz(q[k]))if(!visto[n]&&teste(n)){visto[n]=1;q.push(n);}return q;};
+  const ehFio=j=>p[j*4+3]>128&&SW[j]<.2;
+  const [hH,hS]=hueSat(...HR),[sH]=hueSat(...SR);
+  /* 1 */
+  let visto=new Uint8Array(N);
+  for(let j=0;j<N;j++){if(visto[j]||SW[j]<=.5)continue;const c=grupo(j,k=>SW[k]>.5,visto);if(c.length>400)continue;
+    let borda=0,fioB=0,fora=0,orelha=0,mr=0,mg=0,mb=0;
+    for(const k of c){if(!naCorpo(k))fora++;if(zonaOrelha(k))orelha++;mr+=p[k*4];mg+=p[k*4+1];mb+=p[k*4+2];
+      for(const n of viz(k)){if(SW[n]>.5)continue;borda++;if(ehFio(n))fioB++;}}
+    if(orelha>c.length/2)continue;
+    const [cH,cS]=hueSat(mr/c.length,mg/c.length,mb/c.length),corDeFio=hS>.2&&cS>.15&&difMatiz(cH,hH)<difMatiz(cH,sH);
+    if(fora>c.length*.5||(borda&&fioB>borda*.7&&corDeFio))for(const k of c)SW[k]=0;}
+  /* 2 */
+  visto=new Uint8Array(N);
+  const orelhaPele=j=>{const i=j*4;return p[i+3]>=100&&SW[j]<=.5&&zonaOrelha(j)&&naCorpo(j)&&dist(i,SR)<32&&dist(i,SR)<dist(i,HR)*.5;};
+  const pts=[];
+  for(let j=0;j<N;j++){if(visto[j]||!orelhaPele(j))continue;const c=grupo(j,orelhaPele,visto);if(c.length>=8)for(const k of c)pts.push([k%w,(k-k%w)/w]);}
+  if(pts.length>=60){ // orelha pintada no cabelo: o contorno (casco convexo) dos tons de pele vira pele inteira, com o sombreado interno
+    pts.sort((u,v)=>u[0]-v[0]||u[1]-v[1]);const cr=(o,u,v)=>(u[0]-o[0])*(v[1]-o[1])-(u[1]-o[1])*(v[0]-o[0]),lo=[],up=[];
+    for(const q of pts){while(lo.length>1&&cr(lo[lo.length-2],lo[lo.length-1],q)<=0)lo.pop();lo.push(q);}
+    for(let k=pts.length-1;k>=0;k--){const q=pts[k];while(up.length>1&&cr(up[up.length-2],up[up.length-1],q)<=0)up.pop();up.push(q);}
+    const hull=lo.slice(0,-1).concat(up.slice(0,-1)),x0=Math.min(...hull.map(q=>q[0])),x1=Math.max(...hull.map(q=>q[0])),y0=Math.min(...hull.map(q=>q[1])),y1=Math.max(...hull.map(q=>q[1]));
+    const dentro=(x,y)=>{for(let k=0;k<hull.length;k++){if(cr(hull[k],hull[(k+1)%hull.length],[x,y])<-.5)return false;}return true;};
+    const area=[];for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const k=y*w+x;if(p[k*4+3]&&dentro(x,y))area.push(k);}
+    if(pts.length>=area.length*.35)for(const k of area)SW[k]=1;} // só quando o contorno é quase todo pele (orelha); mecha clara espalhada sobre a orelha (Longo ondulado) fica como está
+  /* 3 */
+  const transp=j=>p[j*4+3]<128;visto=new Uint8Array(N);const borda0=[];
+  for(let x=0;x<w;x++){borda0.push(x,N-w+x);}for(let y=0;y<h;y++){borda0.push(y*w,y*w+w-1);}
+  for(const j of borda0)if(!visto[j]&&transp(j))grupo(j,transp,visto);
+  let br=null;
+  for(let j=0;j<N;j++){if(visto[j]||!transp(j))continue;const c=grupo(j,transp,visto);
+    let ymax=-1e9,borda=0,fioB=0,dentro=true,orelha=false,nr=0,ng=0,nb=0,nn=0,bx0=1e9,bx1=-1,by0=1e9,by1=-1;
+    for(const k of c){const y=(k-k%w)/w+L.y;if(y>ymax)ymax=y;const bx=k%w,by=(k-bx)/w;bx0=Math.min(bx0,bx);bx1=Math.max(bx1,bx);by0=Math.min(by0,by);by1=Math.max(by1,by);if(!naCorpo(k))dentro=false;if(zonaOrelha(k))orelha=true;
+      for(const n of viz(k)){if(transp(n))continue;borda++;if(ehFio(n)){fioB++;nr+=p[n*4];ng+=p[n*4+1];nb+=p[n*4+2];nn++;}}}
+    if(!dentro||orelha||!borda||fioB<borda*.8||!(ymax<160||c.length<=12))continue;
+    if(c.length>12&&c.length<(bx1-bx0+1)*(by1-by0+1)*.2)continue; // vão fino e comprido (contorno, risca do cabelo): é desenho, fica aberto
+    if(!br){let hist=new Array(256).fill(0),tot=0;for(let k=0;k<N;k++)if(ehFio(k)){const i=k*4;hist[Math.round(.299*p[i]+.587*p[i+1]+.114*p[i+2])]++;tot++;}
+      let lim=255,acc=0;while(lim>0&&acc<tot*.12)acc+=hist[lim--];let r=0,g=0,b=0,n=0;
+      for(let k=0;k<N;k++)if(ehFio(k)){const i=k*4;if(.299*p[i]+.587*p[i+1]+.114*p[i+2]>lim){r+=p[i];g+=p[i+1];b+=p[i+2];n++;}}br=n?[r/n,g/n,b/n]:HR;}
+    let f=[nr/nn*.3+br[0]*.7,ng/nn*.3+br[1]*.7,nb/nn*.3+br[2]*.7];const lf=.299*f[0]+.587*f[1]+.114*f[2],alvo=Math.max(lf,1.7*(L.ref||128));
+    f=f.map(v=>Math.min(255,v*alvo/Math.max(lf,1)+(lf<8?alvo:0))); // brilho: o furo era reflexo apagado no recorte
+    for(const k of c){const i=k*4;p[i]=f[0];p[i+1]=f[1];p[i+2]=f[2];p[i+3]=255;SW[k]=0;}}
+}
+function splitHair(key,color,pele){
+  pele=pele||'original';color=color||'original';
+  const id=[key,color,pele].join('|');if(splitCache.has(id))return splitCache.get(id);
+  const img=IMG[key],L=CAMADAS[key],w=img.width,h=img.height;
+  const a=mk(w,h).getContext('2d');a.drawImage(img,0,0);const d=a.getImageData(0,0,w,h),p=d.data;
+  const m=MASK[key]?maskData(MASK[key],w,h):null,pm=PMASK[key]?maskData(PMASK[key],w,h):null;
+  const fio=new ImageData(w,h),pel=new ImageData(w,h),F=fio.data,S=pel.data;
+  /* cor típica do fio (m cheio, fora da pele) e da pele (pm, clara) */
+  let hr=0,hg=0,hb=0,hn=0,sr=0,sg=0,sb=0,sn=0;
+  for(let i=0;i<p.length;i+=4){if(p[i+3]<200)continue;const L2=.299*p[i]+.587*p[i+1]+.114*p[i+2];
+    if((!pm||!pm[i])&&(!m||m[i]===255)){hr+=p[i];hg+=p[i+1];hb+=p[i+2];hn++;}
+    else if(pm&&pm[i]>0&&L2>110){sr+=p[i];sg+=p[i+1];sb+=p[i+2];sn++;}}
+  const HR=hn?[hr/hn,hg/hn,hb/hn]:[60,45,40],SR=sn>50?[sr/sn,sg/sn,sb/sn]:[150,118,108];
+  const dist=(i,c)=>Math.hypot(p[i]-c[0],p[i+1]-c[1],p[i+2]-c[2]);
+  const [R,G,B]=color!=='original'?hx(color):[0,0,0],ref=L.ref||128;
+  /* pele original + cabelo tingido: a pele pintada no cabelo (raspado, têmpora) puxa para o tom de pele dos rostos, senão fica com o lilás/rosa do cabelo de origem */
+  const usaPele=pele!=='original'||color!=='original',[PR,PG,PB]=pele!=='original'?hx(pele):hx(PELE_ROSTOS),sref=pele!=='original'?(CAMADAS.pele.ref||170):(.299*SR[0]+.587*SR[1]+.114*SR[2]);
+  const N=w*h,SW=new Float32Array(N);
+  for(let j=0;j<N;j++){const i=j*4;if(!p[i+3]||!pm||!pm[i])continue;const lum=.299*p[i]+.587*p[i+1]+.114*p[i+2];
+    if(lum<50)SW[j]=pm[i]/255; // traço de tinta dentro da pele (orelha, sobrancelha): acompanha a pele
+    else{const dh=dist(i,HR),ds=dist(i,SR),r=dh/(dh+ds+1e-6);SW[j]=pm[i]/255*Math.min(1,Math.max(0,(r-.35)/.3));}}
+  ajustaCabelo(p,SW,w,h,L,HR,SR,dist);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){const j=y*w+x,i=j*4;if(!p[i+3])continue;
+    const sw=SW[j];
+    const A=p[i+3];
+    F[i]=p[i];F[i+1]=p[i+1];F[i+2]=p[i+2];F[i+3]=Math.round(A*(1-sw));
+    S[i]=p[i];S[i+1]=p[i+1];S[i+2]=p[i+2];S[i+3]=Math.round(A*sw);
+    if(color!=='original'&&F[i+3]){const lum=.299*p[i]+.587*p[i+1]+.114*p[i+2],claro=dist(i,SR)<dist(i,HR); // borrão cor de pele no meio do fio: vira fio sem brilho
+      tintPx(F,i,R,G,B,claro?Math.max(ref,lum):ref,1);}
+    if(usaPele&&S[i+3])tintPx(S,i,PR,PG,PB,sref,1);
+  }
+  const cf=mk(w,h),cs=mk(w,h);cf.getContext('2d').putImageData(fio,0,0);cs.getContext('2d').putImageData(pel,0,0);
+  const r={fio:cf,pele:cs,fundo:color!=='original'?shade(color,-.45):'#'+HR.map(v=>Math.round(v*.6).toString(16).padStart(2,'0')).join('')};splitCache.set(id,r);return r;
+}
 function drawLayer(ctx,key,color,pele){const L=CAMADAS[key];if(!IMG[key])return;ctx.drawImage(color?recolor(key,color,pele):IMG[key],L.x,L.y);}
 /* cabelo de trás (mechas atrás do ombro) some por baixo de moletom e capa; a frente fica normal */
 const trasCache=new Map();
 function cabeloSemTras(key,color,pele,info){
   const id=[key,color,pele,info.roupa].join('|');if(trasCache.has(id))return trasCache.get(id);
   const W2=CAMADAS.W,H2=CAMADAS.H-TOP,L=CAMADAS[key],RL=CAMADAS[info.roupa];
-  const h=mk(W2,H2),x=h.getContext('2d');x.translate(0,-TOP);x.drawImage(recolor(key,color||'original',pele),L.x,L.y);
+  const h=mk(W2,H2),x=h.getContext('2d');x.translate(0,-TOP);x.drawImage(ehCabelo(key)?splitHair(key,color,pele).fio:recolor(key,color||'original',pele),L.x,L.y);
   const m=mk(W2,H2),y=m.getContext('2d');y.translate(0,-TOP);
   y.beginPath();info.pts.forEach(([a,b],i)=>y[i?'lineTo':'moveTo'](a,b));y.closePath();y.fillStyle='#000';y.fill();
   y.globalCompositeOperation='destination-in';y.drawImage(IMG[info.roupa],RL.x,RL.y);
   x.setTransform(1,0,0,1,0,0);x.globalCompositeOperation='destination-out';x.drawImage(m,0,0);
   trasCache.set(id,h);return h;
 }
+const nucaCache=new Map();
+function nucaCabelo(p,rosto){ // preenche a área nuca com o fundo escuro do fio, menos a pele da cabeça (manequim e rosto escolhido) com 2 px de folga para o traço da mandíbula
+  const rk=rosto?rosto.camada:'',id=[p.camada,p.cor,rk].join('|');if(nucaCache.has(id))return nucaCache.get(id);
+  const W2=CAMADAS.W,H2=CAMADAS.H-TOP,c=mk(W2,H2),x=c.getContext('2d');x.translate(0,-TOP);
+  x.beginPath();p.nuca.forEach(([a,b],i)=>x[i?'lineTo':'moveTo'](a,b));x.closePath();x.fillStyle=splitHair(p.camada,p.cor,'original').fundo;x.fill();
+  const xs=p.nuca.map(q=>q[0]),ys=p.nuca.map(q=>q[1]),X0=Math.min(...xs)-3,Y0=Math.min(...ys)-3,BW=Math.max(...xs)-X0+6,BH=Math.max(...ys)-Y0+6;
+  const k=mk(BW,BH),kx=k.getContext('2d');kx.drawImage(IMG.corpo,-X0,-Y0);const cp=kx.getImageData(0,0,BW,BH).data;
+  let rp=null;if(rosto&&IMG[rk]){kx.clearRect(0,0,BW,BH);kx.drawImage(IMG[rk],CAMADAS[rk].x-X0,CAMADAS[rk].y-Y0);rp=kx.getImageData(0,0,BW,BH).data;}
+  const pele=new Uint8Array(BW*BH);
+  for(let j=0;j<BW*BH;j++){const i=j*4,mx=Math.max(cp[i],cp[i+1],cp[i+2]),mn=Math.min(cp[i],cp[i+1],cp[i+2]);
+    if((cp[i+3]>128&&mx>60&&(mx-mn)/mx>.15)||(rp&&rp[i+3]>60))pele[j]=1;}
+  const d=x.getImageData(X0,Y0-TOP,BW,BH),q=d.data;
+  for(let y=0;y<BH;y++)for(let xx=0;xx<BW;xx++){let n=0; // pixel solto de cor no manequim (hachura) não conta como pele: precisa de 6 vizinhos de pele na janela 5×5
+    for(let v=-2;v<=2;v++)for(let u=-2;u<=2;u++){const a=xx+u,b=y+v;if(a>=0&&b>=0&&a<BW&&b<BH&&pele[b*BW+a])n++;}
+    if(n>=6)q[(y*BW+xx)*4+3]=0;}
+  x.putImageData(d,X0,Y0-TOP);nucaCache.set(id,c);return c;
+}
 function drawFigure(ctx,s){
   drawLayer(ctx,'corpo');
   if(s.pele!=='original')drawLayer(ctx,'pele',s.pele);
   const pilha=[],coberto=new Set();
-  for(const cat in PECAS)if(!MULTI.has(cat)){const p=peca(cat,s[cat]);if(p&&p.cobre)p.cobre.forEach(c=>coberto.add(c));}
+  for(const cat in PECAS)if(!MULTI.has(cat)){const p=peca(cat,s[cat]);if(p&&p.cobre)p.cobre.forEach(c=>coberto.add(c));} // armadura inteira esconde calça/calçado
   const rp=coberto.has('roupa')?null:peca('roupa',s.roupa);
   for(const cat in PECAS){if(coberto.has(cat))continue;
     const ids=MULTI.has(cat)?(s[cat]||[]):[s[cat]];
-    for(const id of ids){const p=peca(cat,id);if(p)pilha.push({z:p.z||CAT_Z[cat],camada:p.camada,cor:MULTI.has(cat)?'original':(s[cat+'Cor']||'original'),
+    for(const id of ids){const p=peca(cat,id);if(p)pilha.push({z:p.z||CAT_Z[cat],cat,camada:p.camada,cor:MULTI.has(cat)?'original':(s[cat+'Cor']||'original'),
       tras:p.tras&&rp&&rp.cobreTras?{roupa:rp.camada,pts:p.tras}:null});}
   }
+  const rosto=peca('rosto',s.rosto);let temCabelo=false;
+  for(const p of pilha.slice())if(ehCabelo(p.camada)&&IMG[p.camada]){p.cabelo=true;temCabelo=true;
+    pilha.push({z:4.5,camada:p.camada,cor:p.cor,pelePeca:true});} // pele pintada no cabelo fica sob o rosto
+  for(const p of pilha.slice())if(p.cabelo){const pc=PECAS.cabelo.find(q=>q.camada===p.camada);if(pc&&pc.nuca)pilha.push({z:30.5,camada:p.camada,cor:p.cor,nuca:pc.nuca});} // cabelo de trás no pescoço: sobre a roupa, sob barba/rosto redondo/fios
+  if(rosto&&rosto.orelha&&temCabelo)pilha.push({z:41,camada:rosto.camada,cor:s.rostoCor||'original',orelha:rosto.orelha}); // orelha própria do rosto atravessa o cabelo e cobre a orelha pintada nele
   pilha.sort((a,b)=>a.z-b.z);
-  for(const p of pilha){const D=DEL[p.camada];if(D){ctx.save();ctx.globalCompositeOperation='destination-out';ctx.drawImage(D,CAMADAS[p.camada].dx,CAMADAS[p.camada].dy);ctx.restore();}}
-  pilha.forEach(p=>p.tras&&IMG[p.camada]&&IMG[p.tras.roupa]?ctx.drawImage(cabeloSemTras(p.camada,p.cor,s.pele,p.tras),0,TOP):drawLayer(ctx,p.camada,p.cor,s.pele));
+  const semZonaOrelha=()=>{ctx.beginPath();ctx.rect(-1e4,-1e4,1e4+ORELHA_X,2e4);ctx.clip();};
+  for(const p of pilha){const D=DEL[p.camada];if(D&&!p.pelePeca&&!p.nuca){ctx.save();if(p.cat==='rosto'&&!(rosto&&rosto.orelha))semZonaOrelha(); // rosto sem orelha própria não recorta a orelha do manequim (abria buraco que nada cobria)
+    ctx.globalCompositeOperation='destination-out';ctx.drawImage(D,CAMADAS[p.camada].dx,CAMADAS[p.camada].dy);ctx.restore();}} // tira a borda da careca que a peça não cobre
+  const furoOrelha=rosto&&rosto.orelha&&temCabelo&&DEL[rosto.camada]?rosto:null; // recorte da orelha redonda do rosto élfico: vira cabelo atrás da orelha pontuda
+  pilha.forEach(p=>{const L=CAMADAS[p.camada];
+    if(p.pelePeca){let pc=splitHair(p.camada,p.cor,s.pele).pele;
+      if(furoOrelha){const R=CAMADAS[furoOrelha.camada],t=mk(pc.width,pc.height),x=t.getContext('2d');x.drawImage(pc,0,0);x.globalCompositeOperation='destination-out';x.drawImage(DEL[furoOrelha.camada],R.dx-L.x,R.dy-L.y);pc=t;} // rosto com orelha própria: some a orelha redonda pintada no cabelo
+      ctx.drawImage(pc,L.x,L.y);return;}
+    if(p.nuca){ctx.drawImage(nucaCabelo(p,rosto),0,TOP);return;}
+    if(p.orelha){ctx.save();ctx.beginPath();p.orelha.forEach(([a,b],i)=>ctx[i?'lineTo':'moveTo'](a,b));ctx.closePath();ctx.clip();drawLayer(ctx,p.camada,p.cor,s.pele);ctx.restore();return;}
+    if(p.cat==='rosto'&&DEL[p.camada]){ctx.save();semZonaOrelha();ctx.globalCompositeOperation='destination-out';ctx.drawImage(DEL[p.camada],L.dx,L.dy);ctx.restore();} // o recorte do rosto vale também para a pele do cabelo (testa/sobrancelha), mas não na orelha: lá o cabelo cobre e o recorte só abriria buraco
+    if(p.tras&&IMG[p.camada]&&IMG[p.tras.roupa])ctx.drawImage(cabeloSemTras(p.camada,p.cor,s.pele,p.tras),0,TOP);
+    else if(p.cabelo){const sp=splitHair(p.camada,p.cor,s.pele);
+      if(furoOrelha){const R=CAMADAS[furoOrelha.camada];ctx.save();ctx.globalCompositeOperation='destination-over';ctx.drawImage(tint(DEL[furoOrelha.camada],sp.fundo),R.dx,R.dy);ctx.restore();}
+      ctx.drawImage(sp.fio,L.x,L.y);}
+    else drawLayer(ctx,p.camada,p.cor,s.pele);});
 }
 
 /* ---------- composição do token ---------- */
