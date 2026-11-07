@@ -3,9 +3,9 @@ name: Android
 # app/build.gradle ainda não foi publicada (subir o versionName = novo Release; nada é sobrescrito).
 on:
   push:
-    branches: [main]
+    branches: [main, validacao-main]
   pull_request:
-    branches: [main]
+    branches: [main, validacao-main]
   workflow_dispatch:
 permissions:
   contents: write

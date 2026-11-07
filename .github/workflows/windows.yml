@@ -3,9 +3,9 @@ name: Windows
 # vem do package.json (a mesma do Linux); o Release só é criado quando essa versão ainda não foi publicada.
 on:
   push:
-    branches: [main]
+    branches: [main, validacao-main]
   pull_request:
-    branches: [main]
+    branches: [main, validacao-main]
   workflow_dispatch:
 permissions:
   contents: write
