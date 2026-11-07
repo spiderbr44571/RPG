@@ -18,11 +18,10 @@ class Studio{
   R.innerHTML=`<div class="stage st-stage" data-tool="select"><div class="world"><div class="map-shadow"></div><canvas class="cv-map"></canvas><canvas class="cv-dark"></canvas><canvas class="cv-veil"></canvas><canvas class="cv-over"></canvas></div><div class="weather" aria-hidden="true"></div></div>
   <header class="float st-top">
    <button class="x-btn" type="button" data-sa="close" aria-label="Fechar o Estúdio">${ic('x')}</button>
-   <div class="st-title"><span class="kicker">Estúdio de cenários</span><input class="st-name" id="st-name" aria-label="Nome do cenário"></div>
+   <div class="st-title"><span class="kicker">Mestragem · Cenários</span><input class="st-name" id="st-name" aria-label="Nome do cenário"></div>
    <div class="st-group"><button class="ibtn" type="button" data-sa="undo" aria-label="Desfazer">${ic('arrow-back-up')}<span class="tip">Desfazer<kbd>Ctrl Z</kbd></span></button><button class="ibtn flip" type="button" data-sa="redo" aria-label="Refazer">${ic('arrow-back-up')}<span class="tip">Refazer<kbd>Ctrl Y</kbd></span></button>
     <span class="sep"></span><button class="ibtn" type="button" data-sa="grid" aria-label="Mostrar grade">${ic('layout-grid')}<span class="tip">Grade</span></button><button class="ibtn" type="button" data-sa="preview" aria-label="Ver como jogador">${ic('eye')}<span class="tip">Ver como jogador</span></button></div>
    <span class="st-sp"></span>
-   <button class="ibtn central-open" type="button" aria-label="Abrir a Central">${ic('layout-grid')}<span class="tip">Central</span></button>
    <button class="btn sm ghost st-save" type="button" data-sa="save" aria-label="Salvar rascunho">${ic('check')}<span class="hide-sm">Salvar rascunho</span></button>
    <button class="btn sm primary st-publish" type="button" data-sa="publish" aria-label="Publicar na mesa">${ic('upload')}<span class="hide-sm">Publicar na mesa</span></button>
   </header>

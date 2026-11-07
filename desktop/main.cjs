@@ -114,12 +114,15 @@ function ensureLocal(event){
  if(!win||event.sender!==win.webContents)throw Error('Requisição externa bloqueada');
  if(event.senderFrame&&event.senderFrame!==win.webContents.mainFrame)
   throw Error('Acesso a bridge negado para subframe');
- let actual,expected;
+ let actual,expected,revamp;
  try{
   actual=new URL(event.sender.getURL());
   expected=require('node:url').pathToFileURL(path.join(assets,'demo-offline.html'));
+  revamp=require('node:url').pathToFileURL(path.join(assets,'revamp','index.html'));
  }catch{throw Error('Endereço inválido');}
- if(actual.protocol!=='file:'||actual.host!==expected.host||actual.pathname!==expected.pathname)
+ // A nova interface (prévia v2.0) é outra página local confiável, servida dos mesmos assets.
+ const trusted=actual.pathname===expected.pathname||actual.pathname===revamp.pathname;
+ if(actual.protocol!=='file:'||actual.host!==expected.host||!trusted)
   throw Error('Requisição externa bloqueada');
 }
 function boundedBase64(input,limit=15*1024*1024){
@@ -242,6 +245,8 @@ function makeWindow(){
  win.loadFile(path.join(assets,'demo-offline.html'));
  win.webContents.on('did-finish-load',async()=>{
   if(!win||win.webContents.isDestroyed())return;
+  // Os scripts de integração do desktop são da interface atual; a nova interface já traz os seus.
+  if(!/\/demo-offline\.html$/.test(new URL(win.webContents.getURL()).pathname))return;
   try{
    const css=fs.readFileSync(path.join(__dirname,'desktop.css'),'utf8');
    const js=fs.readFileSync(path.join(__dirname,'renderer.js'),'utf8');
@@ -259,7 +264,8 @@ function makeWindow(){
   return {action:'deny'};
  });
  win.webContents.on('will-navigate',(event,url)=>{
-  if(url!==require('node:url').pathToFileURL(path.join(assets,'demo-offline.html')).href)event.preventDefault();
+  const page=String(url).split('#')[0],toFile=p=>require('node:url').pathToFileURL(path.join(assets,...p)).href;
+  if(page!==toFile(['demo-offline.html'])&&page!==toFile(['revamp','index.html']))event.preventDefault();
  });
  const menu=Menu.buildFromTemplate([
   {label:'Arquivo',submenu:[

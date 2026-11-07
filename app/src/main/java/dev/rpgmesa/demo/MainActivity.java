@@ -78,6 +78,8 @@ public final class MainActivity extends Activity {
     private final CreatureImageBridge creatureArt = new CreatureImageBridge();
 
     private static final String OFFLINE_URL = "file:///android_asset/demo-offline.html";
+    // Nova interface (prévia v2.0), servida dos mesmos assets e com as mesmas pontes nativas.
+    private static final String REVAMP_URL = "file:///android_asset/revamp/index.html";
     private WebView browser;
     private TextView mode;
     private String allowedHost;
@@ -228,7 +230,10 @@ public final class MainActivity extends Activity {
             Uri u=req.getUrl();
             // Resources / PDFs selected locally stay on device.
             if ("blob".equals(u.getScheme())) return false;
-            if ("file".equals(u.getScheme())) return !OFFLINE_URL.equals(u.toString());
+            if ("file".equals(u.getScheme())) {
+              String page=u.toString();int hash=page.indexOf('#');if(hash>=0)page=page.substring(0,hash);
+              return !(OFFLINE_URL.equals(page)||REVAMP_URL.equals(page));
+            }
             if(allowedHost==null && "https".equals(u.getScheme()) && "drive.google.com".equalsIgnoreCase(u.getHost()) &&
                 u.getPath()!=null && (u.getPath().matches("/file/d/[A-Za-z0-9_-]{10,160}(/view)?") || u.getPath().matches("/drive/folders/[A-Za-z0-9_-]{10,160}"))) {
               try{startActivity(new Intent(Intent.ACTION_VIEW,u));}catch(Exception err){showBookError("Não foi possível abrir o Drive.");}

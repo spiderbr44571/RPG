@@ -2,25 +2,48 @@
 
 Esta pasta guarda o trabalho das duas primeiras fases do revamp descrito em [`PROMPT.md`](PROMPT.md).
 
-**Status: revisão 2 do protótipo, aguardando aprovação.** Nada do app foi alterado. O protótipo é uma página
-separada, com dados de exemplo, que não fala com o servidor.
+**Status: revisão 3, já dentro dos apps como prévia** (Android v0.108, Linux e Windows v1.2.1). A interface fica em
+`app/src/main/assets/revamp/` e abre pela Central do app → **Nova interface**. A interface atual continua sendo a
+padrão. Busca nos PDFs, Personalização e Bestiário funcionam de verdade; a Mestragem nova (campanha, mesa e
+cenários) e a tela Entrar ainda usam dados de exemplo e não falam com o servidor da LAN.
 
 | Arquivo | O que é |
 |---|---|
 | [`INVENTARIO-PARIDADE.md`](INVENTARIO-PARIDADE.md) | Fase 0: cada função e integração atual, a origem no código e onde ela aparece no novo design. |
-| [`prototipo/index.html`](prototipo/index.html) | Fase 1: estrutura e estilo de todas as telas. |
-| `prototipo/cena.js` | Modelo de cena, 22 terrenos, 66 objetos, regras de passagem e desenho do mapa. Usado pela Mesa e pelo Estúdio. |
-| `prototipo/mesa.js` | Mesa ao vivo (mestre e jogador). |
-| `prototipo/estudio.js` | Estúdio de cenários. |
-| `prototipo/app.js` | Telas de gestão, Central, entrada do jogador, Bestiário, tutorial e rotas. |
-| `prototipo/base.js` | Estado compartilhado e utilidades. |
-| `prototipo/dados.js` | Bestiário gerado de `rpg19_order_creatures.js` e `rpg18_bestiary.js`. Não editar à mão. |
-| `prototipo/icones.js` | 90 ícones do pacote oficial Tabler (MIT), o mesmo conjunto do app. |
+| [`app/src/main/assets/revamp/index.html`](../../app/src/main/assets/revamp/index.html) | Fase 1: estrutura e estilo de todas as telas. |
+| `app/src/main/assets/revamp/cena.js` | Modelo de cena, 22 terrenos, 66 objetos, regras de passagem e desenho do mapa. Usado pela Mesa e pelo Estúdio. |
+| `app/src/main/assets/revamp/mesa.js` | Mesa ao vivo (mestre e jogador). |
+| `app/src/main/assets/revamp/estudio.js` | Estúdio de cenários. |
+| `app/src/main/assets/revamp/app.js` | Telas de gestão, Central, entrada do jogador, Bestiário, tutorial e rotas. |
+| `app/src/main/assets/revamp/base.js` | Estado compartilhado e utilidades. |
+| `app/src/main/assets/revamp/dados.js` | Bestiário gerado de `rpg19_order_creatures.js` e `rpg18_bestiary.js`. Não editar à mão. |
+| `app/src/main/assets/revamp/personalizacao.js` | Personalização do app: temas elementais, efeitos, destaque, fontes, densidade e textura (mesmas chaves salvas da interface atual). |
+| `app/src/main/assets/revamp/livros.js` | Busca nos PDFs como um Ctrl+F, com resumo feito só de frases do PDF. |
+| `app/src/main/assets/revamp/fontes/` | Cormorant Garamond, DM Sans e Space Grotesk (OFL), para funcionar offline. |
+| `app/src/main/assets/revamp/icones.js` | 90 ícones do pacote oficial Tabler (MIT), o mesmo conjunto do app. |
 | [`capturas/`](capturas/) | 33 capturas: desktop, celular em retrato e em paisagem, escuro e claro, tutorial em ação. |
+
+## Revisão 3: o que mudou a partir do retorno
+
+1. **Menos botões para a mesma coisa.** Mestragem virou a única entrada: dentro dela há três abas, Campanha, Mesa ao
+   vivo e Cenários (o antigo Estúdio). A Central caiu de 12 para 9 destinos, o Painel inicial tem um só caminho para
+   a Mestragem, a mesa tem um botão "voltar à Mestragem" no lugar da grade e o Cenários perdeu o ícone repetido.
+2. **Personalização do app de volta**, igual à atual: temas elementais Base, Sangue, Conhecimento, Energia, Morte e
+   Medo (com selo, frase e texto originais), efeitos de partículas desligados, leves ou máximos, destaque Dourado,
+   Ametista, Esmeralda, Azul ou cor livre, fonte dos títulos e do texto, densidade e textura. Usa as mesmas chaves
+   salvas (`v10-global-element`, `v10-intensity`, `rpg-*`), então vale nas duas interfaces.
+3. **Busca de livros como um Ctrl+F.** Ctrl+F leva à busca; Enter e Shift+Enter andam entre os resultados; cada
+   ocorrência fica destacada e a página abre no leitor do app. O resumo mostra em quantas páginas o termo aparece,
+   até 3 frases tiradas do PDF com a página de cada uma e as palavras que aparecem junto. Usa o índice que o app já
+   tem (Android: `RpgBookBridge.searchPersonalBook`; desktop: `book-index.cjs`). No navegador, o PDF é lido no
+   próprio aparelho com pdf.js.
+4. **Nos apps.** A WebView do Android e a janela do desktop passaram a aceitar a página `revamp/index.html`, com as
+   mesmas pontes nativas; no desktop, os scripts de integração antigos só entram na interface atual.
 
 ## Como abrir
 
-Abra `docs/revamp/prototipo/index.html` no navegador. As fontes vêm do Google Fonts quando há internet; sem rede, o
+Nos apps: Central (o d20) → **Nova interface**. No computador, sem o app: abra
+`app/src/main/assets/revamp/index.html` no navegador. As fontes vêm do Google Fonts quando há internet; sem rede, o
 navegador usa fontes de reserva. A barra tracejada no topo ("Protótipo") troca de tela e não faz parte do design.
 
 ## Revisão 2: o que mudou a partir do retorno
@@ -109,7 +132,7 @@ A primeira versão tinha uma barra lateral que o app não tem. Agora as telas se
    lado com o app real.
 4. **Godot em uso** no Ateliê do desktop; o health check fica.
 5. **Faltam 51 ícones** no `mastermind74_icons.js` (o app tem 44, o protótipo usa 90). A lista está no topo de
-   `prototipo/icones.js`.
+   `app/src/main/assets/revamp/icones.js`.
 6. **Movimento de Ordem a conferir no livro:** o app usa 9 casas como padrão; o catálogo traz deslocamento em metros
    (Carente `12M`). O protótipo converte a 1,5 m por casa e usa 6 casas para a Aurora como valor do token.
 

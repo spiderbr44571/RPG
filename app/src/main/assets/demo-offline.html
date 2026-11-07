@@ -1379,7 +1379,8 @@ const tools=[
  ['master','Mestragem','crown','Turnos, cenas e efeitos'],
  ['ai','Consultar livros','brain','Pesquisar dentro dos livros'],
  ['settings','Personalização','palette','Cores, temas e fontes'],
- ['home','Painel inicial','house','Resumo da campanha']
+ ['home','Painel inicial','house','Resumo da campanha'],
+ ['revamp','Nova interface','spark','Prévia v2.0: Mestragem, mesa e cenários']
 ];
 const icons={
  dice:'<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="7.5" cy="7.5" r="1.1"/><circle cx="16.5" cy="7.5" r="1.1"/><circle cx="12" cy="12" r="1.1"/><circle cx="7.5" cy="16.5" r="1.1"/><circle cx="16.5" cy="16.5" r="1.1"/>',
@@ -1392,7 +1393,8 @@ const icons={
  brain:'<path d="M10 3a5 5 0 0 0-6 7 4 4 0 0 0 0 8 5 5 0 0 0 6 3V3zm4 0a5 5 0 0 1 6 7 4 4 0 0 1 0 8 5 5 0 0 1-6 3V3Z"/>',
  wifi:'<path d="M2 9a15 15 0 0 1 20 0M5 13a10 10 0 0 1 14 0M9 17a5 5 0 0 1 6 0"/><circle cx="12" cy="21" r="1"/>',
  palette:'<path d="M12 3a9 9 0 0 0 0 18h1a2 2 0 0 0 1-4 2 2 0 0 1 1-3h2a4 4 0 0 0 4-4C21 6 17 3 12 3Z"/><circle cx="7" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="16" cy="8" r="1"/>',
- house:'<path d="m3 11 9-8 9 8v10h-6v-7H9v7H3Z"/>'};
+ house:'<path d="m3 11 9-8 9 8v10h-6v-7H9v7H3Z"/>',
+ spark:'<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8Z M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8Z"/>'};
 const icon=name=>`<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round">${icons[name]||icons.dice}</svg>`;
 // The 3x3 chocolate grid opens the main menu. Dice stay in their own dedicated tool.
 const visual=document.createElement('style');visual.id='rpg09-style';visual.textContent=`
@@ -1454,7 +1456,7 @@ function closeHub(){
 dice.addEventListener('click',()=>{openHub()});
 $('.r09-close',overlay).addEventListener('click',closeHub);overlay.addEventListener('click',e=>{if(e.target===overlay)closeHub()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.classList.contains('open'))closeHub()});
-overlay.addEventListener('click',e=>{const b=e.target.closest('[data-r09-tool]');if(!b)return;closeHub();const to=b.dataset.r09Tool;if(to==='dice'){window.RPG101?.openDice();return}if(to==='online'){app.navigate('online');return}app.navigate(to)});
+overlay.addEventListener('click',e=>{const b=e.target.closest('[data-r09-tool]');if(!b)return;closeHub();const to=b.dataset.r09Tool;if(to==='revamp'){location.href='revamp/index.html';return}if(to==='dice'){window.RPG101?.openDice();return}if(to==='online'){app.navigate('online');return}app.navigate(to)});
 // Portrait and summary are rendered only by Sheet Studio. Legacy per-character themes are ignored.
 // The first page of a PDF is rendered by the native Android PdfRenderer, not via online services.
 const coverKey='rpg-v09-cover';function applyCover(raw){if(!raw||!/^data:image\/(jpeg|png|webp);base64,/.test(raw))return;

@@ -1,7 +1,7 @@
 # Mastermind
 
-Versão atual: **Android v0.107** · **Linux e Windows v1.2.0** — Ateliê com a esclera do rosto Jovem até a pálpebra
-(os dois olhos parelhos), jaleco aparecendo entre os dedos e o vão do braço mostrando o fundo.
+Versão atual: **Android v0.108** · **Linux e Windows v1.2.1** — nova interface em prévia (Mestragem com mesa ao
+vivo e cenários, busca nos PDFs com resumo e Personalização com temas elementais), aberta pela Central do app.
 
 ## Organização do repositório
 
@@ -20,6 +20,32 @@ Versão atual: **Android v0.107** · **Linux e Windows v1.2.0** — Ateliê com 
   (veja a docstring de `atelie_corrigir_rostos.py` para regenerar).
 
 ## Histórico
+
+# Mastermind v0.108 (Android) · v1.2.1 (Linux e Windows) — nova interface em prévia
+
+**Onde abrir:** Central da mesa (o d20) → **Nova interface**. A interface atual continua igual e é a padrão; na
+nova, **Personalização → Voltar à interface atual** ou o cartão **Interface atual** da Central volta para ela.
+
+**O que já funciona de verdade na prévia:**
+- **Busca nos livros como um Ctrl+F** (Biblioteca, ou Ctrl+F em qualquer tela de gestão): conta as páginas com o
+  termo, destaca cada ocorrência, navega com Enter e Shift+Enter e abre a página no leitor do app. Usa o índice que o
+  app já cria (SQLite FTS4 no Android, `book-index.cjs` no desktop). O **resumo** junta até 3 frases dos trechos
+  encontrados, cada uma com a página, e lista as palavras que aparecem junto. Nada é gerado fora do texto do PDF.
+- **Personalização** com os temas elementais (Base, Sangue, Conhecimento, Energia, Morte, Medo), os efeitos de
+  partículas (desligados, leves ou máximos), destaque, cor livre, fontes, densidade e textura. Usa as mesmas
+  preferências da interface atual, então a escolha vale nas duas.
+- **Bestiário** com as 48 criaturas de Ordem Paranormal 1.3 e as 3 do SRD.
+- Fontes Cormorant Garamond, DM Sans e Space Grotesk agora vão dentro do app (OFL), sem depender de internet.
+
+**O que ainda é demonstração (limite honesto):** a **Mestragem nova** (campanha, mesa ao vivo e Cenários) e a tela
+**Entrar numa mesa** funcionam com dados de exemplo neste aparelho e ainda **não conversam com o servidor da LAN**.
+Para jogar com outras pessoas, use a Mestragem e a Mesa ao vivo da interface atual. A ligação com o servidor é a
+próxima etapa (ver `docs/revamp/`).
+
+**Técnico:** a WebView do Android e a janela do desktop passam a aceitar duas páginas locais confiáveis
+(`demo-offline.html` e `revamp/index.html`); as pontes nativas continuam restritas a elas. No desktop, os scripts de
+integração antigos só são injetados na interface atual.
+
 
 # Mastermind v0.58 — integração testada das telas e pedidos
 

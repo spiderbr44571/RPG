@@ -5,10 +5,21 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="claude:viewport-fit-sides" content="cover">
 <title>Mastermind Revamp</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap">
 <style>
+/* Fontes empacotadas (OFL, ver fontes/LICENSE-*.txt): funcionam offline no APK e no desktop. */
+@font-face{font-family:"Cormorant Garamond";font-style:normal;font-weight:500;font-display:swap;src:url("fontes/cormorant-garamond-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"Cormorant Garamond";font-style:italic;font-weight:500;font-display:swap;src:url("fontes/cormorant-garamond-latin-500-italic.woff2") format("woff2")}
+@font-face{font-family:"Cormorant Garamond";font-style:normal;font-weight:600;font-display:swap;src:url("fontes/cormorant-garamond-latin-600-normal.woff2") format("woff2")}
+@font-face{font-family:"Cormorant Garamond";font-style:italic;font-weight:600;font-display:swap;src:url("fontes/cormorant-garamond-latin-600-italic.woff2") format("woff2")}
+@font-face{font-family:"Cormorant Garamond";font-style:normal;font-weight:700;font-display:swap;src:url("fontes/cormorant-garamond-latin-700-normal.woff2") format("woff2")}
+@font-face{font-family:"Cormorant Garamond";font-style:italic;font-weight:700;font-display:swap;src:url("fontes/cormorant-garamond-latin-700-italic.woff2") format("woff2")}
+@font-face{font-family:"DM Sans";font-style:normal;font-weight:400;font-display:swap;src:url("fontes/dm-sans-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"DM Sans";font-style:normal;font-weight:500;font-display:swap;src:url("fontes/dm-sans-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"DM Sans";font-style:normal;font-weight:600;font-display:swap;src:url("fontes/dm-sans-latin-600-normal.woff2") format("woff2")}
+@font-face{font-family:"DM Sans";font-style:normal;font-weight:700;font-display:swap;src:url("fontes/dm-sans-latin-700-normal.woff2") format("woff2")}
+@font-face{font-family:"Space Grotesk";font-style:normal;font-weight:500;font-display:swap;src:url("fontes/space-grotesk-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"Space Grotesk";font-style:normal;font-weight:600;font-display:swap;src:url("fontes/space-grotesk-latin-600-normal.woff2") format("woff2")}
+@font-face{font-family:"Space Grotesk";font-style:normal;font-weight:700;font-display:swap;src:url("fontes/space-grotesk-latin-700-normal.woff2") format("woff2")}
 /* Mastermind · revamp estilo Owlbear, no mesmo idioma visual do app.
    Layout: telas de gestão = workspace do app (topo + Central); mesa e Estúdio = mapa em tela cheia com painéis flutuantes.
    Tokens: valores reais de app/src/main/assets/demo-offline.html (escuro = padrão; claro = .light do app). */
@@ -430,6 +441,71 @@ input[type="range"]{accent-color:var(--accent);width:100%}
 .tut-try.done{border-style:solid;background:color-mix(in srgb,var(--green) 16%,transparent);border-color:var(--green)}
 .tut-steps{display:flex;gap:4px}.tut-steps i{flex:1;height:3px;border-radius:9px;background:var(--line)}.tut-steps i.on{background:var(--accent)}
 
+/* ---------- Temas elementais (portado de demo-offline.html, v0.10) ---------- */
+:root{--v10-accent:#f26078;--v10-strong:#7d182b;--v10-light:#ffb6c1;--v10-border:rgba(245,109,140,.45)}
+html[data-paranormal="conhecimento"]{--v10-accent:#e6ba64;--v10-strong:#7e5125;--v10-light:#fff1c3;--v10-border:rgba(241,193,93,.5)}
+html[data-paranormal="energia"]{--v10-accent:#b373ff;--v10-strong:#6722c7;--v10-light:#58e6ff;--v10-border:rgba(173,98,254,.57)}
+html[data-paranormal="morte"]{--v10-accent:#b8c6b3;--v10-strong:#4a6457;--v10-light:#e1e8db;--v10-border:rgba(159,184,160,.38)}
+html[data-paranormal="medo"]{--v10-accent:#eab5ff;--v10-strong:#7656bc;--v10-light:#fff3ff;--v10-border:rgba(218,170,255,.5)}
+html[data-paranormal="base"]{--v10-accent:var(--accent);--v10-strong:color-mix(in srgb,var(--accent) 50%,#151520);--v10-light:color-mix(in srgb,var(--accent) 48%,#fff);--v10-border:color-mix(in srgb,var(--accent) 55%,transparent)}
+html[data-paranormal]:not([data-paranormal="base"]){--accent:var(--v10-accent);--accent-soft:color-mix(in srgb,var(--v10-accent) 14%,transparent)}
+html[data-paranormal]:not([data-paranormal="base"]):not([data-theme="light"]){--bg:#080912;--sidebar:#0c0b14;--panel:#14101c;--panel2:#191521;--card:#15131e;--glass:#14101ce8;--line:color-mix(in srgb,var(--v10-accent) 20%,#292c37);--line-soft:color-mix(in srgb,var(--v10-accent) 10%,#20232c)}
+html[data-paranormal="conhecimento"]:not([data-theme="light"]){--panel:#16131a;--panel2:#211c20;--bg:#0d0b10;--glass:#16131ae8}
+html[data-paranormal="energia"]:not([data-theme="light"]){--panel:#12101e;--panel2:#151829;--bg:#08091a;--glass:#12101ee8}
+html[data-paranormal="morte"]:not([data-theme="light"]){--panel:#171c1a;--panel2:#202420;--bg:#0b100f;--glass:#171c1ae8}
+html[data-paranormal="medo"]:not([data-theme="light"]){--panel:#15101d;--panel2:#1c1527;--bg:#090613;--glass:#15101de8}
+html[data-paranormal]:not([data-paranormal="base"]) body{background:radial-gradient(ellipse 64% 55% at 50% -10%,color-mix(in srgb,var(--v10-accent) 18%,transparent),transparent 85%),radial-gradient(ellipse at 110% 70%,color-mix(in srgb,var(--v10-strong) 16%,transparent),transparent 70%),var(--bg)}
+html[data-paranormal]:not([data-paranormal="base"]) .page-wrap{background:transparent}
+html[data-paranormal]:not([data-paranormal="base"]) .card{border-color:var(--v10-border)}
+#rv-ambient{position:fixed;inset:0;z-index:0;pointer-events:none;width:100vw;height:100dvh}
+html[data-v10-intensity="low"] #rv-ambient{opacity:.6}
+#root{position:relative;z-index:1}
+.rv-compact .card{padding:14px;gap:10px}.rv-compact .page{gap:16px;padding-top:20px}.rv-compact .btn{min-height:36px;padding:6px 13px}.rv-compact .item{padding:8px 10px}.rv-compact .set-row{padding:10px 0}
+.rv-textured body::after{content:"";position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.07;background-image:radial-gradient(rgba(255,255,255,.9) .6px,transparent .7px),radial-gradient(rgba(0,0,0,.9) .6px,transparent .7px);background-size:3px 3px,5px 5px;background-position:0 0,1px 2px;mix-blend-mode:overlay}
+/* Personalização */
+.el-head{display:grid;grid-template-columns:auto minmax(0,1fr);gap:20px;align-items:center}
+.el-sigil{width:118px;height:118px;flex:none}
+.el-sigil svg{width:100%;height:100%;fill:none;stroke:var(--v10-light);stroke-width:2;filter:drop-shadow(0 0 10px var(--v10-accent))}
+.el-sigil .el-dot{fill:var(--v10-light);stroke:none}
+.el-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.el-btn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px 10px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--muted);transition:transform .15s var(--ease),border-color .15s}
+.el-btn:hover{transform:translateY(-2px);border-color:var(--pick)}
+.el-btn svg{width:27px;height:27px;fill:none;stroke:var(--pick);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.el-btn span{font-size:12px;font-weight:600}
+.el-btn[aria-pressed="true"]{border:2px solid var(--pick);color:var(--fg);background:color-mix(in srgb,var(--pick) 14%,var(--card))}
+.custom-sw{position:relative;width:30px;height:30px}
+.custom-sw input{position:absolute;inset:0;width:30px;height:30px;padding:0;border:0;border-radius:50%;opacity:0;cursor:pointer}
+.custom-sw button{width:30px;height:30px;border-radius:50%;pointer-events:none;background:conic-gradient(#e0707c,#e7c56a,#86bd9c,#6db7e0,#9c90dd,#e0707c)}
+/* Mestragem */
+.mest-tabs{display:flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:14px;background:var(--panel);align-self:flex-start;flex-wrap:wrap}
+.mest-tabs a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:10px;color:var(--muted);text-decoration:none;font-weight:600}
+.mest-tabs a:hover{color:var(--fg);background:var(--panel2)}
+.mest-tabs a[aria-current="page"]{background:var(--accent);color:var(--accent-fg)}
+.room-back{text-decoration:none}
+/* Busca nos livros */
+.books{display:flex;flex-direction:column;gap:12px}
+.bk-bar{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 14px;border-radius:16px;border:1px solid var(--line);background:var(--panel)}
+.bk-bar:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.bk-bar input{flex:1;min-width:0;border:0;background:transparent;font-size:15px;padding:8px 0}
+.bk-bar input:focus{outline:none}
+.bk-count{font-size:12.5px;color:var(--muted);white-space:nowrap;min-width:60px;text-align:right}
+.bk-progress{display:flex;flex-direction:column;gap:6px}
+.bk-grid:has(#bk-summary:empty) .bk-results{grid-column:span 12}
+#bk-summary:empty{display:none}
+.bk-results{display:flex;flex-direction:column;gap:8px;min-width:0}
+.hit{padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;gap:6px;cursor:pointer}
+.hit p{margin:0;line-height:1.55}
+.hit.cur{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.hit .btn{align-self:flex-start}
+mark{background:color-mix(in srgb,var(--accent) 38%,transparent);color:inherit;border-radius:3px;padding:0 2px}
+.hit.cur mark{background:var(--accent);color:var(--accent-fg)}
+.passages{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px}
+.passages li{display:flex;flex-direction:column;gap:2px}
+.pg{border:1px solid var(--line);background:var(--card);border-radius:7px;padding:0 6px;font-size:12px;font-weight:600;color:var(--fg)}
+.pg:hover{border-color:var(--accent)}
+.empty{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:18px;border:1px dashed var(--line);border-radius:14px}
+.empty .rv-icon{width:28px;height:28px;color:var(--accent)}
+
 /* ---------- Responsivo ---------- */
 @media (max-width:1100px){.c8,.c7,.c6,.c5,.c4,.c3{grid-column:span 12}.optbar{max-width:calc(100% - 520px)}.st-opt{max-width:calc(100% - 2*390px)}}
 @media (max-width:900px){.feature .feature-body{max-width:100%}.mini-map{display:none}.sheet-head{grid-template-columns:auto minmax(0,1fr)}.sheet-head .sh-actions{grid-column:1/-1}.central-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.st-opt{left:var(--gut-l);right:var(--gut-r);transform:none;max-width:none;top:134px}.st-status{display:none}}
@@ -446,6 +522,8 @@ input[type="range"]{accent-color:var(--accent);width:100%}
   .hud .hud-actions{grid-column:1/-1}.hud .hud-actions .btn{flex:1}
   .attrs{gap:6px}.attr b{font-size:26px}
   .scene-thumbs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .el-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.el-head{grid-template-columns:1fr}.el-sigil{width:84px;height:84px}
+  .bk-bar{flex-wrap:wrap}.bk-bar input{flex-basis:100%;order:-1}.bk-bar>span[data-i]{display:none}
   .st-title{flex-basis:120px}.st-group .sep,.st-group [data-sa="grid"]{display:none}.hide-sm{display:none}
   .st-tools{top:134px;max-height:calc(100% - 200px);overflow:auto}
   .st-title .kicker,.st-top .central-open{display:none}.st-title{flex:1 1 auto}.st-top{gap:4px}.st-top .btn.sm{padding:5px 9px}
@@ -469,13 +547,13 @@ input[type="range"]{accent-color:var(--accent);width:100%}
   .vtt[data-view="estudio"] .zoom{left:auto;right:var(--gut-r)}
 }
 </style>
-<script src="icones.js"></script><script src="dados.js"></script><script src="cena.js"></script><script src="base.js"></script><script src="mesa.js"></script><script src="estudio.js"></script>
+<script src="icones.js"></script><script src="dados.js"></script><script src="cena.js"></script><script src="base.js"></script><script src="mesa.js"></script><script src="estudio.js"></script><script src="personalizacao.js"></script><script src="livros.js"></script>
 </head>
 <body>
 <div id="root">
   <nav id="proto" aria-label="Telas do protótipo">
     <span class="tag">Protótipo</span>
-    <a href="#inicio">Início</a><a href="#mestragem">Mestragem</a><a href="#mesa">Mesa do mestre</a><a href="#estudio">Estúdio</a><a href="#entrar">Entrar</a><a href="#jogador">Mesa do jogador</a><a href="#bestiario">Bestiário</a><a href="#biblioteca">Biblioteca</a><a href="#ficha">Ficha</a><a href="#ajustes">Personalização</a>
+    <a href="#inicio">Início</a><a href="#mestragem">Mestragem</a><a href="#entrar">Jogador</a><a href="#biblioteca">Biblioteca</a><a href="#ajustes">Personalização</a>
     <span class="sp"></span><button type="button" id="proto-tut">Ver tutorial</button><button type="button" id="proto-theme">Alternar tema</button>
   </nav>
 
@@ -494,39 +572,39 @@ input[type="range"]{accent-color:var(--accent);width:100%}
         <section class="page" data-view="inicio" aria-labelledby="h-inicio">
           <div class="hero-row"><div class="hero"><p class="kicker">Mastermind / Área de trabalho</p><h1 id="h-inicio">Seu universo, <em>sob controle.</em></h1><p>Personagens, mundos e sessões no mesmo espaço. Seus dados e sua personalização continuam aqui.</p></div><a class="btn" href="#ajustes"><span data-i="adjustments"></span>Personalizar</a></div>
           <div class="grid">
-            <article class="card feature c7"><div class="sigil" aria-hidden="true"></div><div class="feature-body" style="max-width:100%"><p class="kicker">Próxima sessão</p><h2>O mundo está esperando pelo mestre.</h2><p class="muted" style="margin:0;max-width:44ch">Prepare a cena no Estúdio, abra a mesa e convide os jogadores pelo app.</p><div class="row"><a class="btn primary" href="#mestragem"><span data-i="crown"></span>Abrir Mestragem</a><a class="btn" href="#estudio"><span data-i="brush"></span>Estúdio de cenários</a></div></div></article>
+            <article class="card feature c7"><div class="sigil" aria-hidden="true"></div><div class="feature-body" style="max-width:100%"><p class="kicker">Próxima sessão</p><h2>O mundo está esperando pelo mestre.</h2><p class="muted" style="margin:0;max-width:44ch">Campanha, mesa ao vivo e cenários ficam juntos na Mestragem.</p><div class="row"><a class="btn primary" href="#mestragem"><span data-i="crown"></span>Abrir Mestragem</a><a class="btn" href="#biblioteca"><span data-i="search"></span>Consultar regras</a></div></div></article>
             <article class="card c5"><div class="card-h"><p class="kicker">Continuar de onde parou</p><span class="small muted">3 fichas</span></div>
               <div class="char-card"><div class="char-glyph">A</div><div style="min-width:0"><p class="kicker" style="color:var(--muted)">Personagem selecionado</p><h2 style="font-size:30px">Aurora</h2><div class="row" style="gap:6px;margin-top:6px"><span class="chip">Combatente</span><span class="chip">NEX 35%</span></div></div></div>
               <div class="res-row"><span>Vida</span><div class="bar"><i style="width:75%;--c:var(--danger)"></i></div><span class="num">18/24</span></div>
               <div class="res-row"><span>Esforço</span><div class="bar"><i style="width:71%;--c:var(--blue)"></i></div><span class="num">5/7</span></div>
               <div class="res-row"><span>Sanidade</span><div class="bar"><i style="width:75%;--c:var(--purple)"></i></div><span class="num">12/16</span></div>
-              <div class="row"><a class="btn primary" href="#ficha" style="flex:1"><span data-i="user"></span>Abrir esta ficha</a><a class="btn" href="#jogador"><span data-i="map"></span>Mesa</a></div></article>
+              <div class="row"><a class="btn primary" href="#ficha" style="flex:1"><span data-i="user"></span>Abrir esta ficha</a><a class="btn" href="#entrar"><span data-i="map"></span>Mesa</a></div></article>
           </div>
           <div><p class="kicker">Acesso rápido</p><h2 style="font-size:30px;margin-top:4px">Ferramentas</h2></div>
-          <div class="grid">
-            <a class="tool-card c3" href="#mesa"><div class="row"><span class="ti" data-i="map"></span><span class="n">01</span></div><b>Mesa ao vivo</b><span class="d">Cenários, encontros e iniciativa</span></a>
+          <div class="grid tools-grid">
+            <a class="tool-card c3" href="#mestragem"><div class="row"><span class="ti" data-i="crown"></span><span class="n">01</span></div><b>Mestragem</b><span class="d">Campanha, mesa ao vivo e cenários</span></a>
             <a class="tool-card c3" href="#ficha"><div class="row"><span class="ti" data-i="user"></span><span class="n">02</span></div><b>Personagens</b><span class="d">Fichas, rituais e inventário</span></a>
-            <a class="tool-card c3" href="#biblioteca"><div class="row"><span class="ti" data-i="books"></span><span class="n">03</span></div><b>Biblioteca</b><span class="d">Livros e sistemas cadastrados</span></a>
-            <a class="tool-card c3" href="#estudio"><div class="row"><span class="ti" data-i="brush"></span><span class="n">08</span></div><b>Estúdio de cenários <span class="chip gold">Novo</span></b><span class="d">Terreno, paredes, objetos e luz</span></a>
-            <a class="tool-card c3" href="#biblioteca" data-soon="Pesquisa offline"><div class="row"><span class="ti" data-i="search"></span><span class="n">04</span></div><b>Pesquisa offline</b><span class="d">Encontre regras pelo contexto</span></a>
-            <a class="tool-card c3" href="#" data-soon="Canvas infinito"><div class="row"><span class="ti" data-i="layout-grid"></span><span class="n">05</span></div><b>Canvas infinito</b><span class="d">Ligações, pistas e notas</span></a>
-            <a class="tool-card c3" href="#bestiario"><div class="row"><span class="ti" data-i="skull"></span><span class="n">06</span></div><b>Bestiário</b><span class="d">Criaturas e habilidades</span></a>
-            <a class="tool-card c3" href="#" data-soon="Ateliê"><div class="row"><span class="ti" data-i="palette"></span><span class="n">07</span></div><b>Ateliê</b><span class="d">Retrato e token em camadas</span></a>
+            <a class="tool-card c3" href="#biblioteca"><div class="row"><span class="ti" data-i="books"></span><span class="n">03</span></div><b>Biblioteca</b><span class="d">Livros, busca nos PDFs e regras</span></a>
+            <a class="tool-card c3" href="#bestiario"><div class="row"><span class="ti" data-i="skull"></span><span class="n">04</span></div><b>Bestiário</b><span class="d">Criaturas e habilidades</span></a>
+            <a class="tool-card c4" href="#" data-soon="Canvas infinito"><div class="row"><span class="ti" data-i="layout-grid"></span><span class="n">05</span></div><b>Canvas infinito</b><span class="d">Ligações, pistas e notas</span></a>
+            <a class="tool-card c4" href="#" data-soon="Ateliê"><div class="row"><span class="ti" data-i="palette"></span><span class="n">06</span></div><b>Ateliê</b><span class="d">Retrato e token em camadas</span></a>
+            <a class="tool-card c4" href="#entrar"><div class="row"><span class="ti" data-i="device-mobile"></span><span class="n">07</span></div><b>Entrar numa mesa</b><span class="d">Como jogador, pelo app ou navegador</span></a>
           </div>
         </section>
 
         <!-- MESTRAGEM -->
         <section class="page" data-view="mestragem" aria-labelledby="h-mestragem" hidden>
           <div class="hero"><p class="kicker">Mestragem · campanha</p><h1 id="h-mestragem">Crônicas do <em>Vale Cinzento.</em></h1><p>Ordem Paranormal 1.3 · 4 jogadores · dados de exemplo para o protótipo.</p></div>
+          <nav class="mest-tabs" aria-label="Mestragem"><a href="#mestragem" aria-current="page"><span data-i="crown"></span>Campanha</a><a href="#mesa"><span data-i="map"></span>Mesa ao vivo</a><a href="#estudio"><span data-i="brush"></span>Cenários</a></nav>
           <div class="grid">
             <article class="card feature c8"><canvas class="mini-map" id="mini-map" width="600" height="400" aria-hidden="true"></canvas>
               <div class="feature-body"><p class="kicker">Mesa ao vivo</p><h2>A mesa está pronta para abrir.</h2>
-                <div class="row small"><span class="dot on"></span><span>Servidor na rede local</span><span class="chip">Cenário: <b id="mest-scene" style="margin-left:4px">Corredor do Forte</b></span></div>
+                <div class="row small"><span class="dot on"></span><span>Servidor na rede local</span><span class="chip">Publicado: <b id="mest-scene" style="margin-left:4px">Corredor do Forte</b></span></div>
                 <div class="invite-rows">
                   <div class="item"><span data-i="device-mobile" class="faint"></span><span class="grow"><span class="small muted">Pelo app Mastermind (recomendado)</span><span class="addr num" style="display:block">192.168.0.12:8765</span></span><button class="btn sm" type="button" data-copy="192.168.0.12:8765"><span data-i="copy"></span>Copiar</button></div>
                   <div class="item"><span data-i="world" class="faint"></span><span class="grow"><span class="small muted">Pelo navegador</span><span class="small num" style="display:block;overflow:hidden;text-overflow:ellipsis">http://192.168.0.12:8765/join/vale-cinzento/K7Q-2M</span></span><button class="btn sm" type="button" data-copy="http://192.168.0.12:8765/join/vale-cinzento/K7Q-2M"><span data-i="copy"></span>Copiar</button></div>
                 </div>
-                <div class="row"><a class="btn primary" href="#mesa"><span data-i="map"></span>Abrir mesa ao vivo</a><a class="btn" href="#estudio"><span data-i="brush"></span>Estúdio de cenários</a></div>
+                <div class="row"><a class="btn primary" href="#mesa"><span data-i="map"></span>Abrir mesa ao vivo</a></div>
               </div></article>
             <article class="card c4"><div class="card-h"><h2>Ritmo</h2><span class="chip gold num" id="round-chip">Rodada 2</span></div>
               <div class="seg" role="group" aria-label="Modo da sessão" id="mode-seg"><button type="button" data-mode="combat" aria-pressed="true"><span data-i="swords"></span>Combate</button><button type="button" data-mode="interlude" aria-pressed="false"><span data-i="coffee"></span>Interlúdio</button></div>
@@ -543,7 +621,7 @@ input[type="range"]{accent-color:var(--accent);width:100%}
                 <li class="item"><span class="el energia"><span data-i="bolt"></span></span><div class="grow"><b>Campo Protetor</b><span class="small muted">Diego pediu para Brás · Energia</span></div><button class="btn sm icon" type="button" aria-label="Recusar" data-soon="Recusar pedido"><span data-i="x"></span></button><button class="btn sm icon primary" type="button" aria-label="Aprovar" data-soon="Aprovar pedido"><span data-i="check"></span></button></li>
                 <li class="item"><span class="el conhecimento"><span data-i="eye"></span></span><div class="grow"><b>Precognição</b><span class="small muted">Ana pediu para Aurora · Conhecimento</span></div><button class="btn sm icon" type="button" aria-label="Recusar" data-soon="Recusar pedido"><span data-i="x"></span></button><button class="btn sm icon primary" type="button" aria-label="Aprovar" data-soon="Aprovar pedido"><span data-i="check"></span></button></li>
               </ul><p class="small faint" style="margin:0">Poderes registrados na ficha só valem na mesa depois da sua aprovação.</p></article>
-            <article class="card c8"><div class="card-h"><h2>Cenários</h2><a class="btn sm" href="#estudio"><span data-i="plus"></span>Novo no Estúdio</a></div>
+            <article class="card c8"><div class="card-h"><h2>Cenários</h2><span class="small muted">Toque para editar</span></div>
               <div class="scene-thumbs">
                 <a class="thumb" href="#estudio" aria-current="true"><canvas data-thumb="0" width="300" height="200"></canvas><div><b>Corredor do Forte</b><span class="chip gold" style="align-self:flex-start">Publicado</span></div></a>
                 <a class="thumb" href="#estudio"><canvas data-thumb="1" width="300" height="200"></canvas><div><b>Caverna</b><span class="small muted">Rascunho</span></div></a>
@@ -569,14 +647,14 @@ input[type="range"]{accent-color:var(--accent);width:100%}
 
         <!-- BIBLIOTECA -->
         <section class="page" data-view="biblioteca" aria-labelledby="h-bib" hidden>
-          <div class="hero"><p class="kicker">Biblioteca</p><h1 id="h-bib">Livros e <em>regras.</em></h1><p>39 sistemas catalogados. A busca usa apenas os livros que você importou e as regras cadastradas.</p></div>
-          <div class="sys-chips chips" role="group" aria-label="Sistema"><button type="button" class="fchip" aria-pressed="true">Ordem Paranormal</button><button type="button" class="fchip">D&amp;D</button><button type="button" class="fchip">Tormenta 20</button><button type="button" class="fchip">Chamado de Cthulhu</button><button type="button" class="fchip">GURPS</button><button type="button" class="fchip">Cyberpunk RED</button><button type="button" class="fchip">Blades In The Dark</button><button type="button" class="fchip">+ 32 sistemas</button></div>
-          <label class="search-hero" for="bib-q"><span data-i="search" class="muted"></span><input id="bib-q" placeholder="Pergunte como na mesa: quando durmo, o que recupero?"><button class="btn sm primary" type="button" data-soon="Consulta">Consultar</button></label>
-          <div class="grid">
-            <article class="card c7"><div class="card-h"><h2>Resultado de exemplo</h2><span class="chip">Consulta offline · sem IA</span></div><div class="snippet"><p class="small muted" style="margin:0 0 6px">Seu PDF · página física indicada</p><p style="margin:0">O trecho do seu livro aparece aqui, curto e com o número da página, para você abrir a página original.</p></div><div class="row"><button class="btn sm" type="button" data-soon="Abrir página"><span data-i="file-text"></span>Abrir página</button><span class="small faint">Se não houver trecho indexado, o app diz isso em vez de inventar.</span></div></article>
-            <article class="card c5"><div class="card-h"><h2>Seus PDFs</h2><button class="btn sm" type="button" data-soon="Adicionar PDFs"><span data-i="upload"></span>Adicionar</button></div><div class="item" style="flex-direction:column;align-items:stretch"><div class="row between"><b>Livro de regras (seu PDF)</b><span class="chip gold num">212/300</span></div><div class="bar"><i style="width:70.6%;--c:var(--accent)"></i></div><div class="row between small"><span class="muted">Indexando no aparelho. A busca já cobre as páginas prontas.</span><button class="btn sm" type="button" data-soon="Retomar indexação"><span data-i="refresh"></span>Retomar</button></div></div></article>
-            <article class="card c12"><div class="card-h"><h2>Google Drive</h2><span class="chip">Somente links</span></div><div class="row between"><p class="muted" style="margin:0;max-width:70ch">209 livros catalogados como links e metadados. Eles abrem na sua conta do Drive; o app não guarda cópia dos arquivos. No D&amp;D, por exemplo, são 9 documentos.</p><button class="btn" type="button" data-soon="Drive"><span data-i="world"></span>Abrir no Drive</button></div></article>
+          <div class="hero"><p class="kicker">Biblioteca</p><h1 id="h-bib">Livros e <em>regras.</em></h1><p>Busque termos nos seus PDFs como num Ctrl+F. O app mostra cada página onde o termo aparece e resume o que encontrou, sempre com a página.</p></div>
+          <div id="books" class="books">
+            <form class="bk-bar" id="bk-form" role="search"><span data-i="search" class="muted"></span><input id="bk-q" type="search" placeholder="Buscar nos seus PDFs" aria-label="Termo para buscar nos PDFs" autocomplete="off"><kbd class="hide-sm">Ctrl F</kbd><span class="bk-count num" id="bk-count" aria-live="polite"></span><button class="ibtn sm" type="button" id="bk-prev" aria-label="Resultado anterior (Shift+Enter)"><span data-i="chevron-left"></span></button><button class="ibtn sm" type="button" id="bk-next" aria-label="Próximo resultado (Enter)"><span data-i="chevron-right"></span></button><button class="btn sm primary" type="submit">Buscar</button></form>
+            <div class="row between"><div class="row"><select class="input" id="bk-book" aria-label="Em qual PDF buscar" style="width:auto;min-width:200px"></select><button class="btn sm" type="button" id="bk-open"><span data-i="upload"></span>Abrir PDF</button><button class="btn sm" type="button" id="bk-add" hidden><span data-i="plus"></span>Adicionar PDF</button><input type="file" id="bk-file" accept="application/pdf,.pdf" multiple hidden></div><span class="chip" id="bk-source"></span></div>
+            <div class="bk-progress" id="bk-progress" hidden><span class="small muted"></span><div class="bar"><i style="--c:var(--accent);width:0"></i></div></div>
+            <div class="grid bk-grid"><article class="card c5 bk-sum" id="bk-summary"></article><div class="c7 bk-results" id="bk-results"></div></div>
           </div>
+          <article class="card"><div class="card-h"><h2>Google Drive</h2><span class="chip">Somente links</span></div><div class="row between"><p class="muted" style="margin:0;max-width:70ch">209 livros catalogados como links e metadados. Eles abrem na sua conta do Drive; o app não guarda cópia dos arquivos.</p><button class="btn" type="button" data-soon="Drive"><span data-i="world"></span>Abrir no Drive</button></div></article>
         </section>
 
         <!-- FICHA -->
@@ -594,18 +672,26 @@ input[type="range"]{accent-color:var(--accent);width:100%}
         </section>
 
         <!-- PERSONALIZAÇÃO -->
-        <section class="page" data-view="ajustes" aria-labelledby="h-aj" hidden>
-          <div class="hero"><p class="kicker">Personalização</p><h1 id="h-aj">Do seu <em>jeito.</em></h1><p>As escolhas valem só neste aparelho. Elas não mudam o mapa, os tokens nem as regras da mesa.</p></div>
+        <section class="page" data-view="ajustes" id="prefs" aria-labelledby="h-aj" hidden>
+          <div class="hero"><p class="kicker">Personalização</p><h1 id="h-aj">Do seu <em>jeito.</em></h1><p>Temas, efeitos, cores e fontes valem para todo o app neste aparelho. Eles não mudam o mapa, os tokens nem as regras da mesa.</p></div>
           <div class="grid">
-            <article class="card c7"><h2 style="font-size:23px">Aparência</h2><div>
-              <div class="set-row"><div><b>Tema</b><div class="small muted">Escuro é o padrão do Mastermind.</div></div><div class="seg" role="group" aria-label="Tema" id="theme-seg"><button type="button" data-t="dark" aria-pressed="true"><span data-i="moon"></span>Escuro</button><button type="button" data-t="light" aria-pressed="false"><span data-i="sun"></span>Claro</button></div></div>
-              <div class="set-row"><div><b>Cor de destaque</b><div class="small muted">A roda RGB continua disponível para cores livres.</div></div><div class="swatches" id="swatches"><button type="button" aria-label="Latão" style="background:#c7a87b" data-c="#c7a87b" aria-pressed="true"></button><button type="button" aria-label="Rosa" style="background:#dca4bd" data-c="#dca4bd" aria-pressed="false"></button><button type="button" aria-label="Lavanda" style="background:#9c90dd" data-c="#9c90dd" aria-pressed="false"></button><button type="button" aria-label="Sálvia" style="background:#86bd9c" data-c="#86bd9c" aria-pressed="false"></button><button type="button" aria-label="Sangue" style="background:#e0707c" data-c="#e0707c" aria-pressed="false"></button></div></div>
+            <article class="card c12 el-card"><div class="el-head"><div class="el-sigil" id="el-sigil"></div><div style="min-width:0"><p class="kicker">Tema elemental · <span id="el-tag"></span></p><h2 id="el-name" style="font-size:38px"></h2><p class="muted" id="el-intro" style="margin:4px 0 0;max-width:62ch"></p></div></div>
+              <div class="el-grid" id="el-grid" role="group" aria-label="Tema elemental"></div>
+              <div class="set-row"><div><b>Efeitos visuais</b><div class="small muted">Partículas e brilho do tema. Com "reduzir movimento" ligado no aparelho, só aparecem em Máximos.</div></div><div class="seg" role="group" aria-label="Efeitos visuais"><button type="button" data-pref="intensity" data-v="off">Desligados</button><button type="button" data-pref="intensity" data-v="low">Leves</button><button type="button" data-pref="intensity" data-v="max">Máximos</button></div></div></article>
+            <article class="card c6"><h2 style="font-size:23px">Cores</h2>
+              <div class="set-row"><div><b>Modo</b></div><div class="seg" role="group" aria-label="Modo"><button type="button" data-pref="theme" data-v="dark"><span data-i="moon"></span>Escuro</button><button type="button" data-pref="theme" data-v="light"><span data-i="sun"></span>Claro</button></div></div>
+              <div class="set-row"><div><b>Destaque</b><div class="small muted" id="accent-note"></div></div><div class="swatches"><button type="button" data-pref="accent" data-v="gold" aria-label="Dourado" style="background:#c7a87b"></button><button type="button" data-pref="accent" data-v="amethyst" aria-label="Ametista" style="background:#ab95ef"></button><button type="button" data-pref="accent" data-v="emerald" aria-label="Esmeralda" style="background:#80c4a4"></button><button type="button" data-pref="accent" data-v="azure" aria-label="Azul" style="background:#8bb7ed"></button><label class="custom-sw" title="Cor livre"><input type="color" id="pref-custom" aria-label="Cor de destaque livre"><button type="button" data-pref="accent" data-v="custom" aria-label="Usar a cor livre" tabindex="-1"></button></label></div></div></article>
+            <article class="card c6"><h2 style="font-size:23px">Tipografia e espaço</h2>
+              <div class="set-row"><div><b>Títulos</b></div><select class="input" id="pref-head" style="width:auto"><option value="classic">Clássico · Cormorant</option><option value="modern">Moderno · Space Grotesk</option></select></div>
+              <div class="set-row"><div><b>Texto</b></div><select class="input" id="pref-body" style="width:auto"><option value="dm">DM Sans</option><option value="space">Space Grotesk</option><option value="serif">Georgia</option></select></div>
+              <div class="set-row"><div><b>Densidade</b></div><div class="seg" role="group" aria-label="Densidade"><button type="button" data-pref="density" data-v="comfortable">Confortável</button><button type="button" data-pref="density" data-v="compact">Compacta</button></div></div>
+              <button type="button" class="switch-row" id="pref-texture" aria-pressed="false"><span><b>Textura de papel</b><small class="muted">Granulado leve sobre as telas</small></span><span class="switch"></span></button></article>
+            <article class="card c7"><h2 style="font-size:23px">Mesa</h2>
               <div class="set-row"><div><b>Grade do mapa</b><div class="small muted">Intensidade das linhas na mesa, só neste aparelho.</div></div><input type="range" id="grid-alpha" min="0" max="30" value="12" aria-label="Intensidade da grade"></div>
-              <div class="set-row"><div><b>Nomes dos tokens</b><div class="small muted">Mostrar sempre, em vez de só ao passar o cursor.</div></div><div class="seg" role="group" aria-label="Nomes" id="names-seg"><button type="button" data-n="0" aria-pressed="true">Ao passar</button><button type="button" data-n="1" aria-pressed="false">Sempre</button></div></div></div></article>
+              <div class="set-row"><div><b>Nomes dos tokens</b><div class="small muted">Mostrar sempre, em vez de só ao passar o cursor.</div></div><div class="seg" role="group" aria-label="Nomes" id="names-seg"><button type="button" data-n="0" aria-pressed="true">Ao passar</button><button type="button" data-n="1" aria-pressed="false">Sempre</button></div></div></article>
             <article class="card c5"><h2 style="font-size:23px">Ajuda</h2>
-              <button class="btn" type="button" id="redo-master"><span data-i="help"></span>Refazer tutorial da mesa (mestre)</button><button class="btn" type="button" id="redo-studio"><span data-i="help"></span>Refazer tutorial do Estúdio</button><button class="btn" type="button" id="redo-player"><span data-i="help"></span>Refazer tutorial do jogador</button>
-              <h3 style="font-size:19px;margin-top:6px">Atalhos</h3>
-              <table class="keys"><tbody><tr><td>Central</td><td><kbd>C</kbd></td></tr><tr><td>Mesa: mover, medir, desenhar, névoa</td><td><kbd>V</kbd> <kbd>M</kbd> <kbd>D</kbd> <kbd>F</kbd></td></tr><tr><td>Mesa: portas, marcar, lanterna</td><td><kbd>O</kbd> <kbd>P</kbd> <kbd>L</kbd></td></tr><tr><td>Estúdio: terreno, balde, sala, parede</td><td><kbd>B</kbd> <kbd>G</kbd> <kbd>R</kbd> <kbd>W</kbd></td></tr><tr><td>Estúdio: porta, objeto, luz, borracha</td><td><kbd>O</kbd> <kbd>S</kbd> <kbd>L</kbd> <kbd>E</kbd></td></tr><tr><td>Girar peça · desfazer · duplicar</td><td><kbd>[</kbd> <kbd>]</kbd> · <kbd>Ctrl Z</kbd> · <kbd>Ctrl D</kbd></td></tr><tr><td>Fechar painel ou menu</td><td><kbd>Esc</kbd></td></tr><tr><td>Mover o mapa</td><td><kbd>Espaço</kbd> + arrastar</td></tr></tbody></table></article>
+              <button class="btn" type="button" id="redo-master"><span data-i="help"></span>Refazer tutorial da mesa</button><button class="btn" type="button" id="redo-studio"><span data-i="help"></span>Refazer tutorial dos cenários</button><button class="btn" type="button" id="redo-player"><span data-i="help"></span>Refazer tutorial do jogador</button>
+              <a class="btn ghost in-app-only" href="../demo-offline.html" hidden><span data-i="arrow-back-up"></span>Voltar à interface atual</a></article>
           </div>
         </section>
       </div>
