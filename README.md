@@ -1,7 +1,7 @@
 # Mastermind
 
-Versão atual: **Android v0.108** · **Linux e Windows v1.2.1** — nova interface em prévia (Mestragem com mesa ao
-vivo e cenários, busca nos PDFs com resumo e Personalização com temas elementais), aberta pela Central do app.
+Versão atual: **Android v0.109** · **Linux e Windows v1.3.0** — a nova interface passa a ser a padrão, ligada ao
+servidor da mesa na rede local, com Biblioteca, Buscar nos livros e Fichas. A interface clássica continua no app.
 
 ## Organização do repositório
 
@@ -20,6 +20,58 @@ vivo e cenários, busca nos PDFs com resumo e Personalização com temas element
   (veja a docstring de `atelie_corrigir_rostos.py` para regenerar).
 
 ## Histórico
+
+# Mastermind v0.109 (Android) · v1.3.0 (Linux e Windows) — nova interface de verdade
+
+**Abre por padrão.** A interface clássica continua no app: Central → **Interface clássica** (ou Personalização →
+**Usar a interface clássica**). Na clássica, o cartão **Nova interface** da Central volta. Ateliê, Canvas e a ficha
+completa abrem as telas do app com os mesmos dados, e um botão **← Nova interface** traz de volta.
+
+**Mestragem, mesa ao vivo e Cenários ligados ao servidor da mesa** (o mesmo `LocalCampaignServer` da clássica):
+- Mestragem: ligar e desligar o servidor, criar e escolher campanhas, convite para o app e para o navegador,
+  Combate e Interlúdio, jogadores (aprovar a ficha enviada, atribuir ficha), pedidos de poder (aprovar ou recusar),
+  cenários da campanha (publicar, editar no Estúdio, apagar, criar a partir de um modelo) e fichas da campanha
+  (adicionar uma cópia de uma ficha do aparelho).
+- Mesa ao vivo: mover tokens, dados, iniciativa (rolar, definir, próximo, limpar), PV de criaturas e de fichas,
+  girar, ocultar, remover, névoa e portas, tudo calculado e guardado no servidor. Criaturas do bestiário e fichas da
+  campanha entram pela gaveta Adicionar. Sem servidor, tudo roda na **campanha de treino**, só no aparelho.
+- Estúdio: **Publicar na mesa** grava o cenário na campanha e o torna ativo; **Salvar rascunho** grava sem publicar.
+  Terreno e objetos levam também um apelido da paleta clássica, para a mesa clássica mostrar algo parecido. Notas do
+  mestre, objetos ocultos e portas secretas fechadas ficam só com o mestre (o servidor nunca envia ao jogador).
+- Servidor: tokens com tamanho (1 a 4 casas) e lado (personagem, aliado, inimigo, NPC, objeto); aparência do cenário
+  (fundo, grade, hora do dia); e a lista de casas que o jogador não enxerga, para a nova interface escurecer só a
+  posição, sem revelar o que há nelas. As duas cópias do servidor (Android e desktop) continuam idênticas.
+
+**Jogador pelo app ou pelo navegador.** No app, **Entrar numa mesa**: cole o convite, escolha uma ficha salva no
+aparelho (Ordem Paranormal, D&D 5e, GURPS ou Chamado de Cthulhu) e envie ao mestre; a sessão fica guardada e dá
+para retomar ou sair. No navegador, o convite `/v2/join/…` abre a nova interface servida pela própria mesa (só os
+arquivos da pasta `revamp/`, com política de segurança restrita). Na mesa: HUD e ficha com os recursos do sistema
+da ficha (o que muda vai para o servidor), dados, deslocamento pela iniciativa, Caderno pessoal e pedidos de poder
+(Transcender e poderes de classe, conferidos pelo servidor).
+
+**Biblioteca** (Ordem Paranormal, D&D 5e, Chamado de Cthulhu e GURPS; os outros sistemas serão catalogados depois):
+- Livros do aparelho por sistema, com estado do índice, **Abrir** dentro do app (no Android a página é desenhada
+  pelo app; no computador abre no leitor de PDF do sistema) e **Buscar** naquele livro.
+- Catálogo do Drive do sistema (só nomes e links) com filtro; **Trazer PDF para o app** abre o seletor de arquivos,
+  que no celular também mostra o Google Drive. O app não guarda cópia de livros.
+- **Regras e conteúdo** de cada sistema, no mesmo editor da clássica (`mastermind_system_editor.js`): perícias,
+  poderes, rituais, evolução, equipamentos… criar, editar, ocultar, restaurar, nome e descrição do sistema e
+  **Restaurar original**. Vale para o app todo, neste aparelho; o livro e as fichas existentes não mudam.
+  Chamado de Cthulhu ganhou no editor as perícias (valores base) e ocupações que o motor de CoC 7e do app já usa.
+
+**Buscar nos livros** virou uma ferramenta própria (Central, Início ou Ctrl+F). Sempre que encontra algo relevante,
+mostra um resumo **O que é** (como funciona, condições e limitações, valores), montado pelo mesmo motor da busca
+clássica (`rpg28_context_search.js` + `rpg27_answer_templates.js`) a partir das regras que o app já tem (pacote de
+Ordem 1.3, bestiário, motores de D&D, GURPS e CoC e o que você editou na Biblioteca) e dos trechos dos seus PDFs,
+sempre com a fonte e a página. Abaixo, as ocorrências como num Ctrl+F. Nada é inventado: cada frase é de uma fonte.
+
+**Fichas** e Início mostram as fichas salvas no aparelho dos quatro sistemas, com recursos e atributos;
+**Abrir ficha completa** e **Ateliê** abrem a ficha certa nas telas do app.
+
+**Testes:** `tests/revamp_adaptador.test.cjs` (conversão de cenário, névoa, tokens, dados, recursos das fichas, dados
+gerados e servidores idênticos) e `tests/revamp_live.e2e.cjs` (Chromium + servidor real: publicar cenário, jogador
+entra pelo navegador, move, rola, muda PV, mestre adiciona criatura e rola iniciativa). Rodam no CI do Android e do
+Linux. Os testes automatizados do desktop continuam abrindo a interface clássica.
 
 # Mastermind v0.108 (Android) · v1.2.1 (Linux e Windows) — nova interface em prévia
 

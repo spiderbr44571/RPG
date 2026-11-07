@@ -161,6 +161,7 @@ input[type="range"]{accent-color:var(--accent);width:100%}
 .thumb[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
 .res-row{display:grid;grid-template-columns:76px minmax(0,1fr) 54px;gap:10px;align-items:center;font-size:12.5px}
 .res-row .num{text-align:right;font-weight:600}
+.fx-card{display:flex;flex-direction:column;gap:10px;text-align:left;cursor:pointer;font:inherit;color:inherit}.fx-card[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .tool-card{display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:16px;border:1px solid var(--line);background:var(--panel);color:inherit;text-decoration:none;min-height:150px;transition:border-color .18s,transform .18s var(--ease)}
 .tool-card:hover{border-color:var(--accent);transform:translateY(-2px)}
 .tool-card .ti{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent)}
@@ -427,6 +428,7 @@ input[type="range"]{accent-color:var(--accent);width:100%}
 .radio{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card);cursor:pointer}
 .radio:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
 .radio input{accent-color:var(--accent);margin-top:3px}
+.radio>span,.radio>span span{text-transform:none;letter-spacing:normal;font-weight:400;font-size:14px;color:var(--fg)}.radio>span b{font-weight:600}.radio>span .small{font-size:12.5px;color:var(--muted)}
 .app-cta{display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:14px;border:1px solid color-mix(in srgb,var(--accent) 50%,var(--line));background:var(--accent-soft)}
 .app-cta .rv-icon{color:var(--accent);margin-top:2px}
 .app-cta ol{margin:6px 0 0;padding-left:18px;color:var(--muted);font-size:12.5px}
@@ -484,6 +486,14 @@ html[data-v10-intensity="low"] #rv-ambient{opacity:.6}
 .room-back{text-decoration:none}
 /* Busca nos livros */
 .books{display:flex;flex-direction:column;gap:12px}
+.reader-back{align-items:stretch;padding:max(10px,env(safe-area-inset-top)) 10px 10px}
+.reader{width:min(980px,100%);margin:0 auto;display:flex;flex-direction:column;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:12px 14px;max-height:100%;min-height:0;box-shadow:var(--shadow-lg,0 30px 80px rgba(0,0,0,.5))}
+.reader-body{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;align-items:center;gap:8px;background:var(--panel2,#0e1118);border-radius:12px;padding:10px}
+.reader-body img,.reader-body canvas{max-width:100%;height:auto;border-radius:6px;box-shadow:0 6px 24px rgba(0,0,0,.35);background:#fff}
+.lead-ans{font:500 17px/1.5 var(--font-body);margin:0}
+.ans-list{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}.ans-list li{display:flex;flex-direction:column;gap:2px}
+#bk-summary hr{border:0;border-top:1px solid var(--line);margin:4px 0}
+.lib-items{max-height:520px;overflow:auto}
 .bk-bar{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 14px;border-radius:16px;border:1px solid var(--line);background:var(--panel)}
 .bk-bar:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .bk-bar input{flex:1;min-width:0;border:0;background:transparent;font-size:15px;padding:8px 0}
@@ -547,13 +557,13 @@ mark{background:color-mix(in srgb,var(--accent) 38%,transparent);color:inherit;b
   .vtt[data-view="estudio"] .zoom{left:auto;right:var(--gut-r)}
 }
 </style>
-<script src="icones.js"></script><script src="dados.js"></script><script src="cena.js"></script><script src="base.js"></script><script src="mesa.js"></script><script src="estudio.js"></script><script src="personalizacao.js"></script><script src="livros.js"></script>
+<script src="icones.js"></script><script src="dados.js"></script><script src="cena.js"></script><script src="dados-ordem.js"></script><script src="adaptador.js"></script><script src="base.js"></script><script src="fichas.js"></script><script src="mesa.js"></script><script src="estudio.js"></script><script src="personalizacao.js"></script><script src="livros.js"></script><script src="biblioteca.js"></script><script src="servidor.js"></script>
 </head>
 <body>
 <div id="root">
-  <nav id="proto" aria-label="Telas do protótipo">
-    <span class="tag">Protótipo</span>
-    <a href="#inicio">Início</a><a href="#mestragem">Mestragem</a><a href="#entrar">Jogador</a><a href="#biblioteca">Biblioteca</a><a href="#ajustes">Personalização</a>
+  <nav id="proto" aria-label="Telas da nova interface">
+    <span class="tag">Prévia no navegador</span>
+    <a href="#inicio">Início</a><a href="#mestragem">Mestragem</a><a href="#entrar">Jogador</a><a href="#biblioteca">Biblioteca</a><a href="#buscar">Buscar</a><a href="#ajustes">Personalização</a>
     <span class="sp"></span><button type="button" id="proto-tut">Ver tutorial</button><button type="button" id="proto-theme">Alternar tema</button>
   </nav>
 
@@ -562,9 +572,9 @@ mark{background:color-mix(in srgb,var(--accent) 38%,transparent);color:inherit;b
     <div class="pages" id="pages">
       <div class="page-wrap" id="page-wrap">
         <header class="topbar">
-          <div class="crumb"><a class="home" href="#inicio">Workspace</a><span class="faint">/</span><b id="crumb-title">Visão geral</b><small>v2.0 · protótipo</small></div>
+          <div class="crumb"><a class="home" href="#inicio">Workspace</a><span class="faint">/</span><b id="crumb-title">Visão geral</b><small>nova interface</small></div>
           <span class="sp"></span>
-          <a class="btn sm ghost" href="#biblioteca"><span data-i="search"></span><span class="hide-sm">Consultar regras</span></a>
+          <a class="btn sm ghost" href="#buscar"><span data-i="search"></span><span class="hide-sm">Buscar nos livros</span></a>
           <button class="btn sm icon ghost theme-toggle" type="button" aria-label="Alternar tema"><span data-i="sun"></span></button>
         </header>
 
@@ -572,67 +582,27 @@ mark{background:color-mix(in srgb,var(--accent) 38%,transparent);color:inherit;b
         <section class="page" data-view="inicio" aria-labelledby="h-inicio">
           <div class="hero-row"><div class="hero"><p class="kicker">Mastermind / Área de trabalho</p><h1 id="h-inicio">Seu universo, <em>sob controle.</em></h1><p>Personagens, mundos e sessões no mesmo espaço. Seus dados e sua personalização continuam aqui.</p></div><a class="btn" href="#ajustes"><span data-i="adjustments"></span>Personalizar</a></div>
           <div class="grid">
-            <article class="card feature c7"><div class="sigil" aria-hidden="true"></div><div class="feature-body" style="max-width:100%"><p class="kicker">Próxima sessão</p><h2>O mundo está esperando pelo mestre.</h2><p class="muted" style="margin:0;max-width:44ch">Campanha, mesa ao vivo e cenários ficam juntos na Mestragem.</p><div class="row"><a class="btn primary" href="#mestragem"><span data-i="crown"></span>Abrir Mestragem</a><a class="btn" href="#biblioteca"><span data-i="search"></span>Consultar regras</a></div></div></article>
-            <article class="card c5"><div class="card-h"><p class="kicker">Continuar de onde parou</p><span class="small muted">3 fichas</span></div>
-              <div class="char-card"><div class="char-glyph">A</div><div style="min-width:0"><p class="kicker" style="color:var(--muted)">Personagem selecionado</p><h2 style="font-size:30px">Aurora</h2><div class="row" style="gap:6px;margin-top:6px"><span class="chip">Combatente</span><span class="chip">NEX 35%</span></div></div></div>
-              <div class="res-row"><span>Vida</span><div class="bar"><i style="width:75%;--c:var(--danger)"></i></div><span class="num">18/24</span></div>
-              <div class="res-row"><span>Esforço</span><div class="bar"><i style="width:71%;--c:var(--blue)"></i></div><span class="num">5/7</span></div>
-              <div class="res-row"><span>Sanidade</span><div class="bar"><i style="width:75%;--c:var(--purple)"></i></div><span class="num">12/16</span></div>
-              <div class="row"><a class="btn primary" href="#ficha" style="flex:1"><span data-i="user"></span>Abrir esta ficha</a><a class="btn" href="#entrar"><span data-i="map"></span>Mesa</a></div></article>
+            <article class="card feature c7"><div class="sigil" aria-hidden="true"></div><div class="feature-body" style="max-width:100%"><p class="kicker">Próxima sessão</p><h2>O mundo está esperando pelo mestre.</h2><p class="muted" style="margin:0;max-width:44ch">Campanha, mesa ao vivo e cenários ficam juntos na Mestragem.</p><div class="row"><a class="btn primary" href="#mestragem"><span data-i="crown"></span>Abrir Mestragem</a><a class="btn" href="#buscar"><span data-i="search"></span>Buscar nos livros</a></div></div></article>
+            <article class="card c5" id="home-sheet"></article>
           </div>
           <div><p class="kicker">Acesso rápido</p><h2 style="font-size:30px;margin-top:4px">Ferramentas</h2></div>
           <div class="grid tools-grid">
             <a class="tool-card c3" href="#mestragem"><div class="row"><span class="ti" data-i="crown"></span><span class="n">01</span></div><b>Mestragem</b><span class="d">Campanha, mesa ao vivo e cenários</span></a>
             <a class="tool-card c3" href="#ficha"><div class="row"><span class="ti" data-i="user"></span><span class="n">02</span></div><b>Personagens</b><span class="d">Fichas, rituais e inventário</span></a>
-            <a class="tool-card c3" href="#biblioteca"><div class="row"><span class="ti" data-i="books"></span><span class="n">03</span></div><b>Biblioteca</b><span class="d">Livros, busca nos PDFs e regras</span></a>
+            <a class="tool-card c3" href="#biblioteca"><div class="row"><span class="ti" data-i="books"></span><span class="n">03</span></div><b>Biblioteca</b><span class="d">Livros e regras dos sistemas</span></a>
             <a class="tool-card c3" href="#bestiario"><div class="row"><span class="ti" data-i="skull"></span><span class="n">04</span></div><b>Bestiário</b><span class="d">Criaturas e habilidades</span></a>
-            <a class="tool-card c4" href="#" data-soon="Canvas infinito"><div class="row"><span class="ti" data-i="layout-grid"></span><span class="n">05</span></div><b>Canvas infinito</b><span class="d">Ligações, pistas e notas</span></a>
-            <a class="tool-card c4" href="#" data-soon="Ateliê"><div class="row"><span class="ti" data-i="palette"></span><span class="n">06</span></div><b>Ateliê</b><span class="d">Retrato e token em camadas</span></a>
-            <a class="tool-card c4" href="#entrar"><div class="row"><span class="ti" data-i="device-mobile"></span><span class="n">07</span></div><b>Entrar numa mesa</b><span class="d">Como jogador, pelo app ou navegador</span></a>
+            <a class="tool-card c3" href="#buscar"><div class="row"><span class="ti" data-i="file-search"></span><span class="n">05</span></div><b>Buscar nos livros</b><span class="d">Termo, resumo e página</span></a>
+            <a class="tool-card c3 in-app-only" href="#" data-classic="canvas" hidden><div class="row"><span class="ti" data-i="layout-grid"></span><span class="n">06</span></div><b>Canvas infinito</b><span class="d">Ligações, pistas e notas</span></a>
+            <a class="tool-card c3 in-app-only" href="#" data-classic="atelier85" hidden><div class="row"><span class="ti" data-i="palette"></span><span class="n">07</span></div><b>Ateliê</b><span class="d">Retrato e token em camadas</span></a>
+            <a class="tool-card c3" href="#entrar"><div class="row"><span class="ti" data-i="device-mobile"></span><span class="n">08</span></div><b>Entrar numa mesa</b><span class="d">Como jogador, pelo app ou navegador</span></a>
           </div>
         </section>
 
         <!-- MESTRAGEM -->
         <section class="page" data-view="mestragem" aria-labelledby="h-mestragem" hidden>
-          <div class="hero"><p class="kicker">Mestragem · campanha</p><h1 id="h-mestragem">Crônicas do <em>Vale Cinzento.</em></h1><p>Ordem Paranormal 1.3 · 4 jogadores · dados de exemplo para o protótipo.</p></div>
+          <div class="hero"><p class="kicker">Mestragem · campanha</p><h1 id="h-mestragem">Sua <em>mestragem.</em></h1><p id="mest-sub"></p></div>
           <nav class="mest-tabs" aria-label="Mestragem"><a href="#mestragem" aria-current="page"><span data-i="crown"></span>Campanha</a><a href="#mesa"><span data-i="map"></span>Mesa ao vivo</a><a href="#estudio"><span data-i="brush"></span>Cenários</a></nav>
-          <div class="grid">
-            <article class="card feature c8"><canvas class="mini-map" id="mini-map" width="600" height="400" aria-hidden="true"></canvas>
-              <div class="feature-body"><p class="kicker">Mesa ao vivo</p><h2>A mesa está pronta para abrir.</h2>
-                <div class="row small"><span class="dot on"></span><span>Servidor na rede local</span><span class="chip">Publicado: <b id="mest-scene" style="margin-left:4px">Corredor do Forte</b></span></div>
-                <div class="invite-rows">
-                  <div class="item"><span data-i="device-mobile" class="faint"></span><span class="grow"><span class="small muted">Pelo app Mastermind (recomendado)</span><span class="addr num" style="display:block">192.168.0.12:8765</span></span><button class="btn sm" type="button" data-copy="192.168.0.12:8765"><span data-i="copy"></span>Copiar</button></div>
-                  <div class="item"><span data-i="world" class="faint"></span><span class="grow"><span class="small muted">Pelo navegador</span><span class="small num" style="display:block;overflow:hidden;text-overflow:ellipsis">http://192.168.0.12:8765/join/vale-cinzento/K7Q-2M</span></span><button class="btn sm" type="button" data-copy="http://192.168.0.12:8765/join/vale-cinzento/K7Q-2M"><span data-i="copy"></span>Copiar</button></div>
-                </div>
-                <div class="row"><a class="btn primary" href="#mesa"><span data-i="map"></span>Abrir mesa ao vivo</a></div>
-              </div></article>
-            <article class="card c4"><div class="card-h"><h2>Ritmo</h2><span class="chip gold num" id="round-chip">Rodada 2</span></div>
-              <div class="seg" role="group" aria-label="Modo da sessão" id="mode-seg"><button type="button" data-mode="combat" aria-pressed="true"><span data-i="swords"></span>Combate</button><button type="button" data-mode="interlude" aria-pressed="false"><span data-i="coffee"></span>Interlúdio</button></div>
-              <p class="small muted" id="mode-text" style="margin:0">Movimento pela iniciativa. Testes sempre livres.</p></article>
-            <article class="card c7"><div class="card-h"><h2>Jogadores</h2><span class="chip ok">3 conectados</span></div>
-              <ul class="list">
-                <li class="item"><span class="avatar" style="background:#c7a87b">AN</span><div class="grow"><b>Ana</b><span class="small muted">Aurora · enviada pelo app, aprovada</span></div><span class="chip"><span data-i="device-mobile"></span>app</span><span class="dot on" title="Conectada"></span></li>
-                <li class="item"><span class="avatar" style="background:#86bd9c">DI</span><div class="grow"><b>Diego</b><span class="small muted">Brás · token vinculado</span></div><span class="chip"><span data-i="world"></span>navegador</span><span class="dot on" title="Conectado"></span></li>
-                <li class="item"><span class="avatar" style="background:#9c90dd">LI</span><div class="grow"><b>Lia</b><span class="small muted">Entrou sem ficha</span></div><select class="input" style="width:auto;min-height:34px;padding:5px 10px" aria-label="Atribuir ficha para Lia"><option>Atribuir ficha…</option><option>Aurora</option><option>Brás</option></select></li>
-                <li class="item"><span class="avatar" style="background:#6db7e0">RA</span><div class="grow"><b>Rafa</b><span class="small muted">Enviou "Kael" pelo app · D&amp;D 5e, outro sistema</span></div><button class="btn sm" type="button" data-soon="Revisar ficha">Revisar</button></li>
-              </ul></article>
-            <article class="card c5"><div class="card-h"><h2>Pedidos</h2><span class="chip gold">2 aguardando</span></div>
-              <ul class="list">
-                <li class="item"><span class="el energia"><span data-i="bolt"></span></span><div class="grow"><b>Campo Protetor</b><span class="small muted">Diego pediu para Brás · Energia</span></div><button class="btn sm icon" type="button" aria-label="Recusar" data-soon="Recusar pedido"><span data-i="x"></span></button><button class="btn sm icon primary" type="button" aria-label="Aprovar" data-soon="Aprovar pedido"><span data-i="check"></span></button></li>
-                <li class="item"><span class="el conhecimento"><span data-i="eye"></span></span><div class="grow"><b>Precognição</b><span class="small muted">Ana pediu para Aurora · Conhecimento</span></div><button class="btn sm icon" type="button" aria-label="Recusar" data-soon="Recusar pedido"><span data-i="x"></span></button><button class="btn sm icon primary" type="button" aria-label="Aprovar" data-soon="Aprovar pedido"><span data-i="check"></span></button></li>
-              </ul><p class="small faint" style="margin:0">Poderes registrados na ficha só valem na mesa depois da sua aprovação.</p></article>
-            <article class="card c8"><div class="card-h"><h2>Cenários</h2><span class="small muted">Toque para editar</span></div>
-              <div class="scene-thumbs">
-                <a class="thumb" href="#estudio" aria-current="true"><canvas data-thumb="0" width="300" height="200"></canvas><div><b>Corredor do Forte</b><span class="chip gold" style="align-self:flex-start">Publicado</span></div></a>
-                <a class="thumb" href="#estudio"><canvas data-thumb="1" width="300" height="200"></canvas><div><b>Caverna</b><span class="small muted">Rascunho</span></div></a>
-                <a class="thumb" href="#estudio"><canvas data-thumb="2" width="300" height="200"></canvas><div><b>Rua à noite</b><span class="small muted">Rascunho</span></div></a>
-              </div></article>
-            <article class="card c4"><div class="card-h"><h2>Fichas</h2><a class="btn sm ghost" href="#ficha">Abrir</a></div>
-              <div class="res-row"><span>Aurora</span><div class="bar"><i style="width:75%;--c:var(--danger)"></i></div><span class="num">18/24</span></div>
-              <div class="res-row"><span>Brás</span><div class="bar"><i style="width:100%;--c:var(--danger)"></i></div><span class="num">21/21</span></div>
-              <div class="row"><span class="chip bad">Aurora · Sangrando · 2 turnos</span></div>
-              <button class="btn" type="button" data-soon="Canvas da campanha"><span data-i="layout-grid"></span>Canvas privado · 6 cartões</button></article>
-          </div>
+          <div class="grid" id="mest-grid"></div>
         </section>
 
         <!-- BESTIÁRIO -->
@@ -647,28 +617,28 @@ mark{background:color-mix(in srgb,var(--accent) 38%,transparent);color:inherit;b
 
         <!-- BIBLIOTECA -->
         <section class="page" data-view="biblioteca" aria-labelledby="h-bib" hidden>
-          <div class="hero"><p class="kicker">Biblioteca</p><h1 id="h-bib">Livros e <em>regras.</em></h1><p>Busque termos nos seus PDFs como num Ctrl+F. O app mostra cada página onde o termo aparece e resume o que encontrou, sempre com a página.</p></div>
+          <div class="hero-row"><div class="hero"><p class="kicker">Biblioteca</p><h1 id="h-bib">Livros e <em>regras.</em></h1><p>Os livros de cada sistema, abertos aqui dentro, e as regras que o app usa, para você ajustar à sua mesa. Por enquanto: Ordem Paranormal, D&amp;D 5e, Chamado de Cthulhu e GURPS.</p></div><a class="btn" href="#buscar"><span data-i="search"></span>Buscar nos livros</a></div>
+          <div class="seg" id="lib-sys" role="group" aria-label="Sistema"><button type="button" data-sys="ordem-paranormal">Ordem Paranormal</button><button type="button" data-sys="d-d">D&amp;D 5e</button><button type="button" data-sys="chamado-de-ctchulhu">Chamado de Cthulhu</button><button type="button" data-sys="gurps">GURPS</button></div>
+          <div class="grid" id="lib"><article class="card c7" id="lib-books"></article><article class="card c5" id="lib-drive"></article><article class="card c12" id="lib-rules"></article></div>
+          <input type="file" id="lib-file" accept="application/pdf,.pdf" multiple hidden>
+        </section>
+
+        <!-- BUSCAR NOS LIVROS -->
+        <section class="page" data-view="buscar" aria-labelledby="h-busca" hidden>
+          <div class="hero"><p class="kicker">Buscar nos livros</p><h1 id="h-busca">Ache a <em>regra.</em></h1><p>Digite um termo como num Ctrl+F. O app explica o que encontrou nas regras que ele já conhece e nos seus PDFs, sempre com a fonte e a página.</p></div>
           <div id="books" class="books">
             <form class="bk-bar" id="bk-form" role="search"><span data-i="search" class="muted"></span><input id="bk-q" type="search" placeholder="Buscar nos seus PDFs" aria-label="Termo para buscar nos PDFs" autocomplete="off"><kbd class="hide-sm">Ctrl F</kbd><span class="bk-count num" id="bk-count" aria-live="polite"></span><button class="ibtn sm" type="button" id="bk-prev" aria-label="Resultado anterior (Shift+Enter)"><span data-i="chevron-left"></span></button><button class="ibtn sm" type="button" id="bk-next" aria-label="Próximo resultado (Enter)"><span data-i="chevron-right"></span></button><button class="btn sm primary" type="submit">Buscar</button></form>
-            <div class="row between"><div class="row"><select class="input" id="bk-book" aria-label="Em qual PDF buscar" style="width:auto;min-width:200px"></select><button class="btn sm" type="button" id="bk-open"><span data-i="upload"></span>Abrir PDF</button><button class="btn sm" type="button" id="bk-add" hidden><span data-i="plus"></span>Adicionar PDF</button><input type="file" id="bk-file" accept="application/pdf,.pdf" multiple hidden></div><span class="chip" id="bk-source"></span></div>
+            <div class="seg" id="bk-sys" role="group" aria-label="Sistema"><button type="button" data-sys="all" aria-pressed="true">Todos</button><button type="button" data-sys="ordem-paranormal">Ordem</button><button type="button" data-sys="d-d">D&amp;D 5e</button><button type="button" data-sys="chamado-de-ctchulhu">Cthulhu</button><button type="button" data-sys="gurps">GURPS</button></div>
+            <div class="row between"><div class="row"><select class="input" id="bk-book" aria-label="Em qual PDF buscar" style="width:auto;min-width:200px"></select><button class="btn sm" type="button" id="bk-open"><span data-i="upload"></span>Abrir PDF</button><button class="btn sm" type="button" id="bk-add" hidden><span data-i="books"></span>PDFs na Biblioteca</button><input type="file" id="bk-file" accept="application/pdf,.pdf" multiple hidden></div><span class="chip" id="bk-source"></span></div>
             <div class="bk-progress" id="bk-progress" hidden><span class="small muted"></span><div class="bar"><i style="--c:var(--accent);width:0"></i></div></div>
             <div class="grid bk-grid"><article class="card c5 bk-sum" id="bk-summary"></article><div class="c7 bk-results" id="bk-results"></div></div>
           </div>
-          <article class="card"><div class="card-h"><h2>Google Drive</h2><span class="chip">Somente links</span></div><div class="row between"><p class="muted" style="margin:0;max-width:70ch">209 livros catalogados como links e metadados. Eles abrem na sua conta do Drive; o app não guarda cópia dos arquivos.</p><button class="btn" type="button" data-soon="Drive"><span data-i="world"></span>Abrir no Drive</button></div></article>
         </section>
 
         <!-- FICHA -->
         <section class="page" data-view="ficha" aria-labelledby="h-ficha" hidden>
-          <div class="card"><div class="sheet-head"><div class="portrait" aria-hidden="true">A</div><div style="min-width:0"><p class="kicker">Personagem · Ana</p><h1 id="h-ficha" style="font-size:44px;line-height:1">Aurora</h1><div class="row small" style="margin-top:8px"><span class="chip gold">Combatente</span><span class="chip">NEX 35%</span><span class="chip">Ordem Paranormal 1.3</span><span class="chip">exemplo</span></div></div>
-            <div class="row sh-actions"><button class="btn" type="button" data-soon="Exportar PDF"><span data-i="file-export"></span>Exportar PDF</button><button class="btn" type="button" data-soon="Ateliê"><span data-i="palette"></span>Ateliê</button><a class="btn primary" href="#jogador"><span data-i="map"></span>Ver na mesa</a></div></div></div>
-          <div class="grid">
-            <article class="card c5"><h2 style="font-size:23px">Recursos</h2>
-              <div class="res-row"><span>Vida</span><div class="bar"><i style="width:75%;--c:var(--danger)"></i></div><span class="num">18/24</span></div><div class="res-row"><span>Esforço</span><div class="bar"><i style="width:71%;--c:var(--blue)"></i></div><span class="num">5/7</span></div><div class="res-row"><span>Sanidade</span><div class="bar"><i style="width:75%;--c:var(--purple)"></i></div><span class="num">12/16</span></div>
-              <div class="attrs" aria-label="Atributos"><div class="attr"><b>2</b><span>AGI</span></div><div class="attr"><b>3</b><span>FOR</span></div><div class="attr"><b>1</b><span>INT</span></div><div class="attr"><b>1</b><span>PRE</span></div><div class="attr"><b>2</b><span>VIG</span></div></div></article>
-            <article class="card c7"><div class="tabs" role="tablist" aria-label="Seções da ficha"><button role="tab" type="button" aria-selected="false">Resumo</button><button role="tab" type="button" aria-selected="false">Perícias</button><button role="tab" type="button" aria-selected="false">Habilidades</button><button role="tab" type="button" aria-selected="false">Rituais</button><button role="tab" type="button" aria-selected="true">Poderes e Transcender</button><button role="tab" type="button" aria-selected="false">Inventário</button><button role="tab" type="button" aria-selected="false">Aparência</button></div>
-              <ul class="list"><li class="item power"><span class="el energia"><span data-i="bolt"></span></span><div class="grow"><b>Golpe de Sorte</b><span class="small muted">Energia · NEX 15%</span></div><span class="chip ok">Aprovado</span></li><li class="item power"><span class="el conhecimento"><span data-i="eye"></span></span><div class="grow"><b>Precognição</b><span class="small muted">Conhecimento · NEX 30%</span></div><span class="chip gold">Aguardando mestre</span></li><li class="item power"><span class="el morte"><span data-i="hourglass"></span></span><div class="grow"><b>Surto Temporal</b><span class="small muted">Morte · exige 2 poderes de Morte aprovados</span></div><span class="chip">Bloqueado</span></li></ul>
-              <p class="small faint" style="margin:0">Transcender conta como escolha de poder. Ao aprová-lo, o mestre aplica a renúncia ao ganho de Sanidade.</p></article>
-          </div>
+          <div class="hero"><p class="kicker">Fichas</p><h1 id="h-ficha">Seus <em>personagens.</em></h1><p>As fichas salvas neste aparelho, dos quatro sistemas com motor no app. A ficha completa abre na tela de fichas do app, com os mesmos dados.</p></div>
+          <div id="fichas" style="display:flex;flex-direction:column;gap:14px"></div>
         </section>
 
         <!-- PERSONALIZAÇÃO -->
@@ -691,7 +661,7 @@ mark{background:color-mix(in srgb,var(--accent) 38%,transparent);color:inherit;b
               <div class="set-row"><div><b>Nomes dos tokens</b><div class="small muted">Mostrar sempre, em vez de só ao passar o cursor.</div></div><div class="seg" role="group" aria-label="Nomes" id="names-seg"><button type="button" data-n="0" aria-pressed="true">Ao passar</button><button type="button" data-n="1" aria-pressed="false">Sempre</button></div></div></article>
             <article class="card c5"><h2 style="font-size:23px">Ajuda</h2>
               <button class="btn" type="button" id="redo-master"><span data-i="help"></span>Refazer tutorial da mesa</button><button class="btn" type="button" id="redo-studio"><span data-i="help"></span>Refazer tutorial dos cenários</button><button class="btn" type="button" id="redo-player"><span data-i="help"></span>Refazer tutorial do jogador</button>
-              <a class="btn ghost in-app-only" href="../demo-offline.html" hidden><span data-i="arrow-back-up"></span>Voltar à interface atual</a></article>
+              <a class="btn ghost in-app-only" href="../demo-offline.html#home" data-classic-switch="1" hidden><span data-i="arrow-back-up"></span>Usar a interface clássica</a></article>
           </div>
         </section>
       </div>
@@ -707,30 +677,30 @@ mark{background:color-mix(in srgb,var(--accent) 38%,transparent);color:inherit;b
     <section class="vtt" data-view="entrar" aria-labelledby="h-join" hidden>
       <div class="join-bg" aria-hidden="true"><canvas id="join-map"></canvas></div>
       <div class="join">
-        <div class="join-mode"><span>Protótipo · ver a tela</span><div class="seg" id="join-mode" role="group" aria-label="Onde o jogador está"><button type="button" data-jm="app" aria-pressed="true"><span data-i="device-mobile"></span>No app Mastermind</button><button type="button" data-jm="web" aria-pressed="false"><span data-i="world"></span>No navegador</button></div></div>
+        <div class="join-mode"><span>Onde você está</span><div class="seg" id="join-mode" role="group" aria-label="Onde o jogador está"><button type="button" data-jm="app" aria-pressed="true"><span data-i="device-mobile"></span>No app Mastermind</button><button type="button" data-jm="web" aria-pressed="false"><span data-i="world"></span>No navegador</button></div></div>
 
         <form class="join-card" id="join-app" novalidate>
           <div class="row" style="gap:12px"><span class="glyph">✧</span><span class="kicker">Mastermind · mesa na rede local</span></div>
           <h1 id="h-join">Entrar na <em>mesa.</em></h1>
-          <p class="muted" style="margin:-6px 0 0">Use o endereço que aparece na Mestragem do mestre. O celular precisa estar no mesmo Wi-Fi.</p>
-          <div class="field"><label for="join-addr">Endereço da mesa</label><div class="row" style="flex-wrap:nowrap"><input class="input num" id="join-addr" value="192.168.0.12:8765" inputmode="url" autocomplete="off" spellcheck="false"><button class="btn" type="button" id="join-test">Testar</button></div></div>
-          <div class="status-line" id="join-status" role="status"><span class="dot"></span><span>Toque em Testar para procurar a mesa.</span></div>
-          <div class="field"><label for="join-nick">Seu nome na mesa</label><input class="input" id="join-nick" value="Ana" autocomplete="nickname"></div>
+          <p class="muted" style="margin:-6px 0 0">Cole o convite que o mestre copiou na Mestragem. O aparelho precisa estar no mesmo Wi-Fi.</p>
+          <div class="field"><label for="join-addr">Convite da mesa</label><div class="row" style="flex-wrap:nowrap"><input class="input num" id="join-addr" placeholder="http://192.168.0.12:8765/join/…" inputmode="url" autocomplete="off" spellcheck="false"><button class="btn" type="button" id="join-test">Testar</button></div></div>
+          <div class="status-line" id="join-status" role="status"><span class="dot"></span><span>Cole o convite e toque em Testar para procurar a mesa.</span></div>
+          <div class="field"><label for="join-nick">Seu nome na mesa</label><input class="input" id="join-nick" maxlength="40" placeholder="Como o mestre vai te chamar" autocomplete="nickname"></div>
           <div class="field"><span class="label">Fichas salvas neste celular</span><div class="sheet-list" id="join-sheets"></div><span class="small faint">O mestre recebe uma cópia para aprovar. A original continua no seu celular.</span></div>
           <button class="btn primary" type="submit" id="join-btn" style="min-height:48px;font-size:15px">Entrar na mesa</button>
-          <div class="field"><span class="label">Mesas recentes</span><div class="item"><span class="avatar" style="background:#c7a87b">VC</span><div class="grow"><b>Crônicas do Vale Cinzento</b><span class="small muted num">192.168.0.12:8765 · como Ana</span></div><button class="btn sm" type="button" id="join-resume">Retomar</button></div></div>
-          <p class="small faint" style="margin:0">Protótipo: a conexão é simulada e nenhum endereço é acessado.</p>
+          <div class="field" id="join-resume" hidden><span class="label">Mesa em andamento</span><div class="item"><span class="avatar" style="background:#c7a87b">✧</span><div class="grow"><b class="resume-name"></b><span class="small muted">Você continua na mesa até sair</span></div><button class="btn sm" type="button" id="join-back">Retomar</button><button class="btn sm ghost" type="button" id="join-leave">Sair</button></div></div>
+          <p class="small faint" style="margin:0">A mesa funciona só na rede local. Nada é enviado para a internet.</p>
         </form>
 
         <form class="join-card" id="join-web" novalidate hidden>
-          <div class="row" style="gap:12px"><span class="glyph">✧</span><span class="kicker">Convite · Crônicas do Vale Cinzento</span></div>
+          <div class="row" style="gap:12px"><span class="glyph">✧</span><span class="kicker">Convite · <span id="web-campaign">mesa na rede local</span></span></div>
           <h1>Entrar pelo <em>navegador.</em></h1>
-          <div class="app-cta"><span data-i="device-mobile"></span><div><b>Tem o app Mastermind?</b><div class="small muted">Entre por ele para usar as fichas salvas no seu celular.</div><ol><li>Abra o app e toque em Entrar numa mesa.</li><li>Digite <b class="num">192.168.0.12:8765</b>.</li><li>Escolha sua ficha e envie ao mestre.</li></ol></div></div>
-          <div class="field"><label for="web-nick">Seu nome na mesa</label><input class="input" id="web-nick" value="Diego" autocomplete="nickname"></div>
+          <div class="app-cta"><span data-i="device-mobile"></span><div><b>Tem o app Mastermind?</b><div class="small muted">Entre por ele para usar as fichas salvas no seu celular.</div><ol><li>Abra o app e toque em Entrar numa mesa.</li><li>Cole este mesmo convite (o endereço desta página).</li><li>Escolha sua ficha e envie ao mestre.</li></ol></div></div>
+          <div class="field"><label for="web-nick">Seu nome na mesa</label><input class="input" id="web-nick" maxlength="40" placeholder="Como o mestre vai te chamar" autocomplete="nickname"></div>
           <div class="field"><span class="label">Personagem</span>
-            <label class="radio"><input type="radio" name="web-sheet" checked><span><b>Esperar o mestre</b><br><span class="small muted">Ele atribui uma ficha da campanha para você.</span></span></label>
-            <label class="radio"><input type="radio" name="web-sheet"><span><b>Enviar arquivo de ficha</b><br><span class="small muted">Arquivo JSON exportado do app. O mestre revisa antes de aprovar.</span></span></label></div>
-          <div class="status-line" id="web-status" role="status"><span class="dot on"></span><span>Convite válido · mestre online (simulado)</span></div>
+            <label class="radio"><input type="radio" name="web-sheet" value="" checked><span><b>Esperar o mestre</b><br><span class="small muted">Ele atribui uma ficha da campanha para você.</span></span></label>
+            <label class="radio"><input type="radio" name="web-sheet" value="file"><span><b>Enviar arquivo de ficha</b><br><span class="small muted">Arquivo JSON exportado do app. O mestre revisa antes de aprovar.</span></span></label><input type="file" id="web-file" accept=".json,application/json" hidden></div>
+          <div class="status-line" id="web-status" role="status"><span class="dot"></span><span>Digite seu nome e entre.</span></div>
           <button class="btn primary" type="submit" id="web-btn" style="min-height:48px;font-size:15px">Entrar na mesa<span data-i="arrow-right"></span></button>
         </form>
       </div>

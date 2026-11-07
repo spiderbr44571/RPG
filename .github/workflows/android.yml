@@ -54,6 +54,17 @@ jobs:
           node tests/gurps4.test.cjs
           node tests/mastermind_v74.test.cjs
           node tests/mastermind_v75.test.cjs
+          node --check app/src/main/assets/revamp/adaptador.js
+          node --check app/src/main/assets/revamp/servidor.js
+          node --check app/src/main/assets/revamp/biblioteca.js
+          node --check app/src/main/assets/revamp/fichas.js
+          node --check app/src/main/assets/revamp/livros.js
+          node --check app/src/main/assets/revamp/mesa.js
+          node --check app/src/main/assets/revamp/estudio.js
+          node --check app/src/main/assets/revamp/app.js
+          node --check app/src/main/assets/revamp/base.js
+          node --check app/src/main/assets/revamp/cena.js
+          node --test tests/revamp_adaptador.test.cjs
       - name: Medir encaixe de rostos, olhos, barba, jaleco e vão do braço num Chromium real
         run: |
           set -euo pipefail

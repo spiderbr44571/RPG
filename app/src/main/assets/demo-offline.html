@@ -2,6 +2,9 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
+<script>/* v0.109: a nova interface abre por padrão. A clássica continua aqui: escolha "Interface clássica" na Central
+ da nova interface, ou abra uma tela pelo endereço (#sheet, #canvas...). Testes automatizados ficam na clássica. */
+(function(){try{if(!location.hash&&localStorage.getItem('mm-interface')!=='classica'&&!navigator.webdriver)location.replace('revamp/index.html')}catch(_){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="color-scheme" content="dark light" />
 <title>Mastermind — Seu RPG, suas regras</title>
@@ -1380,7 +1383,7 @@ const tools=[
  ['ai','Consultar livros','brain','Pesquisar dentro dos livros'],
  ['settings','Personalização','palette','Cores, temas e fontes'],
  ['home','Painel inicial','house','Resumo da campanha'],
- ['revamp','Nova interface','spark','Prévia v2.0: Mestragem, mesa e cenários']
+ ['revamp','Nova interface','spark','Mestragem, mesa, biblioteca e busca nos livros']
 ];
 const icons={
  dice:'<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="7.5" cy="7.5" r="1.1"/><circle cx="16.5" cy="7.5" r="1.1"/><circle cx="12" cy="12" r="1.1"/><circle cx="7.5" cy="16.5" r="1.1"/><circle cx="16.5" cy="16.5" r="1.1"/>',
@@ -1456,7 +1459,7 @@ function closeHub(){
 dice.addEventListener('click',()=>{openHub()});
 $('.r09-close',overlay).addEventListener('click',closeHub);overlay.addEventListener('click',e=>{if(e.target===overlay)closeHub()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.classList.contains('open'))closeHub()});
-overlay.addEventListener('click',e=>{const b=e.target.closest('[data-r09-tool]');if(!b)return;closeHub();const to=b.dataset.r09Tool;if(to==='revamp'){location.href='revamp/index.html';return}if(to==='dice'){window.RPG101?.openDice();return}if(to==='online'){app.navigate('online');return}app.navigate(to)});
+overlay.addEventListener('click',e=>{const b=e.target.closest('[data-r09-tool]');if(!b)return;closeHub();const to=b.dataset.r09Tool;if(to==='revamp'){try{localStorage.removeItem('mm-interface')}catch(_){}location.href='revamp/index.html';return}if(to==='dice'){window.RPG101?.openDice();return}if(to==='online'){app.navigate('online');return}app.navigate(to)});
 // Portrait and summary are rendered only by Sheet Studio. Legacy per-character themes are ignored.
 // The first page of a PDF is rendered by the native Android PdfRenderer, not via online services.
 const coverKey='rpg-v09-cover';function applyCover(raw){if(!raw||!/^data:image\/(jpeg|png|webp);base64,/.test(raw))return;
@@ -1668,4 +1671,9 @@ html body #r09-dice:hover .r09-chocolate-tile,html body #r09-dice[aria-expanded=
 .r37-inventory-ok{color:#91dabb;font-size:12px;margin:0}
 .r37-over{border-color:#e5aa77!important;color:#e8b88c}
 @media(max-width:450px){.r37-category-grid{grid-template-columns:1fr}}</style><script src="mastermind39_ui.js"></script><script src="mastermind40_canvas_images.js"></script><script src="mastermind42_workspace.js"></script><script src="mastermind59_class_catalog.js"></script><script src="mastermind56_local_powers.js"></script><link rel="stylesheet" href="mastermind60_identity.css"><link rel="stylesheet" href="mastermind_coc7.css"><link rel="stylesheet" href="mastermind_coc7_android.css"><script src="mastermind_coc7_engine.js"></script><script src="mastermind_coc7_ui.js"></script><script src="mastermind99_atelier_layers.js"></script><script src="mastermind99_atelier.js"></script>
-<link rel="stylesheet" href="mastermind_sheet_studio.css"><script src="mastermind_sheet_studio.js"></script><script src="pdf-lib.min.js"></script><script src="mastermind_ordem_template.js"></script><script src="mastermind_system_pdf.js"></script><script src="mastermind_system_editor.js"></script></body></html>
+<link rel="stylesheet" href="mastermind_sheet_studio.css"><script src="mastermind_sheet_studio.js"></script><script src="pdf-lib.min.js"></script><script src="mastermind_ordem_template.js"></script><script src="mastermind_system_pdf.js"></script><script src="mastermind_system_editor.js"></script>
+<script>/* volta para a nova interface quando a tela clássica foi aberta a partir dela */
+(function(){let back=null;try{back=sessionStorage.getItem('mm-rv-return')}catch(_){}if(!back||!/^#[a-z]{2,20}$/.test(back))return;
+ const b=document.createElement('a');b.href='revamp/index.html'+back;b.textContent='← Nova interface';b.setAttribute('aria-label','Voltar para a nova interface');
+ b.style.cssText='position:fixed;left:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:2147483000;padding:10px 14px;border-radius:999px;background:#151821;color:#e9dcc3;border:1px solid #c7a87b;font:600 13px system-ui,sans-serif;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.45)';
+ b.addEventListener('click',()=>{try{sessionStorage.removeItem('mm-rv-return')}catch(_){}});document.body.appendChild(b)})();</script></body></html>

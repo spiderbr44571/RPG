@@ -720,6 +720,42 @@ public final class MainActivity extends Activity {
       }
     }
     public final class CampaignBridge {
+      /** Jogador pelo app: só as rotas de entrar (convite) e de jogar; o segredo do jogador vai no cookie. */
+      @JavascriptInterface public String playerRequest(String base, String guest, String method, String route, String payload) {
+        HttpURLConnection conn=null;
+        try {
+          Uri uri=Uri.parse(base==null?"":base.trim());
+          String ip=uri.getHost();int port=uri.getPort();
+          if(!"http".equals(uri.getScheme())||!isPrivateLan(ip)||port<1024||port>65535)
+             throw new IllegalArgumentException("Use http://192.168.x.x:8765");
+          if(route==null||!(route.matches("/api/join/info/[a-z0-9]{32}")||route.matches("/api/join/[a-z0-9]{32}/[A-Za-z0-9_-]{20,90}")
+             ||route.matches("/api/play/[a-z0-9]{32}(/[a-z-]{2,20}(/[a-z-]{2,20})?)?")))
+             throw new IllegalArgumentException("Rota não autorizada");
+          String verb=method==null?"":method.toUpperCase(java.util.Locale.ROOT);
+          if(!("GET".equals(verb)||"POST".equals(verb)))throw new IllegalArgumentException("Método não permitido");
+          if(guest!=null&&!guest.isEmpty()&&!guest.matches("[A-Za-z0-9_-]{20,90}"))throw new IllegalArgumentException("Sessão inválida");
+          conn=(HttpURLConnection)new URL("http://"+ip+":"+port+route).openConnection();
+          conn.setInstanceFollowRedirects(false);conn.setConnectTimeout(3500);conn.setReadTimeout(6500);
+          conn.setRequestMethod(verb);conn.setRequestProperty("Accept","application/json");
+          if(guest!=null&&!guest.isEmpty())conn.setRequestProperty("Cookie","rpg_guest="+guest);
+          if("POST".equals(verb)){
+             if(payload==null||payload.getBytes(StandardCharsets.UTF_8).length>300000)throw new IllegalArgumentException("Dados excedem limite");
+             conn.setDoOutput(true);conn.setRequestProperty("Content-Type","application/json");
+             try(java.io.OutputStream out=conn.getOutputStream()){out.write(payload.getBytes(StandardCharsets.UTF_8));}
+          }
+          int code=conn.getResponseCode();String issued="";
+          java.util.List<String> cookies=conn.getHeaderFields().get("Set-Cookie");
+          if(cookies!=null)for(String c:cookies){java.util.regex.Matcher m=java.util.regex.Pattern.compile("rpg_guest=([A-Za-z0-9_-]{20,90})").matcher(c);if(m.find())issued=m.group(1);}
+          try(InputStream in=code<400?conn.getInputStream():conn.getErrorStream()){
+             ByteArrayOutputStream bytes=new ByteArrayOutputStream();
+             if(in!=null){byte[] b=new byte[8192];int n;while((n=in.read(b))>=0){
+               if(bytes.size()+n>13000000)throw new IllegalArgumentException("Resposta muito grande");bytes.write(b,0,n);}}
+             return "{\"status\":"+code+",\"guest\":"+JSONObject.quote(issued)+",\"body\":"+JSONObject.quote(bytes.toString("UTF-8"))+"}";
+          }
+        } catch(Exception exc) {
+          return "{\"status\":0,\"error\":"+JSONObject.quote(exc.getMessage()==null?"Conexão indisponível":exc.getMessage())+"}";
+        } finally {if(conn!=null)conn.disconnect();}
+      }
       @JavascriptInterface public String request(String base, String adminKey, String method, String route, String payload) {
         HttpURLConnection conn=null;
         try {

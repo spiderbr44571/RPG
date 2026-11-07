@@ -2,10 +2,10 @@
 
 Esta pasta guarda o trabalho das duas primeiras fases do revamp descrito em [`PROMPT.md`](PROMPT.md).
 
-**Status: revisão 3, já dentro dos apps como prévia** (Android v0.108, Linux e Windows v1.2.1). A interface fica em
-`app/src/main/assets/revamp/` e abre pela Central do app → **Nova interface**. A interface atual continua sendo a
-padrão. Busca nos PDFs, Personalização e Bestiário funcionam de verdade; a Mestragem nova (campanha, mesa e
-cenários) e a tela Entrar ainda usam dados de exemplo e não falam com o servidor da LAN.
+**Status: revisão 4, interface padrão dos apps** (Android v0.109, Linux e Windows v1.3.0). A interface fica em
+`app/src/main/assets/revamp/` e abre por padrão; a clássica continua no app (Central → Interface clássica).
+Mestragem, mesa ao vivo, Cenários e a entrada do jogador falam com o servidor da mesa na rede local; sem servidor,
+tudo roda na campanha de treino, só no aparelho. Biblioteca, Buscar nos livros e Fichas usam os dados do app.
 
 | Arquivo | O que é |
 |---|---|
@@ -18,10 +18,27 @@ cenários) e a tela Entrar ainda usam dados de exemplo e não falam com o servid
 | `app/src/main/assets/revamp/base.js` | Estado compartilhado e utilidades. |
 | `app/src/main/assets/revamp/dados.js` | Bestiário gerado de `rpg19_order_creatures.js` e `rpg18_bestiary.js`. Não editar à mão. |
 | `app/src/main/assets/revamp/personalizacao.js` | Personalização do app: temas elementais, efeitos, destaque, fontes, densidade e textura (mesmas chaves salvas da interface atual). |
-| `app/src/main/assets/revamp/livros.js` | Busca nos PDFs como um Ctrl+F, com resumo feito só de frases do PDF. |
+| `app/src/main/assets/revamp/livros.js` | Buscar nos livros: Ctrl+F nos PDFs e resumo **O que é** montado pelo motor da busca clássica com as regras do app e os trechos dos PDFs. |
+| `app/src/main/assets/revamp/biblioteca.js` | Biblioteca dos quatro sistemas: livros do aparelho (leitor dentro do app), catálogo do Drive e editor de regras (`mastermind_system_editor.js`). |
+| `app/src/main/assets/revamp/servidor.js` | Conexão com o servidor da mesa: pontes do mestre e do jogador, sincronização da mesa, Mestragem e Entrar. |
+| `app/src/main/assets/revamp/adaptador.js` | Conversão entre o cenário do Estúdio e o formato do servidor (camadas, salas ocultas, tokens, dados). Funções puras, testadas em `tests/revamp_adaptador.test.cjs`. |
+| `app/src/main/assets/revamp/fichas.js` | Fichas do aparelho dos quatro sistemas, recursos para o HUD e a tela Fichas. |
+| `app/src/main/assets/revamp/dados-ordem.js` | Pacote de regras de Ordem 1.3, gerado por `scripts/revamp_dados.cjs`. Não editar à mão. |
 | `app/src/main/assets/revamp/fontes/` | Cormorant Garamond, DM Sans e Space Grotesk (OFL), para funcionar offline. |
-| `app/src/main/assets/revamp/icones.js` | 90 ícones do pacote oficial Tabler (MIT), o mesmo conjunto do app. |
+| `app/src/main/assets/revamp/icones.js` | 104 ícones do pacote oficial Tabler (MIT), o mesmo conjunto do app. |
 | [`capturas/`](capturas/) | 33 capturas: desktop, celular em retrato e em paisagem, escuro e claro, tutorial em ação. |
+
+## Revisão 4: implementada de verdade
+
+- **Servidor da mesa.** O `LocalCampaignServer` serve a nova interface em `/v2/join/<campanha>/<convite>` e
+  `/v2/play/<campanha>` (só arquivos da pasta `revamp/`, CSP restrita) e ganhou: tamanho e lado dos tokens,
+  aparência do cenário (`look`) e `hiddenCells` (casas que o jogador não enxerga, sem o conteúdo delas).
+- **Pontes do jogador pelo app:** `RpgCampaignBridge.playerRequest` (Android) e
+  `MastermindDesktop.action('campaign-player-request')` (computador), restritas às rotas de entrar e jogar.
+- **Cenário no servidor:** terreno e objetos vão em `layers` (com apelido da paleta clássica), névoa vira salas
+  ocultas (até 75), paredes e portas viram arestas; notas, objetos ocultos e portas secretas fechadas ficam em `v2`,
+  que só o mestre recebe. Ao salvar, os tokens que o servidor já conhece mantêm posição e dono do servidor.
+- **Fluxos testados** em Chromium contra o servidor real (`tests/revamp_live.e2e.cjs`).
 
 ## Revisão 3: o que mudou a partir do retorno
 

@@ -533,6 +533,11 @@ public final class LocalCampaignServer extends NanoHTTPD {
           if(!atmosphere.optString("fogColor","#a9c2ba").matches("#[0-9a-fA-F]{6}"))
             throw new IllegalArgumentException("Cor da névoa inválida");
         }
+        // v0.109: aparência do cenário da nova interface (fundo, grade, hora do dia). Só dados visuais.
+        if(map.has("look")){
+          JSONObject look=map.optJSONObject("look");
+          if(look==null||look.toString().length()>2000)throw new IllegalArgumentException("Aparência do cenário inválida");
+        }
         JSONArray lights=map.optJSONArray("lights");
         if(map.has("lights")&&lights==null)throw new IllegalArgumentException("Lista de luzes inválida");
         if(lights!=null){
@@ -613,6 +618,10 @@ public final class LocalCampaignServer extends NanoHTTPD {
           }
           if(token.has("hidden")&&!(token.opt("hidden") instanceof Boolean))
             throw new IllegalArgumentException("Visibilidade inválida");
+          // v0.109: tamanho (casas) e lado do token, usados pela nova interface.
+          if(token.has("size"))gridNumber(token,"size",1,4);
+          if(token.has("side")&&!token.optString("side").matches("pc|ally|foe|npc|obj"))
+            throw new IllegalArgumentException("Lado do token inválido");
         }
       }
       String active=optionalSceneId(input,"activeScenarioId");
@@ -1113,6 +1122,8 @@ public final class LocalCampaignServer extends NanoHTTPD {
         .put("systemId",sceneSystem).put("gridScale",1.5).put("gridUnit","m")
         .put("width",original.getInt("width")).put("height",original.getInt("height"))
         .put("theme",original.optString("theme","stone"));
+      JSONObject look=original.optJSONObject("look");
+      if(look!=null)scene.put("look",new JSONObject(look.toString()));
       // v0.71: no global fog/blackout. Optional wall/door shadows are server-authored.
       JSONObject atmo=original.optJSONObject("atmosphere");
       boolean automaticShadows=atmo!=null&&atmo.optBoolean("doorShadows",false);
@@ -1189,6 +1200,8 @@ public final class LocalCampaignServer extends NanoHTTPD {
           .put("rotation",t.optInt("rotation",0))
           .put("flashlight",t.optBoolean("flashlight",false)&&!validTokenLight(c,t).isEmpty())
           .put("flashlightRadius",("lantern".equals(validTokenLight(c,t))?8:3));
+        visible.put("size",Math.max(1,Math.min(4,t.optInt("size",1))));
+        if(t.optString("side","").matches("pc|ally|foe|npc|obj"))visible.put("side",t.optString("side"));
         if(own)visible.put("lightKind",validTokenLight(c,t));
         if("creature".equals(t.optString("kind"))){
           visible.put("hp",t.optInt("hp",0)).put("maxHp",t.optInt("maxHp",0));
@@ -1241,6 +1254,11 @@ public final class LocalCampaignServer extends NanoHTTPD {
         visiblePaint.put(layer,filteredMarks);
       }
       scene.put("layers",visiblePaint);
+      // Casas que o jogador não enxerga (salas ocultas ou escuras): só a posição, nada do que há nelas.
+      JSONArray hiddenCells=new JSONArray();
+      for(int hy=0;hy<mapHeight;hy++)for(int hx=0;hx<mapWidth;hx++)
+        if(!isVisibleInFog(original,hx,hy,lightCells,automatic))hiddenCells.put(hy*mapWidth+hx);
+      scene.put("hiddenCells",hiddenCells);
       scene.put("rooms",visibleRooms).put("fog",fog).put("tokens",visibleTokens);
       response.put("initiative",initiativeForPlayer(c,visibleTokens));
       response.put("movement",playerMovement(c,player,visibleTokens));
@@ -2253,6 +2271,42 @@ public final class LocalCampaignServer extends NanoHTTPD {
     }
     return utf8(Response.Status.OK,"text/css; charset=UTF-8",bytes);
   }
+  private byte[] assetBytes(String asset)throws IOException{
+    try(InputStream in=context.getAssets().open(asset);ByteArrayOutputStream out=new ByteArrayOutputStream()){
+      byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1)out.write(b,0,n);return out.toByteArray();
+    }
+  }
+  /** v2: a nova interface servida para jogadores no navegador. Só arquivos da pasta revamp/ e duas páginas. */
+  private Response revamp(String path)throws Exception{
+    String[] p=path.split("/");
+    if(p.length==5&&p[2].equals("join")){
+      boolean valid;
+      synchronized(lock){valid=equalsSecret(campaign(p[3]).getString("invite"),p[4]);}
+      if(!valid)return json(403,"error","Convite inválido");
+      return revampPage();
+    }
+    if(p.length==4&&p[2].equals("play")){
+      synchronized(lock){campaign(p[3]);}
+      return revampPage();
+    }
+    String name=path.substring(4);
+    if(!name.matches("(fontes/)?[a-z0-9_-]{1,60}\\.(js|css|woff2)"))return json(404,"error","Arquivo não encontrado");
+    byte[] bytes=assetBytes("revamp/"+name);
+    String type=name.endsWith(".js")?"application/javascript; charset=UTF-8":name.endsWith(".css")?"text/css; charset=UTF-8":"font/woff2";
+    Response r=newFixedLengthResponse(Response.Status.OK,type,new java.io.ByteArrayInputStream(bytes),bytes.length);
+    r.addHeader("Cache-Control","no-store");r.addHeader("X-Content-Type-Options","nosniff");
+    return r;
+  }
+  private Response revampPage()throws IOException{
+    String page=new String(assetBytes("revamp/index.html"),StandardCharsets.UTF_8);
+    // Os arquivos da página são relativos: no servidor eles ficam em /v2/.
+    page=page.replaceFirst("<head>","<head><base href=\"/v2/\">");
+    Response r=utf8(Response.Status.OK,"text/html; charset=UTF-8",page.getBytes(StandardCharsets.UTF_8));
+    r.addHeader("Cache-Control","no-store");r.addHeader("Referrer-Policy","no-referrer");
+    r.addHeader("X-Frame-Options","DENY");r.addHeader("X-Content-Type-Options","nosniff");
+    r.addHeader("Content-Security-Policy","default-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'");
+    return r;
+  }
   private Response publishedScript(String asset)throws IOException{
     byte[] bytes;
     try(InputStream in=context.getAssets().open(asset);ByteArrayOutputStream out=new ByteArrayOutputStream()){
@@ -2272,6 +2326,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
       }
       if(method.equals("GET")){
         if(path.equals("/")||path.equals("/master"))return html("lan_master.html");
+        if(path.startsWith("/v2/"))return revamp(path);
         if(path.equals("/map-layers.js"))return publishedScript("mastermind68_map_layers.js");
         if(path.equals("/atmosphere.js"))return publishedScript("mastermind69_atmosphere.js");
         if(path.equals("/volume.js"))return publishedScript("mastermind72_volume.js");

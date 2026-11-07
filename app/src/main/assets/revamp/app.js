@@ -6,18 +6,16 @@ const views={};let prevHash='#inicio';
 
 /* ============ Central da mesa (mesmo padrão do app atual) ============ */
 const CENTRAL=[['#inicio','home','Painel inicial','Resumo da campanha'],['#mestragem','crown','Mestragem','Campanha, mesa ao vivo e cenários'],['#ficha','users','Fichas','Personagens, poderes e retratos'],
- ['#biblioteca','books','Biblioteca','Livros, busca nos PDFs e regras'],['#bestiario','skull','Bestiário','Grimório e monstros'],['soon:Ateliê','palette','Ateliê','Retrato e token em camadas'],
- ['soon:Canvas infinito','layout-grid','Canvas infinito','Notas, mapas e criaturas'],['#ajustes','adjustments','Personalização','Temas, efeitos, cores e fontes'],['#entrar','device-mobile','Entrar numa mesa','Como jogador, pelo app ou navegador']];
-RV.openCentral=()=>{if($('#central'))return;const LIST=CENTRAL.concat(RV.inApp?[['app:back','arrow-back-up','Interface atual','Voltar ao app como era antes']]:[]);const m=document.createElement('div');m.id='central';m.className='modal-back central-back';
+ ['#biblioteca','books','Biblioteca','Livros e regras dos sistemas'],['#buscar','file-search','Buscar nos livros','Termo, resumo e página'],['#bestiario','skull','Bestiário','Grimório e monstros'],['classic:atelier85','palette','Ateliê','Retrato e token em camadas'],
+ ['classic:canvas','layout-grid','Canvas infinito','Notas, mapas e criaturas'],['#ajustes','adjustments','Personalização','Temas, efeitos, cores e fontes'],['#entrar','device-mobile','Entrar numa mesa','Como jogador, pelo app ou navegador']];
+RV.openCentral=()=>{if($('#central'))return;const LIST=RV.Net?.served?CENTRAL.filter(([h])=>['#entrar','#ajustes'].includes(h)).concat([['#jogador','map','Mesa','Voltar ao mapa']]):CENTRAL.filter(([h])=>RV.inApp||!h.startsWith('classic:')).concat(RV.inApp?[['app:back','arrow-back-up','Interface clássica','O app como era antes']]:[]);const m=document.createElement('div');m.id='central';m.className='modal-back central-back';
  m.innerHTML=`<section class="central" role="dialog" aria-modal="true" aria-labelledby="central-h"><div class="fh" style="padding:0"><div><span class="kicker">Central da mesa</span><h2 id="central-h">Escolha seu próximo <em>caminho.</em></h2><p class="muted small" style="margin:4px 0 0">Todas as ferramentas em um só lugar. Abrir esta central não realiza rolagens.</p></div><button class="x-btn" type="button" data-cx aria-label="Fechar a Central">${ic('x')}</button></div>
-  <div class="central-grid">${LIST.map(([h,i,t,d,tag])=>`<a class="central-card" href="${h.startsWith('#')?h:h==='app:back'?'../demo-offline.html':'#'}" ${h.startsWith('soon:')?`data-soon="${h.slice(5)}"`:''}>${ic(i)}<b>${t}${tag?` <span class="chip gold">${tag}</span>`:''}</b><span>${d}</span></a>`).join('')}</div></section>`;
+  <div class="central-grid">${LIST.map(([h,i,t,d,tag])=>`<a class="central-card" href="${h.startsWith('#')?h:h==='app:back'?'../demo-offline.html#home':h.startsWith('classic:')?'../demo-offline.html#'+h.slice(8):'#'}" ${h==='app:back'?'data-classic-switch="1"':h.startsWith('classic:')?`data-classic="${h.slice(8)}"`:''}>${ic(i)}<b>${t}${tag?` <span class="chip gold">${tag}</span>`:''}</b><span>${d}</span></a>`).join('')}</div></section>`;
  document.body.appendChild(m);m.querySelector('[data-cx]').focus();
- m.addEventListener('click',e=>{if(e.target===m||e.target.closest('[data-cx]')){m.remove();return}const a=e.target.closest('.central-card');if(!a)return;if(a.dataset.soon){e.preventDefault();toast(a.dataset.soon+' não está neste protótipo.',$('#app'));return}m.remove()})};
+ m.addEventListener('click',e=>{if(e.target===m||e.target.closest('[data-cx]')){m.remove();return}const a=e.target.closest('.central-card');if(!a)return;if(a.dataset.classicSwitch)store.set('mm-interface','classica');m.remove()})};
+/* telas completas da interface clássica (Ateliê, Canvas, ficha completa): mesmo app, mesmos dados */
+RV.classic=screen=>{if(RV.Net?.served)return;try{sessionStorage.setItem('mm-rv-return',location.hash||'#inicio')}catch(_){}location.href='../demo-offline.html#'+screen};
 function closeCentral(){const c=$('#central');if(c){c.remove();return true}return false}
-
-/* ============ Mestragem ============ */
-function syncMode(){const st=RV.state;$$('#mode-seg button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===st.mode)));const t=$('#mode-text');if(t)t.textContent=st.mode==='combat'?'Movimento pela iniciativa. Testes sempre livres.':'Movimento livre e iniciativa pausada. Testes sempre livres.';const r=$('#round-chip');if(r)r.textContent=st.mode==='combat'?`Rodada ${st.init.round}`:'Interlúdio';const sn=$('#mest-scene');if(sn)sn.textContent=st.scene.name}
-on(e=>{if(e==='state')syncMode()});
 
 /* ============ Bestiário (dados reais do catálogo) ============ */
 const B={sys:'ordem',el:'all',q:'',open:null};
@@ -38,23 +36,6 @@ function bindBestiary(){$('#best-sys').onclick=e=>{const b=e.target.closest('[da
  $('#best-q').oninput=e=>{B.q=e.target.value;renderBestiary()};$('#best-grid').onclick=e=>{const b=e.target.closest('[data-beast]');if(b){B.open=b.dataset.beast;renderBestiary()}};
  $('#best-detail').addEventListener('click',e=>{if(e.target.closest('[data-close="beast"]')){B.open=null;renderBestiary()}})}
 
-/* ============ Entrar: pelo app (fichas do aparelho) ou pelo navegador ============ */
-const LOCAL=[{id:'aurora',name:'Aurora',sys:'Ordem Paranormal',detail:'Combatente · NEX 35%',ok:true,c:'#c7a87b'},{id:'kael',name:'Kael',sys:'D&D 5e',detail:'Guerreiro · nível 3',ok:false,c:'#6db7e0'},{id:'helio',name:'Dr. Hélio Prado',sys:'Chamado de Cthulhu 7e',detail:'Médico',ok:false,c:'#86bd9c'}];
-const J={mode:'app',sheet:null};
-function renderJoin(){$$('#join-mode button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.jm===J.mode)));$('#join-app').hidden=J.mode!=='app';$('#join-web').hidden=J.mode!=='web';
- $('#join-sheets').innerHTML=LOCAL.map(s=>`<label class="sheet-pick ${s.ok?'':'off'}"><input type="radio" name="join-local" value="${s.id}" ${J.sheet===s.id?'checked':''} ${s.ok?'':'disabled'}><span class="sheet-av" style="background:${s.c}">${esc(s.name[0])}</span><span class="grow"><b>${esc(s.name)}</b><small class="muted">${esc(s.sys)} · ${esc(s.detail)}</small>${s.ok?'':'<small class="warn-t">Outro sistema: esta campanha usa Ordem Paranormal</small>'}</span></label>`).join('')+
-  `<label class="sheet-pick"><input type="radio" name="join-local" value="" ${J.sheet===''?'checked':''}><span class="sheet-av empty">${ic('user')}</span><span class="grow"><b>Entrar sem ficha</b><small class="muted">O mestre atribui uma ficha da campanha</small></span></label>`;
- $('#join-btn').innerHTML=(J.sheet?'Entrar e enviar a ficha':'Entrar na mesa')+ic('arrow-right')}
-function joinFlow(btn,statusEl){const st=$(statusEl);emit('join:done');btn.disabled=true;
- const steps=J.mode==='app'&&J.sheet?[['Conectando à mesa…',''],['Ficha enviada ao mestre. Aguardando aprovação…',''],['Ficha aprovada. Abrindo a mesa…','on']]:[['Conectando à mesa…',''],['Conectado. Abrindo a mesa…','on']];
- steps.forEach(([t,c],i)=>setTimeout(()=>{st.innerHTML=`<span class="dot ${c}"></span><span>${t}</span>`;if(i===steps.length-1)setTimeout(()=>{btn.disabled=false;location.hash='#jogador'},500)},i*600))}
-function bindJoin(){$('#join-mode').onclick=e=>{const b=e.target.closest('[data-jm]');if(b){J.mode=b.dataset.jm;renderJoin()}};
- $('#join-sheets').onchange=e=>{J.sheet=e.target.value;renderJoin();emit('join:sheet')};
- $('#join-test').onclick=()=>{const st=$('#join-status'),v=$('#join-addr').value.trim();if(!/^[\w.-]+(:\d{2,5})?$/.test(v)){st.innerHTML='<span class="dot bad-dot"></span><span>Endereço inválido. Use o formato 192.168.0.12:8765.</span>';return}st.innerHTML='<span class="dot"></span><span>Procurando a mesa…</span>';setTimeout(()=>{st.innerHTML='<span class="dot on"></span><span><b>Crônicas do Vale Cinzento</b> · Ordem Paranormal · mestre online (simulado)</span>'},700)};
- $('#join-app').addEventListener('submit',e=>{e.preventDefault();if(!$('#join-nick').value.trim()){$('#join-status').innerHTML='<span class="dot bad-dot"></span><span>Digite seu nome na mesa.</span>';$('#join-nick').focus();return}if(J.sheet===null){$('#join-status').innerHTML='<span class="dot bad-dot"></span><span>Escolha uma ficha ou "Entrar sem ficha".</span>';return}joinFlow($('#join-btn'),'#join-status')});
- $('#join-web').addEventListener('submit',e=>{e.preventDefault();if(!$('#web-nick').value.trim()){$('#web-status').innerHTML='<span class="dot bad-dot"></span><span>Digite seu nome na mesa.</span>';return}joinFlow($('#web-btn'),'#web-status')});
- $('#join-resume').onclick=()=>{emit('join:done');location.hash='#jogador'}}
-
 /* ============ Tutorial guiado ============ */
 const TUT={
  master:[
@@ -70,7 +51,7 @@ const TUT={
   {view:'mesa',target:'.room-btn',title:'Modo da sessão',body:'No Interlúdio o movimento fica livre e a iniciativa pausa. Os testes continuam liberados.',try:'Abra o menu da sala e escolha Interlúdio.',done:'mode:interlude'},
   {view:'mesa',target:'.room-back',title:'Voltar à Mestragem',body:'Mesa ao vivo e Cenários ficam dentro da Mestragem. Este botão leva de volta a ela.',try:'Toque em voltar.',done:'route:mestragem'}],
  player:[
-  {view:'entrar',target:'#join-sheets',title:'Suas fichas',body:'Pelo app, aparecem as fichas salvas neste celular. A do mesmo sistema da campanha pode ir para o mestre aprovar.',try:'Escolha a Aurora.',done:'join:sheet',prep:()=>{J.mode='app';renderJoin()}},
+  {view:'entrar',target:'#join-sheets',title:'Suas fichas',body:'Pelo app, aparecem as fichas salvas neste celular. A do mesmo sistema da campanha pode ir para o mestre aprovar.',try:'Escolha a Aurora.',done:'join:sheet',prep:()=>{RV.Join.mode='app';RV.Join.render()}},
   {view:'entrar',target:'#join-btn',title:'Entrar na mesa',body:'O mestre recebe uma cópia. A ficha original continua no seu celular.',try:'Toque em Entrar e enviar a ficha.',done:'join:done'},
   {view:'jogador',target:'.stage',title:'Esta é a mesa',body:'Você vê só o que o mestre revelou. As áreas escuras estão ocultas e não dá para entrar nelas.',try:null,pad:-60},
   {view:'jogador',target:'.tok[data-id="aurora"]',title:'Seu token',body:'Na sua vez, arraste a Aurora. As casas douradas mostram quanto você ainda pode andar.',try:'Arraste a Aurora para uma casa dourada.',done:'token:moved',prep:t=>{t.pickTool('move');const st=RV.state;if(st.init.entries[st.init.idx]?.id!=='aurora'){st.init.idx=Math.max(0,st.init.entries.findIndex(e=>e.id==='aurora'));st.mode='combat';emit('state')}}},
@@ -86,7 +67,7 @@ const TUT={
   {view:'estudio',target:'.st-panel',title:'Propriedades',body:'Posição, tamanho, rotação, opacidade, tom, camada, luz e se os jogadores veem a peça.',try:'Mude algo da peça: gire, troque o tom ou ligue a luz.',done:'studio:prop',prep:s=>{$('.st-panel',s.root).hidden=false;s.panelTab='props';s.renderPanel()}},
   {view:'estudio',target:'.st-publish',title:'Publicar na mesa',body:'Até publicar, nada muda para os jogadores. Salvar rascunho guarda sem publicar.',try:'Toque em Publicar na mesa.',done:'studio:publish'}]};
 const Tut=RV.Tut={flow:null,i:0,el:null,spot:null,
- start(flow){this.stop();this.flow=flow;this.i=0;if(flow!=='studio'){RV.state=RV.freshState();emit('state')}
+ start(flow){this.stop();this.flow=flow;this.i=0;if(flow!=='studio'){this.saved={state:RV.state,pstate:RV.pstate,me:RV.me};RV.state=RV.freshState();RV.pstate=null;RV.me=Object.assign({},RV.ME_DEMO);emit('state')}
   this.spot=document.createElement('div');this.spot.className='tut-spot';this.el=document.createElement('section');this.el.className='tut-card';this.el.setAttribute('role','dialog');this.el.setAttribute('aria-live','polite');this.el.setAttribute('aria-label','Tutorial');document.body.append(this.spot,this.el);this.show()},
  step(){return this.flow?TUT[this.flow][this.i]:null},
  ctx(view){return view==='mesa'?views.master:view==='jogador'?views.player:view==='estudio'?views.studio:null},
@@ -111,7 +92,8 @@ const Tut=RV.Tut={flow:null,i:0,el:null,spot:null,
  event(e){const s=this.step();if(!s||s.done!==e)return;const tr=$('#tut-try');if(tr){tr.classList.add('done');tr.innerHTML=ic('check')+'<span><b>Feito!</b> Indo para a próxima etapa…</span>'}const at=this.i;setTimeout(()=>{if(this.i===at&&this.flow){this.i++;this.show()}},900)},
  onRoute(v){if(!this.flow){maybeWelcome(v);return}const s=this.step();if(s&&s.view===v)setTimeout(()=>this.show(),80)},
  finish(skipped){const f=this.flow;if(f)store.set('mm-rv-tut-'+f,skipped?'skipped':'done');this.stop();if(f&&!skipped)toast('Tutorial concluído. Você pode refazer em Personalização.')},
- stop(){[this.spot,this.el].forEach(x=>x?.remove());this.flow=null;this.spot=this.el=null}};
+ stop(){[this.spot,this.el].forEach(x=>x?.remove());const was=this.flow;this.flow=null;this.spot=this.el=null;if(was&&RV.Live?.role){RV.Live.sig='';RV.Live.psig=''}
+  if(was&&was!=='studio'&&this.saved){if(RV.Live?.role==='master')RV.state=this.saved.state;RV.pstate=this.saved.pstate;RV.me=this.saved.me;this.saved=null;emit('state')}}};
 on(e=>{Tut.event(e);if(e==='state'&&Tut.flow)requestAnimationFrame(()=>Tut.place())});
 window.addEventListener('resize',()=>Tut.place());
 function maybeWelcome(v){const flow={mesa:'master',entrar:'player',estudio:'studio'}[v];if(!flow||store.get('mm-rv-tut-'+flow)||$('.modal-back'))return;
@@ -120,8 +102,8 @@ function maybeWelcome(v){const flow={mesa:'master',entrar:'player',estudio:'stud
  document.body.appendChild(b);b.querySelector('[data-w="go"]').focus();b.addEventListener('click',e=>{const w=e.target.closest('[data-w]')?.dataset.w;if(!w)return;b.remove();if(w==='go')Tut.start(flow);else store.set('mm-rv-tut-'+flow,'skipped')})}
 
 /* ============ Rotas ============ */
-const VIEWS=['inicio','mestragem','mesa','estudio','entrar','jogador','biblioteca','bestiario','ficha','ajustes'],PAGES=['inicio','mestragem','biblioteca','bestiario','ficha','ajustes'];
-const TITLES={inicio:'Visão geral',mestragem:'Mestragem',biblioteca:'Biblioteca',bestiario:'Bestiário',ficha:'Personagens',ajustes:'Personalização'};
+const VIEWS=['inicio','mestragem','mesa','estudio','entrar','jogador','biblioteca','buscar','bestiario','ficha','ajustes'],PAGES=['inicio','mestragem','biblioteca','buscar','bestiario','ficha','ajustes'];
+const TITLES={inicio:'Visão geral',mestragem:'Mestragem',biblioteca:'Biblioteca',buscar:'Buscar nos livros',bestiario:'Bestiário',ficha:'Personagens',ajustes:'Personalização'};
 function route(ev){const h=location.hash.slice(1),v=VIEWS.includes(h)?h:'inicio';if(ev?.oldURL){const o=new URL(ev.oldURL).hash;if(o&&o!=='#'+v)prevHash=o}
  closeCentral();$('#pages').hidden=!PAGES.includes(v);$$('[data-view]').forEach(s=>s.hidden=s.dataset.view!==v);
  $$('#proto a').forEach(a=>{if(a.getAttribute('href')==='#'+v)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
@@ -129,26 +111,23 @@ function route(ev){const h=location.hash.slice(1),v=VIEWS.includes(h)?h:'inicio'
  if(v==='mesa'){views.master=views.master||new RV.Table($('#vtt-master'),'master');requestAnimationFrame(()=>{views.master.fit(false);views.master.render()})}
  if(v==='jogador'){views.player=views.player||new RV.Table($('#vtt-player'),'player');requestAnimationFrame(()=>{views.player.fit(false);views.player.render()})}
  if(v==='estudio'){views.studio=views.studio||new RV.Studio($('#studio'));views.studio.open(prevHash)}
- if(v==='entrar'&&!route.join){route.join=1;const sc=Cena.template('taverna',24,16);Cena.render($('#join-map'),sc,{dpr:1,gridAlpha:.08})}
- if(v==='mestragem'&&!route.mini){route.mini=1;const c=document.createElement('canvas');Cena.render(c,RV.state.scene,{dpr:.6,gridAlpha:.1});const mm=$('#mini-map');mm.getContext('2d').drawImage(c,0,0,mm.width,mm.height);
-  $$('[data-thumb]').forEach(cv=>{const sc=+cv.dataset.thumb===0?RV.state.scene:Cena.template(['','caverna','rua'][+cv.dataset.thumb],24,16),t=document.createElement('canvas');Cena.render(t,sc,{dpr:.3,gridAlpha:.06});cv.getContext('2d').drawImage(t,0,0,cv.width,cv.height)})}
- if(v==='bestiario')renderBestiary();if(v==='entrar')renderJoin();syncMode();$('#page-wrap').scrollTop=0;emit('route:'+v);Tut.onRoute(v)}
+  if(v==='entrar'&&!route.join){route.join=1;const sc=Cena.template('taverna',24,16);Cena.render($('#join-map'),sc,{dpr:1,gridAlpha:.08})}
+ if(v==='bestiario')renderBestiary();$('#page-wrap').scrollTop=0;emit('route:'+v);Tut.onRoute(v)}
 window.addEventListener('hashchange',route);
 
 /* ============ Preferências e tema ============ */
 const currentTheme=()=>RV.Prefs.state.theme;const setTheme=t=>RV.Prefs.set('theme',t);
 
 /* ============ Ligações ============ */
-document.addEventListener('click',e=>{const s=e.target.closest('[data-soon]');if(s&&!s.closest('#central')){e.preventDefault();toast((s.dataset.soon||'Esta parte')+' não está neste protótipo.',$('#app'))}
+document.addEventListener('click',e=>{if(e.target.closest('[data-classic-switch]'))store.set('mm-interface','classica');const s=e.target.closest('[data-classic]');if(s){e.preventDefault();RV.classic(s.dataset.classic)}
  if(e.target.closest('.central-open,#central-fab')){emit('central:opened');RV.openCentral()}
  const ci=e.target.closest('[data-copy]');if(ci)copyText(ci.dataset.copy).then(ok=>toast(ok?'Copiado.':'Selecione e copie: '+ci.dataset.copy,$('#app')));
  if(e.target.closest('.theme-toggle,#proto-theme'))setTheme(currentTheme()==='light'?'dark':'light')});
-$('#mode-seg').addEventListener('click',e=>{const b=e.target.closest('[data-mode]');if(!b)return;RV.state.mode=b.dataset.mode;emit('state')});
 $('#grid-alpha').addEventListener('input',e=>{RV.prefs.gridAlpha=e.target.value/100;emit('state')});
 $('#names-seg').addEventListener('click',e=>{const b=e.target.closest('[data-n]');if(!b)return;RV.prefs.showNames=b.dataset.n==='1';$$('#names-seg button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));emit('state')});
 $('#redo-master').onclick=()=>{store.del('mm-rv-tut-master');Tut.start('master')};$('#redo-player').onclick=()=>{store.del('mm-rv-tut-player');Tut.start('player')};$('#redo-studio').onclick=()=>{store.del('mm-rv-tut-studio');Tut.start('studio')};
 $('#proto-tut').onclick=()=>{const v=location.hash.slice(1);Tut.start(v==='jogador'||v==='entrar'?'player':v==='estudio'?'studio':'master')};
-bindBestiary();bindJoin();
+bindBestiary();RV.Join.bind();RV.Library.bind();
 document.addEventListener('keydown',e=>{
  if(e.key==='Escape'){if(closeCentral())return;const mb=$('.modal-back');if(mb){mb.remove();return}const v=location.hash.slice(1),t=v==='mesa'?views.master:v==='jogador'?views.player:v==='estudio'?views.studio:null;if(t&&t.escape())return;if(v==='bestiario'&&B.open){B.open=null;renderBestiary();return}if(Tut.flow)Tut.finish(true);return}
  if(e.target.closest('input,textarea,select')||$('.modal-back'))return;if(e.code==='Space'&&e.target.closest('button,a'))return;
@@ -159,15 +138,15 @@ document.addEventListener('keydown',e=>{
  const k=e.key.toLowerCase(),map={v:'move',m:'measure',d:'draw',f:'fog',o:'doors',p:'pin',l:'light',i:'inspect',a:'add'};
  if(map[k]&&$(`[data-tool="${map[k]}"]`,t.root)){t.pickTool(map[k]);return}
  if(k==='0')t.fit();if(k==='+'||k==='=')t.zoomAt(1.2,innerWidth/2,innerHeight/2);if(k==='-')t.zoomAt(1/1.2,innerWidth/2,innerHeight/2);
- if(k==='r')t.rollAndShow('1d20',t.role==='master'?'Mestre':'Ana',null);if(k==='n'&&t.role==='master')t.act('init-next');
+ if(k==='r')t.rollAndShow('1d20',t.role==='master'?'Mestre':(RV.me?.name||'Você'),null);if(k==='n'&&t.role==='master')t.act('init-next');
  if((k==='delete'||k==='backspace')&&t.role==='master'&&t.sel)t.act('remove');if(k==='z'&&(e.ctrlKey||e.metaKey)&&t.role==='master')t.pickTool('undo')});
 document.addEventListener('keyup',e=>{if(e.code==='Space')Object.values(views).forEach(t=>{t.space=false;t.stage?.classList.remove('panning')})});
 
 /* ============ Início ============ */
-RV.inApp=!!(window.RpgBookBridge||window.MastermindDesktop||window.RpgCampaignBridge);
-if(RV.inApp){$('#proto').hidden=true;$$('.in-app-only').forEach(e=>e.hidden=false)}
+RV.inApp=!!(window.RpgBookBridge||window.MastermindDesktop||window.RpgCampaignBridge);RV.views=views;
+if(RV.inApp||RV.Net.served){$('#proto').hidden=true}if(RV.inApp)$$('.in-app-only').forEach(e=>e.hidden=false);
 RV.Prefs.apply();RV.Prefs.ambient();RV.Prefs.bind();RV.Books.bind();
 on(e=>{if(e==='prefs:changed')$$('.theme-toggle').forEach(b=>{b.innerHTML=ic(currentTheme()==='light'?'moon':'sun')})});$$('.theme-toggle').forEach(b=>{b.innerHTML=ic(currentTheme()==='light'?'moon':'sun')});
-RV.hydrateIcons();route();
+RV.hydrateIcons();route();RV.bootServed();
 window.__revamp={S:()=>RV.state,views,Tut,store};
 })();

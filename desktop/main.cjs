@@ -242,7 +242,8 @@ function makeWindow(){
    // a versão vem do package.json (o preload roda em sandbox e não lê arquivos)
    additionalArguments:['--mastermind-version='+app.getVersion()]}
  });
- win.loadFile(path.join(assets,'demo-offline.html'));
+ // Testes automatizados abrem a interface clássica (com endereço #home a página não troca para a nova interface).
+ win.loadFile(path.join(assets,'demo-offline.html'),process.env.MASTERMIND_E2E?{hash:'home'}:{});
  win.webContents.on('did-finish-load',async()=>{
   if(!win||win.webContents.isDestroyed())return;
   // Os scripts de integração do desktop são da interface atual; a nova interface já traz os seus.
@@ -409,6 +410,7 @@ app.whenReady().then(()=>{
     if(!hostManager.status().running)throw Error('Inicie o servidor antes de abrir o painel.');
     return shell.openExternal(hostManager.status().masterUrl);
    case 'campaign-request':return hostManager.request(args[0]);
+   case 'campaign-player-request':return hostManager.playerRequest(args[0]);
    case 'window-action':if(args[0]==='fullscreen')win.setFullScreen(!win.isFullScreen());return true;
    default:return false;
   }

@@ -96,6 +96,12 @@
    if(type==='skills')return dict(e.skillBase).map(([difficulty,mod])=>entry('Dificuldade '+difficulty,{description:'Modificador base '+mod}));
    if(type==='progression')return dict(e.costs).map(([attr,cost])=>entry(attr,{description:'Custo por nível: '+cost+' pontos'}));
   }
+  if(id==='chamado-de-ctchulhu'){
+   // v0.109: valores do motor de CoC 7e já usado nas fichas do app (mastermind_coc7_engine.js).
+   const e=root.COC7_ENGINE||{};
+   if(type==='skills')return dict(e.BASE_SKILLS).map(([name,base])=>entry(name,{description:'Valor base '+base+'%'}));
+   if(type==='abilities')return dict(e.professions).map(([name,skills])=>entry(name,{description:'Ocupação · perícias: '+arr(skills).join(', ')}));
+  }
   // Other systems may have books but no machine-readable rules. Never fabricate book entries.
   return [];
  }

@@ -17,7 +17,7 @@ const path = require('node:path');
   client = await electron.launch({
    executablePath: executable,
    args: ['--no-sandbox', '--disable-dev-shm-usage', '--enable-unsafe-swiftshader'],
-   env: { ...process.env, XDG_CONFIG_HOME: profile, ELECTRON_DISABLE_SECURITY_WARNINGS: 'true' },
+   env: { ...process.env, XDG_CONFIG_HOME: profile, ELECTRON_DISABLE_SECURITY_WARNINGS: 'true', MASTERMIND_E2E: '1' },
    timeout: 45000
   });
   const win = await client.firstWindow({ timeout: 35000 });
@@ -38,6 +38,10 @@ const path = require('node:path');
   assert.ok(result.hasMaster && result.hasLibrary && result.hasAtelier && result.bridge && result.navigation,
     'Interface empacotada incompleta: ' + JSON.stringify(result));
   assert.ok(result.logoOk, 'Logo não carregou no pacote: ' + JSON.stringify(result));
+  // v1.3.0: a nova interface também vai no pacote (ela abre por padrão fora dos testes).
+  const revamp = path.join(path.dirname(executable), 'resources/server/assets/revamp');
+  for (const f of ['index.html', 'app.js', 'servidor.js', 'adaptador.js', 'biblioteca.js'])
+   assert.ok(fs.existsSync(path.join(revamp, f)), 'Nova interface incompleta no pacote: ' + f);
   console.log('PASS Linux v1.0.4: arquivo HTML, logo, telas e ponte Electron da build EMPACOTADA');
  } finally {
   if (client) await client.close();

@@ -12,7 +12,7 @@ class Studio{
  constructor(root){this.root=root;this.z=1;this.px=0;this.py=0;this.tool='select';this.pointers=new Map();this.space=false;
   this.set={terrain:'pedra',brush:1,roomFloor:'pedra',wallMat:'pedra',doorType:'porta',stamp:null,stampRot:0,lightAsset:'tocha',fogMode:'hide',eraseMode:'auto'};
   this.libTab='objetos';this.libCat='all';this.libQ='';this.panelTab='props';this.sel=null;this.history=[];this.future=[];this.dirty=false;this.preview=false;this.backTo='#mestragem';this.dpr=Math.min(window.devicePixelRatio||1,1.5);this.build()}
- open(from){if(from&&from!=='#estudio')this.backTo=from;this.scene=Cena.clone(RV.state.scene);this.scene.fog=[...RV.state.fog];this.history=[];this.future=[];this.dirty=false;this.sel=null;this.mapDirty=true;this.renderAll();requestAnimationFrame(()=>this.fit(false))}
+ open(from){if(from&&from!=='#estudio')this.backTo=from;const other=RV.studioScene;RV.studioScene=null;if(other){this.scene=Cena.clone(other)}else{this.scene=Cena.clone(RV.state.scene);this.scene.fog=[...RV.state.fog]}this.history=[];this.future=[];this.dirty=false;this.sel=null;this.mapDirty=true;this.renderAll();requestAnimationFrame(()=>this.fit(false))}
  get W(){return this.scene.cols*CELL}get H(){return this.scene.rows*CELL}
  build(){const R=this.root;
   R.innerHTML=`<div class="stage st-stage" data-tool="select"><div class="world"><div class="map-shadow"></div><canvas class="cv-map"></canvas><canvas class="cv-dark"></canvas><canvas class="cv-veil"></canvas><canvas class="cv-over"></canvas></div><div class="weather" aria-hidden="true"></div></div>
@@ -147,7 +147,7 @@ class Studio{
    case 'undo':this.undo();break;case 'redo':this.redo();break;
    case 'grid':this.snap();s.grid.show=!s.grid.show;this.commit();break;
    case 'preview':this.preview=!this.preview;b.setAttribute('aria-pressed',String(this.preview));this.mapDirty=true;this.renderAll();toast(this.preview?'Vendo como jogador: áreas ocultas, notas e peças escondidas somem.':'De volta à visão do mestre.');break;
-   case 'save':toast('Rascunho salvo na campanha. A mesa só muda quando você publicar.');break;
+   case 'save':if(RV.Live?.active('master')){RV.Live.sceneSave({scene:Cena.clone(this.scene),activate:false}).then(()=>{this.dirty=false;this.renderAll();toast('Rascunho salvo na campanha. A mesa só muda quando você publicar.')})}else toast('Campanha de treino: o rascunho fica só nesta tela. Ligue o servidor na Mestragem para guardar na campanha.');break;
    case 'publish':this.publish();break;
    case 'lib':{const l=$('.st-lib',this.root);l.hidden=!l.hidden;b.setAttribute('aria-pressed',String(!l.hidden));if(!l.hidden&&window.innerWidth<760)$('.st-panel',this.root).hidden=true;this.renderLib();this.fit();break}
    case 'dup':if(o){this.snap();const c=Object.assign(Cena.clone(o),{id:'o'+Date.now()+Math.random().toString(36).slice(2,4),x:clamp(o.x+1,0,s.cols-o.w),y:clamp(o.y+1,0,s.rows-o.h)});s.objects.push(c);this.sel={kind:'obj',id:c.id};this.commit('studio:prop')}break;
@@ -157,7 +157,7 @@ class Studio{
    case 'rot-l':case 'rot-r':if(o){this.snap();this.rotate(o,a==='rot-r'?90:-90);this.commit('studio:prop')}else{this.set.stampRot=(this.set.stampRot+(a==='rot-r'?90:270))%360;this.renderAll()}break;
    case 'fog-all-show':this.snap();s.fog=[];this.commit('studio:fog');break;
    case 'fog-all-hide':this.snap();s.fog=Object.keys(s.terrain);this.commit('studio:fog');break;
-   case 'resize':{const c=clamp(parseInt($('#st-cols',this.root).value,10)||s.cols,4,60),r=clamp(parseInt($('#st-rows',this.root).value,10)||s.rows,4,60);this.snap();s.cols=c;s.rows=r;
+   case 'resize':{const c=clamp(parseInt($('#st-cols',this.root).value,10)||s.cols,6,60),r=clamp(parseInt($('#st-rows',this.root).value,10)||s.rows,6,60);this.snap();s.cols=c;s.rows=r;
     Object.keys(s.terrain).forEach(k=>{const[x,y]=k.split(',').map(Number);if(x>=c||y>=r)delete s.terrain[k]});s.objects=s.objects.filter(o=>o.x+o.w<=c&&o.y+o.h<=r);s.fog=s.fog.filter(k=>{const[x,y]=k.split(',').map(Number);return x<c&&y<r});
     this.commit('studio:prop');this.fit();toast(`Cena com ${c} × ${r} casas.`);break}
    case 'auto-walls':this.snap();Cena.autoWalls(s,this.set.wallMat);this.commit('studio:wall');toast('Paredes criadas no contorno de todo o piso.');break;
@@ -193,9 +193,12 @@ class Studio{
   if(t.id==='st-system'){this.snap();s.system=t.value;this.commit('studio:prop');return}
   if(t.id==='st-wallmat'){this.set.wallMat=t.value;return}
   if(t.id==='st-floor'){this.set.roomFloor=t.value;return}}
- publish(){const st=RV.state;st.scene=Cena.clone(this.scene);Object.values(st.scene.layers).forEach(l=>{l.visible=true;l.locked=false});st.fog=new Set(this.scene.fog);st.sceneVer++;
+ publish(){const st=RV.state;const live=RV.Live?.active('master');if(live&&this.scene.id!==RV.Live.table?.activeScenarioId){st.scene=Cena.clone(this.scene);st.fog=new Set(this.scene.fog);st.sceneVer++;this.dirty=false;emit('studio:publish');emit('state');
+   RV.Live.sceneSave({scene:Cena.clone(this.scene),activate:true}).then(()=>toast(`"${this.scene.name}" publicado. A mesa e os jogadores já veem este cenário.`));return}
+  st.scene=Cena.clone(this.scene);Object.values(st.scene.layers).forEach(l=>{l.visible=true;l.locked=false});st.fog=new Set(this.scene.fog);st.sceneVer++;
   st.tokens.forEach(t=>{t.x=clamp(t.x,0,st.scene.cols-t.size);t.y=clamp(t.y,0,st.scene.rows-t.size)});this.dirty=false;emit('studio:publish');emit('state');
-  toast(`"${this.scene.name}" publicado. A mesa e os jogadores já veem este cenário.`)}
+  if(live){RV.Live.sceneSave({activate:true}).then(()=>toast(`"${this.scene.name}" publicado. A mesa e os jogadores já veem este cenário.`));return}
+  toast(`"${this.scene.name}" publicado na campanha de treino.`)}
  confirm(title,text,okLabel,ok,altLabel,alt){const m=document.createElement('div');m.className='modal-back';m.innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-labelledby="st-cf-h"><div class="fh" style="padding:0"><h2 id="st-cf-h" style="font-size:28px">${esc(title)}</h2><button class="x-btn" type="button" data-m="x" aria-label="Fechar">${ic('x')}</button></div><p class="muted" style="margin:0">${esc(text)}</p><div class="row" style="justify-content:flex-end"><button class="btn ghost" type="button" data-m="x">Continuar editando</button>${altLabel?`<button class="btn" type="button" data-m="alt">${esc(altLabel)}</button>`:''}<button class="btn primary" type="button" data-m="ok">${esc(okLabel)}</button></div></div>`;
   document.body.appendChild(m);m.querySelector('[data-m="ok"]').focus();m.addEventListener('click',e=>{const k=e.target.closest('[data-m]')?.dataset.m;if(!k&&e.target!==m)return;m.remove();if(k==='ok')ok();if(k==='alt')alt()})}
  escape(){if($('.modal-back')){$('.modal-back').remove();return true}if(this.op){this.op=null;this.renderOver();return true}if(this.sel){this.sel=null;this.renderAll();return true}if(this.tool!=='select'){this.pickTool('select');return true}return false}
@@ -295,7 +298,7 @@ class Studio{
    $$('canvas[data-sw]',body).forEach(cv=>Cena.terrainSwatch(cv,cv.dataset.sw));return}
   if(this.panelTab==='scene'){title('Cena');
    body.innerHTML=`<div class="field"><label for="st-system">Sistema</label><select class="input" id="st-system">${[['ordem-paranormal','Ordem Paranormal'],['d-d','D&D 5e'],['gurps','GURPS 4e']].map(([v,l])=>`<option value="${v}" ${s.system===v?'selected':''}>${l}</option>`).join('')}</select></div>
-    <div class="grid2f"><div class="field"><label for="st-cols">Colunas</label><input class="input num" id="st-cols" type="number" min="4" max="60" value="${s.cols}"></div><div class="field"><label for="st-rows">Linhas</label><input class="input num" id="st-rows" type="number" min="4" max="60" value="${s.rows}"></div></div><button class="btn sm" type="button" data-sa="resize">Aplicar tamanho (até 60 × 60)</button>
+    <div class="grid2f"><div class="field"><label for="st-cols">Colunas</label><input class="input num" id="st-cols" type="number" min="6" max="60" value="${s.cols}"></div><div class="field"><label for="st-rows">Linhas</label><input class="input num" id="st-rows" type="number" min="6" max="60" value="${s.rows}"></div></div><button class="btn sm" type="button" data-sa="resize">Aplicar tamanho (até 60 × 60)</button>
     ${rg('meters','Metros por casa',.5,5,.5,s.meters,' m')}
     <h4>Grade</h4>${tg('x','Mostrar grade',s.grid.show).replace('data-prop="toggle" data-v="x"','data-sa="grid"')}${tg('x','Só sobre o piso',s.grid.overTerrainOnly).replace('data-prop="toggle" data-v="x"','data-prop="grid-floor"')}
     ${rg('grid-alpha','Intensidade',0,40,1,Math.round(s.grid.alpha*100),'%')}<div class="row between"><span class="label">Cor</span>${sw('grid-color',[['#ffffff','Branca'],['#000000','Preta'],['#c7a87b','Dourada']],s.grid.color)}</div>
