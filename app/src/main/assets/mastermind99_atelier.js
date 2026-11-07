@@ -370,6 +370,23 @@ function drawGround(ctx,s,el){
   ctx.shadowColor=el.brilho;ctx.shadowBlur=8;sigil(ctx,s.elemento,cx,cy+ry,9,el.brilho,2.6);
   ctx.restore();
 }
+/* furos grandes da silhueta (vão entre o braço e o corpo, entre o rabo de cavalo e o pescoço): a sombra e o contorno
+   branco eram desenhados por baixo da figura inteira e enchiam esses vãos de cinza e branco. Aqui eles ficam de fora e
+   aparece o fundo. Furo = área transparente que não chega à borda do quadro; os pequenos (frestas entre fios) continuam. */
+const FURO_MIN=300; // área mínima em pixels do manequim
+function furosGrandes(fc,k){
+  const w=fc.width,h=fc.height,N=w*h,d=fc.getContext('2d').getImageData(0,0,w,h).data;
+  const vis=new Uint8Array(N),pilha=new Int32Array(N),comp=new Int32Array(N);let sp=0;
+  const livre=i=>d[i*4+3]<=8,poe=i=>{if(!vis[i]&&livre(i)){vis[i]=1;pilha[sp++]=i;}};
+  const espalha=(guarda)=>{let n=0;while(sp){const i=pilha[--sp],x=i%w;if(guarda)comp[n++]=i;if(x>0)poe(i-1);if(x<w-1)poe(i+1);if(i>=w)poe(i-w);if(i<N-w)poe(i+w);}return n;};
+  for(let x=0;x<w;x++){poe(x);poe(N-w+x);}for(let y=0;y<h;y++){poe(y*w);poe(y*w+w-1);}
+  espalha(false); // fora da figura
+  const min=FURO_MIN*(k*FS)*(k*FS);let out=null,od=null;
+  for(let i=0;i<N;i++){if(vis[i]||!livre(i))continue;poe(i);const n=espalha(true);if(n<min)continue;
+    if(!out){out=mk(w,h);od=out.getContext('2d').createImageData(w,h);}for(let j=0;j<n;j++)od.data[comp[j]*4+3]=255;}
+  if(out)out.getContext('2d').putImageData(od,0,0);
+  return out;
+}
 function render(cv,s){
   const k=cv.width/W,el=EL[s.elemento]||EL.sangue;
   const fc=mk(cv.width,cv.height),f=fc.getContext('2d');
@@ -378,8 +395,10 @@ function render(cv,s){
   const ctx=cv.getContext('2d');ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);
   ctx.setTransform(k,0,0,k,0,0);drawGround(ctx,s,el);ctx.setTransform(1,0,0,1,0,0);
   if(s.efeito==='aura'){const t=tint(fc,el.brilho);ctx.save();ctx.filter='blur('+(10*k)+'px)';ctx.drawImage(t,0,0);ctx.drawImage(t,0,0);ctx.restore();}
-  const sh=tint(fc,'rgba(30,24,30,.42)');ctx.save();ctx.filter='blur('+(2.5*k)+'px)';ctx.drawImage(sh,-16*k,9*k);ctx.restore();
-  const wt=tint(fc,'#ffffff');for(let i=0;i<12;i++){const a=i/12*TAU;ctx.drawImage(wt,Math.cos(a)*2.5*k,Math.sin(a)*2.5*k);}
+  const furos=furosGrandes(fc,k),deco=furos?mk(cv.width,cv.height):null,dc=deco?deco.getContext('2d'):ctx;
+  const sh=tint(fc,'rgba(30,24,30,.42)');dc.save();dc.filter='blur('+(2.5*k)+'px)';dc.drawImage(sh,-16*k,9*k);dc.restore();
+  const wt=tint(fc,'#ffffff');for(let i=0;i<12;i++){const a=i/12*TAU;dc.drawImage(wt,Math.cos(a)*2.5*k,Math.sin(a)*2.5*k);}
+  if(furos){dc.globalCompositeOperation='destination-out';for(const[a,b]of[[0,0],[1,0],[-1,0],[0,1],[0,-1]])dc.drawImage(furos,a,b);ctx.drawImage(deco,0,0);}
   ctx.drawImage(fc,0,0);
   if(s.efeito==='nevoa'){const rnd=rng(s.semente*9);for(let i=0;i<9;i++){const x=(70+rnd()*300)*k,y=(FY+FH-120+rnd()*110)*k,r=(50+rnd()*60)*k;const g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,rgba(el.brilho,.32));g.addColorStop(1,rgba(el.brilho,0));ctx.fillStyle=g;ctx.fillRect(x-r,y-r,r*2,r*2);}}
   if(s.condicao==='morrendo'){ctx.save();ctx.globalCompositeOperation='destination-over';ctx.setTransform(k,0,0,k,0,0);ctx.beginPath();ctx.ellipse(W/2+10,FY+FH-14,110,28,0,0,TAU);ctx.fillStyle='rgba(120,8,18,.85)';ctx.fill();ctx.restore();}

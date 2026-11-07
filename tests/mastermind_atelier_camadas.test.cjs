@@ -54,17 +54,25 @@ test('Token se afasta só quando o cabelo sobe além da folga',()=>{
 test('Rostos, esclera, barba e jaleco corrigidos para encaixar no manequim (scripts de correção aplicados)',()=>{
  const ctx={window:{}};vm.runInNewContext(read('mastermind99_atelier_layers.js'),ctx);
  const L=ctx.window.MastermindAtelierLayers;
- for(const k of ['rosto-redondo','rosto-quadrado','rosto-fino','rosto-delicado','rosto-marcante','rosto-idoso','rosto-jovem','rosto-elfo'])
+ for(const k of ['rosto-redondo','rosto-quadrado','rosto-fino','rosto-delicado','rosto-marcante','rosto-idoso','rosto-elfo'])
   assert.equal(L[k].ajuste,'rosto-2','rosto sem correção de frestas e esclera: '+k);
+ assert.equal(L['rosto-jovem'].ajuste,'rosto-3','Jovem sem a esclera inteira até a pálpebra de baixo');
  assert.equal(L.corpo.ajuste,'esclera-1','esclera do manequim sem correção');
  assert.equal(L['barba-cheia'].ajuste,'gemini-1','barba cheia deveria vir da pintura sobre o manequim');
  assert.ok(L['barba-cheia'].m&&L['barba-cheia'].ref>20&&L['barba-cheia'].ref<80);
- assert.equal(L['roupa-jaleco'].ajuste,'jaleco-2','jaleco sem a correção do vão, da mão (tecido inteiro atrás dela) e da perna');
+ assert.equal(L['roupa-jaleco'].ajuste,'jaleco-3','jaleco sem a correção do vão, da mão (tecido inteiro atrás dela e entre os dedos) e da perna');
  const scripts=path.join(__dirname,'..','scripts');
  const py=fs.readFileSync(path.join(scripts,'atelie_corrigir_rostos.py'),'utf8');
  assert.match(py,/OLHOS = \{\r?\n    'rosto-jovem'/);
  assert.match(py,/CONTORNO = \{\r?\n    'rosto-redondo'/);
  assert.match(py,/def esclera_neutra\(/);
+ assert.match(py,/ESCLERA = \{\r?\n    'rosto-jovem'/);
+ assert.match(py,/PALPEBRA = \{\r?\n    'rosto-jovem'/);
+ assert.match(py,/IRIS = \{'rosto-jovem': \[\(177, 245\.5, 13\.2\), \(272, 249, 13\.2\)\]\}/);
+ // vão grande da silhueta (braço/corpo): sombra e contorno branco ficam de fora, aparece o fundo
+ const atelier=read('mastermind99_atelier.js');
+ assert.match(atelier,/function furosGrandes\(fc,k\)/);
+ assert.match(atelier,/const furos=furosGrandes\(fc,k\)/);
  assert.match(fs.readFileSync(path.join(scripts,'atelie_corrigir_jaleco.py'),'utf8'),/VAO = \[/);
  assert.match(fs.readFileSync(path.join(scripts,'atelie_barba_gemini.py'),'utf8'),/ESCALA, POS = \(553, 1347\), \(3, 0\)/);
  assert.ok(fs.statSync(path.join(scripts,'atelie_fontes','barba-cheia-gemini.jpg')).size>10000,'fonte da barba ausente');
