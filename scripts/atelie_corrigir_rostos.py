@@ -13,12 +13,10 @@ O que este script faz em cada rosto:
   3. nos rostos com OLHOS definidos, a abertura do olho (polígono em pixels do manequim)
      volta a ser opaca com a pintura original: esclera limpa (clara e neutra), cílios e
      brilho da íris.
-Barba cheia: a peça veio recortada à parte e não acompanhava o rosto do manequim. A costeleta
-esquerda subia como um fio fino cruzando o canto do olho e o queixo da barba ficava ~30 px à
-esquerda do queixo. A costeleta direita ficava no meio da bochecha, colada no canto do olho. A camada é deformada uma
-única vez (marca "ajuste" na camada): acima da boca abre para os lados cada vez mais com a altura
-(as costeletas vão para o contorno do rosto e para a orelha), abaixo da boca leva o queixo para a
-direita, com a boca fixa no lugar e 6% mais larga.
+Barba cheia: vem de scripts/atelie_barba_gemini.py (pintada sobre o manequim), não deste script.
+Esclera: em todos os rostos e no manequim a esclera era bege-rosada; vira branca neutra com a mesma
+sombra e as pontas afinando até a pálpebra (esclera_neutra). Pixels opacos com a cor da pele do rosto
+recebem máscara de pele inteira (sem fios claros ao trocar o tom de pele).
 É idempotente: rodar de novo não muda nada.
 
 Uso: python3 scripts/atelie_corrigir_rostos.py [caminho do layers.js]
@@ -33,8 +31,10 @@ ROSTOS = ['rosto-redondo', 'rosto-quadrado', 'rosto-fino', 'rosto-delicado',
 # abertura dos olhos (pixels do manequim), contornando por dentro as pálpebras
 OLHOS = {
     'rosto-jovem': [
-        [(150, 238), (160, 230), (177, 227), (186, 235), (189, 248), (186, 260), (173, 266), (158, 263), (151, 253)],
-        [(244, 258), (248, 247), (257, 238), (273, 233), (290, 239), (298, 249), (290, 261), (273, 267), (257, 267), (248, 264)],
+        [(147, 245), (149, 239), (153, 233), (160, 229), (177, 226), (186, 232), (190, 240), (192, 248), (193, 252),
+         (190, 258), (184, 262), (173, 265), (160, 264), (153, 260), (149, 253)],
+        [(240, 255), (243, 248), (246, 244), (250, 241), (257, 238), (273, 234), (290, 239), (298, 249), (300, 253),
+         (292, 262), (282, 265), (273, 267), (257, 267), (248, 265), (244, 261)],
     ],
 }
 # contorno do rosto (pixels do manequim): fora dele a camada pintou pescoço, gola e hachuras sobre a roupa.
@@ -55,6 +55,9 @@ def dec(uri, mode):
 
 def enc(arr, mode):
     b = io.BytesIO()
+    if mode == 'RGBA':  # WebP sem perda (exato, inclusive o RGB sob alfa 0): bem menor que PNG
+        Image.fromarray(arr, mode).save(b, 'WEBP', lossless=True, exact=True, method=6)
+        return 'data:image/webp;base64,' + base64.b64encode(b.getvalue()).decode()
     Image.fromarray(arr, mode).save(b, 'PNG', optimize=True)
     return 'data:image/png;base64,' + base64.b64encode(b.getvalue()).decode()
 
@@ -64,6 +67,61 @@ def poligono(h, w, x0, y0, pts):
     from PIL import ImageDraw
     ImageDraw.Draw(m).polygon([(x - x0, y - y0) for x, y in pts], fill=1)
     return np.array(m).astype(bool)
+
+
+CAIXA_OLHOS = (138, 212, 322, 292)  # x0, y0, x1, y1 em pixels do manequim
+
+
+def na_caixa_dos_olhos(h, w, x0, y0):
+    yy, xx = np.mgrid[0:h, 0:w]
+    X, Y = xx + x0, yy + y0
+    a, b, c, d = CAIXA_OLHOS
+    return (X >= a) & (X < c) & (Y >= b) & (Y < d)
+
+
+def esclera_neutra(out, m, pm, x0, y0, nao_pele):
+    """Esclera branca neutra (era bege-rosada), com a mesma sombra; as pontas afinam sem corte.
+    Núcleo: pixel claro e pouco saturado perto do traço do olho. Em volta (2 px) a troca é gradual
+    pela saturação, então o canto do olho continua afinando até a pálpebra. A máscara de pele sai da
+    esclera (não escurece nem avermelha com o tom de pele). nao_pele: o que a pintura não marcou como
+    pele (máscara pm do rosto; no manequim, fora da camada de pele) — brilho de pálpebra é pele e fica."""
+    h, w = out.shape[:2]
+    caixa = na_caixa_dos_olhos(h, w, x0, y0)
+    rgb = out[..., :3]
+    lum = rgb @ [.299, .587, .114]
+    mx, mn = rgb.max(-1), rgb.min(-1)
+    sat = (mx - mn) / np.maximum(mx, 1)
+    op = out[..., 3] > 200
+    tinta = op & (lum < 90)
+    nucleo = caixa & op & nao_pele & (lum > 150) & (sat < .22) & nd.binary_dilation(tinta, iterations=7)
+    lab, n = nd.label(nucleo)
+    if n:
+        tam = nd.sum(nucleo, lab, range(1, n + 1))
+        nucleo = np.isin(lab, 1 + np.where(tam >= 6)[0])
+    borda = nd.binary_dilation(nucleo, iterations=2) & op & ~tinta & caixa & nao_pele
+    peso = np.clip((.30 - sat) / .10, 0, 1) * np.clip((lum - 110) / 50, 0, 1)
+    peso = np.where(nucleo, 1.0, np.where(borda, peso, 0.0))
+    L = np.minimum(lum * 1.06, 248)
+    alvo = np.stack([L * 1.0, L * .99, L * .985], -1)
+    out[..., :3] = rgb * (1 - peso[..., None]) + alvo * peso[..., None]
+    m = m * (1 - peso)
+    pm = pm * (1 - peso)
+    return out, m, pm
+
+
+def esclera_do_manequim(L):
+    c = L['corpo']
+    if c.get('ajuste') == 'esclera-1':
+        return None
+    S = dec(c['src'], 'RGBA').astype(float)
+    h, w = S.shape[:2]
+    z = np.zeros((h, w))
+    antes = S.copy()
+    pele = dec(L['pele']['src'], 'RGBA')[..., 3] > 0
+    S, _, _ = esclera_neutra(S, z, z, 0, 0, ~pele)
+    c['src'] = enc(S.round().clip(0, 255).astype(np.uint8), 'RGBA')
+    c['ajuste'] = 'esclera-1'
+    return dict(pixels=int((np.abs(S - antes).max(-1) > 1).sum()))
 
 
 def tom_de_pele(rgb):
@@ -76,13 +134,14 @@ def tom_de_pele(rgb):
 
 def corrige(L, k, corpo, cabeca):
     c = L[k]
-    if c.get('ajuste') == 'rosto-1':
+    if c.get('ajuste') == 'rosto-2':
         return None
     x0, y0 = c['x'], c['y']
     S = dec(c['src'], 'RGBA').astype(float)
     h, w = S.shape[:2]
     m = dec(c['m'], 'L').astype(float) if 'm' in c else np.zeros((h, w))
     pm = dec(c['pm'], 'L').astype(float) if 'pm' in c else np.zeros((h, w))
+    pm0 = pm.copy()
     A = S[..., 3]
     C = corpo[max(0, y0):y0 + h, max(0, x0):x0 + w]
     C = np.pad(C, ((max(0, -y0), h - C.shape[0] - max(0, -y0)), (max(0, -x0), w - C.shape[1] - max(0, -x0)), (0, 0)))
@@ -122,6 +181,7 @@ def corrige(L, k, corpo, cabeca):
         pm = np.where((semi | fresta) & perto, 255, pm)
     # 3
     olho = np.zeros((h, w), bool)
+    olho_rep = np.zeros((h, w), bool)
     for pts in OLHOS.get(k, []):
         olho |= poligono(h, w, x0, y0, pts)
     if olho.any():
@@ -140,47 +200,31 @@ def corrige(L, k, corpo, cabeca):
         sombra = nd.gaussian_filter((traco | iris).astype(float), 2.2)
         Lc = 238 - 70 * np.clip(sombra, 0, 1)
         cor = np.stack([Lc, Lc * .975, Lc * .96], -1)
+        # canto sem traço (encosta direto na pele): a esclera esmaece em ~2 px em vez de terminar num corte reto
+        dentro = nd.distance_transform_edt(olho)
+        perto_tinta = nd.binary_dilation(traco, iterations=2)
+        f = np.where(perto_tinta, 1.0, np.clip((dentro - .5) / 2.0, .35, 1.0))[..., None]
+        cor = raw * (1 - f) + cor * f
         out[escl, :3] = cor[escl]
         out[olho & manter, :3] = raw[olho & manter]
         out[olho, 3] = 255
         m[olho] = 0
         pm[olho] = 0
+        olho_rep = escl
         olho = escl
     st = dict(contorno=corte, semitransparente=int(semi.sum()), fresta=int(fresta.sum()), olho=int(olho.sum()))
+    out, m, pm = esclera_neutra(out, m, pm, x0, y0, (pm0 < 100) | olho_rep)
+    # pele inteira (pm 255) em todo pixel opaco com a cor da pele do rosto, fora dos olhos: sem fios claros ao trocar o tom
+    if ref.sum() > 50:
+        perto = (np.abs(out[..., :3] - pel).max(-1) < 40) & (out[..., 3] >= 250) & ~na_caixa_dos_olhos(h, w, x0, y0)
+        pm = np.where(perto, 255, pm)
     c['src'] = enc(out.round().clip(0, 255).astype(np.uint8), 'RGBA')
-    c['ajuste'] = 'rosto-1'
+    c['ajuste'] = 'rosto-2'
     if 'm' in c:
         c['m'] = enc(m.round().clip(0, 255).astype(np.uint8), 'L')
     if 'pm' in c:
         c['pm'] = enc(pm.round().clip(0, 255).astype(np.uint8), 'L')
     return st
-
-
-BARBA = dict(boca_y=335, boca_x=237, escala=1.06, abre=0.0025, desce=0.55, max_desce=30, folga_esq=40, folga_dir=50)
-
-
-def ajusta_barba(L, k='barba-cheia'):
-    c = L.get(k)
-    if not c or c.get('ajuste') == 'encaixe-rosto-1':
-        return None
-    b = BARBA
-    S = dec(c['src'], 'RGBA').astype(float)
-    M = dec(c['m'], 'L').astype(float) if 'm' in c else None
-    h, w = S.shape[:2]
-    x0, y0 = c['x'], c['y']
-    W2, X0n = w + b['folga_esq'] + b['folga_dir'], x0 - b['folga_esq']
-    yy, xx = np.mgrid[0:h, 0:W2].astype(float)
-    Y, X = yy + y0, xx + X0n
-    dx = np.where(Y > b['boca_y'], np.minimum((Y - b['boca_y']) * b['desce'], b['max_desce']), 0)
-    esc = b['escala'] + np.maximum(b['boca_y'] - Y, 0) * b['abre']
-    cs = b['boca_x'] + (X - dx - b['boca_x']) / esc - x0  # coluna de origem (mapa inverso)
-    out = np.stack([nd.map_coordinates(S[..., ch], [yy, cs], order=1, mode='constant', cval=0) for ch in range(4)], -1)
-    c['src'] = enc(out.round().clip(0, 255).astype(np.uint8), 'RGBA')
-    if M is not None:
-        c['m'] = enc(nd.map_coordinates(M, [yy, cs], order=1, mode='constant', cval=0).round().clip(0, 255).astype(np.uint8), 'L')
-    c['x'] = int(X0n)
-    c['ajuste'] = 'encaixe-rosto-1'
-    return dict(x=c['x'], largura=W2)
 
 
 def main(path):
@@ -193,7 +237,7 @@ def main(path):
     for k in ROSTOS:
         if k in L:
             print(k, corrige(L, k, corpo, cabeca))
-    print('barba-cheia', ajusta_barba(L))
+    print('corpo (olhos do manequim)', esclera_do_manequim(L))
     novo = txt[:i] + json.dumps(L, ensure_ascii=False, separators=(',', ':')) + txt[i + fim:]
     open(path, 'w', encoding='utf8').write(novo)
 
