@@ -31,7 +31,7 @@ async function checarEncaixe(){
   }
   /* 2) Jovem: a abertura dos olhos é opaca e a esclera é clara (sem o olho do manequim nem manchas de pele) */
   {const c=L['rosto-jovem'],I=await px(c.src);
-    const olhos=[[150,238,160,230,177,227,186,235,189,248,186,260,173,266,158,263,151,253],[244,258,248,247,257,238,273,233,290,239,298,249,290,261,273,267,257,267,248,264]];
+    const olhos=[[147,245,149,239,153,233,160,229,177,226,186,232,190,240,192,248,193,252,190,258,184,262,173,265,160,264,153,260,149,253],[240,255,243,248,246,244,250,241,257,238,273,234,290,239,298,249,300,253,292,262,282,265,273,267,257,267,248,265,244,261]];
     const dentro=(pts,X,Y)=>{let s=false;for(let i=0,j=pts.length-2;i<pts.length;j=i,i+=2){const xi=pts[i],yi=pts[i+1],xj=pts[j],yj=pts[j+1];
       if((yi>Y)!==(yj>Y)&&X<(xj-xi)*(Y-yi)/(yj-yi)+xi)s=!s;}return s;};
     let buraco=0,mancha=0,claro=0,total=0;
@@ -43,6 +43,28 @@ async function checarEncaixe(){
     if(buraco)falha('rosto-jovem: '+buraco+' pixels abertos nos olhos');
     if(mancha>12)falha('rosto-jovem: '+mancha+' manchas cor de pele dentro dos olhos');
     if(claro<total*.35)falha('rosto-jovem: esclera escura ('+claro+'/'+total+')');}
+  /* 2b) esclera branca neutra em todos os rostos e no manequim (era bege-rosada) */
+  r.esclera={};
+  for(const k of ['corpo',...Object.keys(L).filter(k=>/^rosto-/.test(k))]){
+    const c=L[k],I=await px(c.src),ox=c.x||0,oy=c.y||0;let n=0,sat=0,rb=0;
+    const PM=c.pm?await px(c.pm):null; // brilho de pálpebra é pele (pm) e não entra na conta
+    const ehPele=(x,y,X,Y)=>PM?PM.d[(y*PM.w+x)*4]>=100:(k==='corpo'&&pele.d[(Y*W+X)*4+3]>0);
+    for(let Y=215;Y<290;Y++)for(let X=140;X<320;X++){const x=X-ox,y=Y-oy;if(x<0||y<0||x>=I.w||y>=I.h)continue;const i=(y*I.w+x)*4;if(I.d[i+3]<200)continue;
+      const R=I.d[i],G=I.d[i+1],B=I.d[i+2],mx=Math.max(R,G,B),mn=Math.min(R,G,B),lum=.299*R+.587*G+.114*B,s=mx?(mx-mn)/mx:0;
+      if(lum>170&&s<.22&&!ehPele(x,y,X,Y)){n++;sat+=s;rb+=R-B;}}
+    r.esclera[k]={n,sat:+(sat/Math.max(n,1)).toFixed(3),rb:+(rb/Math.max(n,1)).toFixed(1)};
+    if(n<150)falha(k+': esclera não encontrada ('+n+' px)');
+    else if(sat/n>.06||rb/n>10)falha(k+': esclera avermelhada (saturação '+(sat/n).toFixed(3)+', R-B '+(rb/n).toFixed(1)+')');
+  }
+  /* 2c) jaleco: vão entre o corpo e o braço aberto, mão sem sombra por cima e perna sem tecido fora da borda */
+  {const c=L['roupa-jaleco'],I=await px(c.src);
+    const a=(X,Y)=>{const x=X-c.x,y=Y-c.y;return x>=0&&y>=0&&x<I.w&&y<I.h?I.d[(y*I.w+x)*4+3]:0;};
+    const conta=(pts)=>pts.filter(([X,Y])=>a(X,Y)>0).length;
+    const vao=conta([[430,700],[432,740],[435,780],[438,820],[440,850]]),mao=conta([[445,930],[450,960],[440,985],[430,950],[425,1000]]),perna=conta([[302,950],[304,970],[306,990]]);
+    r.jaleco={vao,mao,perna};
+    if(vao)falha('roupa-jaleco: tecido pintado no vão entre o corpo e o braço ('+vao+')');
+    if(mao)falha('roupa-jaleco: sombra/contorno por cima da mão ('+mao+')');
+    if(perna)falha('roupa-jaleco: tecido fora da borda, sobre a calça ('+perna+')');}
   /* 3) Redondo: nada pintado abaixo do queixo (gola cinza e hachuras cobriam a roupa) */
   {const c=L['rosto-redondo'],I=await px(c.src);let n=0;
     for(let y=Math.max(0,395-c.y);y<I.h;y++)for(let x=0;x<I.w;x++)if(I.d[(y*I.w+x)*4+3])n++;
@@ -51,7 +73,7 @@ async function checarEncaixe(){
   {const c=L['barba-cheia'],I=await px(c.src);
     const a=(X,Y)=>{const x=X-c.x,y=Y-c.y;return x>=0&&y>=0&&x<I.w&&y<I.h?I.d[(y*I.w+x)*4+3]:0;};
     const conta=(x0,y0,x1,y1)=>{let n=0;for(let Y=y0;Y<y1;Y++)for(let X=x0;X<x1;X++)if(a(X,Y)>40)n++;return n;};
-    const olhoE=conta(145,226,200,268),olhoD=conta(235,230,300,272),boca=a(237,334),queixo=Math.min(a(258,392),a(250,385));
+    const olhoE=conta(145,226,200,268),olhoD=conta(235,230,300,272),boca=a(232,342),queixo=Math.min(a(258,392),a(250,385));
     let costE=1e9,costD=-1;for(let X=0;X<W;X++){if(a(X,280)>128){costE=Math.min(costE,X);costD=Math.max(costD,X);}}
     r.barba={olhoE,olhoD,boca,queixo,costE,costD};
     if(olhoE||olhoD)falha('barba-cheia: cobre os olhos ('+olhoE+'/'+olhoD+' pixels)');
