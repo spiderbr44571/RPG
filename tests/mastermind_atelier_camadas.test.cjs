@@ -51,3 +51,30 @@ test('Token se afasta só quando o cabelo sobe além da folga',()=>{
  assert.match(js,/if\(ty>=BUST_FOLGA\)return BUST;/);
  assert.match(js,/const B=bustBox\(full,k\)/);
 });
+test('Rostos e barba corrigidos para encaixar no manequim (script de correção aplicado)',()=>{
+ const ctx={window:{}};vm.runInNewContext(read('mastermind99_atelier_layers.js'),ctx);
+ const L=ctx.window.MastermindAtelierLayers;
+ for(const k of ['rosto-redondo','rosto-quadrado','rosto-fino','rosto-delicado','rosto-marcante','rosto-idoso','rosto-jovem','rosto-elfo'])
+  assert.equal(L[k].ajuste,'rosto-1','rosto sem correção de frestas: '+k);
+ assert.equal(L['barba-cheia'].ajuste,'encaixe-rosto-1');
+ assert.ok(L['barba-cheia'].x<110,'barba deveria abrir até o contorno do rosto');
+ const py=fs.readFileSync(path.join(__dirname,'..','scripts/atelie_corrigir_rostos.py'),'utf8');
+ assert.match(py,/OLHOS = \{\n    'rosto-jovem'/);
+ assert.match(py,/CONTORNO = \{\n    'rosto-redondo'/);
+});
+test('Rostos, cabelos novos e barba: todas as peças do catálogo têm camada e o rosto redondo fica à frente das roupas',()=>{
+ const ctx={window:{}};vm.runInNewContext(read('mastermind99_atelier_layers.js'),ctx);
+ const L=ctx.window.MastermindAtelierLayers,js=read('mastermind99_atelier.js');
+ for(const k of ['rosto-redondo','rosto-quadrado','rosto-fino','rosto-delicado','rosto-marcante','rosto-idoso','rosto-jovem','rosto-elfo',
+   'cabelo-ondulado','cabelo-trancas','cabelo-rabo-alto','cabelo-pixie','cabelo-coque-alto','cabelo-chiquinha','cabelo-afro','cabelo-cachos-longos','cabelo-lateral','barba-cheia']){
+  assert.ok(L[k]&&/^data:image\//.test(L[k].src),'faltando '+k);assert.match(js,new RegExp('"camada":"'+k+'"|camada:\''+k+"'"));
+ }
+ assert.match(js,/PECAS\.rosto\.find\(p=>p\.id==='redondo'\);if\(r\)r\.z=32;/);
+ assert.match(js,/const CAT_Z=\{rosto:5,calcado:10,calca:20,roupa:30,barba:35,cabelo:40/);
+ assert.match(js,/\['Corpo',\[\['rosto','Formato do rosto','slot'\],\['pele','Tom de pele','swatch',PELES\]\]\]/);
+ assert.match(js,/function P\(o\)\{return Object\.assign\(\{rosto:'',/);
+ // cabelo tingido sem vazar a cor original; pele pintada no cabelo vai para baixo do rosto
+ assert.match(js,/function splitHair\(key,color,pele\)/);
+ assert.match(js,/function nucaCabelo\(p,rosto\)/);
+ for(const k of Object.keys(L).filter(k=>k.startsWith('cabelo')))assert.ok(L[k].src&&L[k].m,'camada incompleta: '+k);
+});
