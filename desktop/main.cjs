@@ -317,7 +317,7 @@ async function choosePdf(systemId='custom'){
   const id='book-'+require('node:crypto').randomBytes(9).toString('hex');
   const dest=bookFile(id);
   await fs.promises.copyFile(p,dest);
-  const meta={id,name:path.basename(p),available:true,storage:'desktop',systemId:catalogSystemIds.has(systemId)?systemId:'custom',size:stat.size,addedAt:Date.now()};
+  const meta={id,name:path.basename(p),available:true,storage:'desktop',systemId:catalogSystemIds.has(systemId)||/^proprio-[a-z0-9]{4,40}$/.test(String(systemId))?systemId:'custom',size:stat.size,addedAt:Date.now()};
   list.push(meta);added.push(meta);savedPdf=meta;
  }
  await saveBooks(list);

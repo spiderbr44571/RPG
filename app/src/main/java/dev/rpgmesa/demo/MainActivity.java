@@ -1,6 +1,8 @@
 package dev.rpgmesa.demo;
 
 import android.app.Activity;
+import android.content.ClipData;
+import android.webkit.MimeTypeMap;
 import android.content.pm.ActivityInfo;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -249,8 +251,20 @@ public final class MainActivity extends Activity {
                if(pendingUpload!=null)pendingUpload.onReceiveValue(null);
                pendingUpload=cb;
                try {
-                   Intent i=args.createIntent();
-                   startActivityForResult(i,PICK_LOCAL_FILE);
+                   // O createIntent() do WebView usa só o primeiro tipo do accept (ex.: "audio/*,video/*" virava só áudio).
+                   // Aqui todos os tipos entram no seletor, e a escolha de vários arquivos também é aceita.
+                   java.util.ArrayList<String> types=new java.util.ArrayList<>();
+                   String[] accept=args.getAcceptTypes();
+                   if(accept!=null)for(String group:accept){if(group==null)continue;for(String raw:group.split(",")){
+                     String t=raw.trim().toLowerCase(java.util.Locale.ROOT);if(t.isEmpty())continue;
+                     if(t.startsWith(".")){String m=MimeTypeMap.getSingleton().getMimeTypeFromExtension(t.substring(1));if(m==null)continue;t=m;}
+                     if(t.matches("[a-z0-9.+-]+/[a-z0-9.+*-]+")&&!types.contains(t))types.add(t);}}
+                   Intent i=new Intent(Intent.ACTION_GET_CONTENT);
+                   i.addCategory(Intent.CATEGORY_OPENABLE);
+                   if(types.size()==1)i.setType(types.get(0));
+                   else{i.setType("*/*");if(types.size()>1)i.putExtra(Intent.EXTRA_MIME_TYPES,types.toArray(new String[0]));}
+                   if(args.getMode()==FileChooserParams.MODE_OPEN_MULTIPLE)i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
+                   startActivityForResult(Intent.createChooser(i,"Escolher arquivo"),PICK_LOCAL_FILE);
                    return true;
                } catch(Exception err) {
                    pendingUpload=null;
@@ -402,7 +416,17 @@ public final class MainActivity extends Activity {
           return;
         }
         if(request==PICK_LOCAL_FILE && pendingUpload!=null){
-          Uri[] chosen=WebChromeClient.FileChooserParams.parseResult(result,data);
+          // Vários arquivos chegam em ClipData (parseResult ignora); um só, em getData().
+          Uri[] chosen=null;
+          if(result==Activity.RESULT_OK&&data!=null){
+            ClipData clip=data.getClipData();
+            if(clip!=null&&clip.getItemCount()>0){
+              java.util.ArrayList<Uri> list=new java.util.ArrayList<>();
+              for(int n=0;n<clip.getItemCount();n++){Uri u=clip.getItemAt(n).getUri();if(u!=null)list.add(u);}
+              if(!list.isEmpty())chosen=list.toArray(new Uri[0]);
+            }
+            if(chosen==null&&data.getData()!=null)chosen=new Uri[]{data.getData()};
+          }
           pendingUpload.onReceiveValue(chosen);
           pendingUpload=null;
         }

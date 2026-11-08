@@ -1,6 +1,6 @@
 # Mastermind
 
-Versão atual: **Android v0.111** · **Linux e Windows v1.4.1** — a nova interface é a única do app, com o Canvas
+Versão atual: **Android v0.112** · **Linux e Windows v1.4.2** — a nova interface é a única do app, com o Canvas
 infinito próprio; a interface clássica foi retirada sem perder funções nem dados salvos.
 
 ## Organização do repositório
@@ -20,6 +20,23 @@ infinito próprio; a interface clássica foi retirada sem perder funções nem d
   (veja a docstring de `atelie_corrigir_rostos.py` para regenerar).
 
 ## Histórico
+
+# Mastermind v0.112 (Android) · v1.4.2 (Linux e Windows) — sistemas próprios, criaturas novas e mídia no Canvas
+
+**Canvas:** imagens e vídeos voltam a entrar no Android. O seletor de arquivos do app agora mostra todos os tipos
+pedidos (antes, em "áudio ou vídeo", só aparecia áudio) e aceita a escolha de vários arquivos (antes o arquivo
+escolhido não chegava). Fotos HEIC/GIF e vídeos sem tipo informado também são aceitos. No celular, a gaveta de
+criaturas não fica mais embaixo do zoom.
+
+**Bestiário:** "Nova criatura" para qualquer sistema, inclusive os sistemas próprios: PV, defesa, ataque, dano,
+deslocamento, iniciativa, VD, tamanho, elemento, habilidades, descrição e fonte. Dá para editar e excluir. As
+criaturas ficam no mesmo armazenamento do bestiário anterior (as criadas antes também aparecem) e entram na mesa ao
+vivo e no Canvas (aba "Outras" para os demais sistemas).
+
+**Sistemas próprios:** em Biblioteca → "Novo sistema": nome, edição, descrição, dado do teste e como o atributo entra
+nele (somado ao dado, quantidade de dados ou rolar abaixo), atributos (mínimo, máximo e inicial), recursos (máximo
+inicial e cor) e a defesa. O sistema tem tela própria (editar valores, excluir, PDFs do aparelho e regras e conteúdo,
+como perícias e poderes) e fichas em Fichas, editadas ali mesmo, com teste de atributo pela regra do sistema.
 
 # Mastermind v0.111 (Android) · v1.4.1 (Linux e Windows) — Biblioteca em estante e ferramentas sem o menu antigo
 

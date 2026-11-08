@@ -185,7 +185,7 @@ function boot(){
  }
  setupNavigation();refineModules();renderHome();
  // Versão instalada: Android (app/build.gradle) ou desktop Linux/Windows (package.json). Os testes conferem as duas.
- const MM_VERSAO={android:'v0.111',desktop:'v1.4.1'};
+ const MM_VERSAO={android:'v0.112',desktop:'v1.4.2'};
  const mmVersao=window.MastermindDesktop?MM_VERSAO.desktop:MM_VERSAO.android;
  const versionBadge=$('#mm-release');if(versionBadge)versionBadge.textContent=mmVersao;
  const atelieKicker=$('#ma99-atelier .ma99-kicker');if(atelieKicker)atelieKicker.textContent='MASTERMIND · ATELIÊ · '+mmVersao;

@@ -116,7 +116,7 @@ function build(){C.root=$('#canvas-v');C.root.innerHTML=`
  <aside class="float panel cv-panel" aria-label="Detalhes" hidden></aside>
  <aside class="float drawer cv-drawer" aria-label="Criaturas" hidden></aside>
  <div class="float zoom"><button class="ibtn" type="button" data-cz="-1" aria-label="Diminuir zoom">${ic('zoom-out')}</button><span class="num zoom-v">100%</span><button class="ibtn" type="button" data-cz="1" aria-label="Aumentar zoom">${ic('zoom-in')}</button><button class="ibtn" type="button" data-cz="0" aria-label="Enquadrar tudo">${ic('focus-2')}</button></div>
- <input type="file" class="cv-file-img" accept="image/png,image/jpeg,image/webp" multiple hidden><input type="file" class="cv-file-media" accept="audio/*,video/*" multiple hidden>`;
+ <input type="file" class="cv-file-img" accept="image/*" multiple hidden><input type="file" class="cv-file-media" accept="audio/*,video/*" multiple hidden>`;
  RV.hydrateIcons(C.root);bind();C.built=true}
 function chrome(){const b=board();$('.cv-board-name',C.root).textContent=b.name;$('.cv-board-camp',C.root).textContent=b.campaign;
  $('.cv-count',C.root).textContent=`${C.nodes.length} cartões · ${C.monsters.length} criaturas · ${C.links.length} ligações`;
@@ -156,9 +156,9 @@ function panel(){const p=$('.cv-panel',C.root);if(!C.panel){p.hidden=true;return
   <div class="row"><button class="btn sm" type="button" data-cv-act="link-from">${ic('link')}Ligar a outro item</button><button class="btn sm danger-btn" type="button" data-cv-act="del">${ic('trash')}Remover criatura</button></div></div>`}
 
 function drawer(){const d=$('.cv-drawer',C.root);d.hidden=!C.drawer;if(!C.drawer)return;const q=C.drawerQ.toLowerCase();
- const list=Object.values(RV.CREATURES).filter(c=>c.sys===C.drawerSys&&(!q||c.name.toLowerCase().includes(q)));
+ const list=Object.values(RV.CREATURES).filter(c=>(C.drawerSys==='outras'?!['ordem','dnd'].includes(c.sys):c.sys===C.drawerSys)&&(!q||c.name.toLowerCase().includes(q)));
  d.innerHTML=RV.fh('Canvas','Criaturas','cv-drawer')+`<div class="panel-body">
-  <div class="seg" role="group" aria-label="Sistema"><button type="button" data-dsys="ordem" aria-pressed="${C.drawerSys==='ordem'}">Ordem Paranormal</button><button type="button" data-dsys="dnd" aria-pressed="${C.drawerSys==='dnd'}">D&amp;D 5e</button></div>
+  <div class="seg" role="group" aria-label="Sistema"><button type="button" data-dsys="ordem" aria-pressed="${C.drawerSys==='ordem'}">Ordem Paranormal</button><button type="button" data-dsys="dnd" aria-pressed="${C.drawerSys==='dnd'}">D&amp;D 5e</button><button type="button" data-dsys="outras" aria-pressed="${C.drawerSys==='outras'}">Outras</button></div>
   <input class="input" id="cv-q" placeholder="Procurar criatura" value="${esc(C.drawerQ)}" aria-label="Procurar criatura" style="min-height:40px">
   <button class="btn sm" type="button" data-cv-act="custom" aria-expanded="${C.custom}">${ic('plus')}Criar personalizada</button>
   ${C.custom?`<form class="cv-custom"><div class="field"><label>Nome</label><input class="input" name="name" maxlength="56" required style="min-height:36px"></div><div class="grid2"><div class="field"><label>Vida</label><input class="input num" name="hp" type="number" min="1" max="9999" value="30" required style="min-height:36px"></div><div class="field"><label>Defesa</label><input class="input num" name="defense" type="number" min="0" max="999" value="12" required style="min-height:36px"></div><div class="field"><label>Bônus de ataque</label><input class="input num" name="bonus" type="number" min="-20" max="30" value="3" required style="min-height:36px"></div><div class="field"><label>Dano</label><input class="input num" name="damage" value="1d6+2" required pattern="[1-9]d(4|6|8|10|12|20|100)([+-][0-9]{1,2})?" style="min-height:36px"></div></div><button class="btn sm primary" type="submit">Criar e colocar</button></form>`:''}
@@ -175,16 +175,20 @@ function compress(img){const cv=document.createElement('canvas'),ctx=cv.getConte
 const loadImage=f=>new Promise((ok,no)=>{const r=new FileReader();r.onerror=()=>no(Error('Falha ao ler o arquivo'));r.onload=()=>{const i=new Image();i.onerror=()=>no(Error('Imagem inválida'));i.onload=()=>ok(i);i.src=r.result};r.readAsDataURL(f)});
 async function addImages(files){if(C.busy)return toast('Aguarde o arquivo anterior.');C.busy=true;let last=null;
  try{for(const f of files){if(C.nodes.length>=LIMIT.nodes){toast('O Canvas chegou a 500 itens.');break}
-  if(!(/^image\/(png|jpeg|webp)$/.test(f.type)||(!f.type&&/\.(png|jpe?g|webp)$/i.test(f.name)))||!f.size||f.size>LIMIT.image){toast('Use PNG, JPG ou WebP de até 10 MB.');continue}
-  try{const im=await loadImage(f),data=compress(im),p=spot(320,Math.round(290*im.naturalHeight/Math.max(1,im.naturalWidth))+80);const n={id:Date.now()+Math.random(),title:(f.name.replace(/\.[^.]+$/,'')||'Imagem').slice(0,110),type:'IMAGEM',text:'',imageData:data,width:320,left:p.x,top:p.y,theme:''};
+  /* qualquer imagem que o aparelho consiga abrir (PNG, JPG, WebP, GIF, HEIC no Android); vira WebP comprimido como antes */
+  if(!(/^image\//.test(f.type)||(!f.type&&/\.(png|jpe?g|webp|gif|bmp|heic|heif|avif)$/i.test(f.name)))||!f.size||f.size>LIMIT.image){toast('Use uma imagem (PNG, JPG, WebP…) de até 10 MB.');continue}
+  try{const im=await loadImage(f).catch(()=>{throw Error('Este aparelho não conseguiu abrir "'+f.name+'". Tente PNG ou JPG.')}),data=compress(im),p=spot(320,Math.round(290*im.naturalHeight/Math.max(1,im.naturalWidth))+80);const n={id:Date.now()+Math.random(),title:(f.name.replace(/\.[^.]+$/,'')||'Imagem').slice(0,110),type:'IMAGEM',text:'',imageData:data,width:320,left:p.x,top:p.y,theme:''};
    C.nodes.push(n);if(!save()){C.nodes.pop();continue}last=n;render()}catch(e){toast(e.message)}}}
  finally{C.busy=false}if(last){render();select('node:'+last.id);toast('Imagem adicionada ao Canvas.')}}
+/* No Android, o arquivo escolhido pode chegar sem tipo: o tipo vem da extensão. */
+const MEDIA_EXT={mp4:'video/mp4',m4v:'video/mp4',webm:'video/webm',mov:'video/quicktime',mkv:'video/x-matroska','3gp':'video/3gpp',ogv:'video/ogg',mp3:'audio/mpeg',m4a:'audio/mp4',aac:'audio/aac',ogg:'audio/ogg',oga:'audio/ogg',opus:'audio/ogg',wav:'audio/wav',flac:'audio/flac'};
+function mediaType(f){if(/^(audio|video)\/[a-z0-9.+-]+$/i.test(f.type||''))return f.type;const ext=(/\.([a-z0-9]+)$/i.exec(f.name||'')||[])[1];return MEDIA_EXT[(ext||'').toLowerCase()]||''}
 async function addMedia(files){if(C.busy)return toast('Aguarde o arquivo anterior.');C.busy=true;let last=null;
- try{for(const f of files){const audio=/^audio\//.test(f.type),okType=/^(audio|video)\/[a-z0-9.+-]+$/i.test(f.type||'');
+ try{for(const f of files){const kind=mediaType(f),audio=/^audio\//.test(kind),okType=!!kind;
   if(!okType||!f.size||f.size>(audio?LIMIT.audio:LIMIT.video)){toast('Use áudio de até 25 MB ou vídeo de até 75 MB. MP3 e MP4 são os mais compatíveis.');continue}
   if(C.nodes.length>=LIMIT.nodes){toast('O Canvas chegou a 500 itens.');break}
   const id=uuid(),p=spot(340,audio?150:300),n={id:Date.now()+Math.random(),title:f.name.slice(0,110),type:audio?'ÁUDIO':'VÍDEO',text:'',mediaId:id,mediaKind:audio?'audio':'video',width:340,left:p.x,top:p.y,theme:''};
-  try{await putMedia({id,blob:f,name:f.name,type:f.type});C.nodes.push(n);if(!save()){C.nodes.pop();await delMedia(id).catch(()=>{});continue}last=n;render()}
+  try{await putMedia({id,blob:f.type?f:new Blob([f],{type:kind}),name:f.name,type:kind});C.nodes.push(n);if(!save()){C.nodes.pop();await delMedia(id).catch(()=>{});continue}last=n;render()}
   catch(e){toast('Não foi possível guardar o arquivo neste aparelho: '+(e.message||'erro'))}}}
  finally{C.busy=false}if(last){render();select('node:'+last.id);toast('Mídia adicionada ao Canvas.')}}
 function removeSel(){const ref=C.sel;if(!ref)return;const o=find(ref);if(!o)return;

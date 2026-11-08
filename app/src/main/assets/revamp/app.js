@@ -18,23 +18,58 @@ RV.tool=screen=>{if(RV.Net?.served)return;try{sessionStorage.setItem('mm-rv-retu
 function closeCentral(){const c=$('#central');if(c){c.remove();return true}return false}
 
 /* ============ Bestiário (dados reais do catálogo) ============ */
-const B={sys:'ordem',el:'all',q:'',open:null};
+const B={sys:'ordem',el:'all',q:'',open:null,form:null};
 function freeCell(sc,size){const occ=Cena.blockedCells(sc);RV.state.tokens.forEach(t=>{for(let j=t.y;j<t.y+t.size;j++)for(let i=t.x;i<t.x+t.size;i++)occ.add(i+','+j)});
  const cand=Object.keys(sc.terrain).map(k=>k.split(',').map(Number)).sort((a,b)=>Math.hypot(a[0]-19,a[1]-8)-Math.hypot(b[0]-19,b[1]-8));
  for(const[x,y]of cand){let ok=true;for(let j=y;j<y+size&&ok;j++)for(let i=x;i<x+size&&ok;i++)if(!sc.terrain[i+','+j]||occ.has(i+','+j))ok=false;if(ok)return[x,y]}return[1,1]}
-function renderBestiary(){const list=Object.values(RV.CREATURES).filter(c=>c.sys===B.sys&&(B.el==='all'||c.element===B.el)&&(!B.q||c.name.toLowerCase().includes(B.q.toLowerCase())));
- $$('#best-sys button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.sys===B.sys)));$('#best-els').hidden=B.sys!=='ordem';$$('#best-els button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.el===B.el)));
+const BEAST_TABS=()=>[['ordem','Ordem Paranormal'],['dnd','D&D 5e'],['chamado-de-ctchulhu','Cthulhu'],['gurps','GURPS']].concat((RV.CustomSystems?.list()||[]).map(x=>[x.id,x.name]));
+function renderBestiary(){if(!BEAST_TABS().some(([k])=>k===B.sys))B.sys='ordem';
+ const list=Object.values(RV.CREATURES).filter(c=>c.sys===B.sys&&(B.el==='all'||c.element===B.el)&&(!B.q||c.name.toLowerCase().includes(B.q.toLowerCase())));
+ $('#best-sys').innerHTML=BEAST_TABS().map(([k,l])=>`<button type="button" data-sys="${esc(k)}" aria-pressed="${B.sys===k}">${esc(l)}</button>`).join('');
+ $('#best-els').hidden=B.sys!=='ordem';$$('#best-els button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.el===B.el)));
  $('#best-count').textContent=`${list.length} criatura${list.length===1?'':'s'}`;
- $('#best-grid').innerHTML=list.map(c=>{const col=RV.ELEMENT[c.element]||'#c7a87b';return `<button type="button" class="beast" data-beast="${esc(c.name)}" style="--el:${col}" aria-pressed="${B.open===c.name}"><span class="beast-disc">${esc(RV.initials(c.name))}</span><span class="beast-body"><b>${esc(c.name)}</b><span class="row" style="gap:5px">${c.element?`<span class="chip" style="color:${col};border-color:${col}55">${c.element}</span>`:`<span class="chip">${esc(c.type||'')}</span>`}<span class="chip">${RV.SIZE_LABEL[c.size]||'Médio'}</span>${c.vd?`<span class="chip">VD ${esc(c.vd)}</span>`:''}</span><span class="beast-stats num"><span>PV <b>${c.hp}</b></span><span>Def <b>${c.defense}</b></span><span>Atq <b>${esc(c.attack)}</b></span></span></span></button>`}).join('')||'<p class="muted">Nenhuma criatura encontrada.</p>';
- const d=$('#best-detail'),c=RV.CREATURES[B.open];d.hidden=!c;$('[data-view="bestiario"]').classList.toggle('with-detail',!!c);if(!c)return;const col=RV.ELEMENT[c.element]||'#c7a87b';
- d.innerHTML=`${RV.fh(c.system,c.name,'beast')}<div class="beast-hero" style="--el:${col}"><span class="beast-disc lg">${esc(RV.initials(c.name))}</span><div class="row" style="gap:6px">${c.element?`<span class="chip" style="color:${col};border-color:${col}55">${c.element}</span>`:''}<span class="chip">${RV.SIZE_LABEL[c.size]||'Médio'} · ${RV.sizeCells(c.size)}×${RV.sizeCells(c.size)} casas</span>${c.vd?`<span class="chip">VD ${esc(c.vd)}</span>`:''}</div></div>
+ $('#best-grid').innerHTML=list.map(c=>{const col=RV.ELEMENT[c.element]||'#c7a87b';return `<button type="button" class="beast" data-beast="${esc(c.name)}" style="--el:${col}" aria-pressed="${B.open===c.name}"><span class="beast-disc">${esc(RV.initials(c.name))}</span><span class="beast-body"><b>${esc(c.name)}</b><span class="row" style="gap:5px">${c.element?`<span class="chip" style="color:${col};border-color:${col}55">${c.element}</span>`:c.type?`<span class="chip">${esc(c.type)}</span>`:''}<span class="chip">${RV.SIZE_LABEL[c.size]||'Médio'}</span>${c.vd?`<span class="chip">VD ${esc(c.vd)}</span>`:''}${c.custom?'<span class="chip gold">sua</span>':''}</span><span class="beast-stats num"><span>PV <b>${c.hp}</b></span><span>Def <b>${c.defense}</b></span><span>Atq <b>${esc(c.attack)}</b></span></span></span></button>`}).join('')
+  ||`<div class="empty" style="grid-column:1/-1"><span data-i="skull"></span><b>Nenhuma criatura ${B.q?'com esse nome':'neste sistema ainda'}</b><p class="muted small" style="margin:0">Use "Nova criatura" para criar uma.</p></div>`;
+ RV.hydrateIcons($('#best-grid'));
+ const d=$('#best-detail');
+ if(B.form){d.hidden=false;$('[data-view="bestiario"]').classList.add('with-detail');d.innerHTML=beastForm();RV.hydrateIcons(d);return}
+ const c=RV.CREATURES[B.open];d.hidden=!c;$('[data-view="bestiario"]').classList.toggle('with-detail',!!c);if(!c)return;const col=RV.ELEMENT[c.element]||'#c7a87b';
+ d.innerHTML=`${RV.fh(c.system,c.name,'beast')}<div class="beast-hero" style="--el:${col}"><span class="beast-disc lg">${esc(RV.initials(c.name))}</span><div class="row" style="gap:6px">${c.element?`<span class="chip" style="color:${col};border-color:${col}55">${c.element}</span>`:c.elementText?`<span class="chip">${esc(c.elementText)}</span>`:''}${c.type?`<span class="chip">${esc(c.type)}</span>`:''}<span class="chip">${RV.SIZE_LABEL[c.size]||'Médio'} · ${RV.sizeCells(c.size)}×${RV.sizeCells(c.size)} casas</span>${c.vd?`<span class="chip">VD ${esc(c.vd)}</span>`:''}</div></div>
   <div class="kv"><span>Pontos de vida</span><b class="num">${c.hp}</b><span>Defesa</span><b class="num">${c.defense}</b><span>Ataque</span><b>${esc(c.attack)}</b><span>Dano</span><b>${esc(c.damage)}</b>${c.speed?`<span>Deslocamento</span><b>${esc(String(c.speed).replace('M',' m'))}</b>`:''}${c.initiative?`<span>Iniciativa</span><b>${esc(c.initiative)}</b>`:''}</div>
-  <p class="small muted" style="margin:0">${esc(c.source)}. ${c.sys==='ordem'?esc(RV.NOTE):'Confira ações e características especiais no SRD.'}</p>
+  ${c.powers?`<div><span class="label">Habilidades</span><p class="small" style="margin:4px 0 0;white-space:pre-wrap">${esc(c.powers)}</p></div>`:''}${c.notes?`<div><span class="label">Descrição</span><p class="small muted" style="margin:4px 0 0;white-space:pre-wrap">${esc(c.notes)}</p></div>`:''}
+  <p class="small muted" style="margin:0">${esc(c.source)}.${c.custom?'':' '+(c.sys==='ordem'?esc(RV.NOTE):'Confira ações e características especiais no SRD.')}</p>
+  ${c.custom?`<div class="row"><button class="btn sm" type="button" data-bf="edit">${ic('pencil')}Editar</button><button class="btn sm ghost" type="button" data-bf="del">${ic('trash')}Excluir</button></div>`:''}
   <div class="row"><button class="btn primary" type="button" id="best-add">${ic('plus')}Adicionar à mesa</button><a class="btn" href="#mesa">${ic('map')}Abrir a mesa</a></div><p class="small faint" style="margin:0">Entra na mesa oculta dos jogadores. Revele pelo menu do token.</p>`;
+ RV.hydrateIcons(d);
  $('#best-add').onclick=()=>{const sc=RV.state.scene,t=RV.mkCreature(c.name,0,0);const[x,y]=freeCell(sc,t.size);t.x=x;t.y=y;t.hidden=true;RV.state.tokens.push(t);RV.state.log.unshift({who:'Mestre',text:`${c.name} entrou no mapa (oculta)`});emit('state');toast(`${c.name} está na mesa, oculta dos jogadores.`,$('#app'))}}
-function bindBestiary(){$('#best-sys').onclick=e=>{const b=e.target.closest('[data-sys]');if(b){B.sys=b.dataset.sys;B.el='all';B.open=null;renderBestiary()}};$('#best-els').onclick=e=>{const b=e.target.closest('[data-el]');if(b){B.el=b.dataset.el;renderBestiary()}};
- $('#best-q').oninput=e=>{B.q=e.target.value;renderBestiary()};$('#best-grid').onclick=e=>{const b=e.target.closest('[data-beast]');if(b){B.open=b.dataset.beast;renderBestiary()}};
- $('#best-detail').addEventListener('click',e=>{if(e.target.closest('[data-close="beast"]')){B.open=null;renderBestiary()}})}
+/* formulário de criatura: nova ou editar uma personalizada */
+function beastForm(){const f=B.form,c=f.name?RV.CREATURES[f.name]:null,sid=c?c.systemId:RV.CustomCreatures.fromSys(B.sys),v=k=>esc(c?.[k]??'');
+ const sysOpts=Object.entries(RV.CustomCreatures.BUILTIN).concat((RV.CustomSystems?.list()||[]).map(x=>[x.id,x.name]));
+ const fld=(id,l,val,attrs='')=>`<div class="field"><label for="bf-${id}">${l}</label><input class="input" id="bf-${id}" name="${id}" value="${val}" ${attrs}></div>`;
+ return `${RV.fh(c?'Editar criatura':'Nova criatura',c?c.name:'Sua criatura','beast')}<form class="panel-body" id="best-form" style="display:flex;flex-direction:column;gap:10px">
+  <div class="field"><label for="bf-sys">Sistema</label><select class="input" id="bf-sys" name="sys">${sysOpts.map(([k,l])=>`<option value="${esc(k)}" ${k===sid?'selected':''}>${esc(l)}</option>`).join('')}</select></div>
+  ${fld('name','Nome',v('name').replace(/ \((personalizada|\d+)\)$/,''),'maxlength="60" required')}
+  <div class="grid2f">${fld('element','Elemento',esc(c?.element||c?.elementText||''),'maxlength="40" list="bf-els" placeholder="Sangue, Morte…"')}${fld('type','Tipo',v('type'),'maxlength="40" placeholder="Criatura, humano…"')}</div><datalist id="bf-els"><option>Sangue</option><option>Morte</option><option>Conhecimento</option><option>Energia</option><option>Medo</option></datalist>
+  <div class="grid2f"><div class="field"><label for="bf-size">Tamanho</label><select class="input" id="bf-size" name="size">${RV.CustomCreatures.SIZES.map(z=>`<option value="${z}" ${(c?.size||'MEDIO')===z?'selected':''}>${RV.SIZE_LABEL[z]}</option>`).join('')}</select></div>${fld('challenge','VD / nível de desafio',v('vd'),'maxlength="20"')}</div>
+  <div class="grid2f">${fld('hp','Pontos de vida',c?.hp??20,'type="number" min="1" required')}${fld('defense','Defesa / CA',c?.defense??12,'type="number" min="0" required')}</div>
+  <div class="grid2f">${fld('attack','Ataque (ex.: 1d20+5, 2d20+8)',c&&c.attack!=='—'?esc(c.attack):'','maxlength="60"')}${fld('damage','Dano (ex.: 2d6+3)',c&&c.damage!=='—'?esc(c.damage):'','maxlength="60"')}</div>
+  <div class="grid2f">${fld('speed','Deslocamento',c?.speed?esc(c.speed):'','maxlength="20" placeholder="9 m"')}${fld('initiative','Iniciativa',v('initiative'),'maxlength="30"')}</div>
+  <div class="field"><label for="bf-powers">Habilidades e ataques especiais</label><textarea class="input" id="bf-powers" name="powers" rows="3" maxlength="4000">${v('powers')}</textarea></div>
+  <div class="field"><label for="bf-notes">Descrição</label><textarea class="input" id="bf-notes" name="notes" rows="3" maxlength="4000">${v('notes')}</textarea></div>
+  <div class="grid2f">${fld('source','Fonte (livro, aventura…)',c&&c.source!=='Criatura personalizada'?esc(c.source.replace(/ · p\.\d+$/,'')):'','maxlength="120"')}${fld('page','Página',c&&/ · p\.(\d+)$/.test(c.source)?/ · p\.(\d+)$/.exec(c.source)[1]:'','type="number" min="1"')}</div>
+  <div class="row" style="justify-content:flex-end"><button class="btn ghost" type="button" data-bf="cancel">Cancelar</button><button class="btn primary" type="submit">${ic('check')}${c?'Salvar':'Criar criatura'}</button></div>
+  <p class="small faint" style="margin:0">Fica salva neste aparelho e aparece no Bestiário, na mesa ao vivo e no Canvas.</p></form>`}
+function bindBestiary(){$('#best-sys').onclick=e=>{const b=e.target.closest('[data-sys]');if(b){B.sys=b.dataset.sys;B.el='all';B.open=null;B.form=null;renderBestiary()}};$('#best-els').onclick=e=>{const b=e.target.closest('[data-el]');if(b){B.el=b.dataset.el;renderBestiary()}};
+ $('#best-q').oninput=e=>{B.q=e.target.value;renderBestiary()};$('#best-grid').onclick=e=>{const b=e.target.closest('[data-beast]');if(b){B.open=b.dataset.beast;B.form=null;renderBestiary()}};
+ $('#best-new').onclick=()=>{B.form={name:null};B.open=null;renderBestiary();setTimeout(()=>$('#bf-name')?.focus(),30)};
+ $('#best-detail').addEventListener('click',e=>{if(e.target.closest('[data-close="beast"]')||e.target.closest('[data-bf="cancel"]')){B.open=B.form?.name||null;B.form=null;renderBestiary();return}
+  const a=e.target.closest('[data-bf]')?.dataset.bf,c=RV.CREATURES[B.open];
+  if(a==='edit'&&c?.custom){B.form={name:c.name};renderBestiary();setTimeout(()=>$('#bf-name')?.focus(),30)}
+  if(a==='del'&&c?.custom){if(!confirm(`Excluir "${c.name}"? Tokens que já estão na mesa continuam lá.`))return;RV.CustomCreatures.remove(c.id);B.open=null;renderBestiary();toast('Criatura excluída.')}});
+ $('#best-detail').addEventListener('submit',e=>{if(e.target.id!=='best-form')return;e.preventDefault();const f=e.target,g=n=>f.elements.namedItem(n)?.value||'';const editing=B.form?.name?RV.CREATURES[B.form.name]:null;
+  try{const c=RV.CustomCreatures.save(g('sys'),{name:g('name'),element:g('element'),type:g('type'),size:g('size'),challenge:g('challenge'),hp:g('hp'),defense:g('defense'),attack:g('attack'),damage:g('damage'),speed:g('speed'),initiative:g('initiative'),powers:g('powers'),notes:g('notes'),source:g('source'),page:g('page')},editing?.id);
+   const saved=Object.values(RV.CREATURES).find(x=>x.custom&&x.id===c.id);B.sys=RV.CustomCreatures.toSys(g('sys'));B.el='all';B.form=null;B.open=saved?.name||null;renderBestiary();toast(editing?'Criatura salva.':'Criatura criada.')}catch(err){toast(err.message)}});
+ RV.on(e=>{if(e==='systems:changed'){RV.CustomCreatures.sync();if(location.hash==='#bestiario')renderBestiary()}})}
 
 /* ============ Tutorial guiado ============ */
 const TUT={
