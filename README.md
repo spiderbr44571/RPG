@@ -1,6 +1,6 @@
 # Mastermind
 
-Versão atual: **Android v0.110** · **Linux e Windows v1.4.0** — a nova interface é a única do app, com o Canvas
+Versão atual: **Android v0.111** · **Linux e Windows v1.4.1** — a nova interface é a única do app, com o Canvas
 infinito próprio; a interface clássica foi retirada sem perder funções nem dados salvos.
 
 ## Organização do repositório
@@ -20,6 +20,16 @@ infinito próprio; a interface clássica foi retirada sem perder funções nem d
   (veja a docstring de `atelie_corrigir_rostos.py` para regenerar).
 
 ## Histórico
+
+# Mastermind v0.111 (Android) · v1.4.1 (Linux e Windows) — Biblioteca em estante e ferramentas sem o menu antigo
+
+**Biblioteca no estilo da biblioteca anterior:** "Biblioteca de mundos", busca, filtros (Todos, Com PDF no aparelho,
+Favoritos) e os sistemas em **duas fileiras** de capas (as mesmas cores e favoritos de antes). **Detalhes** abre a tela
+do sistema: pasta do Drive, "Editar sistema", os PDFs deste aparelho e os livros, suplementos, aventuras e fichas do
+Drive em cartões com "Abrir no Drive", além das regras. "← Todos os sistemas" (ou Esc) volta para a estante.
+
+**Ficha completa e Ateliê:** abrem já no visual novo, sem o carregador nem o botão de menu da interface antiga (antes
+eles apareciam enquanto a página carregava). No lugar, o botão da **Central** da nova interface, com a mesma lista.
 
 # Mastermind v0.110 (Android) · v1.4.0 (Linux e Windows) — Canvas na nova interface, sem a interface clássica
 

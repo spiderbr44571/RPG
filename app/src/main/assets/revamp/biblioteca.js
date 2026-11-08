@@ -15,7 +15,7 @@ RV.loadClassic=files=>Promise.all(files.map(f=>loaded[f]||(loaded[f]=new Promise
 const DEPS=['rpg15_catalog_data.js','rpg18_dnd_engine.js','rpg16_gurps_engine.js','mastermind_coc7_engine.js','mastermind59_class_catalog.js','mastermind_system_editor.js'];
 RV.SYSTEMS=[['ordem-paranormal','Ordem Paranormal','1.3'],['d-d','D&D 5e','SRD 5.1'],['chamado-de-ctchulhu','Chamado de Cthulhu','7ª edição'],['gurps','GURPS','4ª edição']];
 const SYS_IDS=RV.SYSTEMS.map(s=>s[0]);
-const L={sys:SYS_IDS.includes(store.get('mm-rv-lib-sys'))?store.get('mm-rv-lib-sys'):'ordem-paranormal',type:null,q:'',dq:'',edit:null,showHidden:false,personal:[],status:{},ready:false};
+const L={view:'shelf',fq:'',filter:'all',sys:SYS_IDS.includes(store.get('mm-rv-lib-sys'))?store.get('mm-rv-lib-sys'):'ordem-paranormal',type:null,q:'',dq:'',edit:null,showHidden:false,personal:[],status:{},ready:false};
 const TYPE_LABEL={'ordem-paranormal':{minNex:'NEX mínimo (%)',element:'Elemento ou atributo'},'d-d':{minNex:'Nível mínimo',element:'Atributo'},'chamado-de-ctchulhu':{minNex:'Valor mínimo',element:'Característica'},gurps:{minNex:'Mínimo',element:'Atributo'}};
 const provider=()=>window.RpgBookBridge?.listPersonalBooks?'android':window.MastermindDesktop?.action?'desktop':'browser';
 const editor=()=>window.MastermindSystemEditor;
@@ -64,21 +64,50 @@ function items(){const E=editor();if(!E||!L.type)return[];return E.all(L.sys,L.t
 function hiddenItems(){const E=editor();if(!E||!L.type)return[];return(E.system(L.sys).deleted?.[L.type]||[])}
 function firstType(){const E=editor();if(!E)return null;const t=Object.keys(E.TYPES).find(t=>E.defaults(L.sys,t).length||Object.keys(E.system(L.sys).overrides?.[t]||{}).length);return t||'skills'}
 
+/* ---------- estante (duas fileiras, como a biblioteca anterior: mesmas cores, favoritos e capa) ---------- */
+const PALETTE=[['#3a1729','#a84065'],['#132d3e','#4ba9ba'],['#35230d','#af995d'],['#251a49','#8670cb'],['#223b2b','#77ad89'],['#382015','#b87945']];
+const FAV='rpg15-fav-system';
+const favs=()=>{try{return new Set(JSON.parse(localStorage.getItem(FAV)||'[]'))}catch(_){return new Set()}};
+function sysName(id){const E=editor(),r=RV.SYSTEMS.find(s=>s[0]===id);return E?.system(id)?.metadata?.name||r?.[1]||id}
+function colorsOf(id){let c=0;for(const x of sysName(id))c+=x.charCodeAt(0);return PALETTE[c%PALETTE.length]}
+function catalog(id){return(window.RPG15_SYSTEMS?.systems||[]).find(x=>x.id===id)||null}
+function cover(id){if(id!=='ordem-paranormal')return'';try{const v=JSON.parse(localStorage.getItem('rpg-v09-cover')||'""');return /^data:image\/(png|jpeg|webp);base64,/.test(v)&&v.length<2000000?v:''}catch(_){return''}}
+const SPARK='<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 4C54 34 66 46 96 50 66 54 54 66 50 96 46 66 34 54 4 50 34 46 46 34 50 4Z"/></svg>';
+function renderShelf(){const grid=$('#lib-grid');if(!grid)return;const fv=favs(),q=L.fq.trim().toLocaleLowerCase('pt-BR');
+ const rows=RV.SYSTEMS.filter(([id])=>{const c=catalog(id),txt=(sysName(id)+' '+(c?.books||[]).map(b=>b.title).join(' ')).toLocaleLowerCase('pt-BR');
+  return(!q||txt.includes(q))&&(L.filter==='all'||L.filter==='fav'&&fv.has(id)||L.filter==='device'&&L.personal.some(b=>b.systemId===id))});
+ $$('#lib-filter [data-f]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.f===L.filter)));
+ $('#lib-count').textContent=RV.SYSTEMS.length;$('#lib-shown').textContent=rows.length+' de '+RV.SYSTEMS.length;
+ grid.innerHTML=rows.map(([id,label,ed])=>{const c=catalog(id),[deep,soft]=colorsOf(id),n=sysName(id),img=cover(id),mine=L.personal.filter(b=>b.systemId===id).length;
+  return `<article class="lib-card" style="--deep:${deep};--soft:${soft}"><button class="lib-art" type="button" data-lib="system" data-v="${id}" aria-label="Abrir ${esc(n)}">${SPARK}${img?`<img src="${img}" alt="">`:''}<span class="nm">${esc(n)}</span></button>
+   <div class="lib-info"><b>${esc(n)}</b><small>${c?c.books.length+' arquivo(s) no Drive':'Sem pasta no Drive'}${mine?` · ${mine} PDF${mine>1?'s':''} no aparelho`:''}</small><span class="lib-tag">Regras no app · ${esc(ed)}</span>
+    <div class="lib-acts"><button class="btn sm" type="button" data-lib="system" data-v="${id}">Detalhes${ic('external-link')}</button><button class="ibtn lib-fav" type="button" data-lib="fav" data-v="${id}" aria-pressed="${fv.has(id)}" aria-label="${fv.has(id)?'Tirar dos favoritos':'Marcar como favorito'}">${ic('bookmark')}</button></div></div></article>`}).join('')
+  ||'<p class="muted" style="margin:0">Nenhum sistema com esse filtro.</p>';
+ RV.hydrateIcons(grid)}
+
 /* ---------- desenho ---------- */
-function render(){const host=$('#lib');if(!host)return;const E=editor(),sys=RV.SYSTEMS.find(s=>s[0]===L.sys);
- $$('#lib-sys button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.sys===L.sys)));
+function render(){const host=$('#lib');if(!host)return;const shelf=L.view==='shelf';$('#lib-shelf').hidden=!shelf;$('#lib-detail').hidden=shelf;
+ if(shelf){renderShelf();return}
+ const E=editor(),sys=RV.SYSTEMS.find(s=>s[0]===L.sys);
  const p=provider(),mine=L.personal.filter(b=>b.systemId===L.sys),drive=driveBooks(),dq=L.dq.toLowerCase();
  const dlist=drive.filter(b=>!dq||(b.title+' '+(b.path||[]).join(' ')).toLowerCase().includes(dq));
- const cats={livro:'Livros',suplemento:'Suplementos',aventura:'Aventuras',ficha:'Fichas',documento:'Documentos'};
+ const cats={livro:'Livros principais',suplemento:'Suplementos',aventura:'Aventuras',ficha:'Fichas',documento:'Documentos'};
+ const TYPE_NAME={livro:'Livro',suplemento:'Suplemento',aventura:'Aventura',ficha:'Ficha',documento:'Documento'};
  const meta=E?E.system(L.sys).metadata||{}:{};
- $('#lib-books').innerHTML=`<div class="card-h"><h2>No aparelho</h2><button class="btn sm primary" type="button" data-lib="import">${ic('upload')}Trazer PDF para o app</button></div>
+ const cat=catalog(L.sys),[deep,soft]=colorsOf(L.sys),hero=$('#lib-hero');hero.style.setProperty('--deep',deep);hero.style.setProperty('--soft',soft);
+ hero.innerHTML=`<p class="kicker lib-line">Biblioteca · sistema</p><h2>${esc(meta.name||sys[1])}</h2>
+  <p class="small">${drive.length} documento(s) no Drive${cat?.folders?.length?' · '+cat.folders.length+' subpasta(s)':''} · ${mine.length} PDF(s) neste aparelho</p><span class="lib-tag">Regras no app · ${esc(meta.edition||sys[2])}</span>
+  ${meta.description?`<p class="muted">${esc(meta.description)}</p>`:'<p class="muted">Livros, expansões, aventuras e fichas da pasta do Drive. Os PDFs que você trouxer para o app ficam separados por sistema, neste aparelho, e entram na busca.</p>'}
+  <div class="row">${cat&&/^https:\/\/drive\.google\.com\/drive\/folders\/[A-Za-z0-9_-]{10,160}/.test(cat.driveUrl||'')?`<button class="btn sm" type="button" data-lib="folder">${ic('folder')}Abrir pasta no Drive</button>`:''}${E?`<button class="btn sm ghost" type="button" data-lib="meta">${ic('pencil')}Editar sistema</button>`:''}</div>`;
+ RV.hydrateIcons(hero);
+ $('#lib-books').innerHTML=`<div class="card-h"><div><p class="kicker">Biblioteca pessoal</p><h2>PDFs de ${esc(meta.name||sys[1])}</h2></div><button class="btn sm primary" type="button" data-lib="import">${ic('upload')}Trazer PDF para o app</button></div>
   ${mine.length?`<ul class="list">${mine.map(b=>{const st=L.status[b.id]||{};return `<li class="item"><span class="ti" style="color:var(--accent)">${ic('book')}</span><div class="grow"><b>${esc(b.name)}</b><span class="small muted">${esc(statusText(st))}</span></div>
    ${p==='android'&&!['ready','indexing'].includes(st.state)?`<button class="btn sm ghost" type="button" data-lib="index" data-v="${esc(b.id)}">Indexar</button>`:''}<button class="btn sm" type="button" data-lib="open" data-v="${esc(b.id)}">${ic('file-text')}Abrir</button><a class="btn sm ghost" href="#buscar" data-lib="search" data-v="${esc(b.id)}">${ic('search')}Buscar</a></li>`}).join('')}</ul>`
   :`<p class="muted small" style="margin:0">Nenhum PDF de ${esc(sys[1])} neste aparelho. Toque em "Trazer PDF para o app": no celular, o seletor também mostra o seu Google Drive. ${p==='browser'?'Aqui no navegador, o PDF é lido só nesta aba.':''}</p>`}
   <p class="small faint" style="margin:0">${p==='desktop'?'No computador, o PDF abre no leitor de PDF do sistema. A busca usa o índice do app.':p==='android'?'O PDF abre aqui dentro, página por página, e o texto fica indexado no aparelho para a busca.':'O PDF abre aqui dentro e não é enviado para lugar nenhum.'}</p>`;
- $('#lib-drive').innerHTML=`<div class="card-h"><h2>Catálogo no Drive</h2><span class="chip">${drive.length} arquivos · só links</span></div>
-  <input class="input" id="lib-dq" placeholder="Filtrar por nome" value="${esc(L.dq)}" aria-label="Filtrar catálogo">
-  ${Object.entries(cats).map(([k,lab])=>{const g=dlist.filter(b=>(b.category||'documento')===k);if(!g.length)return'';return `<div class="label" style="margin-top:4px">${lab} <span class="faint">${g.length}</span></div><ul class="list">${g.slice(0,60).map(b=>`<li class="item"><div class="grow" style="min-width:0"><b style="overflow-wrap:anywhere">${esc(b.title.replace(/\.pdf$/i,''))}</b><span class="small muted">${esc((b.path||[]).join(' / ')||'Pasta principal')}${b.sizeBytes?' · '+(b.sizeBytes/1048576).toFixed(1)+' MB':''}</span></div><button class="btn sm ghost" type="button" data-lib="drive" data-v="${esc(b.id)}">${ic('external-link')}Drive</button></li>`).join('')}</ul>${g.length>60?`<p class="small muted" style="margin:0">Mostrando 60 de ${g.length}. Filtre pelo nome.</p>`:''}`}).join('')||'<p class="muted small" style="margin:0">Nada com esse nome.</p>'}
+ $('#lib-drive').innerHTML=`<div class="card-h"><h2>Livros e arquivos relacionados</h2><span class="chip">${drive.length} registro${drive.length===1?'':'s'} · só links</span></div>
+  <input class="input" id="lib-dq" placeholder="Filtrar por nome" value="${esc(L.dq)}" aria-label="Filtrar arquivos do Drive">
+  ${Object.entries(cats).map(([k,lab])=>{const g=dlist.filter(b=>(b.category||'documento')===k);if(!g.length)return'';return `<div class="row between" style="margin-top:6px"><h3 style="margin:0;font:600 22px var(--font-head)">${lab}</h3><span class="small muted">${g.length} arquivo(s)</span></div><div class="lib-files">${g.slice(0,60).map(b=>`<div class="lib-file"><div class="row between" style="flex-wrap:nowrap"><span style="color:var(--accent)">${ic('file-text')}</span><span class="chip">${esc(TYPE_NAME[k])}</span></div><b>${esc(b.title.replace(/\.pdf$/i,''))}</b><span class="small muted">${esc((b.path||[]).join(' / ')||'Pasta principal')}${b.sizeBytes?' · '+(b.sizeBytes/1048576).toFixed(1)+' MB':''}</span><button class="btn sm" type="button" data-lib="drive" data-v="${esc(b.id)}">${ic('external-link')}Abrir no Drive</button></div>`).join('')}</div>${g.length>60?`<p class="small muted" style="margin:0">Mostrando 60 de ${g.length}. Filtre pelo nome.</p>`:''}`}).join('')||'<p class="muted small" style="margin:0">Nada com esse nome.</p>'}
   <p class="small faint" style="margin:0">Os arquivos ficam na sua conta do Drive. Para ler aqui dentro e buscar no texto, use "Trazer PDF para o app" e escolha o arquivo.</p>`;
  if(!E){$('#lib-rules').innerHTML='<p class="muted" style="margin:0">Carregando as regras do sistema…</p>';return}
  if(!L.type)L.type=firstType();
@@ -115,7 +144,17 @@ function metaModal(){const E=editor(),m=E.system(L.sys).metadata||{},sys=RV.SYST
 
 /* ---------- ligações ---------- */
 function bind(){const host=$('#lib');
- $('#lib-sys').addEventListener('click',e=>{const b=e.target.closest('[data-sys]');if(!b)return;L.sys=b.dataset.sys;store.set('mm-rv-lib-sys',L.sys);L.type=null;L.q='';L.edit=null;L.showHidden=false;render()});
+ const sec=$('[data-view="biblioteca"]');
+ sec.addEventListener('click',e=>{const b=e.target.closest('[data-lib]');if(!b||host.contains(b))return;const a=b.dataset.lib,v=b.dataset.v;
+  if(a==='system'){L.sys=v;store.set('mm-rv-lib-sys',v);L.view='system';L.type=null;L.q='';L.dq='';L.edit=null;L.showHidden=false;render();window.scrollTo?.(0,0);$('#lib-detail>.btn')?.focus()}
+  if(a==='shelf'){L.view='shelf';render();$('#lib-grid [data-v="'+L.sys+'"]')?.focus()}
+  if(a==='fav'){const f=favs();f.has(v)?f.delete(v):f.add(v);try{localStorage.setItem(FAV,JSON.stringify([...f]))}catch(_){}renderShelf()}
+  if(a==='explore'){e.preventDefault();$('#lib-grid')?.scrollIntoView({behavior:'smooth',block:'start'})}
+  if(a==='folder'){const c=catalog(L.sys),m=/folders\/([A-Za-z0-9_-]{10,160})/.exec(c?.driveUrl||'');if(!m)return;if(window.RpgDriveBridge?.openDocument)RpgDriveBridge.openDocument('folder',m[1]);else window.open('https://drive.google.com/drive/folders/'+m[1],'_blank','noopener,noreferrer')}
+  if(a==='meta'&&editor())metaModal()});
+ $('#lib-filter').addEventListener('click',e=>{const b=e.target.closest('[data-f]');if(!b)return;L.filter=b.dataset.f;renderShelf()});
+ $('#lib-search').addEventListener('input',e=>{L.fq=e.target.value;renderShelf()});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&location.hash==='#biblioteca'&&L.view==='system'&&!document.querySelector('.modal-back')){L.view='shelf';render()}});
  host.addEventListener('click',e=>{const b=e.target.closest('[data-lib]');if(!b)return;const a=b.dataset.lib,v=b.dataset.v,E=editor();
   try{
    if(a==='import')importPdf();

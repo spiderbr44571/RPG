@@ -61,3 +61,31 @@ html.mmt #mastermind-sheet-studio .mss-stat strong,html.mmt #mastermind-sheet-st
 /* Sem a barra inferior antiga: o conteúdo vai até o fim da tela. */
 html.mmt .main{padding-bottom:0!important}
 html.mmt .content{padding-bottom:max(32px,env(safe-area-inset-bottom,0px))!important}
+/* Carregamento: a interface antiga (carregador, menu e telas) nunca aparece; a ferramenta surge já pronta. */
+html.mmt #mm-loading{display:none!important}
+html.mmt:not(.mmt-ready) .app{visibility:hidden}
+html.mmt:not(.mmt-ready) body{background:var(--bg)}
+html.mmt:not(.mmt-ready) body::before,html.mmt:not(.mmt-ready)[data-paranormal] body::before{content:""!important;position:fixed;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;
+ border:3px solid color-mix(in srgb,var(--accent) 25%,transparent);border-top-color:var(--accent);animation:mmt-spin .8s linear infinite;opacity:1!important;background:none!important;z-index:5}
+@keyframes mmt-spin{to{transform:rotate(360deg)}}
+html.mmt .r09-dock,html.mmt .r09-overlay,html.mmt #r09-dice{display:none!important}
+/* Central da nova interface (mesmo botão e mesma lista) */
+html.mmt #mmt-fab{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:40;width:62px;height:62px;border-radius:20px;
+ border:2px solid var(--accent);background:var(--panel2);color:var(--accent);display:grid;place-items:center;cursor:pointer;
+ box-shadow:0 0 30px color-mix(in srgb,var(--accent) 45%,transparent),0 12px 40px #0006}
+html.mmt #mmt-fab .rv-icon{width:26px;height:26px}
+html.mmt .content{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))!important}
+.mmt-central-back{position:fixed;inset:0;z-index:95;background:color-mix(in srgb,#040509 60%,transparent);display:grid;place-items:center;padding:20px 16px;backdrop-filter:blur(3px)}
+.mmt-central{width:min(900px,100%);max-height:calc(100% - 20px);overflow:auto;background:linear-gradient(180deg,color-mix(in srgb,var(--panel2) 92%,transparent),var(--panel));
+ border:1px solid color-mix(in srgb,var(--accent) 55%,var(--line));border-radius:22px;padding:22px;box-shadow:0 0 60px color-mix(in srgb,var(--accent) 18%,transparent),0 12px 40px #0006;display:flex;flex-direction:column;gap:16px;color:var(--fg);font-family:var(--rpg-body,'DM Sans',sans-serif)}
+.mmt-central-h{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.mmt-central .kicker{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.mmt-central h2{font:600 clamp(28px,4vw,44px)/1.05 var(--rpg-heading,'Cormorant Garamond',Georgia,serif);margin:6px 0 0}
+.mmt-central h2 em{color:var(--accent)}
+.mmt-central-x{flex:none;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);background:var(--panel2);color:var(--muted);cursor:pointer}
+.mmt-central-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.mmt-central-card{display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:16px;border:1px solid var(--line);background:color-mix(in srgb,var(--card) 70%,transparent);color:inherit;text-decoration:none;min-height:110px}
+.mmt-central-card:hover,.mmt-central-card:focus-visible{border-color:var(--accent)}
+.mmt-central-card .rv-icon{width:24px;height:24px;color:var(--accent)}
+.mmt-central-card b{font-size:15px}.mmt-central-card span:last-child{color:var(--muted);font-size:12.5px}
+@media (max-width:640px){.mmt-central-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.mmt-central{padding:16px}.mmt-central-card{min-height:92px;padding:12px}}

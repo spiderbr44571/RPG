@@ -598,6 +598,48 @@ mark{background:color-mix(in srgb,var(--accent) 38%,transparent);color:inherit;b
   .st-opt{top:auto;bottom:8px;left:var(--gut-l);right:auto;transform:none;max-width:calc(100% - 250px)}
   .vtt[data-view="estudio"] .zoom{left:auto;right:var(--gut-r)}
 }
+/* ---------- Biblioteca: estante em duas fileiras (estilo da biblioteca anterior) ---------- */
+.lib-top{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.lib-line{display:flex;align-items:center;gap:10px}.lib-line::before{content:"";width:20px;height:1px;background:var(--accent)}
+.lib-stat{display:flex;flex-direction:column;align-items:flex-end;padding-left:18px;border-left:1px solid var(--line)}
+.lib-stat b{font:600 44px/1 var(--font-head)}.lib-stat span{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.lib-feature{position:relative;overflow:hidden;border:1px solid color-mix(in srgb,var(--accent) 40%,var(--line));border-radius:22px;padding:clamp(22px,4vw,46px);
+ background:radial-gradient(ellipse 60% 90% at 85% 30%,color-mix(in srgb,var(--accent) 22%,transparent),transparent 70%),linear-gradient(135deg,var(--panel2),var(--panel))}
+.lib-feature>div{position:relative;z-index:1;max-width:560px;display:flex;flex-direction:column;gap:14px}
+.lib-feature h2{font:600 clamp(36px,6vw,64px)/1.02 var(--font-head);margin:0}
+.lib-feature p{margin:0;color:var(--muted)}
+.lib-spark{position:absolute;right:clamp(10px,8vw,110px);top:50%;width:clamp(110px,18vw,190px);transform:translateY(-50%);fill:none;stroke:color-mix(in srgb,var(--accent) 55%,transparent);stroke-width:1.6}
+.lib-tools{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.lib-tools .input{flex:1 1 260px}
+.lib-sec h2{font:600 28px var(--font-head);margin:0}
+.lib-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.lib-card{display:grid;grid-template-columns:136px minmax(0,1fr);min-height:176px;border:1px solid color-mix(in srgb,var(--soft) 35%,var(--line));border-radius:18px;overflow:hidden;background:var(--card);transition:border-color .15s,transform .15s var(--ease)}
+.lib-card:hover{border-color:color-mix(in srgb,var(--soft) 70%,var(--line));transform:translateY(-2px)}
+.lib-art{position:relative;display:flex;align-items:flex-end;padding:12px;border:0;cursor:pointer;color:#fff;text-align:left;
+ background:radial-gradient(circle at 65% 22%,color-mix(in srgb,var(--soft) 85%,transparent),transparent 62%),linear-gradient(170deg,var(--deep),#0b0c11 92%)}
+.lib-art::before{content:"";position:absolute;inset:12px;border:1px solid #ffffff2e;border-radius:4px}
+.lib-art svg{position:absolute;left:50%;top:40%;width:52px;transform:translate(-50%,-50%);fill:none;stroke:#ffffffb0;stroke-width:3}
+.lib-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.lib-art .nm{position:relative;font:700 19px/1.05 var(--font-head);text-shadow:0 2px 10px #000a}
+.lib-info{display:flex;flex-direction:column;gap:8px;padding:16px}
+.lib-info b{font-size:15px}.lib-info small{color:var(--muted);font-size:12px}
+.lib-tag{align-self:flex-start;font-size:11px;padding:3px 9px;border-radius:999px;border:1px solid color-mix(in srgb,var(--accent) 50%,transparent);color:var(--accent)}
+.lib-acts{margin-top:auto;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.lib-fav[aria-pressed="true"]{color:var(--accent);border-color:var(--accent)}
+.lib-hero{position:relative;overflow:hidden;border:1px solid color-mix(in srgb,var(--soft) 45%,var(--line));border-radius:22px;padding:clamp(20px,4vw,36px);display:flex;flex-direction:column;gap:12px;
+ background:radial-gradient(ellipse 45% 110% at 88% 18%,color-mix(in srgb,var(--soft) 55%,transparent),transparent 70%),linear-gradient(135deg,color-mix(in srgb,var(--deep) 70%,var(--panel)),var(--panel))}
+.lib-hero h2{font:600 clamp(38px,6vw,68px)/1.02 var(--font-head);margin:0}
+.lib-hero p{margin:0;max-width:760px}
+.lib-files{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.lib-file{display:flex;flex-direction:column;gap:6px;padding:14px;border:1px solid var(--line);border-radius:14px;background:color-mix(in srgb,var(--card) 70%,transparent);min-width:0}
+.lib-file b{overflow-wrap:anywhere;font-size:14px}.lib-file .btn{margin-top:auto;justify-content:center}
+#lib-detail{display:flex;flex-direction:column;gap:16px}#lib-detail[hidden]{display:none}#lib-detail>.btn{align-self:flex-start}
+#lib-shelf{display:flex;flex-direction:column;gap:20px}#lib-shelf[hidden]{display:none}
+.lib-fav[aria-pressed="true"] .rv-icon{fill:currentColor}
+@media (max-width:760px){.lib-files{grid-template-columns:minmax(0,1fr)}.lib-stat{align-items:flex-start;padding-left:0;border-left:0}.lib-spark{opacity:.35}
+ .lib-grid{gap:10px}.lib-card{grid-template-columns:minmax(0,1fr);grid-template-rows:140px auto;min-height:0}
+ .lib-art{padding:10px}.lib-art::before{inset:10px}.lib-art svg{width:40px}.lib-art .nm{font-size:17px}
+ .lib-info{padding:10px 10px 12px;gap:6px}.lib-info b{font-size:13.5px}.lib-info small{font-size:11px}.lib-tag{font-size:10px;padding:2px 7px}
+ .lib-acts .btn{padding:5px 9px;min-height:32px;font-size:12px}.lib-acts .btn .rv-icon{display:none}}
 </style>
 <script src="icones.js"></script><script src="dados.js"></script><script src="cena.js"></script><script src="dados-ordem.js"></script><script src="adaptador.js"></script><script src="base.js"></script><script src="fichas.js"></script><script src="mesa.js"></script><script src="estudio.js"></script><script src="personalizacao.js"></script><script src="livros.js"></script><script src="biblioteca.js"></script><script src="servidor.js"></script>
 </head>
@@ -659,9 +701,24 @@ mark{background:color-mix(in srgb,var(--accent) 38%,transparent);color:inherit;b
 
         <!-- BIBLIOTECA -->
         <section class="page" data-view="biblioteca" aria-labelledby="h-bib" hidden>
-          <div class="hero-row"><div class="hero"><p class="kicker">Biblioteca</p><h1 id="h-bib">Livros e <em>regras.</em></h1><p>Os livros de cada sistema, abertos aqui dentro, e as regras que o app usa, para você ajustar à sua mesa. Por enquanto: Ordem Paranormal, D&amp;D 5e, Chamado de Cthulhu e GURPS.</p></div><a class="btn" href="#buscar"><span data-i="search"></span>Buscar nos livros</a></div>
-          <div class="seg" id="lib-sys" role="group" aria-label="Sistema"><button type="button" data-sys="ordem-paranormal">Ordem Paranormal</button><button type="button" data-sys="d-d">D&amp;D 5e</button><button type="button" data-sys="chamado-de-ctchulhu">Chamado de Cthulhu</button><button type="button" data-sys="gurps">GURPS</button></div>
-          <div class="grid" id="lib"><article class="card c7" id="lib-books"></article><article class="card c5" id="lib-drive"></article><article class="card c12" id="lib-rules"></article></div>
+          <!-- estante: os sistemas em duas fileiras, como a biblioteca de antes -->
+          <div id="lib-shelf">
+            <div class="lib-top"><div class="hero"><p class="kicker lib-line">Seu acervo de RPG</p><h1 id="h-bib">Biblioteca de <em>mundos.</em></h1><p>Explore os sistemas, os livros do seu acervo e as regras que o app usa.</p></div>
+              <div class="lib-stat"><b class="num" id="lib-count">4</b><span>sistemas com regras no app</span></div></div>
+            <article class="lib-feature"><div><p class="kicker lib-line">Biblioteca multissistema</p><h2>Seus mundos.<br>Suas regras.</h2><p>Abra um sistema para ver os PDFs deste aparelho, os livros e fichas da pasta do Drive e as regras que você pode ajustar.</p>
+              <div class="row"><a class="btn primary" href="#lib-grid" data-lib="explore">Explorar sistemas<span data-i="arrow-right"></span></a><a class="btn ghost" href="#buscar"><span data-i="search"></span>Buscar nos livros</a></div></div>
+              <svg class="lib-spark" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 4C54 34 66 46 96 50 66 54 54 66 50 96 46 66 34 54 4 50 34 46 46 34 50 4Z"/></svg></article>
+            <div class="lib-tools"><input class="input" id="lib-search" type="search" placeholder="Buscar sistema, livro ou edição…" aria-label="Buscar sistema, livro ou edição" autocomplete="off">
+              <div class="chips" id="lib-filter" role="group" aria-label="Filtro"><button type="button" class="fchip" data-f="all" aria-pressed="true">Todos</button><button type="button" class="fchip" data-f="device">Com PDF no aparelho</button><button type="button" class="fchip" data-f="fav">Favoritos</button></div></div>
+            <div class="row between lib-sec"><h2>Todos os sistemas</h2><span class="small muted num" id="lib-shown"></span></div>
+            <div class="lib-grid" id="lib-grid"></div>
+          </div>
+          <!-- tela do sistema: PDFs do aparelho, arquivos do Drive e regras -->
+          <div id="lib-detail" hidden>
+            <button class="btn" type="button" data-lib="shelf"><span data-i="chevron-left"></span>Todos os sistemas</button>
+            <article class="lib-hero" id="lib-hero"></article>
+            <div class="grid" id="lib"><article class="card c12" id="lib-books"></article><article class="card c12" id="lib-drive"></article><article class="card c12" id="lib-rules"></article></div>
+          </div>
           <input type="file" id="lib-file" accept="application/pdf,.pdf" multiple hidden>
         </section>
 
