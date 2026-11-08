@@ -23,7 +23,8 @@ expected={
  "opt/mastermind/mastermind",
  "opt/mastermind/resources/app.asar",
  "opt/mastermind/resources/server/mastermind-campaign-server.jar",
- "opt/mastermind/resources/server/assets/lan_master.html",
+ "opt/mastermind/resources/server/assets/revamp/index.html",
+ "opt/mastermind/resources/server/assets/revamp/canvas.js",
  "opt/mastermind/resources/server/assets/ferramentas.html",
  "opt/mastermind/resources/server/assets/mastermind_logo.png"
 }
@@ -63,7 +64,7 @@ missing=expected-present
 assert not missing,f"Required package entries absent: {missing}"
 if version=="1.0.2":
  assert "opt/mastermind/resources/server/mastermind-campaign-server.jar" in present,"Linux campaign JVM engine not shipped"
- assert "opt/mastermind/resources/server/assets/lan_master.html" in present,"Campaign HTML assets not shipped"
+ assert "opt/mastermind/resources/server/assets/revamp/index.html" in present,"New interface assets not shipped"
 assert files_count>30,f"Very few packaged files: {files_count}"
 p=metadata["pkginfo"]
 for text in ("pkgname = mastermind-rpg","pkgver = "+version+"-"+release,"arch = x86_64",
