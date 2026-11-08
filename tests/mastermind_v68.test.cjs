@@ -35,7 +35,7 @@ const editor=read('rpg29_scene_editor.js'),master=read('rpg31_master_table.js'),
 for(const needle of ['r68-palette','r68-layer','r68-pack','r68-brush','r68-search','paintAt(coords(e))','restoreStep(true)','data-r68-door','m.layers={terrain:[],props:[],walls:[]}'])assert.ok(editor.includes(needle),'Missing editor feature '+needle);
 assert.match(master,/Jogadores e Efeitos/);
 for(const file of [master,player])assert.match(file,/Mastermind68Map\?\.renderLayer/);
-const html=read('demo-offline.html'),lanMaster=read('lan_master.html'),lanScene=read('lan_scene.html');
+const html=read('ferramentas.html'),lanMaster=read('lan_master.html'),lanScene=read('lan_scene.html');
 assert.ok(html.indexOf('mastermind68_map_layers.js')<html.indexOf('rpg29_scene_editor.js'));
 assert.ok(lanMaster.indexOf('/map-layers.js')<lanMaster.indexOf('/scene-editor.js'));
 assert.ok(lanScene.indexOf('/map-layers.js')<lanScene.indexOf('/table-player.js'));

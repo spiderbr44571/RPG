@@ -22,7 +22,7 @@
 @font-face{font-family:"Space Grotesk";font-style:normal;font-weight:700;font-display:swap;src:url("fontes/space-grotesk-latin-700-normal.woff2") format("woff2")}
 /* Mastermind · revamp estilo Owlbear, no mesmo idioma visual do app.
    Layout: telas de gestão = workspace do app (topo + Central); mesa e Estúdio = mapa em tela cheia com painéis flutuantes.
-   Tokens: valores reais de app/src/main/assets/demo-offline.html (escuro = padrão; claro = .light do app). */
+   Tokens: os mesmos valores do app (escuro = padrão; claro = .light). */
 :root{
   --bg:#0b0d12;--sidebar:#0d0f15;--panel:#12151d;--panel2:#181c25;--card:#171a23;
   --line:#292c37;--line-soft:#20232c;--fg:#e8e7e7;--muted:#92939f;--faint:#656978;
@@ -443,7 +443,7 @@ input[type="range"]{accent-color:var(--accent);width:100%}
 .tut-try.done{border-style:solid;background:color-mix(in srgb,var(--green) 16%,transparent);border-color:var(--green)}
 .tut-steps{display:flex;gap:4px}.tut-steps i{flex:1;height:3px;border-radius:9px;background:var(--line)}.tut-steps i.on{background:var(--accent)}
 
-/* ---------- Temas elementais (portado de demo-offline.html, v0.10) ---------- */
+/* ---------- Temas elementais (portados da v0.10 do app) ---------- */
 :root{--v10-accent:#f26078;--v10-strong:#7d182b;--v10-light:#ffb6c1;--v10-border:rgba(245,109,140,.45)}
 html[data-paranormal="conhecimento"]{--v10-accent:#e6ba64;--v10-strong:#7e5125;--v10-light:#fff1c3;--v10-border:rgba(241,193,93,.5)}
 html[data-paranormal="energia"]{--v10-accent:#b373ff;--v10-strong:#6722c7;--v10-light:#58e6ff;--v10-border:rgba(173,98,254,.57)}
@@ -515,6 +515,48 @@ mark{background:color-mix(in srgb,var(--accent) 38%,transparent);color:inherit;b
 .pg:hover{border-color:var(--accent)}
 .empty{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:18px;border:1px dashed var(--line);border-radius:14px}
 .empty .rv-icon{width:28px;height:28px;color:var(--accent)}
+
+
+/* ---------- Canvas infinito ---------- */
+.cv-stage{position:absolute;inset:0;overflow:hidden;touch-action:none;cursor:grab;background-color:var(--bg);background-image:radial-gradient(circle,color-mix(in srgb,var(--fg) 13%,transparent) 1.1px,transparent 1.3px);background-size:24px 24px}
+.cv-stage.panning{cursor:grabbing}.cv-stage[data-tool="link"]{cursor:crosshair}.cv-stage[data-tool="link"] .cv-item{cursor:copy}
+.cv-world{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0}
+.cv-links{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible;pointer-events:none}
+.cv-line{fill:none;stroke-width:3.5;stroke-linecap:round;opacity:.9}.cv-line.on{stroke-width:6;filter:drop-shadow(0 0 6px currentColor)}
+.cv-hit{fill:none;stroke:transparent;stroke-width:22;pointer-events:stroke;cursor:pointer;vector-effect:non-scaling-stroke}.cv-hit:focus-visible{stroke:var(--accent-soft)}
+.cv-item{position:absolute;cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none}
+.cv-card{width:250px;padding:12px 14px 14px;border-radius:16px;background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--tc);box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:6px}
+.cv-card header{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.cv-type{font-size:10px;letter-spacing:.18em;font-weight:700;color:var(--tc)}
+.cv-card h4{margin:0;font:600 21px/1.12 var(--font-head);overflow-wrap:anywhere}
+.cv-card p{margin:0;color:var(--muted);font-size:13px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;max-height:13.5em;overflow:hidden}
+.cv-card figure{margin:2px 0 0;border-radius:11px;overflow:hidden;background:var(--bg)}.cv-card figure img{display:block;width:100%;height:auto;pointer-events:none}
+.cv-mhost{font-size:12.5px;color:var(--muted)}.cv-mhost audio,.cv-mhost video{display:block;width:100%;border-radius:10px;max-height:420px;background:#000}
+.cv-resize{position:absolute;right:-10px;bottom:-10px;width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:var(--panel2);color:var(--muted);display:grid;place-items:center;cursor:nwse-resize}.cv-resize .rv-icon{width:15px;height:15px}
+.cv-item[aria-selected="true"]{outline:2px solid var(--accent);outline-offset:3px}
+.cv-item:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.cv-beast{width:246px;padding:12px;border-radius:16px;background:var(--panel);border:1px solid color-mix(in srgb,var(--danger) 45%,var(--line));box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:8px}
+.cv-beast[data-dead="true"]{opacity:.55;filter:grayscale(.7)}
+.cv-beast header{display:flex;align-items:center;gap:10px}.cv-beast header b{display:block;font:600 19px/1.1 var(--font-head);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cv-beast header small{color:var(--muted);font-size:11.5px}
+.cv-disc{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:700;background:radial-gradient(circle at 35% 30%,#d4606d,#5b1621);color:#fff;border:2px solid #e0707c}
+.cv-hp{display:flex;align-items:center;gap:8px}.cv-hp .bar{flex:1}.cv-hp .num{font-weight:700;font-size:13px}
+.cv-stats{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:12.5px;color:var(--muted)}.cv-stats b{color:var(--fg)}
+.cv-acts{display:flex;flex-wrap:wrap;gap:4px}.cv-acts button{flex:1 0 auto;min-height:30px;padding:3px 8px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:4px}
+.cv-acts button:hover{border-color:var(--accent)}.cv-acts .rv-icon{width:14px;height:14px}
+.cv-empty{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(420px,calc(100% - 140px));padding:22px;border-radius:20px;border:1px dashed var(--line);background:color-mix(in srgb,var(--panel) 85%,transparent);display:flex;flex-direction:column;align-items:flex-start;gap:8px;cursor:default}
+.cv-empty>span .rv-icon{width:30px;height:30px;color:var(--accent)}.cv-empty b{font:600 26px var(--font-head)}.cv-empty p{margin:0}
+.cv-sw{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--panel);box-shadow:0 0 0 1px var(--line);padding:0;position:relative;overflow:hidden}
+.cv-sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--fg)}.cv-sw-free{display:inline-block;background-image:conic-gradient(#ec6969,#e3a85a,#60c5aa,#61a5f8,#ba91ff,#ec6969)!important}
+.cv-sw-free input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.cv-dot{flex:none;width:12px;height:12px;border-radius:50%}
+.cv-li{padding:6px 8px}
+.cv-log{display:flex;flex-direction:column;gap:4px;padding:8px 10px;border-radius:12px;background:var(--card);border:1px solid var(--line-soft)}
+.cv-custom{display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:13px;border:1px solid var(--line);background:var(--card)}
+.cv-custom .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cv-add{width:100%;cursor:pointer;color:var(--fg)}.cv-add:hover{border-color:var(--accent)}
+.cv-menu{min-width:250px}.cv-menu .mi span{min-width:0}
+.vtt[data-view="canvas"] .cv-count{max-width:300px;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:760px){.vtt[data-view="canvas"] .zoom{display:flex;bottom:10px}.vtt[data-view="canvas"] .tools{top:66px;left:var(--gut-l);transform:none;flex-direction:row;max-width:calc(100% - var(--gut-l) - var(--gut-r));overflow-x:auto;scrollbar-width:none}.vtt[data-view="canvas"] .tools .sep{width:1px;height:auto;margin:6px 4px}.vtt[data-view="canvas"] .tools .tip{display:none}.vtt[data-view="canvas"] .optbar{top:122px}.vtt[data-view="canvas"] .panel,.vtt[data-view="canvas"] .drawer{bottom:10px;max-height:62%}.vtt[data-view="canvas"] .cv-count{display:none}.cv-empty{width:calc(100% - 32px)}}
 
 /* ---------- Responsivo ---------- */
 @media (max-width:1100px){.c8,.c7,.c6,.c5,.c4,.c3{grid-column:span 12}.optbar{max-width:calc(100% - 520px)}.st-opt{max-width:calc(100% - 2*390px)}}
@@ -592,8 +634,8 @@ mark{background:color-mix(in srgb,var(--accent) 38%,transparent);color:inherit;b
             <a class="tool-card c3" href="#biblioteca"><div class="row"><span class="ti" data-i="books"></span><span class="n">03</span></div><b>Biblioteca</b><span class="d">Livros e regras dos sistemas</span></a>
             <a class="tool-card c3" href="#bestiario"><div class="row"><span class="ti" data-i="skull"></span><span class="n">04</span></div><b>Bestiário</b><span class="d">Criaturas e habilidades</span></a>
             <a class="tool-card c3" href="#buscar"><div class="row"><span class="ti" data-i="file-search"></span><span class="n">05</span></div><b>Buscar nos livros</b><span class="d">Termo, resumo e página</span></a>
-            <a class="tool-card c3 in-app-only" href="#" data-classic="canvas" hidden><div class="row"><span class="ti" data-i="layout-grid"></span><span class="n">06</span></div><b>Canvas infinito</b><span class="d">Ligações, pistas e notas</span></a>
-            <a class="tool-card c3 in-app-only" href="#" data-classic="atelier85" hidden><div class="row"><span class="ti" data-i="palette"></span><span class="n">07</span></div><b>Ateliê</b><span class="d">Retrato e token em camadas</span></a>
+            <a class="tool-card c3" href="#canvas"><div class="row"><span class="ti" data-i="layout-grid"></span><span class="n">06</span></div><b>Canvas infinito</b><span class="d">Ligações, pistas e notas</span></a>
+            <a class="tool-card c3 in-app-only" href="../ferramentas.html#atelier85" data-tool="atelier85" hidden><div class="row"><span class="ti" data-i="palette"></span><span class="n">07</span></div><b>Ateliê</b><span class="d">Retrato e token em camadas</span></a>
             <a class="tool-card c3" href="#entrar"><div class="row"><span class="ti" data-i="device-mobile"></span><span class="n">08</span></div><b>Entrar numa mesa</b><span class="d">Como jogador, pelo app ou navegador</span></a>
           </div>
         </section>
@@ -661,7 +703,7 @@ mark{background:color-mix(in srgb,var(--accent) 38%,transparent);color:inherit;b
               <div class="set-row"><div><b>Nomes dos tokens</b><div class="small muted">Mostrar sempre, em vez de só ao passar o cursor.</div></div><div class="seg" role="group" aria-label="Nomes" id="names-seg"><button type="button" data-n="0" aria-pressed="true">Ao passar</button><button type="button" data-n="1" aria-pressed="false">Sempre</button></div></div></article>
             <article class="card c5"><h2 style="font-size:23px">Ajuda</h2>
               <button class="btn" type="button" id="redo-master"><span data-i="help"></span>Refazer tutorial da mesa</button><button class="btn" type="button" id="redo-studio"><span data-i="help"></span>Refazer tutorial dos cenários</button><button class="btn" type="button" id="redo-player"><span data-i="help"></span>Refazer tutorial do jogador</button>
-              <a class="btn ghost in-app-only" href="../demo-offline.html#home" data-classic-switch="1" hidden><span data-i="arrow-back-up"></span>Usar a interface clássica</a></article>
+              </article>
           </div>
         </section>
       </div>
@@ -672,6 +714,7 @@ mark{background:color-mix(in srgb,var(--accent) 38%,transparent);color:inherit;b
     <section class="vtt" data-view="mesa" id="vtt-master" aria-label="Mesa ao vivo do mestre" hidden></section>
     <section class="vtt" data-view="estudio" id="studio" aria-label="Estúdio de cenários" hidden></section>
     <section class="vtt" data-view="jogador" id="vtt-player" aria-label="Mesa do jogador" hidden></section>
+    <section class="vtt" data-view="canvas" id="canvas-v" aria-label="Canvas infinito" hidden></section>
 
     <!-- ================= ENTRAR ================= -->
     <section class="vtt" data-view="entrar" aria-labelledby="h-join" hidden>
@@ -707,6 +750,6 @@ mark{background:color-mix(in srgb,var(--accent) 38%,transparent);color:inherit;b
     </section>
   </div>
 </div>
-<script src="app.js"></script>
+<script src="canvas.js"></script><script src="app.js"></script>
 </body>
 </html>

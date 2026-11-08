@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const base=path.resolve(__dirname,'../app/src/main');
 const asset=x=>fs.readFileSync(path.join(base,'assets',x),'utf8');
-const main=asset('demo-offline.html'),beasts=asset('rpg06.js');
+const main=asset('ferramentas.html'),beasts=asset('rpg06.js');
 const overlay=asset('mastermind52_player_experience.js');
 const shell=asset('mastermind54_player_shell.js');
 const remote=asset('rpg31_player_table.js');

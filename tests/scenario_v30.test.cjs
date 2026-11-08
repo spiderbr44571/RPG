@@ -6,7 +6,7 @@ const css=fs.readFileSync(path.join(base,'rpg30_studio.css'),'utf8');
 const server=fs.readFileSync(path.join(__dirname,'../app/src/main/java/dev/rpgmesa/demo/LocalCampaignServer.java'),'utf8');
 const native=fs.readFileSync(path.join(__dirname,'../app/src/main/java/dev/rpgmesa/demo/MainActivity.java'),'utf8');
 const manifest=fs.readFileSync(path.join(__dirname,'../app/src/main/AndroidManifest.xml'),'utf8');
-const html=fs.readFileSync(path.join(base,'demo-offline.html'),'utf8');
+const html=fs.readFileSync(path.join(base,'ferramentas.html'),'utf8');
 const player=fs.readFileSync(path.join(base,'lan_scene.html'),'utf8');
 new Function(studio); // JS sintaticamente valido.
 for(const code of ['className=\'r30-studio\'','setLandscape(true)','setLandscape(false)','s.tool===\'rect\'','s.tool===\'circle\'','data-r30-asset','id="r30-file"','image/jpeg','image/webp','r30-preview','backgroundAssetId','getBoundingClientRect','setPointerCapture','data-r30="exit"'])

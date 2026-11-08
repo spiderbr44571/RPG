@@ -6,8 +6,8 @@ const core=require(path.join(assets,'rpg20_search_core.js'));
 const templates=require(path.join(assets,'rpg27_answer_templates.js'));
 global.window={};require(path.join(assets,'rpg15_catalog_data.js'));
 const systems=window.RPG15_SYSTEMS.systems;
-const html=fs.readFileSync(path.join(assets,'demo-offline.html'),'utf8');
-assert.ok(html.includes('<script src="rpg28_context_search.js"></script>'),'contextual module should load before UI');
+const html=fs.readFileSync(path.join(assets,'ferramentas.html'),'utf8');
+assert.ok(fs.readFileSync(path.join(assets,'revamp/livros.js'),'utf8').includes('ctx=window.RPG28_CONTEXT'),'Buscar nos livros usa o módulo contextual');
 const pack=JSON.parse(/<script id="op-pack-json" type="application\/json">([\s\S]*?)<\/script>/.exec(html)[1]);
 const ordem=core.makeOrderDocs({pack});
 const other=[
@@ -41,5 +41,4 @@ assert.ok(ask('Como funciona descanso?', 'd-d','5e-2014').hits.every(x=>x.editio
 assert.equal(ask('Como funcionam os testes 3d6?', 'd-d','2024').state,'missing');
 assert.equal(ask('teletransporte entre dimensões').state,'missing');
 assert.deepEqual(engine.queryModel('Quando durmo, o que recupero?', 'ordem-paranormal',systems).concepts.includes('repouso'),true);
-assert.ok(fs.readFileSync(path.join(assets,'rpg26_offline_search_ui.js'),'utf8').includes("if(activeSystem==='all'&&named)"),'selected system must not be overwritten');
 console.log('PASS: v0.28 contextual retrieval, multiple systems, precise editions, grounded excerpts, no fabricated matches.');

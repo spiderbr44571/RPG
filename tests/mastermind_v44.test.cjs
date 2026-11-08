@@ -37,7 +37,7 @@ r=ritualBudget({...char,nex:55},rituals);assert.equal(r.total,20);assert.equal(r
 r=ritualBudget({...char,nex:85},rituals);assert.equal(r.total,29);assert.equal(r.maxCircle,4);
 r=ritualBudget({...char,nex:99},rituals);assert.equal(r.total,32);
 r=ritualBudget({...char,class:'Combatente'},rituals);assert.equal(r.total,0);
-const html=fs.readFileSync(path.join(root,'demo-offline.html'),'utf8');
+const html=fs.readFileSync(path.join(root,'ferramentas.html'),'utf8');
 const inline=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)].filter(a=>!a[1].includes('src=')&&!a[1].includes('application/json'));
 for(let i=0;i<inline.length;i++)assert.doesNotThrow(()=>new Function(inline[i][2]),'inline script '+i);
 assert.match(html,/fresh=\{\.\.\.sys\.state,name:'Novo agente',photo:''/);

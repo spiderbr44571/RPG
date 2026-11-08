@@ -2,7 +2,7 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const root=path.resolve(__dirname,'..'),assets=path.join(root,'app/src/main/assets');
 const read=name=>fs.readFileSync(path.join(assets,name),'utf8');
-const html=read('demo-offline.html'),studio=read('mastermind_sheet_studio.js'),source=read('mastermind56_local_powers.js');
+const html=read('ferramentas.html'),studio=read('mastermind_sheet_studio.js'),source=read('mastermind56_local_powers.js');
 const embedded=html.match(/<script id="op-pack-json" type="application\/json">([\s\S]*?)<\/script>/);
 assert.ok(embedded,'Expected local curated Ordem pack');
 const pack=JSON.parse(embedded[1]);

@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const assets=path.join(__dirname,'../app/src/main/assets');
-const html=fs.readFileSync(path.join(assets,'demo-offline.html'),'utf8');
+const html=fs.readFileSync(path.join(assets,'ferramentas.html'),'utf8');
 const studio=fs.readFileSync(path.join(assets,'mastermind76_atelier.js'),'utf8');
 assert.match(html,/<button class="nav-btn" data-screen="atelier"/,'desktop sidebar should still expose Atelier');
 assert.match(html,/\.sidebar\{display:none!important\}/,'mobile app hides old sidebar; hub must have own entry');

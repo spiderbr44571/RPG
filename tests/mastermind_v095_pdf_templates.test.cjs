@@ -2,7 +2,7 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const assets=path.join(__dirname,'../app/src/main/assets');
 const mod=require(path.join(assets,'mastermind_system_pdf.js'));
-const html=fs.readFileSync(path.join(assets,'demo-offline.html'),'utf8');
+const html=fs.readFileSync(path.join(assets,'ferramentas.html'),'utf8');
 const legacy=fs.readFileSync(path.join(assets,'rpg17_sheet_pdf.js'),'utf8');
 const cases={
  ordem:{name:'Ana Silva',class:'Ocultista',origin:'Acadêmico',trail:'Graduado',nex:45,attrs:{Força:1,Agilidade:2,Vigor:1,Intelecto:3,Presença:2},resources:{PV:22,PE:25,SAN:40},skills:{Ocultismo:10,Investigação:5},powers:['Surto Temporal'],rituaisConhecidos:['Paradoxo'],description:'Exemplo de ficha'},

@@ -77,7 +77,8 @@ public final class MainActivity extends Activity {
     private final PixelPortraitBridge pixelPortrait = new PixelPortraitBridge();
     private final CreatureImageBridge creatureArt = new CreatureImageBridge();
 
-    private static final String OFFLINE_URL = "file:///android_asset/demo-offline.html";
+    /** Ficha completa dos quatro sistemas e Ateliê, abertos pela nova interface. */
+    private static final String TOOLS_URL = "file:///android_asset/ferramentas.html";
     // Nova interface (prévia v2.0), servida dos mesmos assets e com as mesmas pontes nativas.
     private static final String REVAMP_URL = "file:///android_asset/revamp/index.html";
     private WebView browser;
@@ -232,7 +233,7 @@ public final class MainActivity extends Activity {
             if ("blob".equals(u.getScheme())) return false;
             if ("file".equals(u.getScheme())) {
               String page=u.toString();int hash=page.indexOf('#');if(hash>=0)page=page.substring(0,hash);
-              return !(OFFLINE_URL.equals(page)||REVAMP_URL.equals(page));
+              return !(REVAMP_URL.equals(page)||TOOLS_URL.equals(page));
             }
             if(allowedHost==null && "https".equals(u.getScheme()) && "drive.google.com".equalsIgnoreCase(u.getHost()) &&
                 u.getPath()!=null && (u.getPath().matches("/file/d/[A-Za-z0-9_-]{10,160}(/view)?") || u.getPath().matches("/drive/folders/[A-Za-z0-9_-]{10,160}"))) {
@@ -283,7 +284,7 @@ public final class MainActivity extends Activity {
     }
     private int dp(int x){return Math.round(getResources().getDisplayMetrics().density*x);}
     private Button button(String name){Button b=new Button(this);b.setText(name);b.setTextSize(10);b.setAllCaps(false);return b;}
-    private void openOffline(){setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);allowedHost=null;allowedPort=0;browser.addJavascriptInterface(sceneDisplay,"RpgSceneDisplay");mode.setText("● MODO OFFLINE");browser.addJavascriptInterface(books,"RpgBookBridge");browser.addJavascriptInterface(lan,"RpgLanBridge");browser.addJavascriptInterface(campaign,"RpgCampaignBridge");browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.addJavascriptInterface(drive,"RpgDriveBridge");browser.addJavascriptInterface(sheetPdf,"RpgSheetPdfBridge");browser.addJavascriptInterface(pixelPortrait,"RpgPixelPortraitBridge");browser.addJavascriptInterface(creatureArt,"RpgCreatureImageBridge");browser.loadUrl(OFFLINE_URL);}
+    private void openOffline(){setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);allowedHost=null;allowedPort=0;browser.addJavascriptInterface(sceneDisplay,"RpgSceneDisplay");mode.setText("● MODO OFFLINE");browser.addJavascriptInterface(books,"RpgBookBridge");browser.addJavascriptInterface(lan,"RpgLanBridge");browser.addJavascriptInterface(campaign,"RpgCampaignBridge");browser.addJavascriptInterface(localHost,"RpgLocalHost");browser.addJavascriptInterface(drive,"RpgDriveBridge");browser.addJavascriptInterface(sheetPdf,"RpgSheetPdfBridge");browser.addJavascriptInterface(pixelPortrait,"RpgPixelPortraitBridge");browser.addJavascriptInterface(creatureArt,"RpgCreatureImageBridge");browser.loadUrl(REVAMP_URL);}
     private static boolean isPrivateLan(String h) {
         if(h==null||!h.matches("\\d{1,3}(\\.\\d{1,3}){3}"))return false;
         String[] p=h.split("\\.");int[] n=new int[4];
@@ -844,20 +845,11 @@ public final class MainActivity extends Activity {
           }catch(Exception e){showBookError("Link de convite inválido ou indisponível.");}
         });
       }
+      /** A Mestragem fica na nova interface do app (a página antiga do mestre no servidor foi retirada). */
       @JavascriptInterface public void openLocalMaster(){
         runOnUiThread(()->{
-          LocalCampaignServer server=MesaHostService.instance;
-          if(server==null){showBookError("Inicie o servidor primeiro em Mestragem.");return;}
-          browser.removeJavascriptInterface("RpgBookBridge");
-          browser.removeJavascriptInterface("RpgLanBridge");
-          browser.removeJavascriptInterface("RpgCampaignBridge");
-          browser.removeJavascriptInterface("RpgLocalHost");
-          browser.removeJavascriptInterface("RpgDriveBridge");
-          browser.removeJavascriptInterface("RpgSheetPdfBridge");
-          browser.removeJavascriptInterface("RpgCreatureImageBridge");
-          
-          allowedHost="127.0.0.1";allowedPort=server.currentPort();
-          browser.loadUrl("http://127.0.0.1:"+allowedPort+"/master");
+          if(MesaHostService.instance==null){showBookError("Inicie o servidor primeiro em Mestragem.");return;}
+          browser.loadUrl(REVAMP_URL+"#mestragem");
         });
       }
     }

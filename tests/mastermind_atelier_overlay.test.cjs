@@ -4,7 +4,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
-const html=read('app/src/main/assets/demo-offline.html');
+const html=read('app/src/main/assets/ferramentas.html');
 const java=read('app/src/main/java/dev/rpgmesa/demo/MainActivity.java');
 const renderer=read('desktop/renderer.js');
 const css=read('desktop/desktop.css');

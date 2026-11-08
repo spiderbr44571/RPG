@@ -37,7 +37,7 @@ const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/dev/rpgmesa
 assert.ok(java.includes('if(sources==null)sources=new JSONArray();'),'native accepts zero sources');
 assert.ok(java.includes('JSONArray history=params.optJSONArray("history")'),'native receives conversation history');
 assert.ok(!java.includes('A IA precisa de trechos dos livros do sistema'),'old hard block removed');
-const html=fs.readFileSync(path.join(dir,'demo-offline.html'),'utf8');
+const html=fs.readFileSync(path.join(dir,'ferramentas.html'),'utf8');
 assert.ok(html.includes('<script src="rpg23_ai_core.js"></script>'));
 assert.ok(html.includes("let mode='ai';"),'cloud chat must be first');
 assert.ok(html.includes("const request=ai.plan(query"),'chat uses general planner');

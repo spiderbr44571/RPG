@@ -4,7 +4,7 @@ const root=path.resolve(__dirname,'../app/src/main/assets');
 const read=name=>fs.readFileSync(path.join(root,name),'utf8');
 const server=fs.readFileSync(path.resolve(__dirname,'../app/src/main/java/dev/rpgmesa/demo/LocalCampaignServer.java'),'utf8');
 const native=fs.readFileSync(path.resolve(__dirname,'../app/src/main/java/dev/rpgmesa/demo/MainActivity.java'),'utf8');
-const player=read('rpg31_player_table.js'),gm=read('rpg31_master_table.js'),editor=read('rpg29_scene_editor.js'),html=read('lan_scene.html'),master=read('lan_master.html'),app=read('demo-offline.html');
+const player=read('rpg31_player_table.js'),gm=read('rpg31_master_table.js'),editor=read('rpg29_scene_editor.js'),html=read('lan_scene.html'),master=read('lan_master.html'),app=read('ferramentas.html');
 new Function(player);new Function(gm);new Function(editor);
 for(const p of ['rpg31_player_table.js','rpg31_master_table.js','rpg31_live.css'])assert.ok(fs.statSync(path.join(root,p)).size>1500,p);
 assert.match(app,/<script src="rpg31_master_table.js"><\/script>/);

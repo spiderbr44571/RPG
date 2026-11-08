@@ -10,6 +10,10 @@ const path=require('node:path'),fs=require('node:fs');
  try{
   app=await electron.launch({executablePath:binary,args:process.platform==='linux'?['--no-sandbox','--disable-dev-shm-usage']:['--disable-gpu'],env:{...process.env,MASTERMIND_E2E:'1'},timeout:75000});
   const page=await app.firstWindow({timeout:45000});
+  // A ficha completa abre pela nova interface, na página de ferramentas.
+  await page.waitForFunction(()=>!!window.RV?.tool,null,{timeout:40000});
+  await page.evaluate(()=>window.RV.tool('sheet'));
+  await page.waitForURL(/ferramentas\.html#sheet$/,{timeout:30000});
   await page.locator('#screen-sheet').waitFor({state:'attached',timeout:35000});
   await page.evaluate(()=>window.RPG_DEMO.navigate('sheet'));
   const studio=page.locator('#mastermind-sheet-studio');
@@ -60,11 +64,14 @@ const path=require('node:path'),fs=require('node:fs');
   });
   assert.ok(metrics.w>200,'Sheet Studio not measured: '+JSON.stringify(metrics));
   assert.ok(metrics.css.trim(),'Theme token missing');
+  // Ir à Biblioteca (nova interface) e voltar mantém o investigador aberto.
   await page.evaluate(()=>window.RPG_DEMO.navigate('library'));
-  await page.evaluate(()=>window.RPG15.openSystem('gurps'));
-  await page.evaluate(()=>window.RPG_DEMO.navigate('sheet'));
-  await page.waitForTimeout(250);
-  assert.ok(await page.locator('#mss-native-stage .coc-shell').isVisible(),'Returning from library disabled investigator editor');
+  await page.waitForURL(/revamp\/index\.html#biblioteca$/,{timeout:20000});
+  await page.waitForFunction(()=>!!window.RV?.tool,null,{timeout:20000});
+  await page.evaluate(()=>window.RV.tool('sheet'));
+  await page.waitForURL(/ferramentas\.html#sheet$/,{timeout:20000});
+  await page.locator('#mss-native-stage .coc-shell').waitFor({state:'visible',timeout:15000});
+  assert.equal(await page.evaluate(()=>window.MastermindSheetStudio.currentSystem),'chamado-de-ctchulhu','Returning from library disabled investigator editor');
   console.log('PASS: OP/D&D/GURPS/CoC, native character creation, modular tabs, roll, responsive layout and library return.');
  }finally{if(app)await app.close();}
 })().catch(err=>{console.error(err.stack||err);process.exitCode=1;});

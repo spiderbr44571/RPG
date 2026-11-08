@@ -11,6 +11,10 @@ const fs=require('node:fs'),path=require('node:path');
  try{
   app=await electron.launch({executablePath:executable,args:process.platform==='linux'?['--no-sandbox','--disable-dev-shm-usage','--enable-unsafe-swiftshader']:['--disable-gpu'],env:{...process.env,MASTERMIND_E2E:'1',MASTERMIND_GODOT_FIXTURE:''},timeout:50000});
   win=await app.firstWindow({timeout:35000});
+  // O Ateliê abre pela nova interface, na página de ferramentas.
+  await win.waitForFunction(()=>!!window.RV?.tool,null,{timeout:40000});
+  await win.evaluate(()=>window.RV.tool('atelier85'));
+  await win.waitForURL(/ferramentas\.html#atelier85$/,{timeout:30000});
   await win.locator('#screen-atelier85').waitFor({state:'attached',timeout:25000});
   await win.evaluate(()=>window.RPG_DEMO.navigate('atelier85'));
   await win.locator('#p90-native-stage').waitFor({state:'visible',timeout:25000});

@@ -98,9 +98,11 @@ jobs:
           node --check app/src/main/assets/rpg17_sheet_pdf.js
           node --check app/src/main/assets/mastermind56_local_powers.js
           node --check app/src/main/assets/mastermind_sheet_studio.js
-          node --check desktop/mestragem-linux.js
           node --check app/src/main/assets/mastermind99_atelier.js
           node --check app/src/main/assets/mastermind99_atelier_layers.js
+          node --check app/src/main/assets/revamp/app.js
+          node --check app/src/main/assets/revamp/canvas.js
+          node --check app/src/main/assets/ferramentas.js
           node --test desktop/tests/desktop.test.cjs desktop/tests/godot-health.test.cjs desktop/tests/pdf-coc.test.cjs tests/mastermind_manual_canvas.test.cjs tests/mastermind_atelier_overlay.test.cjs tests/mastermind_sheet_studio.test.cjs tests/mastermind_v094_powers.test.cjs tests/mastermind_v095_pdf_templates.test.cjs tests/mastermind_v096_ordem_template.test.cjs tests/mastermind_v097_system_editor.test.cjs tests/mastermind_chocolate_menu.test.cjs tests/mastermind_atelier_camadas.test.cjs
           if ($LASTEXITCODE -ne 0) { throw 'Testes estaticos falharam' }
       - name: Gerar Mastermind Setup.exe e Portable.exe
@@ -115,13 +117,15 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $root = 'dist/win-unpacked'
-          foreach ($file in @('Mastermind.exe','resources/app.asar','resources/server/assets/demo-offline.html','resources/server/assets/mastermind_logo.png','resources/server/mastermind-campaign-server.jar','resources/runtime/windows/bin/java.exe')) {
+          foreach ($file in @('Mastermind.exe','resources/app.asar','resources/server/assets/revamp/index.html','resources/server/assets/revamp/canvas.js','resources/server/assets/ferramentas.html','resources/server/assets/mastermind_logo.png','resources/server/mastermind-campaign-server.jar','resources/runtime/windows/bin/java.exe')) {
             $p = Join-Path $root $file
             if (!(Test-Path $p)) { throw "Arquivo obrigatorio ausente do Windows: $p" }
             if ((Get-Item $p).Length -eq 0) { throw "Arquivo vazio: $p" }
           }
-          $html = Get-Content -Raw (Join-Path $root 'resources/server/assets/demo-offline.html')
-          if ($html -notmatch 'screen-master' -or $html -notmatch 'screen-atelier85') { throw 'Interface incompleta no pacote' }
+          $ui = Get-Content -Raw (Join-Path $root 'resources/server/assets/revamp/index.html')
+          if ($ui -notmatch 'id="canvas-v"' -or $ui -notmatch 'data-view="mestragem"') { throw 'Nova interface incompleta no pacote' }
+          $html = Get-Content -Raw (Join-Path $root 'resources/server/assets/ferramentas.html')
+          if ($html -notmatch 'screen-sheet' -or $html -notmatch 'screen-atelier85') { throw 'Ferramentas incompletas no pacote' }
           # The app's full original UI remains installed once under resources/server/assets.
           $origin = Join-Path $PWD 'app/src/main/assets'
           $installed = Join-Path $root 'resources/server/assets'

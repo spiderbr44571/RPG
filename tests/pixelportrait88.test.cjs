@@ -4,7 +4,7 @@ const root=path.resolve(__dirname,'..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const native=read('app/src/main/java/dev/rpgmesa/demo/PixelPortraitActivity.java');
 const parent=read('app/src/main/java/dev/rpgmesa/demo/MainActivity.java');
-const html=read('app/src/main/assets/demo-offline.html');
+const html=read('app/src/main/assets/ferramentas.html');
 const manifest=read('app/src/main/AndroidManifest.xml');
 const gradle=read('app/build.gradle');
 assert.match(native,/VERIFIED_GODOT_GAME\s*=\s*"https:\/\/html\.itch\.zone\/html\/18379448\/index\.html\?v=1785079497"/,

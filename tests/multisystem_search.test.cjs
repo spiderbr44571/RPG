@@ -44,10 +44,8 @@ assert.deepEqual(core.search('Stress',{docs:ix,systemId:'alien-rpg'}).map(x=>x.b
 assert.equal(core.search('Stress',{docs:ix,systemId:'alien-rpg',edition:'4e'}).length,0);
 assert.equal(core.search('Stress',{docs:ix,systemId:'gurps',edition:'4e'}).length,1);
 assert.equal(core.search('Stress',{docs:ix,systemId:'gurps',edition:'2024'}).length,0);
-const h=fs.readFileSync(path.join(base,'demo-offline.html'),'utf8');
-assert.ok(h.includes('<script src="rpg20_search_core.js"></script>'));
-assert.ok(h.includes('rpg26_offline_search_ui.js'));
-assert.ok(h.includes('rpg26_local_answers.js'));
+const h=fs.readFileSync(path.join(base,'revamp/livros.js'),'utf8');
+assert.ok(h.includes('rpg20_search_core.js'));
 assert.ok(!h.includes('RpgCloudAiBridge.request('),'offline build does not call cloud AI');
 assert.ok(fs.existsSync(path.join(__dirname,'../scripts/indexar_pdf.py')));
 assert.ok(!fs.existsSync(path.join(__dirname,'../server/ai_proxy.py')),'old local proxy must be removed');

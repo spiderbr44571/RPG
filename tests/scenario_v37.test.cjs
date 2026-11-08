@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
-const src=path.resolve(__dirname,'../app/src/main/assets'),html=fs.readFileSync(path.join(src,'demo-offline.html'),'utf8');
+const src=path.resolve(__dirname,'../app/src/main/assets'),html=fs.readFileSync(path.join(src,'ferramentas.html'),'utf8');
 const rules=fs.readFileSync(path.join(src,'rpg37_rules.js'),'utf8');
 const sandbox={window:{},globalThis:{}};vm.runInNewContext(rules,sandbox);
 const {skillBudget,inventoryBudget}=sandbox.window.RPG37_RULES;

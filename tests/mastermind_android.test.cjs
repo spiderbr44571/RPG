@@ -28,7 +28,7 @@ test('Android personal PDFs stay private, multi-select and index by system witho
  assert.match(pdf,/MIN_FREE_DISK/);
 });
 test('CoC7 works on Android with local storage, native JSON export, import, and 1d100 rolls',()=>{
- const html=read('demo-offline.html'),ui=read('mastermind_coc7_ui.js');
+ const html=read('ferramentas.html'),ui=read('mastermind_coc7_ui.js');
  const catalog=read('rpg15_catalog.js'),books=read('mastermind51_private_books.js'),css=read('mastermind_coc7_android.css');
  assert.match(html,/mastermind_coc7_engine\.js/);
  assert.match(html,/mastermind_coc7_ui\.js/);
@@ -60,7 +60,7 @@ test('CoC7 investigators can join the existing campaign server without breaking 
  assert.throws(()=>E.validate({systemId:'ordem-paranormal'}));
 });
 test('Atelier v0.99 replaces lyime with offline painted layers',()=>{
- const html=read('demo-offline.html'),js=read('mastermind99_atelier.js'),css=read('mastermind99_atelier.css'),ui=read('mastermind39_ui.js');
+ const html=read('ferramentas.html'),js=read('mastermind99_atelier.js'),css=read('mastermind99_atelier.css'),ui=read('mastermind39_ui.js');
  assert.match(html,/id="screen-atelier85"/);
  assert.match(html,/id="ma99-atelier"/);
  assert.match(html,/mastermind99_atelier_layers\.js"><\/script><script src="mastermind99_atelier\.js"/);

@@ -1,7 +1,7 @@
 # Mastermind
 
-Versão atual: **Android v0.109** · **Linux e Windows v1.3.0** — a nova interface passa a ser a padrão, ligada ao
-servidor da mesa na rede local, com Biblioteca, Buscar nos livros e Fichas. A interface clássica continua no app.
+Versão atual: **Android v0.110** · **Linux e Windows v1.4.0** — a nova interface é a única do app, com o Canvas
+infinito próprio; a interface clássica foi retirada sem perder funções nem dados salvos.
 
 ## Organização do repositório
 
@@ -20,6 +20,33 @@ servidor da mesa na rede local, com Biblioteca, Buscar nos livros e Fichas. A in
   (veja a docstring de `atelie_corrigir_rostos.py` para regenerar).
 
 ## Histórico
+
+# Mastermind v0.110 (Android) · v1.4.0 (Linux e Windows) — Canvas na nova interface, sem a interface clássica
+
+**Canvas infinito na nova interface** (Central → Canvas, ou o cartão Canvas da campanha na Mestragem). Usa **os mesmos
+dados salvos de antes**, sem migração: a lista de quadros (`mastermind42-canvas-index`), cada quadro
+(`mastermind42-board-<id>`) e áudio/vídeo no IndexedDB `mastermind42-media`. No primeiro uso, o Canvas e as criaturas
+das versões mais antigas (`rpg_canvas_v2`, `rpg_encounter_v3`) ainda entram no quadro principal.
+- Mover e dar zoom (roda do mouse, Ctrl, pinça no celular), arrastar, selecionar; Enquadrar tudo.
+- Cartões com título, tipo (anotação, pista, personagem, localização, evento, item, outro), descrição e cor; duplicar e
+  excluir. Imagens (até 10 MB, comprimidas em WebP como antes), áudio (até 25 MB) e vídeo (até 75 MB).
+- Criaturas do bestiário (Ordem Paranormal e D&D 5e) ou personalizadas: PV, ataque e dano com o mesmo rolador da
+  mesa, ataques do perfil, habilidades, efeitos e "Avançar turno", com registro das rolagens.
+- Ligações só quando o mestre escolhe dois itens (nunca automáticas), com cor e lista para remover.
+- Vários quadros: trocar, criar, renomear, duplicar e excluir. Atalhos: V, N, L, A, 0, +, −, Delete e Esc.
+- Limites de antes: 500 itens, 600 ligações, 80 criaturas e 100 quadros.
+
+**Interface clássica retirada.** O app abre direto a nova interface (Android, Linux e Windows).
+- **Ficha completa** dos quatro sistemas e **Ateliê** abrem numa página de ferramentas (`ferramentas.html`), com o
+  botão **Voltar** para onde você estava. As fichas e retratos salvos são os mesmos.
+- No servidor da mesa, os endereços antigos (`/join`, `/play`, `/scene`, `/resume`) levam à nova interface do
+  jogador (`/v2/…`); a raiz mostra uma página simples explicando como entrar. As regras continuam no servidor.
+- **Escurecer salas fechadas sem luz** (sombra automática calculada pelo servidor, antes só no editor clássico) agora
+  é uma opção no Estúdio → Cenário → Ambiente.
+- No computador, a página de ferramentas usa a largura toda da tela (o antigo modo paisagem), ligado por padrão.
+- A ficha completa agora lembra o sistema escolhido (Chamado de Cthulhu voltava para Ordem Paranormal ao reabrir).
+- Testes do Electron reescritos para a nova interface: Mestragem com o servidor Java local (campanha, convite,
+  jogador, ficha atribuída, mesa ao vivo), Canvas, ficha completa, PDF/CoC e Ateliê.
 
 # Mastermind v0.109 (Android) · v1.3.0 (Linux e Windows) — nova interface de verdade
 
@@ -414,7 +441,7 @@ Respostas HTML/JS/CSS/JSON do servidor passaram a enviar diretamente bytes UTF-8
 ### Testes e limitações
 
 ```bash
-node tests/scenario_v32.test.cjs
+node --test tests/revamp_adaptador.test.cjs   # o teste da v0.32 saiu com a mesa clássica (v0.110)
 ```
 
 A iniciativa é gerenciada manualmente pelo mestre e não calcula automaticamente bônus das fichas. O modo online permanece na rede LAN do anfitrião, sem necessidade de serviços externos; o mestre deve fornecer a notação de dados desejada.

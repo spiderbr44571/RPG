@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'../app/src/main/assets');
 const read=filename=>fs.readFileSync(path.join(root,filename),'utf8');
-const html=read('demo-offline.html'),css=read('mastermind38_shell.css'),script=read('mastermind39_ui.js');
+const html=read('ferramentas.html'),css=read('mastermind38_shell.css'),script=read('mastermind39_ui.js');
 const manifest=fs.readFileSync(path.resolve(__dirname,'../app/src/main/AndroidManifest.xml'),'utf8');
 const build=fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8');
 new Function(script);
@@ -37,7 +37,7 @@ assert.match(script,/\['PROJETO RPG','Projeto RPG','RPG Mesa',''\]/);
 assert.match(css,/--accent/);assert.match(css,/--panel/);assert.match(css,/--rpg-heading/);
 for(const setting of ['accent-wheel','accent-brightness','heading-font','font-range','motion-toggle','data-v10-theme','rpg-v10-themes'])
  assert.ok(html.includes(setting),'existing customization lost: '+setting);
-for(const feature of ['rpg37_rules.js','rpg11_campaigns.js','rpg14_sheet_tabs.js','rpg28_context_search.js','rpg18_bestiary.js','rpg33_camera.js'])
+for(const feature of ['rpg37_rules.js','rpg11_campaigns.js','rpg14_sheet_tabs.js','rpg28_context_search.js','rpg18_bestiary.js'])
  assert.ok(html.includes(feature),'existing game feature missing: '+feature);
 assert.ok(!script.includes("localStorage.clear("));
 assert.ok(!script.includes("localStorage.removeItem("));

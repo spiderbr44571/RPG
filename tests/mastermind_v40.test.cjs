@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const root=path.join(__dirname,'../app/src/main/assets'),read=name=>fs.readFileSync(path.join(root,name),'utf8');
-const html=read('demo-offline.html'),js=read('mastermind40_canvas_images.js'),css=read('mastermind40_canvas_images.css');
+const html=read('ferramentas.html'),js=read('mastermind40_canvas_images.js'),css=read('mastermind40_canvas_images.css');
 assert.doesNotThrow(()=>new Function(js));
 assert.match(html,/<script src="mastermind40_canvas_images\.js"><\/script>/);
 assert.match(html,/<link rel="stylesheet" href="mastermind40_canvas_images\.css">/);

@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const root=path.resolve(__dirname,'../app/src/main/assets'),read=n=>fs.readFileSync(path.join(root,n),'utf8');
-const engine=read('mastermind62_descriptions.js'),g=read('rpg16_gurps_ui.js'),d=read('rpg18_dnd_ui.js'),order=read('mastermind56_local_powers.js'),html=read('demo-offline.html');
+const engine=read('mastermind62_descriptions.js'),g=read('rpg16_gurps_ui.js'),d=read('rpg18_dnd_ui.js'),order=read('mastermind56_local_powers.js'),html=read('ferramentas.html');
 for(const [name,s] of [['descriptions',engine],['gurps',g],['dnd',d],['powers',order],['catalog',read('rpg16_gurps_traits.js')]])assert.doesNotThrow(()=>new Function(s),name+' should parse');
 const env={window:{}};vm.runInNewContext(read('rpg16_gurps_traits.js'),env);
 const traits=env.window.GURPS4_BASIC_TRAITS;

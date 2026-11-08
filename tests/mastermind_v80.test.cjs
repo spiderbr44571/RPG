@@ -17,7 +17,7 @@ for(let i=0;i<9;i++){
  assert.deepEqual(ops[0].slice(1,5),[(i%3)*420,Math.floor(i/3)*520,420,520],'Source rectangle must use shared 3x3 atlas grid');
  assert.deepEqual(ops[0].slice(5),[0,0,840,1040],'All portraits must fill the same canvas');
 }
-const editor=read('mastermind78_atelier.js'),html=read('demo-offline.html');
+const editor=read('mastermind78_atelier.js'),html=read('ferramentas.html');
 assert.match(html,/data-m77-tab="illustrated"/);
 assert.match(html,/mastermind80_portraits\.css/);
 assert.match(html,/mastermind80_portraits\.js/);

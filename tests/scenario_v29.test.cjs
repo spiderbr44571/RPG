@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),p=require('node:path');
 const root=p.join(__dirname,'../app/src/main/assets');
 const j=fs.readFileSync(p.join(__dirname,'../app/src/main/java/dev/rpgmesa/demo/LocalCampaignServer.java'),'utf8');
-const html=fs.readFileSync(p.join(root,'demo-offline.html'),'utf8');
+const html=fs.readFileSync(p.join(root,'ferramentas.html'),'utf8');
 const app=fs.readFileSync(p.join(root,'rpg11_campaigns.js'),'utf8');
 const player=fs.readFileSync(p.join(root,'lan_player.html'),'utf8');
 const gurps=fs.readFileSync(p.join(root,'lan_gurps.html'),'utf8');

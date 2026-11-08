@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 const base=path.resolve(__dirname,'..');
 const main=fs.readFileSync(path.join(base,'app/src/main/java/dev/rpgmesa/demo/MainActivity.java'),'utf8');
-const html=fs.readFileSync(path.join(base,'app/src/main/assets/demo-offline.html'),'utf8');
+const html=fs.readFileSync(path.join(base,'app/src/main/assets/ferramentas.html'),'utf8');
 const manifest=fs.readFileSync(path.join(base,'app/src/main/AndroidManifest.xml'),'utf8');
 const grade=fs.readFileSync(path.join(base,'app/build.gradle'),'utf8');
 const safe=[

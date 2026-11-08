@@ -227,7 +227,7 @@ class Table{
  act(a,b){const st=this.S(),t=this.tok(this.sel);if(RV.Live&&RV.Live.act(this,a,b,t))return;const done=()=>{this.closePops();emit('state')};
   switch(a){
    case 'mode-combat':case 'mode-interlude':st.mode=a==='mode-combat'?'combat':'interlude';if(st.mode==='interlude')emit('mode:interlude');toast(st.mode==='combat'?'Combate: movimento pela iniciativa.':'Interlúdio: movimento livre, iniciativa pausada.');done();break;
-   case 'canvas':emit('canvas:opened');this.closePops();if(RV.classic)RV.classic('canvas');else toast('O Canvas da campanha abre no app Mastermind.');break;
+   case 'canvas':emit('canvas:opened');this.closePops();location.hash='#canvas';break;
    case 'journal':this.openJournal();break;
    case 'jn-save':this.saveJournal(b);break;
    case 'jn-del':this.journal=(this.journal||[]).filter(n=>n.id!==b.dataset.v);this.saveJournal(null);break;

@@ -39,7 +39,7 @@ for(const face of [0,1,2,3,4,5]){
 }
 let token=mock();art.token(token,512,{width:840,height:1040},art.DEFAULTS);assert.ok(token.ops.some(o=>o[0]==='image'));
 for(const ver of [77,78,79])assert.equal(art.normal({...art.DEFAULTS,version:ver}).version,79);
-const html=fs.readFileSync(path.join(base,'demo-offline.html'),'utf8');
+const html=fs.readFileSync(path.join(base,'ferramentas.html'),'utf8');
 const editor=fs.readFileSync(path.join(base,'mastermind78_atelier.js'),'utf8');
 assert.match(html,/mastermind79_art\.js/);
 assert.match(html,/>v0\.79<\/small>/);

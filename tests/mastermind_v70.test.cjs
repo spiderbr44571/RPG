@@ -63,6 +63,6 @@ assert.match(java,/past!=null&&!atmosphereBlackout/,'Previously explored terrain
 assert.match(java,/fogOfWarActive&&!currentVision.contains/,'Server must remove invisible tokens');
 assert.match(java,/visible\.put\("image",""\)/,'Server must hide the raw map image');
 
-assert.match(read('demo-offline.html'),/>v0\.70<\/small>/);
+assert.match(read('ferramentas.html'),/>v0\.70<\/small>/);
 assert.match(fs.readFileSync(path.join(__dirname,'../app/build.gradle'),'utf8'),/versionCode 70/);
 console.log('PASS v0.70: total opaque fog/darkness, master preview, animated rooms, server data isolation');

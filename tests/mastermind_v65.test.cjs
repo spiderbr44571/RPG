@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 const dir=path.resolve(__dirname,'../app/src/main');
-const html=fs.readFileSync(path.join(dir,'assets/demo-offline.html'),'utf8');
+const html=fs.readFileSync(path.join(dir,'assets/ferramentas.html'),'utf8');
 const css=fs.readFileSync(path.join(dir,'assets/mastermind38_shell.css'),'utf8');
 const logo=fs.readFileSync(path.join(dir,'assets/mastermind_logo.png'));
 const nativeLogo=fs.readFileSync(path.join(dir,'res/drawable-nodpi/mastermind_logo.png'));

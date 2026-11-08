@@ -34,7 +34,7 @@ for(let i=0;i<20;i++){
 const token=ctx();art.token(token,256,{width:420,height:520},art.DEFAULTS);assert.ok(token.ops.includes('image'),'Token image must be based on portrait');
 for(const key of ['customHair','customEyes','customSkin','customPrimary','customSecondary']){const customized=art.normal({...art.DEFAULTS,[key]:'#ff0000',['useCustom'+key.slice(6)]:true});assert.equal(customized[key],'#ff0000');}
 assert.equal(art.palette({...art.DEFAULTS,useCustomSkin:true,customSkin:'#123456'}).skin,'#123456');
-const html=read('demo-offline.html'),editor=read('mastermind77_atelier.js'),engine=read('mastermind77_assets.js');
+const html=read('ferramentas.html'),editor=read('mastermind77_atelier.js'),engine=read('mastermind77_assets.js');
 for(const name of Object.keys(expected).filter(k=>k!=='background'&&k!=='frame'))assert.ok(html.includes('data-m77-tab="'+name+'"'),'Atelier needs '+name);
 for(const name of ['colors','token','finish'])assert.ok(html.includes('data-m77-tab="'+name+'"'));
 assert.doesNotMatch(html,/data-m77-tab="voice"/);

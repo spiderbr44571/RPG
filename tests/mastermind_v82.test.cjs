@@ -29,7 +29,7 @@ for(let k=0;k<6;k++){
 }
 const token=mockCtx();R.token(token,512,{width:840,height:1040},R.DEFAULTS);
 assert.ok(token.draws>0);assert.equal(token.imageSmoothingEnabled,false);
-const html=fs.readFileSync(path.join(assets,'demo-offline.html'),'utf8'),editor=fs.readFileSync(path.join(assets,'mastermind82_atelier.js'),'utf8');
+const html=fs.readFileSync(path.join(assets,'ferramentas.html'),'utf8'),editor=fs.readFileSync(path.join(assets,'mastermind82_atelier.js'),'utf8');
 for(const k of Object.keys(expected))assert.ok(html.includes('data-m81-tab="'+k+'"'),'Missing category '+k);
 for(const file of ['mastermind82_atlas_data.js','mastermind82_rig.js','mastermind82_atelier.js','mastermind82_atelier.css'])assert.ok(html.includes(file));
 assert.ok(!html.includes('src="mastermind81_rig.js"'),'Old vector renderer must be inactive');

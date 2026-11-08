@@ -74,7 +74,7 @@ test('PDF search sanitizes words and result snippets without invented rules',()=
  assert.equal(PDF.rank({page:4,text:'Sanidade e magia'},'pesquisa'),null);
 });
 test('Shared UI contains the CoC module, book source list and campaign options',()=>{
- const html=fs.readFileSync(path.join(root,'app/src/main/assets/demo-offline.html'),'utf8');
+ const html=fs.readFileSync(path.join(root,'app/src/main/assets/ferramentas.html'),'utf8');
  const catalog=fs.readFileSync(path.join(root,'app/src/main/assets/rpg15_catalog.js'),'utf8');
  const campaign=fs.readFileSync(path.join(root,'app/src/main/assets/rpg11_campaigns.js'),'utf8');
  const cocUi=fs.readFileSync(path.join(root,'app/src/main/assets/mastermind_coc7_ui.js'),'utf8');

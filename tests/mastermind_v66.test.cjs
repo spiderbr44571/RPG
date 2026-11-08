@@ -53,7 +53,7 @@ assert.match(wizardHtml,/data-d66-view="mine"/);
 assert.match(wizardHtml,/data-d66-view="create"/);
 U.state.view='create';const form=U.render(sheet('Mago',5),{spellDC:14,spellAttack:6});
 assert.match(form,/d66-new-description/);assert.match(form,/data-d66-class="wizard"/);
-const html=read('demo-offline.html'),old=read('rpg18_dnd_ui.js'),style=read('rpg18_dnd.css');
+const html=read('ferramentas.html'),old=read('rpg18_dnd_ui.js'),style=read('rpg18_dnd.css');
 assert.ok(html.indexOf('mastermind66_grimoire_engine.js')<html.indexOf('rpg18_dnd_ui.js'));
 assert.match(old,/Mastermind66GrimoireUI\?\.render/);assert.match(old,/Mastermind66GrimoireUI\?\.action/);
 assert.match(style,/\.d66-catalog/);assert.match(html,/>v0\.(?:66|68|69|70|71|72|73|74|75|76|76\.1|76\.2)<\/small>/);

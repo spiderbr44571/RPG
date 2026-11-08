@@ -21,7 +21,7 @@ const ctx=()=>{const ops=[];let depth=0;return {ops,
 for(let face=0;face<6;face++){const c=ctx();const cfg={...A.DEFAULTS,face,ears:face%4,outfit:face+3,hairFront:face,hairBack:face,armor:face%6,cloak:face%6};let result=A.portrait(c,840,1040,cfg);assert.equal(result.version,81);assert.ok(c.ops.length>80,'Layered artwork has depth');}
 for(let i=0;i<20;i++){const c=ctx();A.portrait(c,420,520,A.random(A.DEFAULTS));assert.ok(c.ops.length>80);}
 const token=ctx();A.token(token,512,{width:840,height:1040},A.DEFAULTS);assert.ok(token.ops.includes('image'));
-const html=fs.readFileSync(path.join(assets,'demo-offline.html'),'utf8'),editor=fs.readFileSync(path.join(assets,'mastermind81_atelier.js'),'utf8'),gradle=fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8');
+const html=fs.readFileSync(path.join(assets,'ferramentas.html'),'utf8'),editor=fs.readFileSync(path.join(assets,'mastermind81_atelier.js'),'utf8'),gradle=fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8');
 for(const tab of Object.keys(expected).filter(x=>x!=='skin'||true)){if(tab==='skin'||tab!=='skin')assert.ok(html.includes('data-m81-tab="'+tab+'"'),'Missing tab '+tab);}
 for(const id of ['m81-portrait','m81-token','m81-save','m81-options','m81-shuffle','m81-reset','m81-export-portrait','m81-export-token'])assert.ok(html.includes('id="'+id+'"'),'Missing UI '+id);
 assert.ok(html.includes('mastermind81_rig.js')&&html.includes('mastermind81_atelier.js'));

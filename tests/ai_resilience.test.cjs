@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 const quality=require('../app/src/main/assets/rpg24_ai_quality.js');
 const assets=path.join(__dirname,'../app/src/main/assets');
-const ui=fs.readFileSync(path.join(assets,'demo-offline.html'),'utf8');
+const ui=fs.readFileSync(path.join(assets,'ferramentas.html'),'utf8');
 const native=fs.readFileSync(path.join(__dirname,'../app/src/main/java/dev/rpgmesa/demo/MainActivity.java'),'utf8');
 const free=[{id:'sample/compact-chat-7b:free'},{id:'sample/chat-8b:free'},{id:'sample/chat-14b:free'}];
 const first=quality.fallbackModels('sample/compact-chat-7b:free',free);

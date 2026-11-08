@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* Gera os dados da nova interface (app/src/main/assets/revamp/) a partir das fontes do app:
  *  - dados.js        bestiário: rpg19_order_creatures.js (Ordem 1.3) + rpg18_bestiary.js (SRD 5.1)
- *  - dados-ordem.js  pacote de regras: systems/ordem-paranormal-v1.3.pack.json (o mesmo embutido em demo-offline.html)
+ *  - dados-ordem.js  pacote de regras: systems/ordem-paranormal-v1.3.pack.json (o mesmo embutido em ferramentas.html)
  * Uso: node scripts/revamp_dados.cjs [--check]   (--check falha se os arquivos estiverem desatualizados) */
 'use strict';
 const fs=require('fs'),path=require('path');
@@ -16,7 +16,7 @@ function bestiary(){
 }
 function ordemPack(){
  const pack=JSON.parse(fs.readFileSync(path.join(root,'systems/ordem-paranormal-v1.3.pack.json'),'utf8'));
- return '/* Pacote de regras de Ordem Paranormal 1.3 — gerado de systems/ordem-paranormal-v1.3.pack.json\n   (idêntico ao bloco op-pack-json de demo-offline.html). Não editar à mão: node scripts/revamp_dados.cjs */\nwindow.RV_ORDEM_PACK='+JSON.stringify(pack)+';\n';
+ return '/* Pacote de regras de Ordem Paranormal 1.3 — gerado de systems/ordem-paranormal-v1.3.pack.json\n   (idêntico ao bloco op-pack-json de ferramentas.html). Não editar à mão: node scripts/revamp_dados.cjs */\nwindow.RV_ORDEM_PACK='+JSON.stringify(pack)+';\n';
 }
 const files={'dados.js':bestiary(),'dados-ordem.js':ordemPack()};
 const check=process.argv.includes('--check');let stale=[];

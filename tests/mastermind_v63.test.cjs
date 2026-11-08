@@ -22,9 +22,9 @@ for(const x of opRituals){assert.ok(x.description.length>75,'OP ritual without m
 assert.ok(ctx.window.Mastermind63GURPS.filter(x=>x.sourceDetail==='mechanics').length>=200);
 assert.ok(ctx.window.Mastermind63SRD.filter(x=>x.kind.includes('Magia')).length>=300);
 assert.ok(ctx.window.Mastermind63SRD.filter(x=>x.kind.includes('Habilidade')).length>=400);
-assert.match(read('demo-offline.html'),/mastermind63_srd_summaries.js/);
-assert.ok(read('demo-offline.html').indexOf('mastermind63_srd_summaries.js')<read('demo-offline.html').indexOf('mastermind62_descriptions.js'),'Must load data before module');
-assert.match(read('demo-offline.html'),/>v0\.(?:63|64|65|66|68|69|70|71|72|73|74|75|76|76\.1|76\.2)<\/small>/);
+assert.match(read('ferramentas.html'),/mastermind63_srd_summaries.js/);
+assert.ok(read('ferramentas.html').indexOf('mastermind63_srd_summaries.js')<read('ferramentas.html').indexOf('mastermind62_descriptions.js'),'Must load data before module');
+assert.match(read('ferramentas.html'),/>v0\.(?:63|64|65|66|68|69|70|71|72|73|74|75|76|76\.1|76\.2)<\/small>/);
 assert.match(fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:63|64|65|66|68|69|70|71|72|73|74|75|76|77|78)/);
 assert.match(read('mastermind62_descriptions.js'),/if\(!o\[key\]&&val\[key\]\)o\[key\]=val\[key\]/,'Empty details from clicked UI must not overwrite description');
 assert.match(read('mastermind62_descriptions.js'),/async function lookupPrivate/);

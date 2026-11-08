@@ -24,7 +24,7 @@ expected={
  "opt/mastermind/resources/app.asar",
  "opt/mastermind/resources/server/mastermind-campaign-server.jar",
  "opt/mastermind/resources/server/assets/lan_master.html",
- "opt/mastermind/resources/server/assets/demo-offline.html",
+ "opt/mastermind/resources/server/assets/ferramentas.html",
  "opt/mastermind/resources/server/assets/mastermind_logo.png"
 }
 present=set()
@@ -45,7 +45,7 @@ with tarfile.open(fileobj=proc.stdout,mode="r|") as archive:
     present.add(name)
     if name==".PKGINFO":
      metadata["pkginfo"]=archive.extractfile(item).read().decode("utf8")
-    elif name=="opt/mastermind/resources/server/assets/demo-offline.html":
+    elif name=="opt/mastermind/resources/server/assets/ferramentas.html":
      assert b"<!doctype html>" in archive.extractfile(item).read(256).lower(), "Offline UI is not a valid HTML document"
     elif name=="opt/mastermind/resources/server/assets/mastermind_logo.png":
      assert archive.extractfile(item).read(8)==b"\x89PNG\r\n\x1a\n", "Packaged UI logo is invalid"

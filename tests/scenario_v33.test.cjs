@@ -4,7 +4,7 @@ const assets=path.resolve(__dirname,'../app/src/main/assets');
 const load=(file)=>fs.readFileSync(path.join(assets,file),'utf8');
 const server=fs.readFileSync(path.resolve(__dirname,'../app/src/main/java/dev/rpgmesa/demo/LocalCampaignServer.java'),'utf8');
 const gm=load('rpg31_master_table.js'),player=load('rpg31_player_table.js');
-const cameraSource=load('rpg33_camera.js'),scene=load('lan_scene.html'),master=load('lan_master.html'),demo=load('demo-offline.html');
+const cameraSource=load('rpg33_camera.js'),scene=load('lan_scene.html'),master=load('lan_master.html'),demo=load('ferramentas.html');
 new Function(cameraSource);new Function(gm);new Function(player);
 assert.ok(!server.includes('s.parseBody(files)'), 'Never decode posted JSON via NanoHTTPD postData');
 assert.match(server,/s\.getInputStream\(\)/);

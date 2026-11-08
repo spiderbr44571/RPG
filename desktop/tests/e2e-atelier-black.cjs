@@ -22,6 +22,10 @@ const fs=require('node:fs');
    timeout:60000
   });
   const win=await client.firstWindow({timeout:40000});
+  // O Ateliê abre pela nova interface, na página de ferramentas.
+  await win.waitForFunction(()=>!!window.RV?.tool,null,{timeout:40000});
+  await win.evaluate(()=>window.RV.tool('atelier85'));
+  await win.waitForURL(/ferramentas\.html#atelier85$/,{timeout:30000});
   await win.locator('#screen-atelier85').waitFor({state:'attached'});
   await win.evaluate(()=>window.RPG_DEMO.navigate('atelier85'));
   const stage=win.locator('#p90-native-stage');

@@ -4,7 +4,7 @@ const fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'..');
 const src=fs.readFileSync(path.join(root,'app/src/main/java/dev/rpgmesa/demo/PixelPortraitActivity.java'),'utf8');
 const manifest=fs.readFileSync(path.join(root,'app/src/main/AndroidManifest.xml'),'utf8');
-const html=fs.readFileSync(path.join(root,'app/src/main/assets/demo-offline.html'),'utf8');
+const html=fs.readFileSync(path.join(root,'app/src/main/assets/ferramentas.html'),'utf8');
 const gradle=fs.readFileSync(path.join(root,'app/build.gradle'),'utf8');
 for(const term of ['compactButton("−")','compactButton("+")','compactButton("Ajustar")',
  'compactButton("Mover")','compactButton("Paisagem")','changeMagnification(1f/1.2f)',

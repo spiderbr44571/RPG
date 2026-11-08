@@ -15,7 +15,7 @@ assert.equal(At.itemsFor('cape','f').length,6);
 assert.equal(At.itemsFor('accessory','f').length,8);
 assert.equal(At.itemsFor('frame','f').length,5);
 for(const x of ['f','m','o','u'])assert.match(At.atlases[x],/^atelier\/[a-z]+\.webp$/);
-const html=read('demo-offline.html');
+const html=read('ferramentas.html');
 assert.match(html,/id="screen-atelier"/);
 assert.match(html,/data-screen="atelier"/);
 assert.match(html,/Ateliê de Personagens/);

@@ -10,7 +10,7 @@ const KEYS={ordem:'rpg-ordem-v13-character',ordemList:'rpg-v05-characters',dnd:'
 const SYSTEM_LABEL={'ordem-paranormal':'Ordem Paranormal','d-d':'D&D 5e',gurps:'GURPS 4e','chamado-de-ctchulhu':'Chamado de Cthulhu 7e'};
 const store=(k,v)=>{try{localStorage.setItem(k,v);return true}catch(_){return false}};
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,Number(v)||0));
-/* Mesma fórmula de OP13.calc (demo-offline.html): PV, PE e SAN pela classe, NEX, atributos, origem e trilha. */
+/* Mesma fórmula de OP13.calc (ferramentas.html): PV, PE e SAN pela classe, NEX, atributos, origem e trilha. */
 function ordemMax(state,pack){
  if(!pack||!state)return null;const c=pack.classes?.[state.class]||pack.classes?.Combatente;if(!c)return null;
  const s=(pack.progressao||[]).filter(x=>x.nex<=state.nex).length,a=state.attrs||{},o=(pack.origens||[]).find(x=>x.nome===state.origin)||pack.origens?.[0]||{};
@@ -46,7 +46,7 @@ const bars=sheet=>resources(sheet).map(r=>{const pct=r.max?Math.round(Math.max(0
 const attrs=sheet=>{const a=sheet.attrs||sheet.attributes||sheet.characteristics||sheet.abilities||{};const e=Object.entries(a).filter(([,v])=>typeof v==='number').slice(0,9);
  const ab=k=>k.length<=3?k:String(k).normalize('NFD').replace(/[\u0300-\u036f]/g,'').slice(0,3).toUpperCase();return e.length?`<div class="attrs">${e.map(([k,v])=>`<div class="attr"><b>${esc(v)}</b><span title="${esc(k)}">${esc(ab(k))}</span></div>`).join('')}</div>`:''};
 const P={open:null,sys:'all'};
-function openClassic(entry,screen){entry.select();RV.classic?RV.classic(screen||entry.screen):location.href='../demo-offline.html#'+(screen||entry.screen)}
+function openTool(entry,screen){entry.select();RV.tool?RV.tool(screen||entry.screen):location.href='../ferramentas.html#'+(screen||entry.screen)}
 function page(){const host=document.getElementById('fichas');if(!host)return;const all=list(),shown=all.filter(e=>P.sys==='all'||e.system===P.sys),cur=all.find(e=>e.id===P.open)||null;
  const inApp=RV.inApp;
  host.innerHTML=`<div class="row between"><div class="seg" role="group" aria-label="Sistema" id="fx-sys">${[['all','Todas'],['ordem-paranormal','Ordem'],['d-d','D&D 5e'],['chamado-de-ctchulhu','Cthulhu'],['gurps','GURPS']].map(([k,l])=>`<button type="button" data-fx-sys="${k}" aria-pressed="${P.sys===k}">${l}</button>`).join('')}</div>
@@ -68,9 +68,9 @@ document.addEventListener('click',ev=>{const t=ev.target;const pick=t.closest('[
  const o=t.closest('[data-fx-open]');if(o){P.open=P.open===o.dataset.fxOpen?null:o.dataset.fxOpen;page();return}
  const a=t.closest('[data-fx]');if(!a)return;const cur=list().find(e=>e.id===P.open);
  if(a.dataset.fx==='close'){P.open=null;page()}
- if(a.dataset.fx==='full'&&cur)openClassic(cur,'sheet');
- if(a.dataset.fx==='atelier'&&cur)openClassic(cur,'atelier85');
- if(a.dataset.fx==='new'){if(P.sys!=='all')store(STUDIO,P.sys);RV.classic?RV.classic('sheet'):0}});
+ if(a.dataset.fx==='full'&&cur)openTool(cur,'sheet');
+ if(a.dataset.fx==='atelier'&&cur)openTool(cur,'atelier85');
+ if(a.dataset.fx==='new'){if(P.sys!=='all')store(STUDIO,P.sys);RV.tool?RV.tool('sheet'):0}});
 RV.on&&RV.on(e=>{if(e==='route:ficha')page();if(e==='route:inicio')home()});
 RV.Sheets={list,resources,ordemSheet,ordemMax,detailOf,SYSTEM_LABEL,KEYS,page,home};
 })();

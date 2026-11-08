@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const dir=path.resolve(__dirname,'../app/src/main/assets'),read=x=>fs.readFileSync(path.join(dir,x),'utf8');
-const data=JSON.parse(read('mastermind55_powers.json')),offline=read('demo-offline.html'),local=read('mastermind56_local_powers.js'),lan=read('mastermind55_player_powers.js');
+const data=JSON.parse(read('mastermind55_powers.json')),offline=read('ferramentas.html'),local=read('mastermind56_local_powers.js'),lan=read('mastermind55_player_powers.js');
 const java=fs.readFileSync(path.resolve(__dirname,'../app/src/main/java/dev/rpgmesa/demo/LocalCampaignServer.java'),'utf8');
 const catalogJs=read('mastermind59_class_catalog.js');
 const window={};vm.runInNewContext(catalogJs,{window});

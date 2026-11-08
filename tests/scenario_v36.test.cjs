@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const assets=path.resolve(__dirname,'../app/src/main/assets');
-const html=fs.readFileSync(path.join(assets,'demo-offline.html'),'utf8');
+const html=fs.readFileSync(path.join(assets,'ferramentas.html'),'utf8');
 const spells=fs.readFileSync(path.join(assets,'rpg06.js'),'utf8');
 const gm=fs.readFileSync(path.join(assets,'rpg31_master_table.js'),'utf8');
 const server=fs.readFileSync(path.resolve(__dirname,'../app/src/main/java/dev/rpgmesa/demo/LocalCampaignServer.java'),'utf8');

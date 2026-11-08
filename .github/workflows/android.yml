@@ -62,6 +62,8 @@ jobs:
           node --check app/src/main/assets/revamp/mesa.js
           node --check app/src/main/assets/revamp/estudio.js
           node --check app/src/main/assets/revamp/app.js
+          node --check app/src/main/assets/revamp/canvas.js
+          node --check app/src/main/assets/ferramentas.js
           node --check app/src/main/assets/revamp/base.js
           node --check app/src/main/assets/revamp/cena.js
           node --test tests/revamp_adaptador.test.cjs

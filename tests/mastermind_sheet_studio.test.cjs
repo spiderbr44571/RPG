@@ -2,7 +2,7 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'..'),assets=path.join(root,'app/src/main/assets');
 const read=x=>fs.readFileSync(path.join(assets,x),'utf8');
-const html=read('demo-offline.html'),js=read('mastermind_sheet_studio.js'),css=read('mastermind_sheet_studio.css');
+const html=read('ferramentas.html'),js=read('mastermind_sheet_studio.js'),css=read('mastermind_sheet_studio.css');
 test('Sheet Studio loads after all original RPG engines in the shared HTML on every platform',()=>{
  const end=html.lastIndexOf('</body>'),studio=html.indexOf('src="mastermind_sheet_studio.js"'),ordem=html.indexOf('src="rpg14_sheet_tabs.js"'),gurps=html.indexOf('src="rpg16_gurps_ui.js"'),dnd=html.indexOf('src="rpg18_dnd_ui.js"'),coc=html.indexOf('src="mastermind_coc7_ui.js"');
  assert.ok(end>studio&&studio>ordem&&studio>gurps&&studio>dnd&&studio>coc);

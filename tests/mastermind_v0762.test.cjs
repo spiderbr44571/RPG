@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const assets=path.join(__dirname,'../app/src/main/assets');
 const read=name=>fs.readFileSync(path.join(assets,name),'utf8');
 const studio=require('../app/src/main/assets/mastermind76_atelier.js');
-const html=read('demo-offline.html'),js=read('mastermind76_atelier.js'),css=read('mastermind76_atelier.css');
+const html=read('ferramentas.html'),js=read('mastermind76_atelier.js'),css=read('mastermind76_atelier.css');
 const expected=['portrait','frame','background','token','finish'];
 assert.deepEqual([...html.matchAll(/data-m76-category="([^"]+)"/g)].map(x=>x[1]),expected,
  'Only five portrait-first tabs may be shown');

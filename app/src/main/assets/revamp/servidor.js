@@ -169,7 +169,7 @@ const TEMPLATES=()=>Cena.TEMPLATES;
 const Mest=RV.Mest={
  render(){const host=$('#mest-grid');if(!host)return;const L=Live,hs=Net.host(),canHost=Net.canHost();
   const hero=$('#h-mestragem'),sub=$('#mest-sub');
-  if(!canHost){hero.innerHTML='Campanha de <em>treino.</em>';sub.textContent='O servidor da mesa roda no app Mastermind (Android ou computador). Aqui você treina com uma campanha de exemplo, só neste aparelho.';host.innerHTML=this.training();this.sync();this.thumbs();this.bindOnce();return}
+  if(!canHost){hero.innerHTML='Campanha de <em>treino.</em>';sub.textContent='O servidor da mesa roda no app Mastermind (Android ou computador). Aqui você treina com uma campanha de exemplo, só neste aparelho.';host.innerHTML=this.training()+(RV.Canvas?RV.Canvas.card():'');this.sync();this.thumbs();this.bindOnce();return}
   const c=L.detail;hero.innerHTML=c?esc(c.name).replace(/(\S+)$/,'<em>$1.</em>'):'Sua <em>mestragem.</em>';
   sub.textContent=c?`${(c.players||[]).length} jogador${(c.players||[]).length===1?'':'es'} · ${(c.characters||[]).length} ficha${(c.characters||[]).length===1?'':'s'} · ${c.sessionMode==='interlude'?'Interlúdio':'Combate'}`:'Ligue o servidor, crie ou escolha uma campanha e publique um cenário.';
   const on=hs?.running,state=on?`<span class="dot on"></span><span>Servidor ativo · <b class="num">${esc(hs.ip)}:${esc(hs.port)}</b></span>`:hs?.starting?'<span class="dot"></span><span>Iniciando…</span>':`<span class="dot bad-dot"></span><span>${esc(hs?.error||'Servidor desligado')}</span>`;
@@ -202,7 +202,7 @@ const Mest=RV.Mest={
    <article class="card c4"><div class="card-h"><h2>Fichas</h2><span class="small muted">${chars.length}</span></div>
     ${chars.map(x=>{const rs=RV.Sheets.resources(x.sheet||{});const r=rs[0];return `<div class="res-row"><span>${esc(x.sheet?.name||'Ficha')}</span>${r?`<div class="bar"><i style="width:${r.max?Math.round(r.cur/r.max*100):0}%;--c:${r.color}"></i></div><span class="num">${r.cur}/${r.max}</span>`:'<span class="small muted">'+esc(RV.Sheets.SYSTEM_LABEL[x.sheet?.systemId]||'')+'</span>'}</div>`}).join('')||'<p class="small muted" style="margin:0">Nenhuma ficha na campanha.</p>'}
     <div class="row"><select class="input" data-m-local aria-label="Ficha deste aparelho" style="flex:1;min-width:0">${RV.Sheets.list().map(s=>`<option value="${esc(s.id)}">${esc(s.name)} · ${esc(RV.Sheets.SYSTEM_LABEL[s.system])}</option>`).join('')||'<option value="">Nenhuma ficha neste aparelho</option>'}</select><button class="btn sm" type="button" data-m="add-sheet">${ic('plus')}Adicionar</button></div></article>`;
-  host.innerHTML=h;RV.hydrateIcons(host);this.sync();this.thumbs();this.bindOnce()},
+  host.innerHTML=h+(RV.Canvas?RV.Canvas.card():'');RV.hydrateIcons(host);this.sync();this.thumbs();this.bindOnce()},
  training(){const st=RV.state;return `<article class="card feature c8"><canvas class="mini-map" id="mini-map" width="600" height="400" aria-hidden="true"></canvas><div class="feature-body"><p class="kicker">Campanha de treino</p><h2>Teste a mesa à vontade.</h2>
    <div class="row small"><span class="dot"></span><span>Sem servidor: nada sai deste aparelho</span><span class="chip">Cenário: <b style="margin-left:4px">${esc(st.scene.name)}</b></span></div>
    <p class="small muted" style="margin:0">Para receber jogadores, abra esta interface no app Mastermind e ligue o servidor da mesa aqui na Mestragem.</p>

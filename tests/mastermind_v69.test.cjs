@@ -30,11 +30,11 @@ const editor=read('rpg29_scene_editor.js'),master=read('rpg31_master_table.js'),
 for(const needle of ['r69-light-panel','r69-mode','r69-fog-density','r69-enabled','r69-fow','r69-vision','r69-light-color','r69-light-radius','r69-quality','r69-add-light','r69-toggle','r69-delete','atmosphereEngine?.attach'])assert.ok(editor.includes(needle),'Missing editor UI '+needle);
 assert.match(master,/Mastermind69Atmosphere\?\.attach\(board,map/);
 assert.match(player,/Mastermind69Atmosphere\?\.attach\(board,s,\{cell,player:true\}/);
-for(const file of ['demo-offline.html','lan_master.html','lan_scene.html'])assert.ok(read(file).includes('atmosphere.js'),'Missing atmosphere in '+file);
+for(const file of ['ferramentas.html','lan_master.html','lan_scene.html'])assert.ok(read(file).includes('atmosphere.js'),'Missing atmosphere in '+file);
 const java=fs.readFileSync(path.resolve(__dirname,'../app/src/main/java/dev/rpgmesa/demo/LocalCampaignServer.java'),'utf8');
 for(const name of ['opaqueBoundaries','canSeeThrough','player.optJSONObject("mapExploration")','scene.put("visibleCells"','fogOfWarActive&&!currentVision.contains','scene.put("layers",visiblePaint)','visible.put("image","")'])assert.ok(java.includes(name),'Fog-of-war server protection '+name);
 assert.match(java,/path.equals\("\/atmosphere.js"\)/);
 assert.match(java,/lights.length\(\)>20/);
-assert.match(read('demo-offline.html'),/>v0\.(?:69|70|72|73|74|75|76|76\.1|76\.2)<\/small>/);
+assert.match(read('ferramentas.html'),/>v0\.(?:69|70|72|73|74|75|76|76\.1|76\.2)<\/small>/);
 assert.match(fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8'),/versionCode (?:69|70|72|73|74|75|76|77|78)/);
 console.log('PASS v0.69: 2.5D lighting, fog quality modes, dynamic wall/door shadows, server-side fog of war and safe older maps');

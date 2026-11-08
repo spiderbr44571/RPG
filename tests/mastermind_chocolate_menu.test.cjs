@@ -1,7 +1,7 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'..'),asset=path.join(root,'app/src/main/assets');
-const html=fs.readFileSync(path.join(asset,'demo-offline.html'),'utf8');
+const html=fs.readFileSync(path.join(asset,'ferramentas.html'),'utf8');
 test('Floating Mastermind menu uses chocolate-style 3x3 grid, not house or dice',()=>{
  const m=html.match(/const svgMenu=`([^`]+)`;/);
  assert.ok(m,'A grade deve ser usada no botao de menu principal');

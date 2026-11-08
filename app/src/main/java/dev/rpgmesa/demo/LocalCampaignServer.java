@@ -401,7 +401,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
   }
   private Response redirectPlayer(JSONObject c,JSONObject p) throws JSONException{
     Response r=newFixedLengthResponse(Response.Status.REDIRECT,"text/plain","");
-    r.addHeader("Location","/scene/"+c.getString("id"));
+    r.addHeader("Location","/v2/play/"+c.getString("id"));
     r.addHeader("Set-Cookie","rpg_guest="+p.getString("secret")+"; HttpOnly; SameSite=Strict; Path=/; Max-Age=31536000");
     r.addHeader("Referrer-Policy","no-referrer");
     r.addHeader("Cache-Control","no-store");
@@ -2230,46 +2230,12 @@ public final class LocalCampaignServer extends NanoHTTPD {
     return r;
   }
   private Response json(int status,String key,String value){try{return response(status,new JSONObject().put(key,value));}catch(Exception e){return newFixedLengthResponse(Response.Status.INTERNAL_ERROR,"text/plain","Erro");}}
-  private Response html(String asset) throws IOException{
-    byte[] buf;
-    try(InputStream in=context.getAssets().open(asset);ByteArrayOutputStream out=new ByteArrayOutputStream()){
-      byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1)out.write(b,0,n);buf=out.toByteArray();
-    }
-    Response r=utf8(Response.Status.OK,"text/html; charset=UTF-8",buf);
-    r.addHeader("Cache-Control","no-store");r.addHeader("Referrer-Policy","no-referrer");
-    r.addHeader("X-Frame-Options","DENY");r.addHeader("X-Content-Type-Options","nosniff");
-    r.addHeader("Content-Security-Policy","default-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'");
-    return r;
-  }
-  private Response sceneEditorScript()throws IOException{
-    byte[] buf;
-    try(InputStream in=context.getAssets().open("rpg29_scene_editor.js");ByteArrayOutputStream out=new ByteArrayOutputStream()){
-      byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1)out.write(b,0,n);buf=out.toByteArray();
-    }
-    Response r=utf8(Response.Status.OK,"application/javascript; charset=UTF-8",buf);
-    r.addHeader("Cache-Control","no-store");r.addHeader("X-Content-Type-Options","nosniff");return r;
-  }
-  private Response sceneEditorStyle()throws IOException{
-    byte[] buf;
-    try(InputStream in=context.getAssets().open("rpg30_studio.css");ByteArrayOutputStream out=new ByteArrayOutputStream()){
-      byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1)out.write(b,0,n);buf=out.toByteArray();
-    }
-    Response r=utf8(Response.Status.OK,"text/css; charset=UTF-8",buf);
-    r.addHeader("Cache-Control","no-store");r.addHeader("X-Content-Type-Options","nosniff");return r;
-  }
   private Response publishedJson(String asset)throws IOException{
     try(InputStream in=context.getAssets().open(asset);ByteArrayOutputStream out=new ByteArrayOutputStream()){
       byte[] bytes=new byte[4096];int n;
       while((n=in.read(bytes))!=-1)out.write(bytes,0,n);
       return utf8(Response.Status.OK,"application/json; charset=UTF-8",out.toByteArray());
     }
-  }
-  private Response publishedStyle(String asset)throws IOException{
-    byte[] bytes;
-    try(InputStream in=context.getAssets().open(asset);ByteArrayOutputStream out=new ByteArrayOutputStream()){
-      byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1)out.write(b,0,n);bytes=out.toByteArray();
-    }
-    return utf8(Response.Status.OK,"text/css; charset=UTF-8",bytes);
   }
   private byte[] assetBytes(String asset)throws IOException{
     try(InputStream in=context.getAssets().open(asset);ByteArrayOutputStream out=new ByteArrayOutputStream()){
@@ -2297,6 +2263,22 @@ public final class LocalCampaignServer extends NanoHTTPD {
     r.addHeader("Cache-Control","no-store");r.addHeader("X-Content-Type-Options","nosniff");
     return r;
   }
+  private Response redirect(String to){
+    Response r=newFixedLengthResponse(Response.Status.REDIRECT,"text/plain","");
+    r.addHeader("Location",to);r.addHeader("Referrer-Policy","no-referrer");r.addHeader("Cache-Control","no-store");
+    return r;
+  }
+  /** Raiz do servidor: a Mestragem fica no app; jogadores entram pelo convite. */
+  private Response home(){
+    String page="<!doctype html><html lang=\"pt-BR\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
+     +"<title>Mastermind · mesa na rede local</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b0d12;color:#e8e7e7;font:16px/1.5 system-ui,sans-serif;padding:24px}"
+     +"main{max-width:440px;border:1px solid #292c37;border-radius:20px;padding:26px;background:#12151d}h1{margin:0 0 8px;font:600 30px Georgia,serif}b{color:#c7a87b}</style></head>"
+     +"<body><main><h1>Mesa na rede local</h1><p>Esta mesa é conduzida pelo app Mastermind, em <b>Mestragem</b>.</p><p>Jogadores: abram o convite que o mestre copiou, pelo app ou pelo navegador.</p></main></body></html>";
+    Response r=utf8(Response.Status.OK,"text/html; charset=UTF-8",page.getBytes(StandardCharsets.UTF_8));
+    r.addHeader("Cache-Control","no-store");r.addHeader("X-Frame-Options","DENY");r.addHeader("X-Content-Type-Options","nosniff");
+    r.addHeader("Content-Security-Policy","default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'");
+    return r;
+  }
   private Response revampPage()throws IOException{
     String page=new String(assetBytes("revamp/index.html"),StandardCharsets.UTF_8);
     // Os arquivos da página são relativos: no servidor eles ficam em /v2/.
@@ -2307,15 +2289,6 @@ public final class LocalCampaignServer extends NanoHTTPD {
     r.addHeader("Content-Security-Policy","default-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'");
     return r;
   }
-  private Response publishedScript(String asset)throws IOException{
-    byte[] bytes;
-    try(InputStream in=context.getAssets().open(asset);ByteArrayOutputStream out=new ByteArrayOutputStream()){
-      byte[] buffer=new byte[8192];int len;while((len=in.read(buffer))!=-1)out.write(buffer,0,len);
-      bytes=out.toByteArray();
-    }
-    Response r=utf8(Response.Status.OK,"application/javascript; charset=UTF-8",bytes);
-    r.addHeader("Cache-Control","no-store, max-age=0");return r;
-  }
   @Override public Response serve(IHTTPSession s) {
     try {
       String path=s.getUri();String[] p=path.split("/");String method=s.getMethod().name();
@@ -2325,29 +2298,12 @@ public final class LocalCampaignServer extends NanoHTTPD {
         if(origin!=null&&!origin.equals("http://"+host))return json(403,"error","Origem não autorizada");
       }
       if(method.equals("GET")){
-        if(path.equals("/")||path.equals("/master"))return html("lan_master.html");
+        if(path.equals("/")||path.equals("/master"))return home();
         if(path.startsWith("/v2/"))return revamp(path);
-        if(path.equals("/map-layers.js"))return publishedScript("mastermind68_map_layers.js");
-        if(path.equals("/atmosphere.js"))return publishedScript("mastermind69_atmosphere.js");
-        if(path.equals("/volume.js"))return publishedScript("mastermind72_volume.js");
-        if(path.equals("/icons74.js"))return publishedScript("mastermind74_icons.js");
-        if(path.equals("/scene-editor.js"))return sceneEditorScript();
-        if(path.equals("/scene-editor.css"))return sceneEditorStyle();
-        if(path.equals("/scene-bestiary.js"))return publishedScript("rpg19_order_creatures.js");
-        if(path.equals("/table-camera.js"))return publishedScript("rpg33_camera.js");
-        if(path.equals("/table-player.js"))return publishedScript("rpg31_player_table.js");
-        if(path.equals("/player-immersion.js"))return publishedScript("mastermind52_player_experience.js");
-        if(path.equals("/player-range.js"))return publishedScript("mastermind52_range.js");
-        if(path.equals("/player-immersion.css"))return publishedStyle("mastermind52_player_experience.css");
-        if(path.equals("/player-shell.js"))return publishedScript("mastermind54_player_shell.js");
-        if(path.equals("/player-shell.css"))return publishedStyle("mastermind54_player_shell.css");
-        if(path.equals("/powers-ui.js"))return publishedScript("mastermind55_player_powers.js");
-        if(path.equals("/powers-ui.css"))return publishedStyle("mastermind55_player_powers.css");
-        if(path.equals("/table-master.js"))return publishedScript("rpg31_master_table.js");
-        if(path.equals("/table-master.css"))return publishedStyle("rpg31_live.css");
-        if(p.length==3&&p[1].equals("scene")){
+        // Endereços da interface antiga: levam para a nova interface do jogador.
+        if(p.length==3&&(p[1].equals("scene")||p[1].equals("play"))){
           if(checkPlayer(p[2],cookie(s,"rpg_guest"))==null)return json(403,"error","Sessão não autorizada");
-          return html("lan_scene.html");
+          return redirect("/v2/play/"+p[2]);
         }
         if(p.length==5&&p[1].equals("resume")){
           JSONObject c=campaign(p[2]),pl=checkPlayer(p[2],p[4]);
@@ -2360,15 +2316,7 @@ public final class LocalCampaignServer extends NanoHTTPD {
           if(!equalsSecret(c.getString("invite"),p[3]))return json(403,"error","Convite inválido");
           JSONObject existing=checkPlayer(p[2],cookie(s,"rpg_guest"));
           if(existing!=null)return redirectPlayer(c,existing);
-          return html("lan_join.html");
-        }
-        if(p.length==3&&p[1].equals("play")){
-          if(checkPlayer(p[2],cookie(s,"rpg_guest"))==null)return json(403,"error","Sessão não autorizada");
-          JSONObject player=checkPlayer(p[2],cookie(s,"rpg_guest"));
-          String ref=player.optString("characterId","");
-          if(ref.isEmpty())return html("lan_player.html");
-          JSONObject assigned=playerSheet(p[2],player);
-          return "gurps".equals(assigned.optString("systemId"))?html("lan_gurps.html"):html("lan_player.html");
+          return redirect("/v2/join/"+p[2]+"/"+p[3]);
         }
         if(p.length==5&&p[1].equals("api")&&p[2].equals("play")&&p[4].equals("scenario")){
           JSONObject pl=checkPlayer(p[3],cookie(s,"rpg_guest"));

@@ -1,5 +1,5 @@
 /* Mastermind · revamp — Personalização do app: temas elementais, efeitos, destaque, fontes, densidade e textura.
-   Portado de demo-offline.html (v0.10 "Laboratório de interfaces elementais" e applyPersonalization).
+   Portado da v0.10 do app ("Laboratório de interfaces elementais" e applyPersonalization).
    Usa as MESMAS chaves de armazenamento do app, então a escolha vale nas duas interfaces:
    v10-global-element e v10-intensity (JSON), rpg-theme, rpg-accent, rpg-custom-accent, rpg-heading,
    rpg-body-font, rpg-density e rpg-texture (texto). */
@@ -8,7 +8,7 @@
 const {$,$$,esc}=RV;
 const raw={get(k,d){try{return localStorage.getItem(k)??d}catch(_){return d}},set(k,v){try{localStorage.setItem(k,String(v))}catch(_){}}};
 const json={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(_){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(_){}}};
-// Textos e selos do app (demo-offline.html, bloco rpg-v10-laboratorio)
+// Textos e selos do app (bloco rpg-v10-laboratorio da v0.10)
 const ELEMENTS={
  base:{label:'Base',tag:'Suas cores, sua mesa',intro:'O visual base respeita o destaque, a tipografia e as cores que você escolher, sem obrigar um elemento paranormal.',icon:'seal',color:'var(--accent)'},
  sangue:{label:'Sangue',tag:'A vida exige sacrifício',intro:'A interface pulsa. Filamentos rubros correm pelo cenário e os atributos acendem com o ritmo do personagem.',icon:'drop',color:'#f26078'},
@@ -24,7 +24,7 @@ const GLYPH={
  energia:`<polygon points="100,5 165,32 193,100 164,165 100,195 35,165 5,100 35,35"/><path d="M100 5v190M5 100h188M35 35l130 130M165 35 35 165"/><path d="M116 29 65 108h39l-19 63 54-86h-43Z"/><circle cx="100" cy="100" r="84" stroke-dasharray="25 8"/>`,
  morte:`<circle cx="100" cy="100" r="91" stroke-dasharray="38 6"/><circle cx="100" cy="100" r="74"/><path d="M58 32h84M58 168h84M70 32v23l31 45-31 45v23M130 32v23l-31 45 31 45v23"/><path d="M84 71h32l-16 27Z M79 146h42l-21-27Z"/><path d="M100 10v16M100 174v16M10 100h16M174 100h16"/>`,
  medo:`<circle cx="100" cy="100" r="91" stroke-dasharray="9 13"/><path d="M100 14 172 45l18 76-54 61-78-7-43-74 45-75Z"/><path d="M100 31 144 63l-9 57-56 30-44-50 28-55 65 8"/><path d="M100 100c-13-11-4-33 11-29 31 9 15 54-20 49-53-8-39-81 13-76 76 8 79 114-1 121"/><path d="M100 100 143 105 135 120"/>`};
-// Paletas do app (demo-offline.html, applyPersonalization)
+// Paletas do app (applyPersonalization da v0.10)
 const PALETTES={gold:['#c7a87b','Dourado'],amethyst:['#ab95ef','Ametista'],emerald:['#80c4a4','Esmeralda'],azure:['#8bb7ed','Azul']};
 const HEADS={classic:"'Cormorant Garamond',Georgia,'Times New Roman',serif",modern:"'Space Grotesk',system-ui,sans-serif"};
 const BODIES={dm:"'DM Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif",space:"'Space Grotesk',system-ui,sans-serif",serif:"Georgia,'Times New Roman',serif"};

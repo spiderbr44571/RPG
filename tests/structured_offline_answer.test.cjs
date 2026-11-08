@@ -7,7 +7,7 @@ const templates=require(path.join(dir,'rpg27_answer_templates.js'));
 global.window={};require(path.join(dir,'rpg15_catalog_data.js'));
 const systems=window.RPG15_SYSTEMS.systems;
 assert.equal(systems.length,39);
-const html=fs.readFileSync(path.join(dir,'demo-offline.html'),'utf8');
+const html=fs.readFileSync(path.join(dir,'ferramentas.html'),'utf8');
 const embedded=/<script id="op-pack-json" type="application\/json">([\s\S]*?)<\/script>/.exec(html);
 assert.ok(embedded,'Ordem data must exist');
 const op=core.makeOrderDocs({pack:JSON.parse(embedded[1])});
@@ -58,11 +58,8 @@ assert.equal(templates.format('D&D',search.answer('proficiência',dnd,{systemId:
 const unknown=answer('Como funcionam as classes secretas do livro inexistente?',[],'d-d','2024');
 assert.equal(unknown.state,'unavailable');
 assert.equal(unknown.values.length,0,'never hallucinate numeric effects');
-const ui=fs.readFileSync(path.join(dir,'rpg26_offline_search_ui.js'),'utf8');
-assert.ok(html.includes('<script src="rpg27_answer_templates.js"></script>'));
-assert.ok(html.indexOf('rpg27_answer_templates.js')<html.indexOf('rpg26_offline_search_ui.js'));
-assert.ok(ui.includes('templates.format(')&&ui.includes('formattedAnswer.values'));
-assert.ok(ui.includes("data-r27-source"));
-const css=fs.readFileSync(path.join(dir,'rpg26_offline_search.css'),'utf8');
-assert.ok(css.includes('r27-values'));
+// Buscar nos livros (nova interface) organiza a resposta com os mesmos modelos.
+const livros=fs.readFileSync(path.join(dir,'revamp/livros.js'),'utf8');
+assert.ok(livros.includes("'rpg27_answer_templates.js'"));
+assert.ok(livros.includes('tpl=window.RPG27_TEMPLATES'));
 console.log('PASS: formatted source-grounded rest (4 categories), D&D, GURPS, Alien, missing data, cross-edition and source links');

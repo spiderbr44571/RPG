@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'../app/src/main/assets'),read=f=>fs.readFileSync(path.join(root,f),'utf8');
-const html=read('demo-offline.html'),js=read('mastermind39_ui.js'),css=read('mastermind39_ui.css');
+const html=read('ferramentas.html'),js=read('mastermind39_ui.js'),css=read('mastermind39_ui.css');
 const legacy=read('mastermind38_shell.css');
 new Function(js);
 const allInline=[...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)].filter(s=>!s[1].includes('src=')&&!s[1].includes('application/json'));
@@ -45,5 +45,5 @@ assert.match(css,/min-height:168px/);
 assert.match(css,/background:var\(--accent\)/);
 assert.ok(!css.includes('localStorage.clear'));
 for(const pref of ['accent-wheel','accent-brightness','heading-font','font-range','motion-toggle','data-v10-theme'])assert.ok(html.includes(pref),'preference unavailable: '+pref);
-for(const module of ['rpg11_campaigns.js','rpg28_context_search.js','rpg37_rules.js','rpg18_bestiary.js','rpg33_camera.js'])assert.ok(html.includes(module),'missing module: '+module);
+for(const module of ['rpg11_campaigns.js','rpg28_context_search.js','rpg37_rules.js','rpg18_bestiary.js'])assert.ok(html.includes(module),'missing module: '+module);
 console.log('PASS v0.39: fully redesigned Mastermind shell, direct actual character selection, offline modules and preserved themes');

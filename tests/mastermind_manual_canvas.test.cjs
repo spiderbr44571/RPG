@@ -3,30 +3,31 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'..');
-const html=fs.readFileSync(path.join(root,'app/src/main/assets/demo-offline.html'),'utf8');
-const workspace=fs.readFileSync(path.join(root,'app/src/main/assets/mastermind42_workspace.js'),'utf8');
+const assets=path.join(root,'app/src/main/assets');
+const canvas=fs.readFileSync(path.join(assets,'revamp/canvas.js'),'utf8');
+const index=fs.readFileSync(path.join(assets,'revamp/index.html'),'utf8');
 
-test('Canvas does not create the previous dotted connections between arbitrary notes',()=>{
- const a=html.indexOf('function renderLines(){');
- const b=html.indexOf('function renderCanvas(){',a);
- assert.ok(a>=0&&b>a,'Legacy canvas renderer found');
- const renderer=html.slice(a,b);
- assert.match(renderer,/replaceChildren\(\)/,'Legacy SVG is explicitly cleaned');
- assert.doesNotMatch(renderer,/S\.nodes|edges=|<path|pathData/,'Legacy renderer must not connect nodes automatically');
- assert.doesNotMatch(html,/\[\[a,b\],\[c,b\],\[b,d\]\]/,'Three hardcoded demo edges must be removed');
+test('O Canvas infinito fica na nova interface e o Canvas antigo foi retirado',()=>{
+ assert.ok(!fs.existsSync(path.join(assets,'mastermind42_workspace.js')));
+ assert.ok(!fs.existsSync(path.join(assets,'demo-offline.html')));
+ assert.match(index,/<script src="canvas\.js"><\/script>/);
+ assert.match(index,/data-view="canvas"/);
+ assert.match(canvas,/RV\.Canvas=/);
 });
-test('Manual links are made exclusively after the master enables linking and chooses two items',()=>{
- assert.match(workspace,/let busyMedia=false,linkMode=false,linkStart=null/);
- assert.match(workspace,/function pickTarget\(ref\)/);
- assert.match(workspace,/if\(!linkMode\)return;/);
- assert.match(workspace,/active\.links\.push\(\{id:uuid\(\),a:linkStart,b:ref,color:selectedColor\}\)/);
- assert.match(workspace,/Conectar itens/);
- assert.match(workspace,/function renderLines\(\)[\s\S]*?for\(const edge of active\?\.links\|\|\[\]\)/);
+test('Usa os mesmos dados salvos de antes, sem migração destrutiva',()=>{
+ assert.match(canvas,/KEY='mastermind42-canvas-index',PREFIX='mastermind42-board-',DBNAME='mastermind42-media'/);
+ assert.match(canvas,/read\('rpg_canvas_v2'\)/,'Canvas mais antigo ainda é importado no primeiro uso');
+ assert.match(canvas,/read\('rpg_encounter_v3'\)/,'Criaturas antigas ainda são importadas no primeiro uso');
+ assert.match(canvas,/links:Array\.isArray\(b\.links\)\?b\.links\.filter\(l=>l&&l\.a&&l\.b\)/);
 });
-test('Existing manually drawn campaign connections remain stored and can be deleted',()=>{
- assert.match(workspace,/links:clone\(active\?\.links\|\|\[\]\)/);
- assert.match(workspace,/links:Array\.isArray\(b\.links\)/);
- assert.match(workspace,/function deleteEdge\(id\)/);
- assert.match(workspace,/active\.links=previous\.filter\(l=>l\.id!==id\)/);
- assert.match(workspace,/const paths=active\.links\.map\(/,'Campaign preview uses manual links only');
+test('Ligações só existem quando o mestre escolhe dois itens; nunca automáticas',()=>{
+ assert.match(canvas,/function pick\(ref\)\{if\(!C\.linkStart\)\{C\.linkStart=ref/);
+ assert.match(canvas,/C\.links\.push\(\{id:uuid\(\),a,b:ref,color:C\.color\}\)/);
+ assert.match(canvas,/if\(C\.linkStart===ref\)\{toast\('Escolha um item diferente\.'\)/);
+ assert.match(canvas,/svg\.innerHTML=C\.links\.map\(/,'As linhas desenhadas vêm só das ligações salvas');
+ assert.doesNotMatch(canvas,/C\.nodes\.map\([^)]*=>[^)]*<path/,'Nada liga cartões sozinho');
+});
+test('Ligações e itens podem ser removidos sem deixar ligações órfãs',()=>{
+ assert.match(canvas,/function unlink\(id\)\{C\.links=C\.links\.filter\(l=>l\.id!==id\)/);
+ assert.match(canvas,/C\.links=C\.links\.filter\(l=>l\.a!==ref&&l\.b!==ref\)/);
 });

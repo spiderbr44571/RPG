@@ -5,7 +5,7 @@
 (()=>{'use strict';
 const SYS={ordem:{label:'Ordem Paranormal',sub:'Agente · NEX e SAN',key:'ordem-paranormal'},dnd:{label:'D&D 5e',sub:'Aventureiro · Classes e magias',key:'d-d'},gurps:{label:'GURPS 4e',sub:'Personagem · 3d6',key:'gurps'},coc:{label:'Chamado de Cthulhu 7e',sub:'Investigador · d100',key:'chamado-de-ctchulhu'}};
 const $=(q,root=document)=>root.querySelector(q),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fromId=id=>Object.keys(SYS).find(k=>SYS[k].key===id)||'ordem';
+const fromId=id=>SYS[id]?id:Object.keys(SYS).find(k=>SYS[k].key===id)||'ordem';
 const sheet=$('#screen-sheet');if(!sheet||sheet.dataset.mssReady)return;
 const old=$('#rpg05-sheet-op'),legacy=$('.rpg05-band',sheet);
 if(!old||!window.MastermindCharacters||!window.OP13)return;
@@ -77,7 +77,7 @@ function present(system){
  if(state.changing){state.pendingSystem=system;return;}
  state.changing=true;
  const stage=native(),prev=state.system;
- state.system=system;localStorage.setItem('mastermind-sheet-studio-system',system);
+ state.system=system;localStorage.setItem('mastermind-sheet-studio-system',SYS[system].key);
  $('#mss-body').classList.remove('mss-appearing');
  shell.querySelector('[data-mss-tab="rituals"]').hidden=system!=='ordem';
  shell.querySelector('[data-mss-tab="powers"]').textContent=system==='ordem'?'Poderes e Transcender':'Habilidades';

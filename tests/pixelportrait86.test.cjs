@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const base=path.resolve(__dirname,'../app/src/main/assets');
-const html=fs.readFileSync(path.join(base,'demo-offline.html'),'utf8');
+const html=fs.readFileSync(path.join(base,'ferramentas.html'),'utf8');
 const studio=fs.readFileSync(path.join(base,'pixelportrait86_companion.js'),'utf8');
 const css=fs.readFileSync(path.join(base,'pixelportrait86_companion.css'),'utf8');
 const java=fs.readFileSync(path.resolve(__dirname,'../app/src/main/java/dev/rpgmesa/demo/MainActivity.java'),'utf8');

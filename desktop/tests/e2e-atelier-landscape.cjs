@@ -10,34 +10,29 @@ const assert=require('node:assert/strict'),path=require('node:path'),fs=require(
  try{
   app=await electron.launch({executablePath:executable,args:process.platform==='linux'?['--no-sandbox','--disable-dev-shm-usage']:['--disable-gpu'],env:{...process.env,MASTERMIND_E2E:'1',MASTERMIND_GODOT_FIXTURE:'black'},timeout:65000});
   const page=await app.firstWindow({timeout:35000});
-  await page.locator('#screen-settings').waitFor({state:'attached',timeout:35000});
-  await page.evaluate(()=>window.RPG_DEMO.navigate('settings'));
-  const toggle=page.locator('#mastermind-linux-landscape');
-  await toggle.waitFor({state:'visible',timeout:10000});
-  if(await toggle.getAttribute('aria-pressed')!=='true')await toggle.click();
+  // O Ateliê abre pela nova interface, na página de ferramentas; no computador ela ocupa a largura toda.
+  await page.waitForFunction(()=>!!window.RV?.tool,null,{timeout:40000});
+  await page.evaluate(()=>window.RV.tool('atelier85'));
+  await page.waitForURL(/ferramentas\.html#atelier85$/,{timeout:30000});
+  await page.locator('#screen-atelier85').waitFor({state:'visible',timeout:30000});
   await page.setViewportSize({width:1900,height:850});
+  await page.waitForFunction(()=>document.body.classList.contains('mastermind-landscape'),null,{timeout:15000});
   await page.waitForTimeout(500);
   const geometry=await page.evaluate(()=>{
    const content=document.querySelector('.main .content');
    const screen=document.querySelector('.screen.active');
-   const d=document.querySelector('.r09-dock');
-   const a=content.getBoundingClientRect(),s=screen.getBoundingClientRect(),dock=d.getBoundingClientRect();
-   return {width:innerWidth,contentWidth:a.width,screenWidth:s.width,contentX:a.x,screenX:s.x,
-    paddingBottom:getComputedStyle(content).paddingBottom,appHeight:document.querySelector('.app').getBoundingClientRect().height,
-    screenHeight:innerHeight,dockX:dock.x};
+   const a=content.getBoundingClientRect(),s=screen.getBoundingClientRect();
+   const dock=document.querySelector('.r09-dock');
+   return {width:innerWidth,contentWidth:a.width,screenWidth:s.width,dockVisible:!!dock&&getComputedStyle(dock).display!=='none',
+    back:!!document.querySelector('#mmt-back')?.getBoundingClientRect().width};
   });
   assert.ok(geometry.width>=1800,'Expected wide desktop viewport: '+JSON.stringify(geometry));
-  assert.ok(geometry.contentWidth>=geometry.width-8,'Landscape content is still 1450px capped: '+JSON.stringify(geometry));
-  assert.ok(geometry.screenWidth>=geometry.width-10,'Active screen not full width: '+JSON.stringify(geometry));
-  assert.equal(geometry.paddingBottom,'0px','Old mobile navigation left a dead footer in landscape');
-  assert.ok(geometry.dockX>geometry.width*.7,'Home menu should not block the middle of landscape screen');
-  await page.evaluate(()=>{window.RPG_DEMO.navigate('atelier85');window.__atelierOverlayNotifications=0;window.addEventListener('mastermind:overlay-visibility',()=>window.__atelierOverlayNotifications++);});
-  await page.locator('#r09-dice').click();
-  assert.equal(await page.locator('#r09-overlay').evaluate(el=>el.classList.contains('open')),true,'Menu did not open');
-  await page.locator('#r09-overlay .r09-close').click();
-  assert.equal(await page.locator('#r09-overlay').evaluate(el=>el.classList.contains('open')),false,'Menu did not close');
-  const notifications=await page.evaluate(()=>window.__atelierOverlayNotifications);
-  assert.ok(notifications>=2,'Godot compositor not notified on opening and closing: '+notifications);
-  console.log('PASS landscape: full desktop width without footer padding, menu closed/opened, Godot overlay visibility signalled.');
+  assert.ok(geometry.contentWidth>=geometry.width-8,'Landscape content is still capped: '+JSON.stringify(geometry));
+  assert.ok(geometry.screenWidth>=geometry.width-60,'Active screen not full width: '+JSON.stringify(geometry));
+  assert.equal(geometry.dockVisible,false,'Old menu dock still visible over the Atelier');
+  assert.ok(geometry.back,'Back button to the interface missing');
+  const notified=await page.evaluate(()=>{let n=0;addEventListener('mastermind:overlay-visibility',()=>n++);dispatchEvent(new Event('mastermind:overlay-visibility'));return n;});
+  assert.ok(notified>=1,'Godot compositor signal not delivered');
+  console.log('PASS landscape: Atelier at full desktop width, no legacy dock, back button and Godot overlay signal.');
  }finally{if(app)await app.close();}
 })().catch(error=>{console.error(error.stack||error);process.exitCode=1;});

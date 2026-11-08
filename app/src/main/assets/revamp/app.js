@@ -6,15 +6,15 @@ const views={};let prevHash='#inicio';
 
 /* ============ Central da mesa (mesmo padrão do app atual) ============ */
 const CENTRAL=[['#inicio','home','Painel inicial','Resumo da campanha'],['#mestragem','crown','Mestragem','Campanha, mesa ao vivo e cenários'],['#ficha','users','Fichas','Personagens, poderes e retratos'],
- ['#biblioteca','books','Biblioteca','Livros e regras dos sistemas'],['#buscar','file-search','Buscar nos livros','Termo, resumo e página'],['#bestiario','skull','Bestiário','Grimório e monstros'],['classic:atelier85','palette','Ateliê','Retrato e token em camadas'],
- ['classic:canvas','layout-grid','Canvas infinito','Notas, mapas e criaturas'],['#ajustes','adjustments','Personalização','Temas, efeitos, cores e fontes'],['#entrar','device-mobile','Entrar numa mesa','Como jogador, pelo app ou navegador']];
-RV.openCentral=()=>{if($('#central'))return;const LIST=RV.Net?.served?CENTRAL.filter(([h])=>['#entrar','#ajustes'].includes(h)).concat([['#jogador','map','Mesa','Voltar ao mapa']]):CENTRAL.filter(([h])=>RV.inApp||!h.startsWith('classic:')).concat(RV.inApp?[['app:back','arrow-back-up','Interface clássica','O app como era antes']]:[]);const m=document.createElement('div');m.id='central';m.className='modal-back central-back';
+ ['#biblioteca','books','Biblioteca','Livros e regras dos sistemas'],['#buscar','file-search','Buscar nos livros','Termo, resumo e página'],['#bestiario','skull','Bestiário','Grimório e monstros'],['tool:atelier85','palette','Ateliê','Retrato e token em camadas'],
+ ['#canvas','layout-grid','Canvas infinito','Notas, mapas e criaturas'],['#ajustes','adjustments','Personalização','Temas, efeitos, cores e fontes'],['#entrar','device-mobile','Entrar numa mesa','Como jogador, pelo app ou navegador']];
+RV.openCentral=()=>{if($('#central'))return;const LIST=RV.Net?.served?CENTRAL.filter(([h])=>['#entrar','#ajustes'].includes(h)).concat([['#jogador','map','Mesa','Voltar ao mapa']]):CENTRAL.filter(([h])=>RV.inApp||!h.startsWith('tool:'));const m=document.createElement('div');m.id='central';m.className='modal-back central-back';
  m.innerHTML=`<section class="central" role="dialog" aria-modal="true" aria-labelledby="central-h"><div class="fh" style="padding:0"><div><span class="kicker">Central da mesa</span><h2 id="central-h">Escolha seu próximo <em>caminho.</em></h2><p class="muted small" style="margin:4px 0 0">Todas as ferramentas em um só lugar. Abrir esta central não realiza rolagens.</p></div><button class="x-btn" type="button" data-cx aria-label="Fechar a Central">${ic('x')}</button></div>
-  <div class="central-grid">${LIST.map(([h,i,t,d,tag])=>`<a class="central-card" href="${h.startsWith('#')?h:h==='app:back'?'../demo-offline.html#home':h.startsWith('classic:')?'../demo-offline.html#'+h.slice(8):'#'}" ${h==='app:back'?'data-classic-switch="1"':h.startsWith('classic:')?`data-classic="${h.slice(8)}"`:''}>${ic(i)}<b>${t}${tag?` <span class="chip gold">${tag}</span>`:''}</b><span>${d}</span></a>`).join('')}</div></section>`;
+  <div class="central-grid">${LIST.map(([h,i,t,d,tag])=>`<a class="central-card" href="${h.startsWith('#')?h:h.startsWith('tool:')?'../ferramentas.html#'+h.slice(5):'#'}" ${h.startsWith('tool:')?`data-tool="${h.slice(5)}"`:''}>${ic(i)}<b>${t}${tag?` <span class="chip gold">${tag}</span>`:''}</b><span>${d}</span></a>`).join('')}</div></section>`;
  document.body.appendChild(m);m.querySelector('[data-cx]').focus();
- m.addEventListener('click',e=>{if(e.target===m||e.target.closest('[data-cx]')){m.remove();return}const a=e.target.closest('.central-card');if(!a)return;if(a.dataset.classicSwitch)store.set('mm-interface','classica');m.remove()})};
-/* telas completas da interface clássica (Ateliê, Canvas, ficha completa): mesmo app, mesmos dados */
-RV.classic=screen=>{if(RV.Net?.served)return;try{sessionStorage.setItem('mm-rv-return',location.hash||'#inicio')}catch(_){}location.href='../demo-offline.html#'+screen};
+ m.addEventListener('click',e=>{if(e.target===m||e.target.closest('[data-cx]')){m.remove();return}const a=e.target.closest('.central-card');if(!a)return;m.remove()})};
+/* ferramentas do app (ficha completa dos quatro sistemas e Ateliê): mesmas regras e mesmas fichas salvas */
+RV.tool=screen=>{if(RV.Net?.served)return;try{sessionStorage.setItem('mm-rv-return',location.hash||'#inicio')}catch(_){}location.href='../ferramentas.html#'+screen};
 function closeCentral(){const c=$('#central');if(c){c.remove();return true}return false}
 
 /* ============ Bestiário (dados reais do catálogo) ============ */
@@ -102,7 +102,7 @@ function maybeWelcome(v){const flow={mesa:'master',entrar:'player',estudio:'stud
  document.body.appendChild(b);b.querySelector('[data-w="go"]').focus();b.addEventListener('click',e=>{const w=e.target.closest('[data-w]')?.dataset.w;if(!w)return;b.remove();if(w==='go')Tut.start(flow);else store.set('mm-rv-tut-'+flow,'skipped')})}
 
 /* ============ Rotas ============ */
-const VIEWS=['inicio','mestragem','mesa','estudio','entrar','jogador','biblioteca','buscar','bestiario','ficha','ajustes'],PAGES=['inicio','mestragem','biblioteca','buscar','bestiario','ficha','ajustes'];
+const VIEWS=['inicio','mestragem','mesa','estudio','entrar','jogador','canvas','biblioteca','buscar','bestiario','ficha','ajustes'],PAGES=['inicio','mestragem','biblioteca','buscar','bestiario','ficha','ajustes'];
 const TITLES={inicio:'Visão geral',mestragem:'Mestragem',biblioteca:'Biblioteca',buscar:'Buscar nos livros',bestiario:'Bestiário',ficha:'Personagens',ajustes:'Personalização'};
 function route(ev){const h=location.hash.slice(1),v=VIEWS.includes(h)?h:'inicio';if(ev?.oldURL){const o=new URL(ev.oldURL).hash;if(o&&o!=='#'+v)prevHash=o}
  closeCentral();$('#pages').hidden=!PAGES.includes(v);$$('[data-view]').forEach(s=>s.hidden=s.dataset.view!==v);
@@ -112,14 +112,14 @@ function route(ev){const h=location.hash.slice(1),v=VIEWS.includes(h)?h:'inicio'
  if(v==='jogador'){views.player=views.player||new RV.Table($('#vtt-player'),'player');requestAnimationFrame(()=>{views.player.fit(false);views.player.render()})}
  if(v==='estudio'){views.studio=views.studio||new RV.Studio($('#studio'));views.studio.open(prevHash)}
   if(v==='entrar'&&!route.join){route.join=1;const sc=Cena.template('taverna',24,16);Cena.render($('#join-map'),sc,{dpr:1,gridAlpha:.08})}
- if(v==='bestiario')renderBestiary();$('#page-wrap').scrollTop=0;emit('route:'+v);Tut.onRoute(v)}
+ if(v==='canvas')RV.Canvas.open(prevHash);if(v==='bestiario')renderBestiary();$('#page-wrap').scrollTop=0;emit('route:'+v);Tut.onRoute(v)}
 window.addEventListener('hashchange',route);
 
 /* ============ Preferências e tema ============ */
 const currentTheme=()=>RV.Prefs.state.theme;const setTheme=t=>RV.Prefs.set('theme',t);
 
 /* ============ Ligações ============ */
-document.addEventListener('click',e=>{if(e.target.closest('[data-classic-switch]'))store.set('mm-interface','classica');const s=e.target.closest('[data-classic]');if(s){e.preventDefault();RV.classic(s.dataset.classic)}
+document.addEventListener('click',e=>{const s=e.target.closest('[data-tool]');if(s&&s.matches('a,button')&&!s.closest('.vtt')){e.preventDefault();RV.tool(s.dataset.tool)}
  if(e.target.closest('.central-open,#central-fab')){emit('central:opened');RV.openCentral()}
  const ci=e.target.closest('[data-copy]');if(ci)copyText(ci.dataset.copy).then(ok=>toast(ok?'Copiado.':'Selecione e copie: '+ci.dataset.copy,$('#app')));
  if(e.target.closest('.theme-toggle,#proto-theme'))setTheme(currentTheme()==='light'?'dark':'light')});

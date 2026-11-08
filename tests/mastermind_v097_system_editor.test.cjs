@@ -47,7 +47,7 @@ test('All curses are shown in parenthesis with duplicates removed and original i
  assert.equal(api.displayItem('Algemas'),'Algemas');
 });
 test('New editor is wired into real RPG screen, character export and PDF without removing portable JSON',()=>{
- const html=fs.readFileSync(path.join(assets,'demo-offline.html'),'utf8');
+ const html=fs.readFileSync(path.join(assets,'ferramentas.html'),'utf8');
  const power=fs.readFileSync(path.join(assets,'mastermind56_local_powers.js'),'utf8');
  const pdf=fs.readFileSync(path.join(assets,'mastermind_system_pdf.js'),'utf8');
  const op=fs.readFileSync(path.join(assets,'mastermind_ordem_template.js'),'utf8');
@@ -61,7 +61,7 @@ test('New editor is wired into real RPG screen, character export and PDF without
  assert.match(fs.readFileSync(path.join(assets,'rpg17_sheet_pdf.js'),'utf8'),/RPG-SHEET-DATA-V1/);
 });
 test('Ordem treats attribute dice separately from flat training bonus',()=>{
- const html=fs.readFileSync(path.join(assets,'demo-offline.html'),'utf8');
+ const html=fs.readFileSync(path.join(assets,'ferramentas.html'),'utf8');
  assert.match(html,/const bonus=grade\*5\+effectsFor\('pericias'\)/);
  const op=require(path.join(assets,'mastermind_ordem_template.js'));
  assert.equal(op.grade('Treinado')*5,5);

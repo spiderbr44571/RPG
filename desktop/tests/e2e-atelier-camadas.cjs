@@ -11,6 +11,10 @@ const {checarEncaixe}=require('../../tests/atelie_encaixe_checagens.cjs');
  try{
   client=await electron.launch({executablePath:binary,args:process.platform==='linux'?['--no-sandbox','--disable-dev-shm-usage','--enable-unsafe-swiftshader']:['--disable-gpu'],env:{...process.env,MASTERMIND_E2E:'1'},timeout:60000});
   const win=await client.firstWindow({timeout:40000});
+  // O Ateliê abre pela nova interface, na página de ferramentas.
+  await win.waitForFunction(()=>!!window.RV?.tool,null,{timeout:40000});
+  await win.evaluate(()=>window.RV.tool('atelier85'));
+  await win.waitForURL(/ferramentas\.html#atelier85$/,{timeout:30000});
   const errors=[];win.on('pageerror',e=>errors.push(e.message));
   await win.locator('#screen-atelier85').waitFor({state:'attached',timeout:40000});
   await win.evaluate(()=>window.RPG_DEMO.navigate('atelier85'));

@@ -16,7 +16,7 @@ const {frameHasDetail}=require('./godot-health.cjs');
 const sourceAssets=path.join(__dirname,'..','app','src','main','assets');
 const packagedAssets=path.join(process.resourcesPath,'server','assets');
 const assets=app.isPackaged ? packagedAssets : sourceAssets;
-if(!fs.existsSync(path.join(assets,'demo-offline.html'))){
+if(!fs.existsSync(path.join(assets,'revamp','index.html'))||!fs.existsSync(path.join(assets,'ferramentas.html'))){
  throw Error('Mastermind: interface offline não encontrada: '+assets);
 }
 const creator='https://lyime.itch.io/pixel-portrait-creator';
@@ -117,10 +117,10 @@ function ensureLocal(event){
  let actual,expected,revamp;
  try{
   actual=new URL(event.sender.getURL());
-  expected=require('node:url').pathToFileURL(path.join(assets,'demo-offline.html'));
+  expected=require('node:url').pathToFileURL(path.join(assets,'ferramentas.html'));
   revamp=require('node:url').pathToFileURL(path.join(assets,'revamp','index.html'));
  }catch{throw Error('Endereço inválido');}
- // A nova interface (prévia v2.0) é outra página local confiável, servida dos mesmos assets.
+ // As duas páginas locais confiáveis: a interface (revamp/index.html) e as ferramentas (ficha completa e Ateliê).
  const trusted=actual.pathname===expected.pathname||actual.pathname===revamp.pathname;
  if(actual.protocol!=='file:'||actual.host!==expected.host||!trusted)
   throw Error('Requisição externa bloqueada');
@@ -242,20 +242,17 @@ function makeWindow(){
    // a versão vem do package.json (o preload roda em sandbox e não lê arquivos)
    additionalArguments:['--mastermind-version='+app.getVersion()]}
  });
- // Testes automatizados abrem a interface clássica (com endereço #home a página não troca para a nova interface).
- win.loadFile(path.join(assets,'demo-offline.html'),process.env.MASTERMIND_E2E?{hash:'home'}:{});
+ win.loadFile(path.join(assets,'revamp','index.html'));
  win.webContents.on('did-finish-load',async()=>{
   if(!win||win.webContents.isDestroyed())return;
-  // Os scripts de integração do desktop são da interface atual; a nova interface já traz os seus.
-  if(!/\/demo-offline\.html$/.test(new URL(win.webContents.getURL()).pathname))return;
+  // Ajustes de mouse, teclado e telas grandes valem para a página de ferramentas; a interface já traz os seus.
+  if(!/\/ferramentas\.html$/.test(new URL(win.webContents.getURL()).pathname))return;
   try{
    const css=fs.readFileSync(path.join(__dirname,'desktop.css'),'utf8');
    const js=fs.readFileSync(path.join(__dirname,'renderer.js'),'utf8');
-   const mestragem=fs.readFileSync(path.join(__dirname,'mestragem-linux.js'),'utf8');
    await win.webContents.insertCSS(css);
    // A new library UI must not prevent existing campaign features from loading.
    try{await win.webContents.executeJavaScript(js,true);}catch(error){console.error('Desktop renderer:',error);}
-   try{await win.webContents.executeJavaScript(mestragem,true);}catch(error){console.error('Desktop mestragem:',error);}
   }catch(error){console.error('Desktop integration:',error);}
  });
  win.once('ready-to-show',()=>{win.show();if(process.platform==='linux'&&process.env.MASTERMIND_MAXIMIZED==='1')win.maximize();});
@@ -266,7 +263,7 @@ function makeWindow(){
  });
  win.webContents.on('will-navigate',(event,url)=>{
   const page=String(url).split('#')[0],toFile=p=>require('node:url').pathToFileURL(path.join(assets,...p)).href;
-  if(page!==toFile(['demo-offline.html'])&&page!==toFile(['revamp','index.html']))event.preventDefault();
+  if(page!==toFile(['ferramentas.html'])&&page!==toFile(['revamp','index.html']))event.preventDefault();
  });
  const menu=Menu.buildFromTemplate([
   {label:'Arquivo',submenu:[

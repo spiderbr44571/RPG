@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const base=path.resolve(__dirname,'../app/src/main');
 const asset=name=>fs.readFileSync(path.join(base,'assets',name),'utf8');
-const html=asset('demo-offline.html'),tabs=asset('rpg14_sheet_tabs.js'),
+const html=asset('ferramentas.html'),tabs=asset('rpg14_sheet_tabs.js'),
  script=asset('mastermind56_local_powers.js'),css=asset('mastermind56_local_powers.css');
 const lobby=asset('lan_player.html'),scene=asset('lan_scene.html'),live=asset('rpg31_player_table.js');
 const camps=asset('rpg11_campaigns.js'),gradle=fs.readFileSync(path.resolve(__dirname,'../app/build.gradle'),'utf8');

@@ -6,7 +6,7 @@ const assets=path.resolve(__dirname,'../app/src/main/assets');
 const core=require(path.join(assets,'rpg20_search_core.js'));
 global.window={};require(path.join(assets,'rpg15_catalog_data.js'));
 const systems=window.RPG15_SYSTEMS.systems;
-const html=fs.readFileSync(path.join(assets,'demo-offline.html'),'utf8');
+const html=fs.readFileSync(path.join(assets,'ferramentas.html'),'utf8');
 const block=/<script id="op-pack-json" type="application\/json">([\s\S]*?)<\/script>/.exec(html);
 assert.ok(block,'Real Ordem Paranormal pack must be embedded');
 const op={pack:JSON.parse(block[1])};

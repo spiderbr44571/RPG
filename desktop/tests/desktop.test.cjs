@@ -3,7 +3,7 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),fs=requir
 const root=path.join(__dirname,'..','..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const pkg=JSON.parse(read('package.json'));
-const main=read('desktop/main.cjs'),preload=read('desktop/preload.cjs'),renderer=read('desktop/renderer.js'),css=read('desktop/desktop.css'),html=read('app/src/main/assets/demo-offline.html');
+const main=read('desktop/main.cjs'),preload=read('desktop/preload.cjs'),renderer=read('desktop/renderer.js'),css=read('desktop/desktop.css'),html=read('app/src/main/assets/ferramentas.html');
 test('Linux AppImage and tar.gz packages preserve all original Android assets',()=>{
  assert.equal(pkg.main,'desktop/main.cjs');
  assert.match(pkg.version,/^\d+\.\d+\.\d+$/);
@@ -72,21 +72,15 @@ test('PDF, PNG and character persistence stay local',()=>{
  assert.match(preload,/consumeCapture:\(\)=>sync\('capture'\)/);
 });
 
-test('Linux mestragem, fichas locais, grid e layout paisagem sem alterar o APK',()=>{
- const bridge=read('desktop/mestragem-linux.js');
- assert.match(main,/mestragem-linux\.js/);
- assert.match(bridge,/window\.MastermindCharacters/);
- assert.match(bridge,/window\.RPG16_GURPS/);
- assert.match(bridge,/window\.RPG18_DND/);
- assert.match(bridge,/mastermindLocalRef/);
- assert.match(bridge,/request\(id,'\/assign','POST'/);
- assert.match(bridge,/window\.RpgLocalHost\.start\(\)/);
- assert.match(bridge,/mastermind-linux-landscape-v1/);
- assert.match(bridge,/mastermind-linux-landscape/);
+test('Desktop abre a nova interface; ficha completa e Ateliê ficam na página de ferramentas',()=>{
+ assert.ok(!fs.existsSync(path.join(root,'desktop/mestragem-linux.js')));
+ assert.doesNotMatch(main,/mestragem-linux|demo-offline/);
+ assert.match(main,/win\.loadFile\(path\.join\(assets,'revamp','index\.html'\)\)/);
+ assert.match(main,/ferramentas\\\.html\$/);
+ assert.match(html,/ferramentas\.js/);
+ assert.match(html,/id="screen-sheet"/);
+ assert.match(html,/id="screen-atelier85"/);
  assert.match(css,/#r12-host-controls\{display:none!important\}/);
- assert.match(css,/\.r30-world>\.r30-grid/);
- assert.match(css,/z-index:17!important/);
- assert.match(css,/background-size:48px 48px!important/);
  assert.match(css,/\.mastermind-landscape/);
  assert.match(read('app/src/main/assets/rpg11_campaigns.js'),/Servidor neste celular/);
 });

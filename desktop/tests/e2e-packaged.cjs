@@ -21,28 +21,41 @@ const path = require('node:path');
    timeout: 45000
   });
   const win = await client.firstWindow({ timeout: 35000 });
-  await win.locator('#screen-master').waitFor({ state: 'attached', timeout: 25000 });
-  await win.locator('.desktop-titlebar').waitFor({ state: 'visible', timeout: 25000 });
+  // v1.4.0: o app abre a nova interface; a interface clássica foi retirada.
+  await win.locator('#canvas-v').waitFor({ state: 'attached', timeout: 25000 });
+  await win.waitForFunction(() => !!window.RV?.Canvas && !!window.RV?.tool, null, { timeout: 25000 });
   const result = await win.evaluate(() => ({
    url: location.href,
-   logoOk: !!document.querySelector('.desktop-titlebar-brand img')?.naturalWidth,
-   hasMaster: !!document.querySelector('#screen-master'),
-   hasLibrary: !!document.querySelector('#screen-library'),
-   hasAtelier: !!document.querySelector('#screen-atelier85'),
+   inApp: window.RV.inApp,
+   host: !!window.RV.Net?.canHost(),
+   views: ['inicio', 'mestragem', 'biblioteca', 'buscar', 'ficha', 'canvas', 'bestiario', 'ajustes'].filter(v => document.querySelector('[data-view="' + v + '"]')),
    bridge: !!window.MastermindDesktop,
-   navigation: !!window.RPG_DEMO?.navigate,
    title: document.title
   }));
-  assert.ok(result.url.startsWith('file:') && result.url.includes('/resources/server/assets/demo-offline.html'),
+  assert.ok(result.url.startsWith('file:') && result.url.includes('/resources/server/assets/revamp/index.html'),
     'Interface empacotada no lugar errado: ' + JSON.stringify(result));
-  assert.ok(result.hasMaster && result.hasLibrary && result.hasAtelier && result.bridge && result.navigation,
+  assert.ok(result.inApp && result.host && result.bridge && result.views.length === 8,
     'Interface empacotada incompleta: ' + JSON.stringify(result));
-  assert.ok(result.logoOk, 'Logo não carregou no pacote: ' + JSON.stringify(result));
-  // v1.3.0: a nova interface também vai no pacote (ela abre por padrão fora dos testes).
-  const revamp = path.join(path.dirname(executable), 'resources/server/assets/revamp');
-  for (const f of ['index.html', 'app.js', 'servidor.js', 'adaptador.js', 'biblioteca.js'])
-   assert.ok(fs.existsSync(path.join(revamp, f)), 'Nova interface incompleta no pacote: ' + f);
-  console.log('PASS Linux v1.0.4: arquivo HTML, logo, telas e ponte Electron da build EMPACOTADA');
+  // Canvas infinito
+  await win.evaluate(() => { location.hash = '#canvas'; });
+  await win.locator('#canvas-v .cv-stage').waitFor({ state: 'visible', timeout: 15000 });
+  // Ficha completa e Ateliê: página de ferramentas, com volta para a interface
+  await win.evaluate(() => window.RV.tool('sheet'));
+  await win.waitForURL(/\/resources\/server\/assets\/ferramentas\.html#sheet$/, { timeout: 20000 });
+  await win.locator('#screen-sheet').waitFor({ state: 'visible', timeout: 25000 });
+  const tools = await win.evaluate(() => ({
+   atelier: !!document.querySelector('#screen-atelier85'),
+   navigate: typeof window.RPG_DEMO?.navigate,
+   back: document.querySelector('#mmt-back')?.getAttribute('href') || ''
+  }));
+  assert.ok(tools.atelier && tools.navigate === 'function' && tools.back.includes('revamp/index.html'),
+    'Ferramentas incompletas: ' + JSON.stringify(tools));
+  await win.locator('#mmt-back').click();
+  await win.waitForURL(/\/revamp\/index\.html#canvas$/, { timeout: 20000 });
+  for (const f of ['revamp/index.html', 'revamp/canvas.js', 'ferramentas.html', 'ferramentas.js', 'ferramentas.css', 'mastermind_logo.png'])
+   assert.ok(fs.existsSync(path.join(path.dirname(executable), 'resources/server/assets', f)), 'Arquivo ausente no pacote: ' + f);
+  assert.ok(!fs.existsSync(path.join(path.dirname(executable), 'resources/server/assets/demo-offline.html')), 'A interface clássica ainda está no pacote');
+  console.log('PASS Linux: nova interface, Canvas, ferramentas (ficha e Ateliê) e volta, na build EMPACOTADA');
  } finally {
   if (client) await client.close();
   fs.rmSync(profile, { recursive: true, force: true });

@@ -12,7 +12,7 @@ assert.ok(counts.advantages>=298&&counts.disadvantages>=307&&counts.perks>=17&&c
 assert.ok(traits.every(x=>x.name&&x.reference.match(/B\d+/)&&!('description' in x)&&!('local_notes' in x)));
 assert.ok(traits.some(x=>x.name==='Combat Reflexes'&&x.points===15));
 assert.ok(traits.some(x=>x.points===null),'Variable costs must be manual, not falsely fixed');
-const ui=read('rpg16_gurps_ui.js'),html=read('demo-offline.html');
+const ui=read('rpg16_gurps_ui.js'),html=read('ferramentas.html');
 assert.ok(html.indexOf('rpg16_gurps_traits.js')<html.indexOf('rpg16_gurps_ui.js'));
 assert.match(ui,/data-edit-skill/);
 assert.match(ui,/Object\.assign\(s\.skills\[editingSkillIndex\],values\)/);

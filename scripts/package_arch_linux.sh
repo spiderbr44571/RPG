@@ -50,7 +50,7 @@ fi
   exit 3
 }
 # Prevent the v1.0.3 blank screen: the desktop UI must exist in app resources.
-for asset in demo-offline.html mastermind_logo.png; do
+for asset in revamp/index.html ferramentas.html mastermind_logo.png; do
   [[ -s "$install_root/resources/server/assets/$asset" ]] || {
     echo "ERRO: Interface Linux incompleta no instalador ($asset ausente)" >&2
     exit 3

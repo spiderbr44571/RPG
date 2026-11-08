@@ -3,7 +3,7 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),fs=requir
 const base=path.join(__dirname,'../app/src/main/assets');
 const tpl=require(path.join(base,'mastermind_ordem_template.js'));
 const main=require(path.join(base,'mastermind_system_pdf.js'));
-const html=fs.readFileSync(path.join(base,'demo-offline.html'),'utf8');
+const html=fs.readFileSync(path.join(base,'ferramentas.html'),'utf8');
 let lib=null;try{lib=require('pdf-lib');}catch{}
 const sample={name:'Agente Exemplo',player:'Jogadora',origin:'Cultista Arrependido',class:'Combatente',trail:'Aniquilador',rank:'Operador',nex:40,
  attrs:{Agilidade:3,Força:2,Intelecto:1,Presença:2,Vigor:2},resources:{PV:12,PE:6,SAN:22},

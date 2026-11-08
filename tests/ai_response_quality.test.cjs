@@ -38,7 +38,7 @@ assert.ok(ranked.length>=2);
 assert.equal(ranked[0].id,'example/instruct-7b:free');
 assert.ok(ranked.every(m=>!/(safety|embed|audio|paid|no-pricing)/.test(m.id)));
 const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/dev/rpgmesa/demo/MainActivity.java'),'utf8');
-const html=fs.readFileSync(path.join(dir,'demo-offline.html'),'utf8');
+const html=fs.readFileSync(path.join(dir,'ferramentas.html'),'utf8');
 assert.ok(java.includes('private String answerFromResponse(JSONObject raw)'), 'native parser');
 assert.ok(java.includes('message.isNull("content")'), 'native must detect JSON null');
 assert.ok(java.includes('java.util.LinkedHashSet<String> candidates=') && java.includes('if(++attempt>3)break'), 'native bounded free-model fallback');

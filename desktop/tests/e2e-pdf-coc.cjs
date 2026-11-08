@@ -18,7 +18,7 @@ function samplePdf(){
  try{
   app=await electron.launch({executablePath:binary,args:process.platform==='linux'?['--no-sandbox','--disable-dev-shm-usage']:['--disable-gpu'],env:{...process.env,MASTERMIND_E2E:'1'},timeout:65000});
   const win=await app.firstWindow({timeout:35000});
-  await win.locator('#screen-library').waitFor({state:'attached',timeout:40000});
+  await win.waitForFunction(()=>!!window.RV&&!!window.MastermindDesktop,null,{timeout:40000});
   const userData=await app.evaluate(({app})=>app.getPath('userData'));
   const dir=path.join(userData,'mastermind-books');fs.mkdirSync(dir,{recursive:true});
   const id='book-e2e1234',file=path.join(dir,id+'.pdf');
@@ -29,8 +29,12 @@ function samplePdf(){
   assert.equal(matches.results[0].page,1,'Página real incorreta');
   const all=await win.evaluate(()=>window.MastermindDesktop.action('search-library','descanso','chamado-de-ctchulhu',20));
   assert.equal(all.total,1,'Pesquisa cruzada por sistema falhou: '+JSON.stringify(all));
-  await win.evaluate(()=>{window.RPG_DEMO.navigate('library');window.RPG15.openSystem('chamado-de-ctchulhu');});
-  await win.locator('.coc-shell').waitFor({state:'visible',timeout:15000});
+  // Ficha de investigador: ficha completa (página de ferramentas), sistema Chamado de Cthulhu.
+  await win.waitForFunction(()=>!!window.RV?.tool,null,{timeout:40000});
+  await win.evaluate(()=>window.RV.tool('sheet'));
+  await win.waitForURL(/ferramentas\.html#sheet$/,{timeout:30000});
+  await win.locator('#mss-system').selectOption('coc');
+  await win.locator('#mss-native-stage .coc-shell').waitFor({state:'visible',timeout:15000});
   const char=await win.evaluate(()=>window.MastermindCoc7.current);
   assert.equal(char.systemId,'chamado-de-ctchulhu');
   assert.equal(char.resources.HP.max,11);

@@ -4,7 +4,7 @@ const root=path.resolve(__dirname,'../app/src/main'),assets=path.join(root,'asse
 const read=name=>fs.readFileSync(path.join(assets,name),'utf8');
 const act=fs.readFileSync(path.join(root,'java/dev/rpgmesa/demo/MainActivity.java'),'utf8');
 const native=fs.readFileSync(path.join(root,'java/dev/rpgmesa/demo/PdfTextSearch.java'),'utf8');
-const html=read('demo-offline.html'),catalog=read('rpg15_catalog.js'),ui=read('mastermind51_private_books.js');
+const html=read('ferramentas.html'),catalog=read('rpg15_catalog.js'),ui=read('mastermind51_private_books.js');
 const testJS=()=>assert.doesNotThrow(()=>new Function(ui));
 testJS();
 const s={window:{}};vm.runInNewContext(read('rpg15_catalog_data.js'),s);

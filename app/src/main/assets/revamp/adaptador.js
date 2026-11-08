@@ -71,6 +71,8 @@ function sceneToServer(scene,opts={}){
  const g=scene.grid||{};
  map.look={bg:scene.bg||'rocha',time:scene.ambient?.time||'dia',mist:+(scene.ambient?.mist)||0,weather:scene.ambient?.weather||'nenhum',meters:+scene.meters||1.5,system:scene.system||'',
   grid:{show:g.show!==false,color:/^#[0-9a-f]{6}$/i.test(g.color||'')?g.color:'#ffffff',alpha:+g.alpha||0,width:+g.width||1,overTerrainOnly:!!g.overTerrainOnly},imageOpacity:scene.imageOpacity??1};
+ /* sombras automáticas de salas fechadas: calculadas pelo servidor (mesma opção do editor anterior) */
+ map.atmosphere=Object.assign({},prev?.atmosphere||{},{doorShadows:!!scene.ambient?.doorShadows});
  map.v2={notes:(scene.notes||[]).slice(0,200),hiddenObjects,secret,layers:scene.layers||null};
  let asset=null;
  if(scene.image&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(scene.image)){
@@ -99,6 +101,7 @@ function serverToScene(map,Cena,opts={}){
  const look=map.look||null,v2=map.v2||{};
  if(look){s.bg=look.bg||s.bg;s.ambient={time:look.time||'dia',mist:+look.mist||0,weather:look.weather||'nenhum'};s.meters=+look.meters||1.5;if(look.system)s.system=look.system;
   if(look.grid)s.grid=Object.assign(s.grid,look.grid);if(look.imageOpacity!=null)s.imageOpacity=+look.imageOpacity}
+ if(map.atmosphere?.doorShadows===true)s.ambient.doorShadows=true;
  const L=map.layers||{};
  (L.terrain||[]).forEach(m=>{if(m.x>=0&&m.y>=0&&m.x<cols&&m.y<rows){const id=Cena.TERRAIN[m.t]?m.t:C2T[m.id]||(Cena.TERRAIN[m.id]?m.id:null);if(id)s.terrain[m.x+','+m.y]=id}});
  if(!look&&!(L.terrain||[]).length){const floor=THEME_FLOOR[map.theme]||'pedra';Cena.paintRect(s,0,0,cols,rows,floor);s.grid.overTerrainOnly=false}

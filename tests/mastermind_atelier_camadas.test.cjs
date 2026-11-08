@@ -4,7 +4,7 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),fs=requir
 const assets=path.join(__dirname,'..','app/src/main/assets');
 const read=f=>fs.readFileSync(path.join(assets,f),'utf8');
 test('Ateliê em camadas substitui o lyime na tela do app',()=>{
- const html=read('demo-offline.html'),ui=read('mastermind39_ui.js');
+ const html=read('ferramentas.html'),ui=read('mastermind39_ui.js');
  assert.match(html,/id="screen-atelier85"/);
  assert.match(html,/id="ma99-atelier"/);
  assert.match(html,/mastermind99_atelier_layers\.js"><\/script><script src="mastermind99_atelier\.js"/);

@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'..');
 const get=p=>fs.readFileSync(path.join(root,p),'utf8');
-const html=get('app/src/main/assets/demo-offline.html');
+const html=get('app/src/main/assets/ferramentas.html');
 const css=get('app/src/main/assets/pixelportrait86_companion.css');
 const js=get('app/src/main/assets/pixelportrait86_companion.js');
 const main=get('app/src/main/java/dev/rpgmesa/demo/MainActivity.java');

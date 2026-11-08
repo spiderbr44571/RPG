@@ -6,7 +6,7 @@ test.afterAll(()=>server.stop());
 
 test('actual offline UI: theme-aware home button opens menu without a roll',async({page})=>{
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
- await page.goto('http://127.0.0.1:8123/demo-offline.html');
+ await page.goto('http://127.0.0.1:8123/ferramentas.html');
  const home=page.locator('#r09-dice');
  await expect(home.locator('svg.r09-home-svg')).toBeVisible();
  await expect(home.locator('.r09-die-num,.die-shell')).toHaveCount(0);
@@ -30,7 +30,7 @@ test('actual offline UI: theme-aware home button opens menu without a roll',asyn
 
 test('actual dice burst: SVG dice have no square background and are theme-aware',async({page})=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto('http://127.0.0.1:8123/demo-offline.html');
+ await page.goto('http://127.0.0.1:8123/ferramentas.html');
  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('rpg:roll',{detail:{
     faces:[16,8,5],sides:20,bonus:0,total:29,label:'Mestre'
  }})));

@@ -5,7 +5,7 @@ const text=p=>fs.readFileSync(path.join(root,p),'utf8');
 const embedded=text('app/src/main/java/dev/rpgmesa/demo/PixelPortraitActivity.java');
 const main=text('app/src/main/java/dev/rpgmesa/demo/MainActivity.java');
 const manifest=text('app/src/main/AndroidManifest.xml');
-const html=text('app/src/main/assets/demo-offline.html');
+const html=text('app/src/main/assets/ferramentas.html');
 const studio=text('app/src/main/assets/pixelportrait86_companion.js');
 const gradle=text('app/build.gradle');
 const oldFiles=['PixelPortraitCreator.exe','PixelPortraitCreator.pck'];

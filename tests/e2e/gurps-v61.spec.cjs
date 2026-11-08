@@ -1,7 +1,7 @@
 const {test,expect}=require('@playwright/test');
 test('GURPS catálogo Básico 4e e edição de perícia preservam a ficha e os índices',async({page})=>{
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.goto('http://127.0.0.1:8123/demo-offline.html');
+  await page.goto('http://127.0.0.1:8123/ferramentas.html');
   await page.evaluate(()=>{
     const box=document.createElement('div');box.id='g61-test';document.body.append(box);
     window.RPG16_GURPS.mount(box);

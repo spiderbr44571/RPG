@@ -5,6 +5,8 @@ const desktop=window.MastermindDesktop;
 if(!desktop)return;
 document.documentElement.classList.add('mastermind-desktop');
 document.body.classList.add('mastermind-desktop');
+// Modo paisagem (largura toda da tela) ligado no computador; quem o desligou antes continua sem ele.
+try{if(localStorage.getItem('mastermind-linux-landscape-v1')!=='false')document.body.classList.add('mastermind-landscape');}catch(_){document.body.classList.add('mastermind-landscape');}
 const $=s=>document.querySelector(s);
 const el=(tag,cl,text)=>{const x=document.createElement(tag);if(cl)x.className=cl;if(text)x.textContent=text;return x;};
 function toast(message){
