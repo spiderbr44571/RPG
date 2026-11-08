@@ -27,7 +27,7 @@ const fail=m=>{console.error('FALHOU:',m);process.exitCode=1};
  await mp.goto(INDEX+'#mestragem');
  await mp.waitForSelector('[data-m="choose"]',{timeout:8000});await mp.click(`[data-m="choose"][data-v="${cid}"]`);
  await mp.waitForSelector('[data-m="create-scene"]',{timeout:8000});
- await mp.selectOption('[data-m-new]','masmorra');await mp.click('[data-m="create-scene"]');
+ await mp.selectOption('[data-m-new]','caverna');await mp.click('[data-m="create-scene"]');
  await mp.waitForSelector('.st-publish');await mp.click('.st-publish');await mp.waitForTimeout(1500);
  let table=await M('GET',`/api/admin/campaigns/${cid}/table`);const act=table.scenarios.find(s=>s.id===table.activeScenarioId);
  if(!act)fail('cenário não publicado');else console.log('publicado:',act.name,'paredes',act.layers.walls.length,'salas ocultas',act.rooms.length);
@@ -36,9 +36,13 @@ const fail=m=>{console.error('FALHOU:',m);process.exitCode=1};
  const det=(await M('GET',`/api/admin/campaigns/${cid}`)).campaign;const inv=det.invite.replace(/^http:\/\/[^/]+/,BASE).replace('/join/','/v2/join/');
  const pctx=await browser.newContext({viewport:{width:900,height:700}});const pp=await pctx.newPage();pp.on('pageerror',e=>errors.push('jogador: '+e.stack));
  pp.on('console',m=>{if(m.type()==='error')errors.push('jogador console: '+m.text())});
- await pctx.addInitScript(()=>{localStorage.setItem('mm-rv-tut-player','skipped')});
- await pp.goto(inv);await pp.waitForSelector('#web-nick');await pp.fill('#web-nick','Bia');await pp.click('#web-btn');
+ // jogador de primeira vez (sem tour marcado): o convite da mesa não pode cair na campanha de treino
+ await pp.goto(inv);await pp.waitForSelector('#web-nick');await pp.waitForTimeout(600);
+ if(await pp.locator('.modal-back').count())fail('o convite abriu o tour da campanha de treino');
+ await pp.fill('#web-nick','Bia');await pp.click('#web-btn');
  await pp.waitForURL(/\/v2\/play\//,{timeout:8000});await pp.waitForTimeout(2500);
+ const seen=await pp.evaluate(()=>RV.views?.player?.S()?.scene?.name);console.log('jogador vê o cenário:',seen,'(publicado:',act&&act.name+')');
+ if(!act||seen!==act.name)fail('o jogador não está no cenário publicado da campanha');
  // mestre adiciona uma ficha e atribui
  det.players=(await M('GET',`/api/admin/campaigns/${cid}`)).campaign.players;const pl=det.players.find(p=>p.nickname==='Bia');
  const sh=await M('POST',`/api/admin/campaigns/${cid}/characters`,{sheet:{name:'Vera',systemId:'ordem-paranormal',class:'Especialista',nex:10,attrs:{Agilidade:2,Força:1,Intelecto:3,Presença:1,Vigor:1},resources:{PV:{current:14,max:16},PE:{current:3,max:4},SAN:{current:15,max:16}}}});

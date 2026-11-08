@@ -259,8 +259,11 @@ const J=RV.Join={mode:Net.served?'web':Net.canJoinByApp()?'app':'web',sheet:null
   const link=mode==='app'?$('#join-addr').value.trim():RV.webInvite?.link;const sheet=mode==='app'?(this.sheet?RV.Sheets.list().find(s=>s.id===this.sheet)?.sheet||null:null):(document.querySelector('input[name="web-sheet"]:checked')?.value==='file'?this.fileSheet||null:null);
   if(mode==='web'&&document.querySelector('input[name="web-sheet"]:checked')?.value==='file'&&!this.fileSheet){this.status(st,'Escolha o arquivo da ficha (JSON exportado do app).','bad-dot');return}
   btn.disabled=true;this.status(st,'Conectando à mesa…');emit('join:done');
-  try{if(RV.Tut?.flow==='player'||(!Net.served&&!Net.canJoinByApp())){btn.disabled=false;return this.demo(st,btn,!!sheet||this.sheet==='aurora')}
-   await Live.join({link,nickname:nick,sheet});this.status(st,sheet?'Ficha enviada ao mestre. Abrindo a mesa…':'Conectado. Abrindo a mesa…','on');
+  /* convite de verdade (navegador servido pela mesa, ou convite colado no app): entra na mesa de verdade, mesmo com o tour aberto */
+  const real=Net.served||(mode==='app'&&/\/join\/[a-z0-9]{32}\//.test(link||''));
+  try{if((RV.Tut?.flow==='player'&&!real)||(!Net.served&&!Net.canJoinByApp())){btn.disabled=false;return this.demo(st,btn,!!sheet||this.sheet==='aurora')}
+   if(RV.Tut?.flow==='player')RV.Tut.stop();
+   await Live.join({link,nickname:nick,sheet});Live.psig='';RV.pstate=RV.waitingState('Conectando à mesa…');this.status(st,sheet?'Ficha enviada ao mestre. Abrindo a mesa…':'Conectado. Abrindo a mesa…','on');
    setTimeout(()=>{btn.disabled=false;if(Net.served)location.href='/v2/play/'+Live.conn.cid+'#jogador';else location.hash='#jogador'},500)}
   catch(e){btn.disabled=false;this.status(st,esc(e.message),'bad-dot')}},
  /* sem app e sem servidor (navegador aberto direto do arquivo): só a campanha de treino */
@@ -283,11 +286,13 @@ const J=RV.Join={mode:Net.served?'web':Net.canJoinByApp()?'app':'web',sheet:null
 on(e=>{if(e==='route:entrar')J.render();if(e==='route:jogador'&&Live.conn)Live.ppull().catch(err=>toast(err.message))});
 
 /* ================= Páginas servidas pela mesa (/v2/join e /v2/play) ================= */
+/* tela do jogador enquanto o cenário da campanha não chega: nunca a masmorra de exemplo deste aparelho */
+RV.waitingState=title=>{const scene=Cena.blank(title,24,16);return{scene,sceneVer:1,fog:new Set(),tokens:[],strokes:[],mode:'combat',light:false,init:{entries:[],idx:0,round:1},log:[]}};
 RV.bootServed=async()=>{if(!Net.served)return;document.body.classList.add('served');
  let m=/^\/v2\/join\/([a-z0-9]{32})\/([A-Za-z0-9_-]{20,90})$/.exec(location.pathname);
  if(m){RV.webInvite={link:location.origin+'/join/'+m[1]+'/'+m[2],cid:m[1]};try{const i=await Net.player(null,'GET','/api/join/info/'+m[1]);RV.webInvite.name=i.name}catch(_){}
   if(location.hash!=='#entrar')location.hash='#entrar';else J.render();return}
  m=/^\/v2\/play\/([a-z0-9]{32})$/.exec(location.pathname);
- if(m){Live.conn={base:location.origin,cid:m[1],guest:'',name:''};try{const me=await Net.player(Live.conn,'GET','/api/play/'+m[1]);Live.conn.name=me.nickname;Live.conn.campaign=me.campaign}catch(e){toast('Sessão de jogador não encontrada. Abra o convite de novo.')}
+ if(m){Live.conn={base:location.origin,cid:m[1],guest:'',name:''};Live.psig='';RV.pstate=RV.waitingState('Conectando à mesa…');try{const me=await Net.player(Live.conn,'GET','/api/play/'+m[1]);Live.conn.name=me.nickname;Live.conn.campaign=me.campaign}catch(e){toast('Sessão de jogador não encontrada. Abra o convite de novo.')}
   if(location.hash!=='#jogador')location.hash='#jogador';else Live.ppull().catch(e=>toast(e.message))}};
 })();

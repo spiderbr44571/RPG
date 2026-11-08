@@ -1,6 +1,6 @@
 # Mastermind
 
-Versão atual: **Android v0.112** · **Linux e Windows v1.4.2** — a nova interface é a única do app, com o Canvas
+Versão atual: **Android v0.113** · **Linux e Windows v1.4.3** — a nova interface é a única do app, com o Canvas
 infinito próprio; a interface clássica foi retirada sem perder funções nem dados salvos.
 
 ## Organização do repositório
@@ -20,6 +20,17 @@ infinito próprio; a interface clássica foi retirada sem perder funções nem d
   (veja a docstring de `atelie_corrigir_rostos.py` para regenerar).
 
 ## Histórico
+
+# Mastermind v0.113 (Android) · v1.4.3 (Linux e Windows) — convite pelo navegador cai na campanha certa
+
+Quem abria o convite pelo navegador pela primeira vez via "Quer um tour rápido?"; aceitando o tour, "Entrar na
+mesa" entrava na campanha de treino (a masmorra de exemplo) em vez da campanha do mestre. Agora:
+- o convite da mesa não oferece o tour da campanha de treino;
+- com um convite de verdade (navegador ou convite colado no app), "Entrar na mesa" sempre entra na mesa de verdade,
+  mesmo com um tour aberto;
+- até o cenário da campanha chegar, o jogador vê "Conectando à mesa…", nunca o mapa de exemplo do aparelho.
+O teste ao vivo (tests/revamp_live.e2e.cjs) agora usa um jogador de primeira vez e confere que ele vê o cenário
+publicado.
 
 # Mastermind v0.112 (Android) · v1.4.2 (Linux e Windows) — sistemas próprios, criaturas novas e mídia no Canvas
 

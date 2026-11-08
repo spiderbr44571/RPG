@@ -8,7 +8,9 @@ class Table{
   this.sel=role==='master'&&!RV.Live?.active('master')?'aurora':null;this.pointers=new Map();this.space=false;this.measure=null;this.pending=null;this.panelTab='init';this.drawerTab='beasts';this.paintedVer=0;
   this.build();this.fit(false);this.render();on(e=>{if(e==='state')this.render()});
  }
- S(){return this.role==='player'&&RV.pstate?RV.pstate:RV.state}
+ S(){if(this.role!=='player')return RV.state;if(RV.pstate)return RV.pstate;
+  /* jogador conectado a uma mesa: até o cenário chegar, tela de espera (nunca o mapa de exemplo deste aparelho) */
+  return RV.Live?.conn&&!RV.Tut?.flow&&RV.waitingState?(RV.pstate=RV.waitingState('Conectando à mesa…')):RV.state}
  get W(){return this.S().scene.cols*CELL}get H(){return this.S().scene.rows*CELL}
  visibleTokens(){return this.S().tokens.filter(t=>this.role==='master'||(!t.hidden&&!this.cellsOf(t).every(k=>this.S().fog.has(k))))}
  cellsOf(t){const a=[];for(let y=t.y;y<t.y+t.size;y++)for(let x=t.x;x<t.x+t.size;x++)a.push(x+','+y);return a}
