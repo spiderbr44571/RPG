@@ -9,7 +9,7 @@ maj,mn=re.search(r"versionName '(\d+)\.(\d+)\.\d+-",gradle).groups()
 versao=f'v{maj}.{mn}'
 assert apk.is_file() and apk.stat().st_size > 1024*1024, "APK not built or too small"
 assets=Path('app/src/main/assets')
-files=('ferramentas.html','ferramentas.js','ferramentas.css','revamp/index.html','revamp/app.js','revamp/canvas.js','revamp/servidor.js','revamp/adaptador.js','mastermind_coc7_engine.js','mastermind_coc7_ui.js','mastermind_coc7.css','mastermind_coc7_android.css','mastermind56_local_powers.js','mastermind55_powers.json','mastermind_system_editor.js','mastermind_ordem_template.js','mastermind_system_pdf.js','pdf-lib.min.js','mastermind_sheet_studio.js','mastermind_sheet_studio.css','mastermind51_private_books.js','rpg15_catalog.js','rpg11_campaigns.js','mastermind99_atelier.js','mastermind99_atelier_layers.js','mastermind99_atelier.css','rpg31_master_table.js','rpg29_scene_editor.js')
+files=('ferramentas.html','pdf-lib.min.js','ferramentas.js','ferramentas.css','revamp/index.html','revamp/app.js','revamp/canvas.js','revamp/servidor.js','revamp/adaptador.js','mastermind_coc7_engine.js','mastermind_coc7_ui.js','mastermind_coc7.css','mastermind_coc7_android.css','mastermind56_local_powers.js','mastermind55_powers.json','mastermind_system_editor.js','mastermind_ordem_template.js','mastermind_system_pdf.js','mastermind_sheet_studio.js','mastermind_sheet_studio.css','mastermind51_private_books.js','rpg15_catalog.js','rpg11_campaigns.js','mastermind99_atelier.js','mastermind99_atelier_layers.js','mastermind99_atelier.css')
 with zipfile.ZipFile(apk) as z:
     names=set(z.namelist())
     assert 'AndroidManifest.xml' in names

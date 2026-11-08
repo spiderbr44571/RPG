@@ -14,6 +14,8 @@ function title(id){const t=document.getElementById('current-page');if(t)t.textCo
 if(app&&typeof app.navigate==='function'){
  const go=app.navigate.bind(app);
  app.navigate=function(id){
+  /* a ficha antiga de Ordem vive dentro da ficha completa: abre a ficha completa já em Ordem Paranormal */
+  if(id==='op'){go('sheet');title('sheet');try{window.MastermindSheetStudio?.switchSystem('ordem')}catch(_){}if(location.hash!=='#sheet')history.replaceState(null,'','#sheet');return}
   if(TOOLS[id]){go(id);title(id);return}
   location.href='revamp/index.html'+(NEW[id]||back)};
  const first=(location.hash||'').slice(1);
@@ -24,4 +26,9 @@ if(app&&typeof app.navigate==='function'){
 document.addEventListener('click',e=>{const b=e.target.closest('[data-screen]');if(!b||TOOLS[b.dataset.screen])return;
  e.preventDefault();e.stopImmediatePropagation();location.href='revamp/index.html'+(NEW[b.dataset.screen]||back)},true);
 document.documentElement.classList.add('mmt');
+/* Tema claro com o dourado padrão: o mesmo dourado escuro da nova interface (legível no fundo claro). */
+function lightGold(){const h=document.documentElement;let acc='gold',el='"base"';try{acc=localStorage.getItem('rpg-accent')||'gold';el=localStorage.getItem('v10-global-element')||'"base"'}catch(_){}
+ if(h.classList.contains('light')&&acc==='gold'&&el==='"base"'){h.style.setProperty('--accent','#917149','important');h.style.setProperty('--accent-soft','#b5966430','important')}
+ else if(h.style.getPropertyPriority('--accent')==='important'){h.style.removeProperty('--accent');h.style.removeProperty('--accent-soft')}}
+lightGold();new MutationObserver(lightGold).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
 })();

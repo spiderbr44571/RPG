@@ -1,5 +1,19 @@
 /* Página de ferramentas (ficha completa dos quatro sistemas e Ateliê), no visual da nova interface.
    A navegação antiga não existe aqui: a Central e o menu ficam na nova interface (revamp/index.html). */
+/* Mesmas fontes da nova interface (arquivos locais, sem internet). */
+@font-face{font-family:"Cormorant Garamond";font-style:normal;font-weight:500;font-display:swap;src:url("revamp/fontes/cormorant-garamond-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"Cormorant Garamond";font-style:italic;font-weight:500;font-display:swap;src:url("revamp/fontes/cormorant-garamond-latin-500-italic.woff2") format("woff2")}
+@font-face{font-family:"Cormorant Garamond";font-style:normal;font-weight:600;font-display:swap;src:url("revamp/fontes/cormorant-garamond-latin-600-normal.woff2") format("woff2")}
+@font-face{font-family:"Cormorant Garamond";font-style:italic;font-weight:600;font-display:swap;src:url("revamp/fontes/cormorant-garamond-latin-600-italic.woff2") format("woff2")}
+@font-face{font-family:"Cormorant Garamond";font-style:normal;font-weight:700;font-display:swap;src:url("revamp/fontes/cormorant-garamond-latin-700-normal.woff2") format("woff2")}
+@font-face{font-family:"Cormorant Garamond";font-style:italic;font-weight:700;font-display:swap;src:url("revamp/fontes/cormorant-garamond-latin-700-italic.woff2") format("woff2")}
+@font-face{font-family:"DM Sans";font-style:normal;font-weight:400;font-display:swap;src:url("revamp/fontes/dm-sans-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"DM Sans";font-style:normal;font-weight:500;font-display:swap;src:url("revamp/fontes/dm-sans-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"DM Sans";font-style:normal;font-weight:600;font-display:swap;src:url("revamp/fontes/dm-sans-latin-600-normal.woff2") format("woff2")}
+@font-face{font-family:"DM Sans";font-style:normal;font-weight:700;font-display:swap;src:url("revamp/fontes/dm-sans-latin-700-normal.woff2") format("woff2")}
+@font-face{font-family:"Space Grotesk";font-style:normal;font-weight:500;font-display:swap;src:url("revamp/fontes/space-grotesk-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"Space Grotesk";font-style:normal;font-weight:600;font-display:swap;src:url("revamp/fontes/space-grotesk-latin-600-normal.woff2") format("woff2")}
+@font-face{font-family:"Space Grotesk";font-style:normal;font-weight:700;font-display:swap;src:url("revamp/fontes/space-grotesk-latin-700-normal.woff2") format("woff2")}
 html.mmt .r09-dock,html.mmt .r09-overlay,html.mmt .sidebar,html.mmt .nav-btn,html.mmt .mm38-bottom-nav,html.mmt .mm38-nav{display:none!important}
 html.mmt .app{display:block}
 html.mmt .main{margin-left:0!important;width:100%}
@@ -13,3 +27,37 @@ html.mmt .mmt-bar .breadcrumb{flex:1;min-width:0;justify-content:flex-start}
 html.mmt .mmt-bar .breadcrumb strong{font:600 20px 'Cormorant Garamond',Georgia,serif}
 @media (max-width:640px){html.mmt .mmt-bar .breadcrumb small,html.mmt .mmt-bar .divider-slash,html.mmt #mm62-descriptions-trigger,html.mmt .mm39-top-search span{display:none}}
 html.mmt .desktop-titlebar{display:none!important}
+/* Sem as linhas de varredura do tema antigo: a nova interface não usa esse efeito. */
+html.mmt body:after{content:none!important;display:none!important}
+/* Cores da nova interface (revamp/index.html). O tema antigo escurecia e arroxeava até o elemento Base e ignorava o
+   tema claro; aqui valem as mesmas regras da nova interface: Base neutro, elementos com o fundo deles, claro é claro. */
+html.mmt[data-paranormal]{--bg:#0b0d12!important;--sidebar:#0d0f15!important;--panel:#12151d!important;--panel2:#181c25!important;--card:#171a23!important;
+ --fg:#e8e7e7!important;--muted:#92939f!important;--faint:#656978!important;--line:#292c37!important;--line-soft:#20232c!important;
+ --accent-soft:color-mix(in srgb,var(--accent) 15%,transparent)!important}
+html.mmt[data-paranormal]:not([data-paranormal="base"]){--bg:#080912!important;--sidebar:#0c0b14!important;--panel:#14101c!important;--panel2:#191521!important;--card:#15131e!important;
+ --line:color-mix(in srgb,var(--v10-accent) 20%,#292c37)!important;--line-soft:color-mix(in srgb,var(--v10-accent) 10%,#20232c)!important}
+html.mmt[data-paranormal="conhecimento"]{--panel:#16131a!important;--panel2:#211c20!important;--bg:#0d0b10!important}
+html.mmt[data-paranormal="energia"]{--panel:#12101e!important;--panel2:#151829!important;--bg:#08091a!important}
+html.mmt[data-paranormal="morte"]{--panel:#171c1a!important;--panel2:#202420!important;--bg:#0b100f!important}
+html.mmt[data-paranormal="medo"]{--panel:#15101d!important;--panel2:#1c1527!important;--bg:#090613!important}
+html.mmt.light[data-paranormal]{--bg:#f3f0ea!important;--sidebar:#e9e6e0!important;--panel:#fffdf9!important;--panel2:#eeeae4!important;--card:#f9f7f2!important;
+ --line:#d6d1ca!important;--line-soft:#e6e0d7!important;--fg:#242632!important;--muted:#606473!important;--faint:#8b8b92!important;color-scheme:light}
+html.mmt[data-paranormal="base"] body:before{content:none!important}
+/* Bordas: no Base, as linhas neutras da nova interface; nos elementos, a borda do elemento (como os cartões da nova interface). */
+html.mmt[data-paranormal="base"] #mastermind-sheet-studio{--mss-line:var(--line)!important}
+/* Partículas do tema antigo: a nova interface não as desenha no elemento Base. */
+html.mmt[data-paranormal="base"] #v10-ambient{display:none!important}
+/* Títulos da ficha completa na fonte de títulos da nova interface (antes, Georgia fixa). */
+html.mmt h1,html.mmt h2,html.mmt h3,
+html.mmt #mastermind-sheet-studio .mss-bar h2,html.mmt #mastermind-sheet-studio .mss-initials,
+html.mmt #mastermind-sheet-studio .mss-native-title h3{font-family:var(--rpg-heading,'Cormorant Garamond',Georgia,serif)!important}
+html.mmt #mastermind-sheet-studio .mss-portrait-caption h3{font-family:var(--rpg-heading,'Cormorant Garamond',Georgia,serif)!important;font-weight:600!important;letter-spacing:.2px!important;font-size:clamp(20px,2.4vw,28px)!important}
+html.mmt #mastermind-sheet-studio .mss-bar h2{font-weight:600!important;font-size:clamp(28px,3vw,40px)!important}
+/* Números (atributos e rolagem) na fonte de interface, com algarismos alinhados, como na nova interface. */
+html.mmt #mastermind-sheet-studio .mss-stat strong,html.mmt #mastermind-sheet-studio #mss-roll-score{font-family:var(--rpg-body,'DM Sans',system-ui,sans-serif)!important;font-variant-numeric:tabular-nums lining-nums;font-weight:600!important}
+/* Celular: a inicial do retrato sobe para não ficar embaixo do nome. */
+@media (max-width:640px){html.mmt #mastermind-sheet-studio .mss-initials{place-items:start center;padding-top:14%;font-size:52px!important}
+ html.mmt #mastermind-sheet-studio .mss-portrait-caption h3{font-size:19px!important}}
+/* Sem a barra inferior antiga: o conteúdo vai até o fim da tela. */
+html.mmt .main{padding-bottom:0!important}
+html.mmt .content{padding-bottom:max(32px,env(safe-area-inset-bottom,0px))!important}
